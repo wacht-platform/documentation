@@ -1,0 +1,88 @@
+---
+title: '<OrganizationList />'
+description: 'List component displaying user organizations with avatar, name, role, and creation action'
+---
+
+## Overview
+
+The `<OrganizationList />` component displays a list of organizations that the user belongs to. It shows organization avatars, names, user roles, and includes a "Create Organization" action button.
+
+## Basic Usage
+
+```tsx
+import { OrganizationList } from '@snipextt/wacht'
+
+function OrganizationsPage() {
+  const organizations = [
+    { id: '1', name: 'Acme Corp', role: 'Admin', imageUrl: '/acme-logo.png' },
+    { id: '2', name: 'Beta Inc', role: 'Member', imageUrl: '/beta-logo.png' }
+  ]
+  const [activeOrg, setActiveOrg] = useState('1')
+
+  return (
+    <OrganizationList
+      organizations={organizations}
+      activeOrg={activeOrg}
+      setActiveOrg={setActiveOrg}
+    />
+  )
+}
+```
+
+## Props
+
+<ParamField path="organizations" type="Organization[]" required>
+  Array of organization objects to display in the list.
+</ParamField>
+
+<ParamField path="activeOrg" type="string" required>
+  ID of the currently active/selected organization.
+</ParamField>
+
+<ParamField path="setActiveOrg" type="function" required>
+  Function to set the active organization ID when an organization is selected.
+</ParamField>
+
+### Organization Object
+
+<ParamField path="id" type="string" required>
+  Unique identifier for the organization.
+</ParamField>
+
+<ParamField path="name" type="string" required>
+  Display name of the organization.
+</ParamField>
+
+<ParamField path="role" type="string" required>
+  User's role within the organization (e.g., "Admin", "Member", "Owner").
+</ParamField>
+
+<ParamField path="imageUrl" type="string" optional>
+  URL to the organization's logo/avatar image.
+</ParamField>
+
+## What it includes
+
+### Organization Display
+- **Organization Avatar** - Shows organization logo or generated initials
+- **Organization Name** - Display name of the organization
+- **User Role** - Shows the user's role within each organization
+- **Active Indicator** - Visual indicator for the currently selected organization
+
+### Interactive Features
+- **Organization Selection** - Click to set active organization
+- **Create Organization Button** - Action button to create new organizations
+- **Hover States** - Visual feedback on organization items
+- **Responsive Design** - Adapts to different screen sizes
+
+### Visual Features
+- **Avatar Fallback** - Shows organization initials if no logo is provided
+- **Smooth Transitions** - Animated hover and selection states
+- **Mobile Breakpoints** - Responsive design for mobile devices
+
+## Related Components
+
+- [`<CreateOrganizationForm />`](/components/create-organization-form) - Form for creating new organizations
+- [`<CreateOrganizationDialog />`](/components/create-organization-dialog) - Modal for organization creation
+- [`<OrganizationSwitcher />`](/components/organization-switcher) - Organization switching interface
+- [`<ManageOrganization />`](/components/manage-organization) - Organization management interface

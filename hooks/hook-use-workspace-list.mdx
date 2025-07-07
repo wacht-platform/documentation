@@ -1,0 +1,279 @@
+---
+title: "useWorkspaceList()"
+description: "Access and manage all workspaces across organizations"
+---
+
+The `useWorkspaceList()` hook provides access to all workspaces the user has access to across organizations and methods to manage them.
+
+## Import
+
+```typescript
+import { useWorkspaceList } from '@snipextt/wacht';
+```
+
+## Usage
+
+```tsx
+import { useWorkspaceList } from '@snipextt/wacht';
+
+function WorkspaceManager() {
+  const { 
+    workspaces, 
+    loading, 
+    createWorkspace, 
+    leaveWorkspace 
+  } = useWorkspaceList();
+
+  if (loading) {
+    return <div>Loading workspaces...</div>;
+  }
+
+  return (
+    <div>
+      <h2>Your Workspaces</h2>
+      {workspaces.map(workspace => (
+        <div key={workspace.id}>
+          <h3>{workspace.name}</h3>
+          <p>Organization: {workspace.organization.name}</p>
+          <button onClick={() => leaveWorkspace(workspace.id)}>
+            Leave Workspace
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+## Properties
+
+<ParamField path="workspaces" type="WorkspaceWithOrganization[]">
+  Array of workspaces with their parent organization information
+</ParamField>
+
+<ParamField path="loading" type="boolean">
+  Whether workspace data is being loaded
+</ParamField>
+
+<ParamField path="error" type="Error | null">
+  Any error that occurred while loading workspaces
+</ParamField>
+
+## Methods
+
+### createWorkspace()
+
+Creates a new workspace within an organization.
+
+<ParamField path="organizationId" type="string" required>
+  The ID of the organization to create the workspace in
+</ParamField>
+
+<ParamField path="name" type="string" required>
+  The name of the workspace
+</ParamField>
+
+<ParamField path="image" type="File">
+  Optional workspace image/logo
+</ParamField>
+
+<ParamField path="description" type="string">
+  Optional workspace description
+</ParamField>
+
+```tsx
+const { createWorkspace } = useWorkspaceList();
+
+await createWorkspace(
+  'org_123',
+  'Engineering Team',
+  imageFile, // optional
+  'Workspace for the engineering team' // optional
+);
+```
+
+### leaveWorkspace()
+
+Leave a workspace.
+
+<ParamField path="id" type="string" required>
+  The ID of the workspace to leave
+</ParamField>
+
+```tsx
+const { leaveWorkspace } = useWorkspaceList();
+
+await leaveWorkspace('workspace_123');
+```
+
+### refetch()
+
+Manually refresh workspace data.
+
+```tsx
+const { refetch } = useWorkspaceList();
+
+await refetch();
+```
+
+## Types
+
+### WorkspaceWithOrganization
+
+```typescript
+interface WorkspaceWithOrganization extends Workspace {
+  organization: Organization;
+}
+
+interface Workspace {
+  id: string;
+  name: string;
+  description?: string;
+  image_url?: string;
+  created_at: string;
+  updated_at: string;
+}
+```
+
+## Example: Workspace Creation Form
+
+```tsx
+function CreateWorkspaceForm() {
+  const { createWorkspace } = useWorkspaceList();
+  const { activeOrganization } = useActiveOrganization();
+  const [creating, setCreating] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!activeOrganization) return;
+    
+    setCreating(true);
+    const formData = new FormData(e.target);
+    
+    try {
+      await createWorkspace(
+        activeOrganization.id,
+        formData.get('name'),
+        formData.get('image'),
+        formData.get('description')
+      );
+      
+      alert('Workspace created successfully!');
+      e.target.reset();
+    } catch (error) {
+      console.error('Failed to create workspace:', error);
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <h2>Create New Workspace</h2>
+      
+      <input
+        name="name"
+        placeholder="Workspace Name"
+        required
+      />
+      
+      <textarea
+        name="description"
+        placeholder="Description (optional)"
+      />
+      
+      <input
+        name="image"
+        type="file"
+        accept="image/*"
+      />
+      
+      <button type="submit" disabled={creating || !activeOrganization}>
+        {creating ? 'Creating...' : 'Create Workspace'}
+      </button>
+    </form>
+  );
+}
+```
+
+## Example: Workspace Grid View
+
+```tsx
+function WorkspaceGrid() {
+  const { workspaces, loading, leaveWorkspace } = useWorkspaceList();
+  const { switchWorkspace } = useSession();
+  const { activeWorkspace } = useActiveWorkspace();
+
+  const [leaving, setLeaving] = useState(null);
+
+  const handleLeave = async (workspaceId) => {
+    if (confirm('Are you sure you want to leave this workspace?')) {
+      setLeaving(workspaceId);
+      try {
+        await leaveWorkspace(workspaceId);
+      } catch (error) {
+        alert('Failed to leave workspace');
+      } finally {
+        setLeaving(null);
+      }
+    }
+  };
+
+  if (loading) {
+    return <div>Loading workspaces...</div>;
+  }
+
+  // Group workspaces by organization
+  const workspacesByOrg = workspaces.reduce((acc, workspace) => {
+    const orgName = workspace.organization.name;
+    if (!acc[orgName]) acc[orgName] = [];
+    acc[orgName].push(workspace);
+    return acc;
+  }, {});
+
+  return (
+    <div className="workspace-grid">
+      {Object.entries(workspacesByOrg).map(([orgName, orgWorkspaces]) => (
+        <div key={orgName} className="org-section">
+          <h3>{orgName}</h3>
+          <div className="workspace-cards">
+            {orgWorkspaces.map(workspace => (
+              <div 
+                key={workspace.id} 
+                className={`workspace-card ${workspace.id === activeWorkspace?.id ? 'active' : ''}`}
+              >
+                <h4>{workspace.name}</h4>
+                <p>{workspace.description}</p>
+                
+                <div className="actions">
+                  {workspace.id !== activeWorkspace?.id && (
+                    <button onClick={() => switchWorkspace(workspace.id)}>
+                      Switch
+                    </button>
+                  )}
+                  
+                  <button 
+                    onClick={() => handleLeave(workspace.id)}
+                    disabled={leaving === workspace.id}
+                    className="danger"
+                  >
+                    {leaving === workspace.id ? 'Leaving...' : 'Leave'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+## Notes
+
+- Workspaces exist within organizations
+- Users can be members of multiple workspaces across different organizations
+- Creating workspaces requires appropriate organization permissions
+- Leaving a workspace removes your membership but doesn't delete the workspace
+- Workspace data is automatically refreshed when memberships change

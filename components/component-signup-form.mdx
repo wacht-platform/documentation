@@ -1,0 +1,54 @@
+---
+title: '<SignUpForm />'
+description: 'Complete user registration form with name, email, username, phone, password fields and social authentication'
+---
+
+## Overview
+
+The `<SignUpForm />` component provides a complete user registration interface with built-in validation, customizable required fields, and support for various sign-up strategies including email/password, social authentication, and phone verification.
+
+## Basic Usage
+
+```tsx
+import { SignUpForm } from '@snipextt/wacht'
+
+function RegisterPage() {
+  return (
+    <div className="auth-container">
+      <h1>Create Account</h1>
+      <SignUpForm />
+    </div>
+  )
+}
+```
+
+## Props
+
+The `<SignUpForm />` component takes **no props**. It's a self-contained component that automatically configures itself based on your deployment settings.
+
+## What it includes
+
+The component automatically renders fields and features based on your deployment configuration:
+
+### Personal Information Fields
+- **First Name** - Required by default
+- **Last Name** - Required by default  
+- **Username** - Optional, must be unique across the deployment
+- **Email Address** - Required, validated format and uniqueness
+- **Phone Number** - Optional, international format with country selection
+
+### Security Fields
+- **Password** - Required for email/password strategy
+- **Password Confirmation** - Automatically added when password is required
+
+### Social Authentication
+- Buttons for configured OAuth providers
+- Supported providers: Google, GitHub, Microsoft, Facebook, Discord, LinkedIn, Twitter, Slack
+
+## Related Components
+
+- [`<SignInForm />`](/components/signin-form) - User authentication form
+- [`<UserButton />`](/components/user-button) - User profile dropdown  
+- [`<SSOCallback />`](/components/sso-callback) - OAuth callback handler
+- [`<SignedIn />`](/components/signed-in) - Conditional rendering for authenticated users
+- [`<SignedOut />`](/components/signed-out) - Conditional rendering for unauthenticated users

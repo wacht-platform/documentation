@@ -1,0 +1,250 @@
+---
+title: "useWorkspaceMemberships()"
+description: "Access workspace membership data for the current user"
+---
+
+The `useWorkspaceMemberships()` hook provides direct access to the current user's workspace membership data.
+
+## Import
+
+```typescript
+import { useWorkspaceMemberships } from '@snipextt/wacht';
+```
+
+## Usage
+
+```tsx
+import { useWorkspaceMemberships } from '@snipextt/wacht';
+
+function WorkspaceMembershipList() {
+  const { workspaceMemberships, loading, refetch } = useWorkspaceMemberships();
+
+  if (loading) {
+    return <div>Loading memberships...</div>;
+  }
+
+  return (
+    <div>
+      <h2>Your Workspace Memberships</h2>
+      {workspaceMemberships?.map(membership => (
+        <div key={membership.id}>
+          <h3>{membership.workspace.name}</h3>
+          <p>Organization: {membership.organization.name}</p>
+          <p>Role: {membership.role?.name || 'Member'}</p>
+        </div>
+      ))}
+      <button onClick={refetch}>Refresh</button>
+    </div>
+  );
+}
+```
+
+## Properties
+
+<ParamField path="workspaceMemberships" type="WorkspaceMembership[]">
+  Array of workspace membership objects containing workspace, organization, and role information
+</ParamField>
+
+<ParamField path="loading" type="boolean">
+  Whether membership data is being loaded
+</ParamField>
+
+<ParamField path="error" type="Error | null">
+  Any error that occurred while loading memberships
+</ParamField>
+
+## Methods
+
+### refetch()
+
+Manually refreshes the workspace membership data.
+
+```tsx
+const { refetch } = useWorkspaceMemberships();
+
+await refetch();
+```
+
+## Types
+
+### WorkspaceMembership
+
+```typescript
+interface WorkspaceMembership {
+  id: string;
+  workspace: Workspace;
+  organization: Organization;
+  user: User;
+  role?: WorkspaceRole;
+  created_at: string;
+  updated_at: string;
+}
+
+interface WorkspaceRole {
+  id: string;
+  name: string;
+  permissions: string[];
+}
+```
+
+## Example: Workspace Membership Overview
+
+```tsx
+function WorkspaceMembershipOverview() {
+  const { workspaceMemberships, loading, error } = useWorkspaceMemberships();
+
+  if (loading) {
+    return <div>Loading workspace memberships...</div>;
+  }
+
+  if (error) {
+    return <div>Error loading memberships: {error.message}</div>;
+  }
+
+  // Group memberships by organization
+  const membershipsByOrg = workspaceMemberships?.reduce((acc, membership) => {
+    const orgId = membership.organization.id;
+    if (!acc[orgId]) {
+      acc[orgId] = {
+        organization: membership.organization,
+        workspaces: []
+      };
+    }
+    acc[orgId].workspaces.push(membership);
+    return acc;
+  }, {}) || {};
+
+  return (
+    <div className="membership-overview">
+      <h2>Workspace Memberships</h2>
+      
+      {Object.values(membershipsByOrg).map(({ organization, workspaces }) => (
+        <div key={organization.id} className="org-group">
+          <h3>{organization.name}</h3>
+          <div className="workspace-list">
+            {workspaces.map(membership => (
+              <div key={membership.id} className="workspace-item">
+                <h4>{membership.workspace.name}</h4>
+                <span className="role">
+                  {membership.role?.name || 'Member'}
+                </span>
+                <small>
+                  Joined: {new Date(membership.created_at).toLocaleDateString()}
+                </small>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+## Example: Workspace Access Check
+
+```tsx
+function useWorkspaceAccess(workspaceId, requiredPermission) {
+  const { workspaceMemberships } = useWorkspaceMemberships();
+
+  const hasAccess = useMemo(() => {
+    if (!workspaceMemberships) return false;
+
+    const membership = workspaceMemberships.find(
+      m => m.workspace.id === workspaceId
+    );
+
+    if (!membership) return false;
+
+    // Check if user has the required permission
+    if (requiredPermission && membership.role) {
+      return membership.role.permissions.includes(requiredPermission);
+    }
+
+    // User is a member
+    return true;
+  }, [workspaceMemberships, workspaceId, requiredPermission]);
+
+  return hasAccess;
+}
+
+// Usage
+function WorkspaceAdminPanel({ workspaceId }) {
+  const hasAdminAccess = useWorkspaceAccess(workspaceId, 'admin');
+
+  if (!hasAdminAccess) {
+    return <div>You don't have admin access to this workspace.</div>;
+  }
+
+  return <AdminPanel workspaceId={workspaceId} />;
+}
+```
+
+## Example: Workspace Statistics
+
+```tsx
+function WorkspaceStats() {
+  const { workspaceMemberships, loading } = useWorkspaceMemberships();
+  const { organizationMemberships } = useOrganizationMemberships();
+
+  const stats = useMemo(() => {
+    if (!workspaceMemberships || !organizationMemberships) {
+      return null;
+    }
+
+    return {
+      totalWorkspaces: workspaceMemberships.length,
+      totalOrganizations: organizationMemberships.length,
+      workspacesPerOrg: workspaceMemberships.reduce((acc, m) => {
+        acc[m.organization.id] = (acc[m.organization.id] || 0) + 1;
+        return acc;
+      }, {}),
+      roleDistribution: workspaceMemberships.reduce((acc, m) => {
+        const role = m.role?.name || 'Member';
+        acc[role] = (acc[role] || 0) + 1;
+        return acc;
+      }, {})
+    };
+  }, [workspaceMemberships, organizationMemberships]);
+
+  if (loading || !stats) {
+    return <div>Loading statistics...</div>;
+  }
+
+  return (
+    <div className="workspace-stats">
+      <h2>Your Workspace Statistics</h2>
+      
+      <div className="stat-grid">
+        <div className="stat">
+          <h3>{stats.totalWorkspaces}</h3>
+          <p>Total Workspaces</p>
+        </div>
+        
+        <div className="stat">
+          <h3>{stats.totalOrganizations}</h3>
+          <p>Organizations</p>
+        </div>
+      </div>
+
+      <div className="role-distribution">
+        <h3>Roles</h3>
+        {Object.entries(stats.roleDistribution).map(([role, count]) => (
+          <div key={role} className="role-stat">
+            <span>{role}:</span>
+            <span>{count}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+```
+
+## Notes
+
+- This hook provides read-only access to membership data
+- Memberships include both workspace and organization information
+- The data is automatically refreshed every 30 seconds
+- Use this hook when you need to display all workspaces a user has access to
+- For operations on a specific workspace, use `useActiveWorkspace()` or `useWorkspaceList()`

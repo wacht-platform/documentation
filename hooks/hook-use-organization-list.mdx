@@ -1,0 +1,308 @@
+---
+title: "useOrganizationList()"
+description: "Access and manage all organizations the user is a member of"
+---
+
+The `useOrganizationList()` hook provides access to all organizations the user is a member of and methods to manage them.
+
+## Import
+
+```typescript
+import { useOrganizationList } from '@snipextt/wacht';
+```
+
+## Usage
+
+```tsx
+import { useOrganizationList } from '@snipextt/wacht';
+
+function OrganizationManager() {
+  const {
+    organizations,
+    loading,
+    createOrganization,
+    getOrganizationMembers,
+    inviteOrganizationMember
+  } = useOrganizationList();
+
+  if (loading) {
+    return <div>Loading organizations...</div>;
+  }
+
+  return (
+    <div>
+      <h2>Your Organizations</h2>
+      {organizations?.map(org => (
+        <div key={org.id}>
+          <h3>{org.name}</h3>
+          <p>{org.description}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+## Properties
+
+<ParamField path="organizations" type="Organization[]">
+  Array of organizations the user is a member of
+</ParamField>
+
+<ParamField path="loading" type="boolean">
+  Whether organization data is being loaded
+</ParamField>
+
+<ParamField path="error" type="Error | null">
+  Any error that occurred while loading organizations
+</ParamField>
+
+## Methods
+
+### createOrganization()
+
+Creates a new organization.
+
+```tsx
+const { createOrganization } = useOrganizationList();
+
+const result = await createOrganization({
+  name: 'My Company',
+  description: 'A great company',
+  image: fileObject // optional
+});
+```
+
+### updateOrganization()
+
+Updates an organization's details.
+
+```tsx
+const { updateOrganization } = useOrganizationList();
+
+await updateOrganization(organization, {
+  name: 'New Company Name',
+  description: 'Updated description',
+  image: newImageFile
+});
+```
+
+### deleteOrganization()
+
+Deletes an organization.
+
+```tsx
+const { deleteOrganization } = useOrganizationList();
+
+await deleteOrganization(organization);
+```
+
+### leaveOrganization()
+
+Leave an organization.
+
+```tsx
+const { leaveOrganization } = useOrganizationList();
+
+await leaveOrganization(organization);
+```
+
+### getOrganizationMembers()
+
+Retrieves members of a specific organization.
+
+```tsx
+const { getOrganizationMembers } = useOrganizationList();
+
+const members = await getOrganizationMembers(organization);
+```
+
+### getOrganizationRoles()
+
+Retrieves roles for a specific organization.
+
+```tsx
+const { getOrganizationRoles } = useOrganizationList();
+
+const roles = await getOrganizationRoles(organization);
+```
+
+### removeOrganizationMember()
+
+Removes a member from an organization.
+
+```tsx
+const { removeOrganizationMember } = useOrganizationList();
+
+await removeOrganizationMember(organization, member);
+```
+
+### getOrganizationInvitations()
+
+Retrieves pending invitations for an organization.
+
+```tsx
+const { getOrganizationInvitations } = useOrganizationList();
+
+const invitations = await getOrganizationInvitations(organization);
+```
+
+### inviteOrganizationMember()
+
+Invites a new member to an organization.
+
+```tsx
+const { inviteOrganizationMember } = useOrganizationList();
+
+const invitation = await inviteOrganizationMember(organization, {
+  email: 'newmember@example.com',
+  organizationRole: roleObject,
+  workspace: workspaceObject, // optional
+  workspaceRole: workspaceRoleObject // optional
+});
+```
+
+### discardOrganizationInvitation()
+
+Cancels a pending invitation.
+
+```tsx
+const { discardOrganizationInvitation } = useOrganizationList();
+
+await discardOrganizationInvitation(organization, invitation);
+```
+
+### resendOrganizationInvitation()
+
+Resends an invitation email.
+
+```tsx
+const { resendOrganizationInvitation } = useOrganizationList();
+
+await resendOrganizationInvitation(organization, invitation);
+```
+
+### Domain Management Methods
+
+```tsx
+const { 
+  getOrganizationDomains,
+  addOrganizationDomain,
+  verifyOrganizationDomain,
+  removeOrganizationDomain 
+} = useOrganizationList();
+
+// Get domains
+const domains = await getOrganizationDomains(organization);
+
+// Add domain
+const domain = await addOrganizationDomain(organization, {
+  fqdn: 'example.com'
+});
+
+// Verify domain
+await verifyOrganizationDomain(organization, domain);
+
+// Remove domain
+await removeOrganizationDomain(organization, domain);
+```
+
+### Role Management Methods
+
+```tsx
+const { 
+  addRole,
+  removeOrganizationRoles,
+  addRoleToOrganizationMember,
+  removeRoleFromOrganizationMember 
+} = useOrganizationList();
+
+// Add new role
+const newRole = await addRole(organization, {
+  name: 'Manager',
+  permissions: ['read', 'write', 'delete']
+});
+
+// Remove role
+await removeOrganizationRoles(organization, role);
+
+// Assign role to member
+await addRoleToOrganizationMember(organization, member, role);
+
+// Remove role from member
+await removeRoleFromOrganizationMember(organization, member, role);
+```
+
+### refetch()
+
+Manually refreshes organization data.
+
+```tsx
+const { refetch } = useOrganizationList();
+
+await refetch();
+```
+
+## Example: Organization Dashboard
+
+```tsx
+function OrganizationDashboard() {
+  const {
+    organizations,
+    loading,
+    createOrganization,
+    getOrganizationMembers
+  } = useOrganizationList();
+
+  const [selectedOrg, setSelectedOrg] = useState(null);
+  const [members, setMembers] = useState([]);
+
+  const handleOrgSelect = async (org) => {
+    setSelectedOrg(org);
+    const orgMembers = await getOrganizationMembers(org);
+    setMembers(orgMembers);
+  };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <div>
+      <h1>Organizations</h1>
+      
+      <div className="org-list">
+        {organizations?.map(org => (
+          <div 
+            key={org.id} 
+            onClick={() => handleOrgSelect(org)}
+            className={selectedOrg?.id === org.id ? 'selected' : ''}
+          >
+            <h3>{org.name}</h3>
+            <p>{org.description}</p>
+          </div>
+        ))}
+      </div>
+
+      {selectedOrg && (
+        <div className="org-details">
+          <h2>{selectedOrg.name} Members ({members.length})</h2>
+          {members.map(member => (
+            <div key={member.id}>
+              <span>{member.user.email}</span>
+              <span>{member.role.name}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+## Notes
+
+- All organization operations automatically update the cached data
+- Organization operations require appropriate permissions
+- The hook manages loading states automatically
+- Organizations are shared across all users who are members

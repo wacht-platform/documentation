@@ -1,0 +1,54 @@
+---
+title: 'Adapters Overview'
+description: 'Platform adapters for routing integration with different React frameworks'
+---
+
+## What are Adapters?
+
+Platform adapters provide routing integration for different React frameworks. They handle navigation, URL updates, and framework-specific routing patterns, ensuring that Wacht's authentication flows work seamlessly with your chosen routing solution.
+
+## Why Use Adapters?
+
+Adapters bridge the gap between Wacht's authentication system and your application's routing:
+
+- **Automatic Navigation** - Handle redirects after sign-in, sign-up, and sign-out
+- **URL Management** - Update browser URLs when switching organizations or workspaces
+- **Framework Integration** - Work with framework-specific routing patterns
+- **Protected Routes** - Enable route-level authentication protection
+
+## Available Adapters
+
+### Next.js Adapter
+- **Package**: `@snipextt/wacht-nextjs`
+- **Supports**: App Router and Pages Router
+- **Features**: SSR compatibility, middleware integration, automatic navigation
+
+### React Router Adapter  
+- **Package**: `@snipextt/wacht-react-router`
+- **Supports**: React Router v6
+- **Features**: Programmatic navigation, protected routes, history management
+
+### Custom Adapter
+- **For**: Custom routing solutions or other frameworks
+- **Implementation**: Create your own adapter using the platform adapter interface
+
+## How Adapters Work
+
+Adapters implement a standard interface that Wacht uses for navigation:
+
+```tsx
+interface PlatformAdapter {
+  navigate: (url: string) => void
+  getCurrentPath: () => string
+  // Additional framework-specific methods
+}
+```
+
+When you sign in, sign out, or switch organizations, Wacht calls the adapter's navigation methods to update your application's routing state.
+
+## Choosing an Adapter
+
+- **Using Next.js?** → Use the Next.js adapter
+- **Using React Router?** → Use the React Router adapter  
+- **Custom routing?** → Create a custom adapter
+- **No routing needs?** → You can use Wacht without an adapter (manual navigation)

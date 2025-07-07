@@ -1,0 +1,277 @@
+---
+title: "useDeployment()"
+description: "Access deployment configuration and settings"
+---
+
+The `useDeployment` hook provides access to the current deployment configuration, including UI settings, backend endpoints, and platform adapter configuration.
+
+## Import
+
+```typescript
+import { useDeployment } from '@snipextt/wacht';
+```
+
+## Usage
+
+```tsx
+import { useDeployment } from '@snipextt/wacht';
+
+function DeploymentInfo() {
+  const { deployment, loading, adapter } = useDeployment();
+
+  if (loading) {
+    return <div>Loading deployment configuration...</div>;
+  }
+
+  return (
+    <div>
+      <h2>Deployment Info</h2>
+      <p>Mode: {deployment.mode}</p>
+      <p>Frontend Host: {deployment.frontend_host}</p>
+      <p>Backend Host: {deployment.backend_host}</p>
+      <p>Sign In URL: {deployment.ui_settings.sign_in_page_url}</p>
+    </div>
+  );
+}
+```
+
+## Properties
+
+<ParamField path="deployment" type="Deployment">
+  The deployment configuration object containing all deployment-specific settings.
+</ParamField>
+
+<ParamField path="loading" type="boolean">
+  Whether the deployment configuration is still being loaded. `true` during initialization.
+</ParamField>
+
+<ParamField path="adapter" type="PlatformAdapter">
+  The platform-specific adapter for routing and navigation (Next.js, React Router, etc.).
+</ParamField>
+
+## Deployment Object
+
+The `deployment` object contains the following configuration:
+
+### Basic Configuration
+
+<ParamField path="mode" type="string">
+  Deployment mode: 'production' or 'staging'
+</ParamField>
+
+<ParamField path="frontend_host" type="string">
+  The frontend application URL
+</ParamField>
+
+<ParamField path="backend_host" type="string">
+  The backend API URL
+</ParamField>
+
+### UI Settings
+
+<ParamField path="ui_settings" type="UISettings">
+  UI configuration including page URLs and customization options
+</ParamField>
+
+```typescript
+interface UISettings {
+  sign_in_page_url: string;
+  sign_up_page_url: string;
+  // Additional UI configuration
+}
+```
+
+## Examples
+
+### Conditional Rendering Based on Mode
+
+```tsx
+function EnvironmentBanner() {
+  const { deployment } = useDeployment();
+
+  if (deployment.mode === 'staging') {
+    return (
+      <div className="staging-banner">
+        <p>=� This is a staging environment</p>
+      </div>
+    );
+  }
+
+  return null;
+}
+```
+
+### Using UI Settings
+
+```tsx
+function AuthenticationButtons() {
+  const { deployment } = useDeployment();
+
+  const navigateToSignIn = () => {
+    window.location.href = deployment.ui_settings.sign_in_page_url;
+  };
+
+  const navigateToSignUp = () => {
+    window.location.href = deployment.ui_settings.sign_up_page_url;
+  };
+
+  return (
+    <div>
+      <button onClick={navigateToSignIn}>
+        Sign In
+      </button>
+      <button onClick={navigateToSignUp}>
+        Sign Up
+      </button>
+    </div>
+  );
+}
+```
+
+### Platform Adapter Usage
+
+```tsx
+function NavigationComponent() {
+  const { adapter } = useDeployment();
+
+  const handleNavigation = (path) => {
+    const navigate = adapter.useNavigate();
+    if (navigate) {
+      // Use platform-specific navigation
+      navigate(path);
+    } else {
+      // Fallback to window.location
+      window.location.href = path;
+    }
+  };
+
+  return (
+    <nav>
+      <button onClick={() => handleNavigation('/dashboard')}>
+        Dashboard
+      </button>
+      <button onClick={() => handleNavigation('/profile')}>
+        Profile
+      </button>
+    </nav>
+  );
+}
+```
+
+### Building Dynamic URLs
+
+```tsx
+function DynamicLinks() {
+  const { deployment } = useDeployment();
+
+  const buildApiUrl = (endpoint) => {
+    return `${deployment.backend_host}${endpoint}`;
+  };
+
+  const buildAppUrl = (path) => {
+    return `${deployment.frontend_host}${path}`;
+  };
+
+  return (
+    <div>
+      <p>API Base: {deployment.backend_host}</p>
+      <p>App Base: {deployment.frontend_host}</p>
+      <a href={buildAppUrl('/dashboard')}>
+        Dashboard
+      </a>
+    </div>
+  );
+}
+```
+
+### Custom Hook with Deployment
+
+```tsx
+function useEnvironmentConfig() {
+  const { deployment, loading } = useDeployment();
+
+  const config = useMemo(() => {
+    if (!deployment) return null;
+
+    return {
+      isProduction: deployment.mode === 'production',
+      isStaging: deployment.mode === 'staging',
+      apiBaseUrl: deployment.backend_host,
+      appBaseUrl: deployment.frontend_host,
+      authUrls: {
+        signIn: deployment.ui_settings.sign_in_page_url,
+        signUp: deployment.ui_settings.sign_up_page_url
+      }
+    };
+  }, [deployment]);
+
+  return {
+    config,
+    loading
+  };
+}
+```
+
+### Error Boundary with Deployment Info
+
+```tsx
+function DeploymentErrorBoundary({ children }) {
+  const { deployment } = useDeployment();
+
+  return (
+    <ErrorBoundary
+      fallback={({ error }) => (
+        <div className="error-page">
+          <h1>Something went wrong</h1>
+          <p>Error: {error.message}</p>
+          {deployment?.mode === 'staging' && (
+            <details>
+              <summary>Debug Info</summary>
+              <pre>{JSON.stringify(deployment, null, 2)}</pre>
+            </details>
+          )}
+        </div>
+      )}
+    >
+      {children}
+    </ErrorBoundary>
+  );
+}
+```
+
+## Error Handling
+
+The hook will throw an error if:
+
+- Used outside of a `DeploymentProvider`
+- Deployment configuration fails to load
+- Required deployment properties are missing
+
+```tsx
+function SafeDeploymentUsage() {
+  try {
+    const { deployment, loading } = useDeployment();
+    
+    if (loading) {
+      return <div>Loading...</div>;
+    }
+    
+    return <div>Deployment: {deployment.mode}</div>;
+  } catch (error) {
+    return (
+      <div>
+        Failed to load deployment configuration: {error.message}
+      </div>
+    );
+  }
+}
+```
+
+## Notes
+
+- The deployment configuration is loaded once during app initialization
+- All other hooks depend on this configuration being available
+- The platform adapter provides routing abstraction for different frameworks
+- UI settings contain URLs for authentication pages and other configurable endpoints
+- Staging mode enables additional debugging features and development tools
+- The deployment object is immutable during the application lifecycle

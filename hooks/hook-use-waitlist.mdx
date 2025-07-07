@@ -1,0 +1,311 @@
+---
+title: "useWaitlist()"
+description: "Manage waitlist signups for early access"
+---
+
+The `useWaitlist` hook provides functionality for users to join a waitlist for early access to your application.
+
+## Import
+
+```typescript
+import { useWaitlist } from '@snipextt/wacht';
+```
+
+## Usage
+
+```tsx
+import { useWaitlist } from '@snipextt/wacht';
+
+function WaitlistForm() {
+  const { joinWaitlist, loading, errors } = useWaitlist();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    
+    const result = await joinWaitlist({
+      first_name: formData.get('firstName'),
+      last_name: formData.get('lastName'),
+      email: formData.get('email')
+    });
+    
+    if (result.data) {
+      console.log('Successfully joined waitlist!', result.data);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input 
+        name="firstName" 
+        placeholder="First Name" 
+        required 
+      />
+      <input 
+        name="lastName" 
+        placeholder="Last Name" 
+        required 
+      />
+      <input 
+        name="email" 
+        type="email" 
+        placeholder="Email" 
+        required 
+      />
+      
+      {errors && (
+        <div className="error">
+          {errors.errors?.map((error, index) => (
+            <p key={index}>{error.message}</p>
+          ))}
+        </div>
+      )}
+      
+      <button type="submit" disabled={loading}>
+        {loading ? 'Joining...' : 'Join Waitlist'}
+      </button>
+    </form>
+  );
+}
+```
+
+## Properties
+
+<ParamField path="loading" type="boolean">
+  Whether a waitlist operation is currently in progress
+</ParamField>
+
+<ParamField path="errors" type="ApiResult<unknown, ErrorInterface> | null">
+  Any errors that occurred during the waitlist operation
+</ParamField>
+
+## Methods
+
+### joinWaitlist()
+
+Adds a user to the waitlist.
+
+<ParamField path="params" type="WaitlistParams" required>
+  User information for the waitlist
+</ParamField>
+
+```tsx
+const { joinWaitlist } = useWaitlist();
+
+const result = await joinWaitlist({
+  first_name: 'John',
+  last_name: 'Doe',
+  email: 'john@example.com'
+});
+```
+
+## Types
+
+### WaitlistParams
+
+```typescript
+interface WaitlistParams {
+  first_name: string;
+  last_name: string;
+  email: string;
+}
+```
+
+### WaitlistResponse
+
+```typescript
+interface WaitlistResponse {
+  message: string;
+  entry: WaitlistEntry;
+}
+
+interface WaitlistEntry {
+  id: string;
+  deployment_id: number;
+  email_address: string;
+  first_name: string;
+  last_name: string;
+  created_at: string;
+  updated_at: string;
+}
+```
+
+## Examples
+
+### Complete Waitlist Flow
+
+```tsx
+function WaitlistSignup() {
+  const { joinWaitlist, loading, errors } = useWaitlist();
+  const [success, setSuccess] = useState(false);
+  const [position, setPosition] = useState(null);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    
+    const result = await joinWaitlist({
+      first_name: formData.get('firstName'),
+      last_name: formData.get('lastName'),
+      email: formData.get('email')
+    });
+    
+    if (result.data) {
+      setSuccess(true);
+      setPosition(result.data.entry.id);
+      // Could parse position from ID or get from backend
+    }
+  };
+
+  if (success) {
+    return (
+      <div className="success-message">
+        <h2>You're on the list!</h2>
+        <p>Thanks for joining our waitlist. We'll notify you when we launch.</p>
+        {position && <p>Your position: #{position}</p>}
+      </div>
+    );
+  }
+
+  return (
+    <div className="waitlist-form">
+      <h2>Get Early Access</h2>
+      <p>Join our waitlist to be the first to know when we launch.</p>
+      
+      <form onSubmit={handleSubmit}>
+        <div className="form-group">
+          <input 
+            name="firstName" 
+            placeholder="First Name" 
+            required 
+          />
+        </div>
+        
+        <div className="form-group">
+          <input 
+            name="lastName" 
+            placeholder="Last Name" 
+            required 
+          />
+        </div>
+        
+        <div className="form-group">
+          <input 
+            name="email" 
+            type="email" 
+            placeholder="Email Address" 
+            required 
+          />
+        </div>
+        
+        {errors && (
+          <div className="error-messages">
+            {errors.errors?.map((error, index) => (
+              <p key={index} className="error">
+                {error.message}
+              </p>
+            ))}
+          </div>
+        )}
+        
+        <button type="submit" disabled={loading}>
+          {loading ? 'Joining...' : 'Join Waitlist'}
+        </button>
+      </form>
+    </div>
+  );
+}
+```
+
+### Error Handling
+
+```tsx
+function WaitlistWithErrorHandling() {
+  const { joinWaitlist, loading, errors } = useWaitlist();
+  const [customError, setCustomError] = useState('');
+
+  const handleSubmit = async (userData) => {
+    setCustomError('');
+    
+    const result = await joinWaitlist(userData);
+    
+    if (result.errors) {
+      // Handle specific error types
+      const errorCode = result.errors[0]?.code;
+      
+      if (errorCode === 'email_already_exists') {
+        setCustomError('This email is already on the waitlist!');
+      } else if (errorCode === 'invalid_email') {
+        setCustomError('Please enter a valid email address.');
+      } else {
+        setCustomError('Something went wrong. Please try again.');
+      }
+    }
+  };
+
+  return (
+    <div>
+      {customError && (
+        <div className="custom-error">
+          {customError}
+        </div>
+      )}
+      {/* Form implementation */}
+    </div>
+  );
+}
+```
+
+### With Marketing Integration
+
+```tsx
+function WaitlistWithAnalytics() {
+  const { joinWaitlist } = useWaitlist();
+
+  const handleWaitlistSignup = async (userData) => {
+    // Track attempt
+    analytics.track('Waitlist Signup Attempted', {
+      email: userData.email
+    });
+    
+    const result = await joinWaitlist(userData);
+    
+    if (result.data) {
+      // Track success
+      analytics.track('Waitlist Signup Completed', {
+        email: userData.email,
+        entry_id: result.data.entry.id
+      });
+      
+      // Send to marketing automation
+      marketingAutomation.addContact({
+        email: userData.email,
+        firstName: userData.first_name,
+        lastName: userData.last_name,
+        lists: ['waitlist']
+      });
+    } else {
+      // Track failure
+      analytics.track('Waitlist Signup Failed', {
+        email: userData.email,
+        error: result.errors?.[0]?.message
+      });
+    }
+    
+    return result;
+  };
+
+  return (
+    <WaitlistForm onSubmit={handleWaitlistSignup} />
+  );
+}
+```
+
+## Notes
+
+- Waitlist entries are deployment-specific
+- Email addresses must be unique per deployment
+- The response includes the created waitlist entry with timestamp
+- Consider implementing rate limiting to prevent spam
+- Waitlist data can be exported for marketing campaigns
+- The hook automatically handles loading states during submission

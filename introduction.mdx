@@ -1,0 +1,57 @@
+---
+title: 'Introduction'
+description: 'Complete React authentication and user management SDK'
+---
+
+## Overview
+
+Wacht provides comprehensive React SDKs for building authentication and user management into your applications. The SDKs support multiple authentication methods, organization management, and work seamlessly across different React frameworks.
+
+## Key Features
+
+### Authentication Methods
+- **Email & Password** - Traditional credential-based authentication
+- **Username & Password** - Username-based authentication  
+- **Phone OTP** - SMS-based one-time passwords
+- **Email OTP** - Email-based verification codes
+- **Magic Links** - Passwordless email authentication
+- **Social Sign-On** - OAuth with Google, GitHub, Microsoft, Apple
+- **Two-Factor Authentication** - TOTP authenticators, SMS, backup codes
+
+### Multi-Tenant Architecture
+- **Deployments** - Your application instance
+- **Organizations** - Companies or teams
+- **Workspaces** - Projects or divisions within organizations
+- **Users** - Individual users with roles and permissions
+
+### Pre-built Components
+- Complete authentication forms
+- User profile management
+- Organization switching interfaces
+- Conditional rendering components
+
+### Developer Experience
+- **TypeScript First** - Full type safety throughout
+- **Framework Agnostic** - Works with Next.js, React Router, and custom routing
+- **Real-time Updates** - Automatic state synchronization
+- **SSR Compatible** - Server-side rendering support
+
+## Architecture
+
+Wacht follows a multi-tenant architecture that supports complex organizational structures:
+
+```
+Deployment (Your App)
+├── Organization A
+│   ├── Workspace 1
+│   ├── Workspace 2
+│   └── Users with roles
+└── Organization B
+    ├── Workspace 1
+    └── Users with roles
+```
+
+This structure allows you to build applications that support:
+- Single-tenant applications (one organization)
+- Multi-tenant SaaS applications (multiple organizations)
+- Enterprise applications with complex hierarchies

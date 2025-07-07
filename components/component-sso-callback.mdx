@@ -1,0 +1,89 @@
+---
+title: '<SSOCallback />'
+description: 'OAuth and SSO callback handler for processing authentication redirects and completing sign-in flows'
+---
+
+## Overview
+
+The `<SSOCallback />` component handles OAuth and SSO authentication callbacks from external providers. It processes the authentication response, completes the sign-in flow, and manages various callback scenarios including success, error, and completion requirements.
+
+## Basic Usage
+
+```tsx
+import { SSOCallback } from '@snipextt/wacht'
+
+function CallbackPage() {
+  return (
+    <div className="callback-page">
+      <SSOCallback />
+    </div>
+  )
+}
+```
+
+## Props
+
+<ParamField path="onSuccess" type="function" optional>
+  Callback function called when authentication succeeds. Receives the session object and optional redirect URI.
+</ParamField>
+
+<ParamField path="onError" type="function" optional>
+  Callback function called when authentication fails. Receives the error object.
+</ParamField>
+
+<ParamField path="onRequiresCompletion" type="function" optional>
+  Callback function called when the sign-up attempt requires additional information. Receives the signup attempt and session objects.
+</ParamField>
+
+<ParamField path="autoRedirect" type="boolean" default={true}>
+  Whether to automatically redirect after successful authentication.
+</ParamField>
+
+<ParamField path="loadingMessage" type="string" default="Completing sign in...">
+  Custom message displayed while processing the callback.
+</ParamField>
+
+<ParamField path="successMessage" type="string" default="Sign in successful! Redirecting...">
+  Message displayed after successful authentication.
+</ParamField>
+
+<ParamField path="errorMessage" type="string" default="Sign in failed">
+  Message displayed when authentication fails.
+</ParamField>
+
+<ParamField path="showCompletionForm" type="boolean" default={true}>
+  Whether to show the profile completion form when additional information is required.
+</ParamField>
+
+## What it includes
+
+The component handles the complete OAuth/SSO callback flow:
+
+### Callback Processing
+- Extracts OAuth authorization code from URL parameters
+- Validates state parameter for security
+- Exchanges authorization code for access token
+- Retrieves user information from provider
+
+### Session Management
+- Creates authenticated session
+- Sets secure authentication cookies
+- Updates user profile with provider data
+- Links social accounts to existing users
+
+### Completion Handling
+- Checks if profile completion is required
+- Shows completion form if additional info needed
+- Handles successful authentication
+- Manages error scenarios
+
+### Supported Providers
+- Google, GitHub, Microsoft, Facebook, Discord, LinkedIn, Twitter, Slack
+- SAML 2.0 and OpenID Connect providers
+- Custom enterprise SSO providers
+
+## Related Components
+
+- [`<SignInForm />`](/components/signin-form) - Main authentication form
+- [`<SignUpForm />`](/components/signup-form) - User registration form
+- [`<UserButton />`](/components/user-button) - User profile dropdown

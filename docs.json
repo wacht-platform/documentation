@@ -1,56 +1,151 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Mint Starter Kit",
+  "theme": "linden",
+  "name": "Wacht API Documentation",
+  "search": { "prompt": "Search docs" },
   "colors": {
     "primary": "#16A34A",
     "light": "#07C983",
     "dark": "#15803D"
   },
-  "favicon": "/favicon.svg",
+  "favicon": "/favicon.ico",
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
-        "groups": [
+        "tab": "Documentation",
+        "dropdowns": [
           {
-            "group": "Get Started",
-            "pages": [
-              "index",
-              "quickstart",
-              "development"
-            ]
-          },
-          {
-            "group": "Essentials",
-            "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/settings",
-              "essentials/navigation",
-              "essentials/reusable-snippets"
+            "dropdown": "React Core",
+            "icon": "react",
+            "anchors": [
+              {
+                "anchor": "Overview",
+                "icon": "house",
+                "groups": [
+                  {
+                    "group": "Getting Started",
+                    "pages": ["introduction", "installation", "quickstart"]
+                  },
+                  {
+                    "group": "Adapters",
+                    "pages": [
+                      "adapters-overview",
+                      "sdk-nextjs",
+                      "sdk-react-router"
+                    ]
+                  }
+                ]
+              },
+              {
+                "anchor": "Components",
+                "icon": "cube",
+                "groups": [
+                  {
+                    "group": "Auth Components",
+                    "pages": [
+                      "components/component-signin-form",
+                      "components/component-signup-form",
+                      "components/component-sso-callback"
+                    ]
+                  },
+                  {
+                    "group": "Control Components",
+                    "pages": [
+                      "components/component-signed-in",
+                      "components/component-signed-out"
+                    ]
+                  },
+                  {
+                    "group": "User Components",
+                    "pages": [
+                      "components/component-user-button",
+                      "components/component-manage-account"
+                    ]
+                  },
+                  {
+                    "group": "Organization Components",
+                    "pages": [
+                      "components/component-organization-switcher",
+                      "components/component-organization-list",
+                      "components/component-create-organization-form",
+                      "components/component-manage-organization",
+                      "components/component-create-workspace-form"
+                    ]
+                  }
+                ]
+              },
+              {
+                "anchor": "Hooks",
+                "icon": "webhook",
+                "groups": [
+                  {
+                    "group": "Authentication Hooks",
+                    "pages": [
+                      "hooks/hook-use-session",
+                      "hooks/hook-use-signin",
+                      "hooks/hook-use-signup",
+                      "hooks/hook-use-forgot-password",
+                      "hooks/hook-use-profile-completion",
+                      "hooks/hook-use-magic-link",
+                      "hooks/hook-use-sso-callback",
+                      "hooks/hook-use-verification"
+                    ]
+                  },
+                  {
+                    "group": "User Hooks",
+                    "pages": ["hooks/hook-use-user"]
+                  },
+                  {
+                    "group": "Organization Hooks",
+                    "pages": [
+                      "hooks/hook-use-organization-list",
+                      "hooks/hook-use-active-organization",
+                      "hooks/hook-use-organization-memberships"
+                    ]
+                  },
+                  {
+                    "group": "Workspace Hooks",
+                    "pages": [
+                      "hooks/hook-use-workspace-list",
+                      "hooks/hook-use-active-workspace",
+                      "hooks/hook-use-workspace-memberships"
+                    ]
+                  },
+                  {
+                    "group": "Utility Hooks",
+                    "pages": [
+                      "hooks/hook-use-client",
+                      "hooks/hook-use-deployment",
+                      "hooks/hook-use-waitlist",
+                      "hooks/hook-use-navigation"
+                    ]
+                  }
+                ]
+              },
+              {
+                "anchor": "Guides",
+                "icon": "compass",
+                "pages": [
+                  "guides/guide-signin-flow",
+                  "guides/guide-signup-flow"
+                ]
+              }
             ]
           }
         ]
       },
       {
         "tab": "API Reference",
-        "groups": [
+        "dropdowns": [
           {
-            "group": "API Documentation",
-            "pages": [
-              "api-reference/introduction"
-            ]
+            "dropdown": "Frontend API",
+            "icon": "code",
+            "openapi": "api-specs/frontend-api.json"
           },
           {
-            "group": "Endpoint Examples",
-            "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
-            ]
+            "dropdown": "Backend API",
+            "icon": "database",
+            "openapi": "api-specs/backend-api.json"
           }
         ]
       }
@@ -58,45 +153,41 @@
     "global": {
       "anchors": [
         {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
+          "anchor": "GitHub",
+          "href": "https://github.com/snipextt/wacht",
+          "icon": "github"
         },
         {
-          "anchor": "Community",
-          "href": "https://mintlify.com/community",
-          "icon": "slack"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
+          "anchor": "Support",
+          "href": "mailto:support@wacht.dev",
+          "icon": "envelope"
         }
       ]
     }
   },
   "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
+    "light": "/logo.png",
+    "dark": "/logo.png",
+    "href": "https://wacht.dev"
   },
   "navbar": {
     "links": [
       {
         "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+        "href": "mailto:support@wacht.dev"
       }
     ],
     "primary": {
       "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
+      "label": "Get Started",
+      "href": "https://wacht.dev/signup"
     }
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "x": "https://x.com/wacht",
+      "github": "https://github.com/snipextt/wacht",
+      "linkedin": "https://linkedin.com/company/wacht"
     }
   }
 }

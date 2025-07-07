@@ -1,0 +1,65 @@
+---
+title: '<OrganizationSwitcher />'
+description: 'Organization and workspace switcher with search functionality for multi-tenant applications'
+---
+
+## Overview
+
+The `<OrganizationSwitcher />` component provides a dropdown interface for switching between organizations and workspaces in multi-tenant applications. It includes search functionality and displays organizational hierarchies clearly.
+
+## Basic Usage
+
+```tsx
+import { OrganizationSwitcher } from '@snipextt/wacht'
+
+function Sidebar() {
+  return (
+    <aside className="app-sidebar">
+      <div className="sidebar-header">
+        <OrganizationSwitcher />
+      </div>
+      <nav className="sidebar-nav">
+        <NavigationMenu />
+      </nav>
+    </aside>
+  )
+}
+```
+
+## Props
+
+The `<OrganizationSwitcher />` component takes **no props**. It's a self-contained component that automatically displays available organizations and workspaces based on the current user's memberships.
+
+## What it includes
+
+The component automatically renders based on the user's organization and workspace memberships:
+
+### Organization Display
+- **Current Organization** - Displays currently selected organization with logo and name
+- **Organization List** - Shows all organizations the user belongs to
+- **Workspace Hierarchy** - Displays workspaces within each organization
+- **Search Functionality** - Real-time search across organizations and workspaces
+
+### Switching Capabilities
+- **Organization Switching** - Click to switch to different organizations
+- **Workspace Switching** - Navigate between workspaces within organizations
+- **Context Preservation** - Maintains proper context when switching
+- **URL Updates** - Updates application URLs when switching contexts
+
+### Organization Structure
+- **Organization Name** - Display name of the organization
+- **Organization Logo** - Organization avatar or logo image
+- **Member Role** - User's role within the organization
+- **Workspace Count** - Number of workspaces in the organization
+
+### Workspace Display
+- **Workspace Name** - Individual workspace names
+- **Workspace Type** - Type or category of workspace
+- **Access Level** - User's permissions within the workspace
+- **Activity Status** - Active/inactive status indicators
+
+## Related Components
+
+- [`<UserButton />`](/components/user-button) - User profile dropdown
+- [`<ManageOrganization />`](/components/manage-organization) - Organization management interface
+- [`<SignedIn />`](/components/signed-in) - Conditional rendering for authenticated users

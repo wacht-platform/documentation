@@ -1,0 +1,222 @@
+---
+title: "useOrganizationMemberships()"
+description: "Access organization membership data for the current user"
+---
+
+The `useOrganizationMemberships()` hook provides direct access to the current user's organization membership data.
+
+## Import
+
+```typescript
+import { useOrganizationMemberships } from '@snipextt/wacht';
+```
+
+## Usage
+
+```tsx
+import { useOrganizationMemberships } from '@snipextt/wacht';
+
+function MembershipList() {
+  const { organizationMemberships, loading, refetch } = useOrganizationMemberships();
+
+  if (loading) {
+    return <div>Loading memberships...</div>;
+  }
+
+  return (
+    <div>
+      <h2>Your Organization Memberships</h2>
+      {organizationMemberships?.map(membership => (
+        <div key={membership.id}>
+          <h3>{membership.organization.name}</h3>
+          <p>Role: {membership.role.name}</p>
+          <p>Joined: {new Date(membership.created_at).toLocaleDateString()}</p>
+        </div>
+      ))}
+      <button onClick={refetch}>Refresh</button>
+    </div>
+  );
+}
+```
+
+## Properties
+
+<ParamField path="organizationMemberships" type="OrganizationMembershipWithOrganization[]">
+  Array of organization membership objects containing the organization details and user's role
+</ParamField>
+
+<ParamField path="loading" type="boolean">
+  Whether membership data is being loaded
+</ParamField>
+
+<ParamField path="error" type="Error | null">
+  Any error that occurred while loading memberships
+</ParamField>
+
+## Methods
+
+### refetch()
+
+Manually refreshes the organization membership data.
+
+```tsx
+const { refetch } = useOrganizationMemberships();
+
+await refetch();
+```
+
+## Types
+
+### OrganizationMembershipWithOrganization
+
+```typescript
+interface OrganizationMembershipWithOrganization {
+  id: string;
+  organization: Organization;
+  role: OrganizationRole;
+  user: User;
+  created_at: string;
+  updated_at: string;
+}
+
+interface Organization {
+  id: string;
+  name: string;
+  description?: string;
+  image_url?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface OrganizationRole {
+  id: string;
+  name: string;
+  permissions: string[];
+}
+```
+
+## Example: Organization Switcher
+
+```tsx
+function OrganizationSwitcher() {
+  const { organizationMemberships, loading } = useOrganizationMemberships();
+  const { activeOrganization } = useActiveOrganization();
+  const { switchOrganization } = useSession();
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <select 
+      value={activeOrganization?.id || ''}
+      onChange={(e) => switchOrganization(e.target.value)}
+    >
+      <option value="">Personal Workspace</option>
+      {organizationMemberships?.map(membership => (
+        <option key={membership.id} value={membership.organization.id}>
+          {membership.organization.name}
+        </option>
+      ))}
+    </select>
+  );
+}
+```
+
+## Example: Membership Details View
+
+```tsx
+function MembershipDetails() {
+  const { organizationMemberships, loading, refetch } = useOrganizationMemberships();
+  const [selectedMembership, setSelectedMembership] = useState(null);
+
+  if (loading) {
+    return <div>Loading memberships...</div>;
+  }
+
+  return (
+    <div className="membership-manager">
+      <div className="membership-list">
+        <h2>Your Organizations</h2>
+        {organizationMemberships?.map(membership => (
+          <div 
+            key={membership.id}
+            className={`membership-card ${selectedMembership?.id === membership.id ? 'selected' : ''}`}
+            onClick={() => setSelectedMembership(membership)}
+          >
+            <h3>{membership.organization.name}</h3>
+            <span className="role-badge">{membership.role.name}</span>
+          </div>
+        ))}
+      </div>
+
+      {selectedMembership && (
+        <div className="membership-details">
+          <h2>Membership Details</h2>
+          <dl>
+            <dt>Organization</dt>
+            <dd>{selectedMembership.organization.name}</dd>
+            
+            <dt>Role</dt>
+            <dd>{selectedMembership.role.name}</dd>
+            
+            <dt>Permissions</dt>
+            <dd>
+              <ul>
+                {selectedMembership.role.permissions.map(permission => (
+                  <li key={permission}>{permission}</li>
+                ))}
+              </ul>
+            </dd>
+            
+            <dt>Member Since</dt>
+            <dd>{new Date(selectedMembership.created_at).toLocaleDateString()}</dd>
+          </dl>
+        </div>
+      )}
+
+      <button onClick={refetch} className="refresh-button">
+        Refresh Memberships
+      </button>
+    </div>
+  );
+}
+```
+
+## Example: Permission Check
+
+```tsx
+function PermissionGate({ permission, children }) {
+  const { organizationMemberships } = useOrganizationMemberships();
+  const { activeOrganization } = useActiveOrganization();
+
+  const hasPermission = useMemo(() => {
+    if (!activeOrganization || !organizationMemberships) return false;
+
+    const membership = organizationMemberships.find(
+      m => m.organization.id === activeOrganization.id
+    );
+
+    return membership?.role.permissions.includes(permission) || false;
+  }, [organizationMemberships, activeOrganization, permission]);
+
+  if (!hasPermission) {
+    return <div>You don't have permission to view this content.</div>;
+  }
+
+  return children;
+}
+
+// Usage
+<PermissionGate permission="admin">
+  <AdminPanel />
+</PermissionGate>
+```
+
+## Notes
+
+- This hook provides read-only access to membership data
+- Memberships are automatically refreshed every 30 seconds
+- The data includes full organization and role information
+- Use this hook when you need to display all organizations a user belongs to
+- For operations on a specific organization, use `useActiveOrganization()` or `useOrganizationList()`

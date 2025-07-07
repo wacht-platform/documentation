@@ -1,0 +1,101 @@
+---
+title: 'Getting started on Next.js'
+description: 'Set up Wacht authentication in your Next.js application'
+---
+
+Install the core library and Next.js adapter to get started with Wacht in your Next.js application.
+
+## Installation
+
+<CodeGroup>
+```bash npm
+npm install @snipextt/wacht @snipextt/wacht-nextjs
+```
+
+```bash yarn
+yarn add @snipextt/wacht @snipextt/wacht-nextjs
+```
+
+```bash pnpm
+pnpm add @snipextt/wacht @snipextt/wacht-nextjs
+```
+</CodeGroup>
+
+## App Router Setup
+
+### 1. Root Layout
+
+Add the Wacht provider to your root layout:
+
+```tsx title="app/layout.tsx"
+import { DeploymentProvider } from '@snipextt/wacht'
+import { NextjsAdapter } from '@snipextt/wacht-nextjs'
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="en">
+      <body>
+        <DeploymentProvider
+          publicKey={process.env.NEXT_PUBLIC_WACHT_PUBLIC_KEY!}
+          platformAdapter={NextjsAdapter}
+        >
+          {children}
+        </DeploymentProvider>
+      </body>
+    </html>
+  )
+}
+```
+
+### 2. Environment Variables
+
+Add your Wacht public key to `.env.local`:
+
+```bash title=".env.local"
+NEXT_PUBLIC_WACHT_PUBLIC_KEY=pk_your_public_key_here
+```
+
+### 3. Basic Usage
+
+Use Wacht components in your pages:
+
+```tsx title="app/page.tsx"
+import { SignedIn, SignedOut, UserButton, SignInForm } from '@snipextt/wacht'
+
+export default function HomePage() {
+  return (
+    <div>
+      <SignedOut>
+        <SignInForm />
+      </SignedOut>
+      
+      <SignedIn>
+        <h1>Welcome!</h1>
+        <UserButton />
+      </SignedIn>
+    </div>
+  )
+}
+```
+
+## OAuth Callback
+
+Set up the OAuth callback page:
+
+```tsx title="app/auth/sso-callback/page.tsx"
+import { SSOCallback } from '@snipextt/wacht'
+
+export default function SSOCallbackPage() {
+  return <SSOCallback />
+}
+```
+
+## Next Steps
+
+- [Explore Components](/components)
+- [Learn about Hooks](/hooks)
+- [View API Reference](/api-reference)

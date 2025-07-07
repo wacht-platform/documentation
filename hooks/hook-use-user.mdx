@@ -1,0 +1,480 @@
+---
+title: "useUser()"
+description: "Access and manage current user profile and account settings"
+---
+
+The `useUser` hook provides comprehensive user management functionality including profile updates, email/phone management, two-factor authentication setup, and account security operations.
+
+## Import
+
+```typescript
+import { useUser } from '@snipextt/wacht';
+```
+
+## Usage
+
+```tsx
+import { useUser } from '@snipextt/wacht';
+
+function UserProfile() {
+  const { user, loading, updateProfile } = useUser();
+
+  const handleUpdateProfile = async () => {
+    await updateProfile({
+      first_name: 'John',
+      last_name: 'Doe Updated',
+      username: 'john_doe_updated'
+    });
+  };
+
+  if (loading) {
+    return <div>Loading user data...</div>;
+  }
+
+  return (
+    <div>
+      <h1>Welcome, {user.first_name} {user.last_name}</h1>
+      <p>Email: {user.primary_email_address?.email}</p>
+      <p>Username: {user.username}</p>
+      <button onClick={handleUpdateProfile}>
+        Update Profile
+      </button>
+    </div>
+  );
+}
+```
+
+## Properties
+
+<ParamField path="user" type="CurrentUser">
+  The current user object containing profile information, email addresses, phone numbers, and authentication settings.
+</ParamField>
+
+<ParamField path="loading" type="boolean">
+  Whether user data is currently being loaded. `true` during initial fetch or updates.
+</ParamField>
+
+## Profile Management
+
+### updateProfile()
+
+Updates the user's profile information.
+
+<ParamField path="data" type="ProfileUpdateData" required>
+  Profile data to update
+</ParamField>
+
+```tsx
+const { updateProfile } = useUser();
+
+await updateProfile({
+  first_name: 'John',
+  last_name: 'Doe',
+  username: 'johndoe',
+  primary_email_address_id: 'email_123',
+  primary_phone_number_id: 'phone_456',
+  second_factor_policy: 'optional'
+});
+```
+
+### updateProfilePicture()
+
+Updates the user's profile picture.
+
+<ParamField path="file" type="File" required>
+  Image file to upload
+</ParamField>
+
+```tsx
+const { updateProfilePicture } = useUser();
+
+const handleFileUpload = async (file) => {
+  await updateProfilePicture(file);
+};
+```
+
+## Email Management
+
+### getEmailAddresses()
+
+Retrieves all email addresses associated with the user.
+
+```tsx
+const { getEmailAddresses } = useUser();
+
+const emails = await getEmailAddresses();
+```
+
+### createEmailAddress()
+
+Adds a new email address to the user's account.
+
+<ParamField path="email" type="string" required>
+  Email address to add
+</ParamField>
+
+```tsx
+const { createEmailAddress } = useUser();
+
+const result = await createEmailAddress('new@example.com');
+```
+
+### deleteEmailAddress()
+
+Removes an email address from the user's account.
+
+<ParamField path="id" type="string" required>
+  ID of the email address to delete
+</ParamField>
+
+```tsx
+const { deleteEmailAddress } = useUser();
+
+await deleteEmailAddress('email_123');
+```
+
+### makeEmailPrimary()
+
+Sets an email address as the primary email.
+
+<ParamField path="id" type="string" required>
+  ID of the email address to make primary
+</ParamField>
+
+```tsx
+const { makeEmailPrimary } = useUser();
+
+await makeEmailPrimary('email_123');
+```
+
+### Email Verification
+
+```tsx
+const { prepareEmailVerification, attemptEmailVerification } = useUser();
+
+// Prepare verification for an email
+await prepareEmailVerification('email_123');
+
+// Complete verification with OTP
+await attemptEmailVerification('email_123', '123456');
+```
+
+## Phone Number Management
+
+### createPhoneNumber()
+
+Adds a new phone number to the user's account.
+
+<ParamField path="phone_number" type="string" required>
+  Phone number to add (with country code)
+</ParamField>
+
+```tsx
+const { createPhoneNumber } = useUser();
+
+const result = await createPhoneNumber('+1234567890');
+```
+
+### deletePhoneNumber()
+
+Removes a phone number from the user's account.
+
+<ParamField path="id" type="string" required>
+  ID of the phone number to delete
+</ParamField>
+
+```tsx
+const { deletePhoneNumber } = useUser();
+
+await deletePhoneNumber('phone_123');
+```
+
+### makePhonePrimary()
+
+Sets a phone number as the primary phone.
+
+<ParamField path="id" type="string" required>
+  ID of the phone number to make primary
+</ParamField>
+
+```tsx
+const { makePhonePrimary } = useUser();
+
+await makePhonePrimary('phone_123');
+```
+
+### Phone Verification
+
+```tsx
+const { preparePhoneVerification, attemptPhoneVerification } = useUser();
+
+// Prepare verification for a phone number
+await preparePhoneVerification('phone_123');
+
+// Complete verification with OTP
+await attemptPhoneVerification('phone_123', '123456');
+```
+
+## Two-Factor Authentication
+
+### setupAuthenticator()
+
+Sets up TOTP (Time-based One-Time Password) authenticator.
+
+```tsx
+const { setupAuthenticator } = useUser();
+
+const authenticator = await setupAuthenticator();
+// Returns QR code and secret for authenticator app setup
+```
+
+### verifyAuthenticator()
+
+Verifies the authenticator setup with backup codes.
+
+<ParamField path="id" type="string" required>
+  Authenticator ID
+</ParamField>
+
+<ParamField path="codes" type="string[]" required>
+  Array of backup codes to verify
+</ParamField>
+
+```tsx
+const { verifyAuthenticator } = useUser();
+
+await verifyAuthenticator('auth_123', ['code1', 'code2', 'code3']);
+```
+
+### deleteAuthenticator()
+
+Removes the authenticator from the account.
+
+<ParamField path="id" type="string" required>
+  Authenticator ID to delete
+</ParamField>
+
+```tsx
+const { deleteAuthenticator } = useUser();
+
+await deleteAuthenticator('auth_123');
+```
+
+### Backup Codes
+
+```tsx
+const { generateBackupCodes, regenerateBackupCodes } = useUser();
+
+// Generate initial backup codes
+const backupCodes = await generateBackupCodes();
+
+// Regenerate new backup codes
+const newBackupCodes = await regenerateBackupCodes();
+```
+
+## Password Management
+
+### updatePassword()
+
+Updates the user's password.
+
+<ParamField path="currentPassword" type="string" required>
+  Current password for verification
+</ParamField>
+
+<ParamField path="newPassword" type="string" required>
+  New password to set
+</ParamField>
+
+```tsx
+const { updatePassword } = useUser();
+
+await updatePassword('currentPass123', 'newSecurePass456');
+```
+
+### removePassword()
+
+Removes password authentication (for accounts using only social login).
+
+<ParamField path="currentPassword" type="string" required>
+  Current password for verification
+</ParamField>
+
+```tsx
+const { removePassword } = useUser();
+
+await removePassword('currentPass123');
+```
+
+## Account Management
+
+### deleteAccount()
+
+Permanently deletes the user's account.
+
+<ParamField path="password" type="string" required>
+  Password for verification
+</ParamField>
+
+```tsx
+const { deleteAccount } = useUser();
+
+await deleteAccount('password123');
+```
+
+### disconnectSocialConnection()
+
+Disconnects a social login provider.
+
+<ParamField path="id" type="string" required>
+  ID of the social connection to disconnect
+</ParamField>
+
+```tsx
+const { disconnectSocialConnection } = useUser();
+
+await disconnectSocialConnection('social_123');
+```
+
+## User Sign-ins Management
+
+```tsx
+import { useUserSignins } from '@snipextt/wacht';
+
+function UserSignins() {
+  const { signins, removeSignin, loading } = useUserSignins();
+
+  if (loading) return <div>Loading...</div>;
+
+  return (
+    <div>
+      <h2>Active Sessions</h2>
+      {signins?.map(signin => (
+        <div key={signin.id}>
+          <span>{signin.device || 'Unknown Device'}</span>
+          <button onClick={() => removeSignin(signin.id)}>
+            Sign Out
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+## Examples
+
+### Complete Profile Management
+
+```tsx
+function ProfileManagement() {
+  const { 
+    user, 
+    updateProfile, 
+    createEmailAddress, 
+    createPhoneNumber,
+    setupAuthenticator 
+  } = useUser();
+
+  const [showAddEmail, setShowAddEmail] = useState(false);
+
+  const handleAddEmail = async (email) => {
+    const result = await createEmailAddress(email);
+    if (result.data) {
+      setShowAddEmail(false);
+    }
+  };
+
+  const handleSetup2FA = async () => {
+    const authenticator = await setupAuthenticator();
+    // Show QR code to user
+    console.log('QR Code:', authenticator.qr_code);
+    console.log('Secret:', authenticator.secret);
+  };
+
+  return (
+    <div>
+      <h2>Profile Settings</h2>
+      
+      <section>
+        <h3>Basic Information</h3>
+        <p>Name: {user.first_name} {user.last_name}</p>
+        <p>Username: {user.username}</p>
+      </section>
+
+      <section>
+        <h3>Email Addresses</h3>
+        {user.email_addresses?.map(email => (
+          <div key={email.id}>
+            <span>{email.email}</span>
+            {email.primary && <span> (Primary)</span>}
+            {email.verified && <span> </span>}
+          </div>
+        ))}
+        <button onClick={() => setShowAddEmail(true)}>
+          Add Email
+        </button>
+      </section>
+
+      <section>
+        <h3>Security</h3>
+        <button onClick={handleSetup2FA}>
+          Setup Two-Factor Authentication
+        </button>
+      </section>
+    </div>
+  );
+}
+```
+
+### Two-Factor Authentication Setup
+
+```tsx
+function TwoFactorSetup() {
+  const { setupAuthenticator, verifyAuthenticator } = useUser();
+  const [authenticator, setAuthenticator] = useState(null);
+  const [backupCodes, setBackupCodes] = useState([]);
+
+  const handleSetup = async () => {
+    const auth = await setupAuthenticator();
+    setAuthenticator(auth);
+  };
+
+  const handleVerify = async () => {
+    await verifyAuthenticator(authenticator.id, backupCodes);
+    alert('Two-factor authentication enabled!');
+  };
+
+  if (!authenticator) {
+    return (
+      <button onClick={handleSetup}>
+        Setup Two-Factor Authentication
+      </button>
+    );
+  }
+
+  return (
+    <div>
+      <h3>Setup Authenticator App</h3>
+      <img src={authenticator.qr_code} alt="QR Code" />
+      <p>Secret: {authenticator.secret}</p>
+      
+      <h4>Enter Backup Codes</h4>
+      {/* UI for entering backup codes */}
+      
+      <button onClick={handleVerify}>
+        Complete Setup
+      </button>
+    </div>
+  );
+}
+```
+
+## Notes
+
+- All operations automatically update the user data cache
+- Email and phone verification follows a two-step process (prepare, then attempt)
+- Backup codes should be stored securely by the user
+- Two-factor authentication setup requires an authenticator app like Google Authenticator
+- Profile picture uploads support common image formats
+- Password operations require current password verification for security

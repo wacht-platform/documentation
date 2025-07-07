@@ -1,0 +1,462 @@
+---
+title: "useSSOCallback()"
+description: "Handle OAuth callback flows and SSO authentication completion"
+---
+
+The `useSSOCallback` and `useSSORedirect` hooks handle OAuth provider callbacks and manage the authentication flow after users return from external OAuth providers.
+
+## Import
+
+```typescript
+import { useSSOCallback, useSSORedirect } from '@snipextt/wacht';
+```
+
+## Hooks Overview
+
+### useSSOCallback
+
+Automatically processes OAuth callback parameters and handles authentication completion.
+
+```tsx
+import { useSSOCallback } from '@snipextt/wacht';
+
+function OAuthCallbackPage() {
+  const {
+    loading,
+    error,
+    session,
+    redirectUri,
+    processed,
+    requiresCompletion,
+    requiresVerification,
+    requires2FA,
+    completeOAuthSignup,
+    completeVerification
+  } = useSSOCallback({
+    onSuccess: (session, redirectUri) => {
+      console.log('OAuth successful', session);
+      // Handle successful authentication
+    },
+    onError: (error) => {
+      console.error('OAuth failed', error);
+    },
+    onRequiresCompletion: (signupAttempt, session) => {
+      console.log('Additional info needed');
+    },
+    autoRedirect: true
+  });
+
+  if (loading) {
+    return <div>Processing authentication...</div>;
+  }
+
+  if (error) {
+    return (
+      <div>
+        <h2>Authentication Failed</h2>
+        <p>{error.message}</p>
+        <a href="/signin">Try Again</a>
+      </div>
+    );
+  }
+
+  if (requiresCompletion) {
+    return <ProfileCompletionForm onComplete={completeOAuthSignup} />;
+  }
+
+  if (requiresVerification) {
+    return <VerificationForm onVerify={completeVerification} />;
+  }
+
+  if (requires2FA) {
+    return <TwoFactorForm />;
+  }
+
+  return <div>Redirecting...</div>;
+}
+```
+
+### useSSORedirect
+
+Provides manual control over SSO redirects.
+
+```tsx
+import { useSSORedirect } from '@snipextt/wacht';
+
+function SSORedirectHandler() {
+  const { redirect } = useSSORedirect();
+
+  const handleRedirect = () => {
+    // Redirect to a custom URL
+    redirect('https://myapp.com/dashboard');
+    
+    // Or redirect to default location
+    redirect();
+  };
+
+  return (
+    <button onClick={handleRedirect}>
+      Continue to App
+    </button>
+  );
+}
+```
+
+## Properties
+
+### useSSOCallback
+
+<ParamField path="loading" type="boolean">
+  Whether the OAuth callback is being processed
+</ParamField>
+
+<ParamField path="error" type="Error | null">
+  Any error that occurred during OAuth processing
+</ParamField>
+
+<ParamField path="session" type="Session | null">
+  The authenticated session after successful OAuth
+</ParamField>
+
+<ParamField path="redirectUri" type="string | null">
+  The redirect URI to navigate to after authentication
+</ParamField>
+
+<ParamField path="processed" type="boolean">
+  Whether the OAuth callback has been processed
+</ParamField>
+
+<ParamField path="signupAttempt" type="any | null">
+  The signup attempt data if additional info is needed
+</ParamField>
+
+<ParamField path="signinAttempt" type="any | null">
+  The signin attempt data if 2FA is required
+</ParamField>
+
+<ParamField path="requiresCompletion" type="boolean">
+  Whether profile completion is required
+</ParamField>
+
+<ParamField path="requiresVerification" type="boolean">
+  Whether email/phone verification is required
+</ParamField>
+
+<ParamField path="requires2FA" type="boolean">
+  Whether two-factor authentication is required
+</ParamField>
+
+<ParamField path="completionLoading" type="boolean">
+  Whether a completion operation is in progress
+</ParamField>
+
+<ParamField path="completionError" type="Error | null">
+  Any error from completion operations
+</ParamField>
+
+## Options
+
+### SSOCallbackOptions
+
+<ParamField path="onSuccess" type="(session: Session, redirectUri?: string) => void">
+  Callback when OAuth authentication is successful
+</ParamField>
+
+<ParamField path="onError" type="(error: Error) => void">
+  Callback when OAuth authentication fails
+</ParamField>
+
+<ParamField path="onRequiresCompletion" type="(signupAttempt: any, session: Session) => void">
+  Callback when additional profile information is needed
+</ParamField>
+
+<ParamField path="autoRedirect" type="boolean">
+  Whether to automatically redirect after successful authentication. Default: `true`
+</ParamField>
+
+## Methods
+
+### completeOAuthSignup()
+
+Completes OAuth signup with additional profile information.
+
+<ParamField path="data" type="OAuthCompletionData" required>
+  Additional profile data required for signup
+</ParamField>
+
+```tsx
+const { completeOAuthSignup } = useSSOCallback();
+
+const success = await completeOAuthSignup({
+  first_name: 'John',
+  last_name: 'Doe',
+  username: 'johndoe',
+  phone_number: '+1234567890'
+});
+```
+
+### completeVerification()
+
+Completes verification with the provided code.
+
+<ParamField path="code" type="string" required>
+  The verification code
+</ParamField>
+
+```tsx
+const { completeVerification } = useSSOCallback();
+
+const success = await completeVerification('123456');
+```
+
+### prepareVerification()
+
+Prepares verification for a specific strategy.
+
+<ParamField path="strategy" type="string" required>
+  The verification strategy (email_otp, phone_otp)
+</ParamField>
+
+```tsx
+const { prepareVerification } = useSSOCallback();
+
+const success = await prepareVerification('email_otp');
+```
+
+### redirect()
+
+Manually redirects after OAuth completion.
+
+<ParamField path="customRedirectUri" type="string">
+  Optional custom redirect URI
+</ParamField>
+
+```tsx
+const { redirect } = useSSORedirect();
+
+// Redirect to custom URL
+redirect('https://myapp.com/welcome');
+
+// Redirect to default location
+redirect();
+```
+
+## Examples
+
+### Complete OAuth Flow with Profile Completion
+
+```tsx
+function OAuthCallbackHandler() {
+  const {
+    loading,
+    error,
+    requiresCompletion,
+    signupAttempt,
+    completeOAuthSignup,
+    completionLoading,
+    completionError
+  } = useSSOCallback({
+    onSuccess: (session, redirectUri) => {
+      // Handle successful authentication
+      window.location.href = redirectUri || '/dashboard';
+    },
+    autoRedirect: false // Manual control over redirects
+  });
+
+  const handleProfileCompletion = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    
+    const success = await completeOAuthSignup({
+      first_name: formData.get('firstName'),
+      last_name: formData.get('lastName'),
+      username: formData.get('username')
+    });
+    
+    if (success) {
+      window.location.href = '/dashboard';
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="oauth-loading">
+        <div className="spinner" />
+        <p>Completing sign in with your provider...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="oauth-error">
+        <h2>Authentication Failed</h2>
+        <p>{error.message}</p>
+        <a href="/signin" className="button">
+          Back to Sign In
+        </a>
+      </div>
+    );
+  }
+
+  if (requiresCompletion && signupAttempt) {
+    return (
+      <div className="profile-completion">
+        <h2>Complete Your Profile</h2>
+        <p>Just a few more details to finish setting up your account.</p>
+        
+        <form onSubmit={handleProfileCompletion}>
+          {signupAttempt.missing_fields?.includes('first_name') && (
+            <input
+              name="firstName"
+              placeholder="First Name"
+              required
+            />
+          )}
+          
+          {signupAttempt.missing_fields?.includes('last_name') && (
+            <input
+              name="lastName"
+              placeholder="Last Name"
+              required
+            />
+          )}
+          
+          {signupAttempt.missing_fields?.includes('username') && (
+            <input
+              name="username"
+              placeholder="Username"
+              pattern="[a-zA-Z0-9_-]+"
+              required
+            />
+          )}
+          
+          {completionError && (
+            <p className="error">{completionError.message}</p>
+          )}
+          
+          <button type="submit" disabled={completionLoading}>
+            {completionLoading ? 'Saving...' : 'Complete Setup'}
+          </button>
+        </form>
+      </div>
+    );
+  }
+
+  return <div>Redirecting to your dashboard...</div>;
+}
+```
+
+### OAuth with Verification Flow
+
+```tsx
+function OAuthWithVerification() {
+  const {
+    requiresVerification,
+    signupAttempt,
+    completeVerification,
+    prepareVerification,
+    completionLoading
+  } = useSSOCallback();
+
+  const [verificationCode, setVerificationCode] = useState('');
+  const [verificationSent, setVerificationSent] = useState(false);
+
+  const handleSendVerification = async () => {
+    const strategy = signupAttempt.current_step === 'verify_email' 
+      ? 'email_otp' 
+      : 'phone_otp';
+      
+    const success = await prepareVerification(strategy);
+    if (success) {
+      setVerificationSent(true);
+    }
+  };
+
+  const handleVerification = async (e) => {
+    e.preventDefault();
+    const success = await completeVerification(verificationCode);
+    
+    if (success) {
+      // Will auto-redirect or trigger onSuccess callback
+    }
+  };
+
+  if (!requiresVerification) {
+    return null;
+  }
+
+  return (
+    <div className="verification-required">
+      <h2>Verify Your {signupAttempt.current_step === 'verify_email' ? 'Email' : 'Phone'}</h2>
+      
+      {!verificationSent ? (
+        <div>
+          <p>We need to verify your contact information.</p>
+          <button onClick={handleSendVerification}>
+            Send Verification Code
+          </button>
+        </div>
+      ) : (
+        <form onSubmit={handleVerification}>
+          <input
+            type="text"
+            value={verificationCode}
+            onChange={(e) => setVerificationCode(e.target.value)}
+            placeholder="Enter 6-digit code"
+            maxLength="6"
+            pattern="[0-9]{6}"
+            required
+          />
+          <button type="submit" disabled={completionLoading}>
+            {completionLoading ? 'Verifying...' : 'Verify'}
+          </button>
+        </form>
+      )}
+    </div>
+  );
+}
+```
+
+### Custom Error Handling
+
+```tsx
+function OAuthErrorBoundary() {
+  const [retryCount, setRetryCount] = useState(0);
+  
+  useSSOCallback({
+    onError: (error) => {
+      // Log error to monitoring service
+      console.error('OAuth Error:', error);
+      
+      // Handle specific error types
+      if (error.message.includes('OAuth Error: access_denied')) {
+        // User cancelled OAuth flow
+        window.location.href = '/signin';
+      } else if (retryCount < 3) {
+        // Retry the OAuth flow
+        setRetryCount(prev => prev + 1);
+        window.location.reload();
+      } else {
+        // Show error UI after retries exhausted
+      }
+    },
+    onSuccess: (session) => {
+      // Reset retry count on success
+      setRetryCount(0);
+    }
+  });
+
+  return <div>Processing authentication...</div>;
+}
+```
+
+## Notes
+
+- The hook automatically extracts OAuth parameters from the URL
+- OAuth errors include both provider errors and application errors
+- Profile completion is typically required for OAuth signups missing required fields
+- Two-factor authentication may be required based on user security settings
+- The hook handles staging mode development sessions automatically
+- Auto-redirect can be disabled for manual control over navigation
+- Verification flows support both email and phone verification

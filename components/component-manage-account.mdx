@@ -1,0 +1,54 @@
+---
+title: '<ManageAccount />'
+description: 'Complete account management interface for profile settings, security options, and 2FA configuration'
+---
+
+## Overview
+
+The `<ManageAccount />` component provides a comprehensive interface for users to manage their account settings, including profile information, security settings, two-factor authentication, and user preferences.
+
+## Basic Usage
+
+```tsx
+import { ManageAccount } from '@snipextt/wacht'
+
+function AccountPage() {
+  return (
+    <div className="account-page">
+      <h1>Account Settings</h1>
+      <ManageAccount />
+    </div>
+  )
+}
+```
+
+## Props
+
+The `<ManageAccount />` component takes **no props**. It's a self-contained component that automatically displays all available account management options based on your deployment configuration.
+
+## What it includes
+
+The component automatically renders various account management sections:
+
+### Profile Management
+- **Personal Information** - Edit first name, last name, and username
+- **Profile Picture** - Upload and manage profile avatar
+- **Email Addresses** - Add, remove, and verify email addresses
+- **Phone Numbers** - Add, remove, and verify phone numbers
+
+### Security Settings
+- **Password Management** - Change account password
+- **Two-Factor Authentication** - Enable/disable 2FA with TOTP or SMS
+- **Active Sessions** - View and manage active login sessions
+- **Account Activity** - View recent account activity and login history
+
+### Account Preferences
+- **Notification Settings** - Configure email and SMS notification preferences
+- **Privacy Settings** - Control account visibility and data sharing
+- **Account Deletion** - Request account deletion (if enabled)
+
+## Related Components
+
+- [`<UserButton />`](/components/user-button) - User profile dropdown that links to account management
+- [`<SignInForm />`](/components/signin-form) - Authentication form
+- [`<ManageOrganization />`](/components/manage-organization) - Organization management interface

@@ -1,0 +1,474 @@
+---
+title: "useProfileCompletion()"
+description: "Handle incomplete profile completion for sign-in and sign-up attempts"
+---
+
+The `useProfileCompletion` hook manages the profile completion flow when users have incomplete sign-in or sign-up attempts that require additional information or verification.
+
+## Import
+
+```typescript
+import { useProfileCompletion } from '@snipextt/wacht';
+```
+
+## Usage
+
+```tsx
+import { useProfileCompletion } from '@snipextt/wacht';
+
+function ProfileCompletionFlow() {
+  const {
+    attempt,
+    attemptType,
+    loading,
+    error,
+    handleComplete,
+    handleCompleteVerification,
+    handlePrepareVerification
+  } = useProfileCompletion();
+
+  if (loading) {
+    return <div>Loading profile completion...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  }
+
+  if (!attempt) {
+    return <div>No incomplete profile found</div>;
+  }
+
+  // Handle missing fields
+  if (attempt.missing_fields?.length > 0) {
+    return (
+      <ProfileForm 
+        missingFields={attempt.missing_fields}
+        onSubmit={handleComplete}
+      />
+    );
+  }
+
+  // Handle verification
+  if (attempt.current_step === 'verify_email' || attempt.current_step === 'verify_phone') {
+    return (
+      <VerificationForm
+        type={attempt.current_step}
+        onVerify={handleCompleteVerification}
+        onResend={() => handlePrepareVerification(attempt.current_step)}
+      />
+    );
+  }
+
+  return <div>Profile completion in progress...</div>;
+}
+```
+
+## Properties
+
+<ParamField path="attempt" type="SigninAttempt | SignupAttempt | null">
+  The current incomplete attempt requiring completion
+</ParamField>
+
+<ParamField path="attemptType" type="'signin' | 'signup' | null">
+  The type of attempt (sign-in or sign-up)
+</ParamField>
+
+<ParamField path="loading" type="boolean">
+  Whether the profile completion data is loading
+</ParamField>
+
+<ParamField path="error" type="Error | null">
+  Any error that occurred during profile completion
+</ParamField>
+
+## Methods
+
+### handleComplete()
+
+Completes the profile with missing information.
+
+<ParamField path="data" type="ProfileCompletionData" required>
+  The profile data to complete
+</ParamField>
+
+```tsx
+const { handleComplete } = useProfileCompletion();
+
+const result = await handleComplete({
+  first_name: 'John',
+  last_name: 'Doe',
+  username: 'johndoe',
+  phone_number: '+1234567890',
+  email: 'john@example.com'
+});
+
+if (result.success) {
+  // Profile completed successfully
+}
+```
+
+### handleCompleteVerification()
+
+Completes verification with a code.
+
+<ParamField path="code" type="string" required>
+  The verification code
+</ParamField>
+
+```tsx
+const { handleCompleteVerification } = useProfileCompletion();
+
+const result = await handleCompleteVerification('123456');
+
+if (result.success) {
+  // Verification completed
+}
+```
+
+### handlePrepareVerification()
+
+Prepares/resends verification for email or phone.
+
+<ParamField path="strategy" type="string" required>
+  The verification strategy ('email_otp' or 'phone_otp')
+</ParamField>
+
+```tsx
+const { handlePrepareVerification } = useProfileCompletion();
+
+// Resend email verification
+await handlePrepareVerification('email_otp');
+
+// Resend phone verification
+await handlePrepareVerification('phone_otp');
+```
+
+## Types
+
+### ProfileCompletionData
+
+```typescript
+interface ProfileCompletionData {
+  first_name?: string;
+  last_name?: string;
+  username?: string;
+  phone_number?: string;
+  email?: string;
+}
+```
+
+## Examples
+
+### Complete Profile Form
+
+```tsx
+function ProfileCompletionForm() {
+  const {
+    attempt,
+    loading,
+    error,
+    handleComplete
+  } = useProfileCompletion();
+
+  const [formData, setFormData] = useState({
+    first_name: '',
+    last_name: '',
+    username: '',
+    phone_number: ''
+  });
+
+  if (!attempt) {
+    return null;
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    const result = await handleComplete(formData);
+    
+    if (result.success) {
+      // Redirect or show success
+      window.location.href = '/dashboard';
+    }
+  };
+
+  return (
+    <div className="profile-completion">
+      <h2>Complete Your Profile</h2>
+      <p>Please provide the following information to continue:</p>
+      
+      <form onSubmit={handleSubmit}>
+        {attempt.missing_fields?.includes('first_name') && (
+          <input
+            type="text"
+            placeholder="First Name"
+            value={formData.first_name}
+            onChange={(e) => setFormData({
+              ...formData,
+              first_name: e.target.value
+            })}
+            required
+          />
+        )}
+        
+        {attempt.missing_fields?.includes('last_name') && (
+          <input
+            type="text"
+            placeholder="Last Name"
+            value={formData.last_name}
+            onChange={(e) => setFormData({
+              ...formData,
+              last_name: e.target.value
+            })}
+            required
+          />
+        )}
+        
+        {attempt.missing_fields?.includes('username') && (
+          <input
+            type="text"
+            placeholder="Username"
+            value={formData.username}
+            onChange={(e) => setFormData({
+              ...formData,
+              username: e.target.value
+            })}
+            pattern="[a-zA-Z0-9_-]+"
+            required
+          />
+        )}
+        
+        {attempt.missing_fields?.includes('phone_number') && (
+          <input
+            type="tel"
+            placeholder="Phone Number"
+            value={formData.phone_number}
+            onChange={(e) => setFormData({
+              ...formData,
+              phone_number: e.target.value
+            })}
+            required
+          />
+        )}
+        
+        {error && (
+          <div className="error">
+            {error.message}
+          </div>
+        )}
+        
+        <button type="submit" disabled={loading}>
+          {loading ? 'Saving...' : 'Complete Profile'}
+        </button>
+      </form>
+    </div>
+  );
+}
+```
+
+### Verification Flow
+
+```tsx
+function ProfileVerification() {
+  const {
+    attempt,
+    loading,
+    handleCompleteVerification,
+    handlePrepareVerification
+  } = useProfileCompletion();
+
+  const [code, setCode] = useState('');
+  const [resending, setResending] = useState(false);
+
+  if (!attempt) return null;
+
+  const isEmailVerification = attempt.current_step === 'verify_email';
+  const isPhoneVerification = attempt.current_step === 'verify_phone';
+
+  if (!isEmailVerification && !isPhoneVerification) {
+    return null;
+  }
+
+  const handleResend = async () => {
+    setResending(true);
+    const strategy = isEmailVerification ? 'email_otp' : 'phone_otp';
+    await handlePrepareVerification(strategy);
+    setResending(false);
+  };
+
+  const handleVerify = async (e) => {
+    e.preventDefault();
+    
+    const result = await handleCompleteVerification(code);
+    
+    if (result.success) {
+      // Verification complete
+      window.location.href = '/dashboard';
+    }
+  };
+
+  return (
+    <div className="verification">
+      <h2>Verify Your {isEmailVerification ? 'Email' : 'Phone'}</h2>
+      <p>
+        We sent a verification code to your {isEmailVerification ? 'email' : 'phone'}.
+      </p>
+      
+      <form onSubmit={handleVerify}>
+        <input
+          type="text"
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+          placeholder="Enter 6-digit code"
+          maxLength="6"
+          pattern="[0-9]{6}"
+          required
+        />
+        
+        <button type="submit" disabled={loading}>
+          {loading ? 'Verifying...' : 'Verify'}
+        </button>
+      </form>
+      
+      <button 
+        onClick={handleResend} 
+        disabled={resending}
+        className="link-button"
+      >
+        {resending ? 'Sending...' : 'Resend Code'}
+      </button>
+    </div>
+  );
+}
+```
+
+### Complete Profile Completion Flow
+
+```tsx
+function ProfileCompletionPage() {
+  const {
+    attempt,
+    attemptType,
+    loading,
+    error,
+    handleComplete,
+    handleCompleteVerification,
+    handlePrepareVerification
+  } = useProfileCompletion();
+
+  const [step, setStep] = useState('loading');
+
+  useEffect(() => {
+    if (!loading && attempt) {
+      if (attempt.missing_fields?.length > 0) {
+        setStep('profile');
+      } else if (attempt.current_step?.includes('verify')) {
+        setStep('verification');
+      } else if (attempt.completed) {
+        setStep('complete');
+      }
+    } else if (!loading && !attempt) {
+      setStep('error');
+    }
+  }, [loading, attempt]);
+
+  if (loading) {
+    return (
+      <div className="loading">
+        <div className="spinner" />
+        <p>Loading profile completion...</p>
+      </div>
+    );
+  }
+
+  if (step === 'error' || error) {
+    return (
+      <div className="error-state">
+        <h2>No Profile Completion Required</h2>
+        <p>{error?.message || 'No incomplete profile found.'}</p>
+        <a href="/dashboard">Go to Dashboard</a>
+      </div>
+    );
+  }
+
+  if (step === 'profile') {
+    return (
+      <ProfileCompletionForm 
+        attempt={attempt}
+        onComplete={handleComplete}
+      />
+    );
+  }
+
+  if (step === 'verification') {
+    return (
+      <ProfileVerification
+        attempt={attempt}
+        onVerify={handleCompleteVerification}
+        onResend={handlePrepareVerification}
+      />
+    );
+  }
+
+  if (step === 'complete') {
+    return (
+      <div className="success">
+        <h2>Profile Complete!</h2>
+        <p>Redirecting to your dashboard...</p>
+      </div>
+    );
+  }
+
+  return null;
+}
+```
+
+### OAuth Profile Completion
+
+```tsx
+function OAuthProfileCompletion() {
+  const { attempt, attemptType, handleComplete } = useProfileCompletion();
+  
+  // This would typically be on a dedicated route like /complete-profile
+  useEffect(() => {
+    // Check if this is an OAuth signup that needs completion
+    if (attempt && attemptType === 'signup' && attempt.oauth_provider) {
+      console.log('Completing OAuth signup for:', attempt.oauth_provider);
+    }
+  }, [attempt, attemptType]);
+
+  if (!attempt) {
+    return <div>No profile completion needed</div>;
+  }
+
+  return (
+    <div className="oauth-completion">
+      <h2>Almost There!</h2>
+      <p>
+        You've signed up with {attempt.oauth_provider}. 
+        Just a few more details needed:
+      </p>
+      
+      <ProfileCompletionForm
+        attempt={attempt}
+        onComplete={handleComplete}
+        prefillData={{
+          email: attempt.email,
+          first_name: attempt.oauth_first_name,
+          last_name: attempt.oauth_last_name
+        }}
+      />
+    </div>
+  );
+}
+```
+
+## Notes
+
+- The hook automatically detects incomplete sign-in/sign-up attempts from the session
+- Profile completion is required when mandatory fields are missing
+- Verification may be required for email or phone numbers
+- OAuth signups often require profile completion for missing fields
+- The hook manages the entire completion flow including multi-step processes
+- Successful completion updates the session automatically

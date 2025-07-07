@@ -1,0 +1,51 @@
+---
+title: '<UserButton />'
+description: 'User profile dropdown button with account management, user switching, and sign out functionality'
+---
+
+## Overview
+
+The `<UserButton />` component provides a dropdown interface for authenticated users to access their profile, account settings, switch between users, and sign out. It displays the user's avatar and name, with a dropdown menu containing account management options.
+
+## Basic Usage
+
+```tsx
+import { UserButton } from '@snipextt/wacht'
+
+function Navbar() {
+  return (
+    <nav className="navbar">
+      <div className="nav-brand">Your App</div>
+      <UserButton />
+    </nav>
+  )
+}
+```
+
+## Props
+
+<ParamField path="showName" type="boolean" default={true}>
+  Whether to display the user's name next to their avatar in the button.
+</ParamField>
+
+## What it includes
+
+The component automatically renders based on the authenticated user:
+
+### User Information Display
+- **User Avatar** - Profile image or initials if no image uploaded
+- **User Name** - Full name (first name + last name) when `showName` is true
+- **Online Status** - Visual indicator when user is active
+
+### Dropdown Menu Options
+- **Manage Account** - Opens account settings and profile management
+- **Switch Users** - Allows switching between multiple user sessions (if enabled)
+- **Sign Out** - Signs out the current user and redirects to sign-in page
+
+## Related Components
+
+- [`<SignInForm />`](/components/signin-form) - User authentication form
+- [`<SignUpForm />`](/components/signup-form) - User registration form
+- [`<ManageAccount />`](/components/manage-account) - Account management interface
+- [`<OrganizationSwitcher />`](/components/organization-switcher) - Organization selection
+- [`<SignedIn />`](/components/signed-in) - Conditional rendering for authenticated users

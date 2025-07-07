@@ -1,0 +1,685 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Wacht Backend API",
+    "description": "Backend services and data processing API",
+    "version": "1.0.0",
+    "license": {
+      "name": "MIT"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.wacht.dev",
+      "description": "Production backend server"
+    },
+    {
+      "url": "https://staging-api.wacht.dev",
+      "description": "Staging backend server"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Analytics",
+      "description": "Analytics and reporting endpoints"
+    },
+    {
+      "name": "Data Processing",
+      "description": "Data processing and transformation endpoints"
+    },
+    {
+      "name": "Integrations",
+      "description": "Third-party service integrations"
+    },
+    {
+      "name": "Admin",
+      "description": "Administrative endpoints"
+    }
+  ],
+  "paths": {
+    "/analytics/events": {
+      "post": {
+        "tags": ["Analytics"],
+        "summary": "Track Event",
+        "description": "Track user events and analytics data",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventRequest"
+              },
+              "examples": {
+                "user_action": {
+                  "summary": "User Action Event",
+                  "value": {
+                    "event_type": "user_action",
+                    "user_id": "user_123",
+                    "action": "button_click",
+                    "metadata": {
+                      "button_id": "signup_cta",
+                      "page": "/landing"
+                    },
+                    "timestamp": "2024-01-01T12:00:00Z"
+                  }
+                },
+                "page_view": {
+                  "summary": "Page View Event",
+                  "value": {
+                    "event_type": "page_view",
+                    "user_id": "user_123",
+                    "page": "/dashboard",
+                    "metadata": {
+                      "referrer": "/auth/signin",
+                      "user_agent": "Mozilla/5.0..."
+                    },
+                    "timestamp": "2024-01-01T12:00:00Z"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Event tracked successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "event_id": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/analytics/reports": {
+      "get": {
+        "tags": ["Analytics"],
+        "summary": "Get Analytics Report",
+        "description": "Generate analytics reports for a specified time period",
+        "parameters": [
+          {
+            "name": "start_date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Start date for the report (YYYY-MM-DD)"
+          },
+          {
+            "name": "end_date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "End date for the report (YYYY-MM-DD)"
+          },
+          {
+            "name": "metric",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["page_views", "user_actions", "conversions", "retention"]
+            },
+            "description": "Specific metric to report on"
+          },
+          {
+            "name": "group_by",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["day", "week", "month"]
+            },
+            "description": "Time period to group results by"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Analytics report generated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/data/export": {
+      "post": {
+        "tags": ["Data Processing"],
+        "summary": "Export Data",
+        "description": "Export data in various formats (CSV, JSON, Excel)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExportRequest"
+              },
+              "examples": {
+                "user_export": {
+                  "summary": "Export User Data",
+                  "value": {
+                    "data_type": "users",
+                    "format": "csv",
+                    "filters": {
+                      "created_after": "2024-01-01",
+                      "organization_id": "org_123"
+                    },
+                    "fields": ["id", "email", "first_name", "last_name", "created_at"]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Export initiated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "export_id": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": ["processing", "completed", "failed"]
+                    },
+                    "download_url": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "estimated_completion": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/integrations/webhooks": {
+      "post": {
+        "tags": ["Integrations"],
+        "summary": "Create Webhook",
+        "description": "Set up a webhook endpoint for real-time notifications",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookRequest"
+              },
+              "examples": {
+                "user_events": {
+                  "summary": "User Events Webhook",
+                  "value": {
+                    "url": "https://your-app.com/webhooks/user-events",
+                    "events": ["user.created", "user.updated", "user.deleted"],
+                    "secret": "webhook_secret_key",
+                    "active": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Webhook created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Webhook"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "get": {
+        "tags": ["Integrations"],
+        "summary": "List Webhooks",
+        "description": "Get all configured webhooks for the current deployment",
+        "responses": {
+          "200": {
+            "description": "Webhooks retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Webhook"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/admin/deployments": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "List Deployments",
+        "description": "Get all deployments (admin only)",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "maximum": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deployments retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Deployment"
+                      }
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "EventRequest": {
+        "type": "object",
+        "properties": {
+          "event_type": {
+            "type": "string",
+            "enum": ["user_action", "page_view", "conversion", "error"]
+          },
+          "user_id": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string"
+          },
+          "page": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": ["event_type", "timestamp"]
+      },
+      "AnalyticsReport": {
+        "type": "object",
+        "properties": {
+          "report_id": {
+            "type": "string"
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "date": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "value": {
+                  "type": "number"
+                },
+                "metric": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "summary": {
+            "type": "object",
+            "properties": {
+              "total": {
+                "type": "number"
+              },
+              "average": {
+                "type": "number"
+              },
+              "change_percentage": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      },
+      "ExportRequest": {
+        "type": "object",
+        "properties": {
+          "data_type": {
+            "type": "string",
+            "enum": ["users", "organizations", "events", "analytics"]
+          },
+          "format": {
+            "type": "string",
+            "enum": ["csv", "json", "excel"]
+          },
+          "filters": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["data_type", "format"]
+      },
+      "WebhookRequest": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["user.created", "user.updated", "user.deleted", "organization.created", "organization.updated"]
+            }
+          },
+          "secret": {
+            "type": "string",
+            "minLength": 10
+          },
+          "active": {
+            "type": "boolean",
+            "default": true
+          }
+        },
+        "required": ["url", "events"]
+      },
+      "Webhook": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "last_delivery": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "delivery_success_rate": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        }
+      },
+      "Deployment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "domain": {
+            "type": "string"
+          },
+          "plan": {
+            "type": "string",
+            "enum": ["free", "pro", "enterprise"]
+          },
+          "status": {
+            "type": "string",
+            "enum": ["active", "suspended", "pending"]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "user_count": {
+            "type": "integer"
+          },
+          "organization_count": {
+            "type": "integer"
+          }
+        }
+      },
+      "Pagination": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer"
+          },
+          "limit": {
+            "type": "integer"
+          },
+          "total": {
+            "type": "integer"
+          },
+          "total_pages": {
+            "type": "integer"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "details": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Bad Request",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "examples": {
+              "validation_error": {
+                "summary": "Validation Error",
+                "value": {
+                  "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "Invalid request parameters",
+                    "details": {
+                      "field": "start_date",
+                      "issue": "Date must be in YYYY-MM-DD format"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Unauthorized",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "examples": {
+              "invalid_token": {
+                "summary": "Invalid Token",
+                "value": {
+                  "error": {
+                    "code": "INVALID_TOKEN",
+                    "message": "Invalid or expired authentication token"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "Forbidden",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "examples": {
+              "insufficient_permissions": {
+                "summary": "Insufficient Permissions",
+                "value": {
+                  "error": {
+                    "code": "INSUFFICIENT_PERMISSIONS",
+                    "message": "Admin access required for this operation"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

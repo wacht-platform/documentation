@@ -1,0 +1,58 @@
+---
+title: '<CreateOrganizationForm />'
+description: 'Form component for creating new organizations with name, description, and logo upload'
+---
+
+## Overview
+
+The `<CreateOrganizationForm />` component provides a form interface for creating new organizations. It includes fields for organization name, description, and logo upload with built-in validation and submission handling.
+
+## Basic Usage
+
+```tsx
+import { CreateOrganizationForm } from '@snipextt/wacht'
+
+function CreateOrgPage() {
+  return (
+    <div className="create-org-page">
+      <h1>Create Organization</h1>
+      <CreateOrganizationForm />
+    </div>
+  )
+}
+```
+
+## Props
+
+<ParamField path="onSuccess" type="function" optional>
+  Callback function called when organization is successfully created.
+</ParamField>
+
+<ParamField path="onCancel" type="function" optional>
+  Callback function called when form is cancelled.
+</ParamField>
+
+## What it includes
+
+### Form Fields
+- **Organization Name** - Required text field with validation
+- **Description** - Optional textarea for organization description
+- **Logo Upload** - Optional image upload with preview functionality
+
+### File Upload Features
+- **Supported Formats** - SVG, PNG, JPG image files
+- **Size Limit** - 2MB maximum file size
+- **Image Preview** - Shows uploaded image with replace/remove options
+- **Square Recommendation** - Recommends square images for best display
+
+### Form Functionality
+- **Validation** - Client-side validation for required fields
+- **Loading States** - Shows loading indicator during submission
+- **Error Handling** - Displays validation and submission errors
+- **Auto-submission** - Submits form when all required fields are complete
+
+## Related Components
+
+- [`<CreateOrganizationDialog />`](/components/create-organization-dialog) - Dialog wrapper for this form
+- [`<OrganizationList />`](/components/organization-list) - List of user's organizations
+- [`<ManageOrganization />`](/components/manage-organization) - Organization management interface

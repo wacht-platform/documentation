@@ -1,0 +1,292 @@
+---
+title: "useClient()"
+description: "Access the configured HTTP client for API requests"
+---
+
+The `useClient` hook provides access to a pre-configured HTTP client that handles authentication, deployment-specific settings, and development mode features.
+
+## Import
+
+```typescript
+import { useClient } from '@snipextt/wacht';
+```
+
+## Usage
+
+```tsx
+import { useClient } from '@snipextt/wacht';
+
+function ApiComponent() {
+  const { client, loading } = useClient();
+
+  const fetchUserData = async () => {
+    if (loading) return;
+    
+    const response = await client('/me', {
+      method: 'GET'
+    });
+    
+    const data = await response.json();
+    return data;
+  };
+
+  return (
+    <div>
+      {loading ? (
+        <p>Initializing client...</p>
+      ) : (
+        <button onClick={fetchUserData}>
+          Fetch User Data
+        </button>
+      )}
+    </div>
+  );
+}
+```
+
+## Properties
+
+<ParamField path="client" type="Client">
+  The configured HTTP client function for making API requests. Returns a Promise that resolves to a Response object.
+</ParamField>
+
+<ParamField path="loading" type="boolean">
+  Whether the client is still initializing. `true` while deployment configuration is being loaded.
+</ParamField>
+
+## Client Function
+
+The `client` function is a configured fetch wrapper that:
+
+- Automatically includes the correct backend URL
+- Handles authentication headers
+- Manages development session tokens in staging mode
+- Includes proper CORS credentials for production
+
+### Parameters
+
+<ParamField path="url" type="string | URL" required>
+  The API endpoint path (e.g., '/me', '/organizations')
+</ParamField>
+
+<ParamField path="options" type="RequestInit">
+  Standard fetch options (method, headers, body, etc.)
+</ParamField>
+
+```tsx
+const { client } = useClient();
+
+// GET request
+const response = await client('/me');
+
+// POST request with data
+const response = await client('/auth/signin', {
+  method: 'POST',
+  body: formData
+});
+
+// Custom headers
+const response = await client('/api/data', {
+  method: 'GET',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-Custom-Header': 'value'
+  }
+});
+```
+
+## Examples
+
+### Making API Calls
+
+```tsx
+function UserProfile() {
+  const { client, loading } = useClient();
+  const [user, setUser] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!loading) {
+      fetchUser();
+    }
+  }, [loading]);
+
+  const fetchUser = async () => {
+    try {
+      const response = await client('/me');
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const userData = await response.json();
+      setUser(userData);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
+  return (
+    <div>
+      <h1>User Profile</h1>
+      {user && (
+        <div>
+          <p>Name: {user.first_name} {user.last_name}</p>
+          <p>Email: {user.email}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+### File Upload
+
+```tsx
+function FileUpload() {
+  const { client } = useClient();
+
+  const handleFileUpload = async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await client('/me/profile-picture', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (response.ok) {
+        console.log('File uploaded successfully');
+      }
+    } catch (error) {
+      console.error('Upload failed:', error);
+    }
+  };
+
+  return (
+    <input
+      type="file"
+      onChange={(e) => {
+        const file = e.target.files[0];
+        if (file) {
+          handleFileUpload(file);
+        }
+      }}
+    />
+  );
+}
+```
+
+### Error Handling
+
+```tsx
+function ApiWithErrorHandling() {
+  const { client } = useClient();
+
+  const makeApiCall = async (endpoint, options = {}) => {
+    try {
+      const response = await client(endpoint, options);
+      
+      if (!response.ok) {
+        // Handle different HTTP status codes
+        switch (response.status) {
+          case 401:
+            throw new Error('Unauthorized - please sign in');
+          case 403:
+            throw new Error('Forbidden - insufficient permissions');
+          case 404:
+            throw new Error('Resource not found');
+          case 500:
+            throw new Error('Server error - please try again later');
+          default:
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('API call failed:', error);
+      throw error;
+    }
+  };
+
+  return {
+    makeApiCall
+  };
+}
+```
+
+### Custom Hook with Client
+
+```tsx
+function useUserOrganizations() {
+  const { client, loading: clientLoading } = useClient();
+  const [organizations, setOrganizations] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const fetchOrganizations = useCallback(async () => {
+    if (clientLoading) return;
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const response = await client('/me/organization-memberships');
+      const data = await response.json();
+      setOrganizations(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [client, clientLoading]);
+
+  useEffect(() => {
+    fetchOrganizations();
+  }, [fetchOrganizations]);
+
+  return {
+    organizations,
+    loading: clientLoading || loading,
+    error,
+    refetch: fetchOrganizations
+  };
+}
+```
+
+## Development Features
+
+### Staging Mode
+
+In staging/development mode, the client automatically:
+
+- Appends development session tokens to requests
+- Handles special development headers
+- Manages local storage for development sessions
+
+```tsx
+// The client automatically handles these in staging mode:
+// - Adds __dev_session__ parameter to requests
+// - Stores x-development-session header responses
+// - No manual intervention required
+```
+
+## Notes
+
+- The client is only available after the deployment configuration is loaded
+- Authentication is handled automatically through cookies in production
+- Development session management is transparent in staging mode
+- All requests are made to the configured backend host from the deployment
+- The client respects CORS settings and includes credentials when appropriate
+- Error handling should be implemented at the component level
+- The client function signature matches the standard fetch API

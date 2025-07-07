@@ -1,0 +1,368 @@
+---
+title: "useSignIn()"
+description: "Handle user sign-in with multiple authentication strategies"
+---
+
+The `useSignIn` hook provides comprehensive sign-in functionality with support for multiple authentication strategies including email/password, username/password, phone OTP, email OTP, magic links, and OAuth providers.
+
+## Import
+
+```typescript
+import { useSignIn, SignInStrategy, OAuthProvider } from '@snipextt/wacht';
+```
+
+## Usage
+
+```tsx
+import { useSignIn, SignInStrategy } from '@snipextt/wacht';
+
+function SignInForm() {
+  const { signIn, loading, signinAttempt, errors } = useSignIn();
+
+  const handleEmailSignIn = async (email: string, password: string) => {
+    const emailSignIn = signIn.createStrategy(SignInStrategy.Email);
+    const result = await emailSignIn({ email, password });
+    
+    if (result.data) {
+      console.log('Sign in successful:', result.data);
+    }
+  };
+
+  return (
+    <form onSubmit={(e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      handleEmailSignIn(
+        formData.get('email'),
+        formData.get('password')
+      );
+    }}>
+      <input name="email" type="email" placeholder="Email" />
+      <input name="password" type="password" placeholder="Password" />
+      <button type="submit" disabled={loading}>
+        {loading ? 'Signing in...' : 'Sign In'}
+      </button>
+    </form>
+  );
+}
+```
+
+## Properties
+
+<ParamField path="loading" type="boolean">
+  Whether a sign-in operation is currently in progress. `true` during authentication requests.
+</ParamField>
+
+<ParamField path="signinAttempt" type="SigninAttempt | null">
+  The current sign-in attempt object containing verification requirements and status. `null` if no active attempt.
+</ParamField>
+
+<ParamField path="errors" type="ApiResult<unknown, ErrorInterface> | null">
+  Any errors that occurred during the sign-in process. `null` if no errors.
+</ParamField>
+
+## Sign-In Object
+
+The `signIn` object provides methods for authentication:
+
+### createStrategy()
+
+Creates a sign-in strategy function for the specified authentication method.
+
+<ParamField path="strategy" type="SignInStrategy" required>
+  The authentication strategy to use
+</ParamField>
+
+```tsx
+const { signIn } = useSignIn();
+
+// Create email/password strategy
+const emailSignIn = signIn.createStrategy(SignInStrategy.Email);
+
+// Create username/password strategy
+const usernameSignIn = signIn.createStrategy(SignInStrategy.Username);
+
+// Create phone OTP strategy
+const phoneSignIn = signIn.createStrategy(SignInStrategy.Phone);
+```
+
+### prepareVerification()
+
+Prepares verification for strategies that require it (OTP, magic links).
+
+<ParamField path="params" type="VerificationParams" required>
+  Parameters for preparing verification
+</ParamField>
+
+```tsx
+const { signIn } = useSignIn();
+
+// Prepare email OTP verification
+await signIn.prepareVerification({
+  strategy: 'email_otp',
+  redirectUri: 'https://myapp.com/verify'
+});
+
+// Prepare phone OTP verification
+await signIn.prepareVerification({
+  strategy: 'phone_otp',
+  lastDigits: '1234'
+});
+```
+
+### completeVerification()
+
+Completes verification with the provided code.
+
+<ParamField path="verificationCode" type="string" required>
+  The verification code received via email, SMS, or authenticator app
+</ParamField>
+
+```tsx
+const { signIn } = useSignIn();
+
+// Complete verification with OTP code
+await signIn.completeVerification('123456');
+```
+
+## Authentication Strategies
+
+### Email/Password Strategy
+
+```tsx
+const { signIn } = useSignIn();
+
+const emailSignIn = signIn.createStrategy(SignInStrategy.Email);
+const result = await emailSignIn({
+  email: 'user@example.com',
+  password: 'password123'
+});
+```
+
+### Username/Password Strategy
+
+```tsx
+const { signIn } = useSignIn();
+
+const usernameSignIn = signIn.createStrategy(SignInStrategy.Username);
+const result = await usernameSignIn({
+  username: 'john_doe',
+  password: 'password123'
+});
+```
+
+### Phone OTP Strategy
+
+```tsx
+const { signIn } = useSignIn();
+
+const phoneSignIn = signIn.createStrategy(SignInStrategy.Phone);
+const result = await phoneSignIn({
+  phone: '+1234567890'
+});
+
+// After receiving OTP
+await signIn.completeVerification('123456');
+```
+
+### Email OTP Strategy
+
+```tsx
+const { signIn } = useSignIn();
+
+const emailOTPSignIn = signIn.createStrategy(SignInStrategy.EmailOTP);
+const result = await emailOTPSignIn({
+  email: 'user@example.com'
+});
+
+// After receiving OTP
+await signIn.completeVerification('123456');
+```
+
+### Magic Link Strategy
+
+```tsx
+const { signIn } = useSignIn();
+
+const magicLinkSignIn = signIn.createStrategy(SignInStrategy.MagicLink);
+const result = await magicLinkSignIn({
+  email: 'user@example.com'
+});
+
+// User will receive magic link via email
+```
+
+### OAuth Strategy
+
+```tsx
+import { OAuthProvider } from '@snipextt/wacht';
+
+const { signIn } = useSignIn();
+
+const oauthSignIn = signIn.createStrategy(SignInStrategy.Oauth);
+
+// Sign in with Google
+await oauthSignIn({
+  provider: OAuthProvider.GoogleOauth,
+  redirectUri: 'https://myapp.com/auth/callback'
+});
+
+// Sign in with GitHub
+await oauthSignIn({
+  provider: OAuthProvider.GithubOauth
+});
+```
+
+### Generic Strategy
+
+For flexible authentication with mixed parameters:
+
+```tsx
+const { signIn } = useSignIn();
+
+const genericSignIn = signIn.createStrategy(SignInStrategy.Generic);
+const result = await genericSignIn({
+  strategy: 'custom_auth',
+  email: 'user@example.com',
+  username: 'john_doe',
+  phone: '+1234567890'
+});
+```
+
+## OAuth Providers
+
+Available OAuth providers:
+
+- `OAuthProvider.GoogleOauth` - Google OAuth
+- `OAuthProvider.GithubOauth` - GitHub OAuth
+- `OAuthProvider.GitlabOauth` - GitLab OAuth
+- `OAuthProvider.MicrosoftOauth` - Microsoft OAuth
+- `OAuthProvider.FacebookOauth` - Facebook OAuth
+- `OAuthProvider.LinkedinOauth` - LinkedIn OAuth
+- `OAuthProvider.DiscordOauth` - Discord OAuth
+- `OAuthProvider.AppleOauth` - Apple OAuth
+- `OAuthProvider.XOauth` - X (Twitter) OAuth
+
+## Methods
+
+### discardSignInAttempt()
+
+Clears the current sign-in attempt and any associated errors.
+
+```tsx
+const { discardSignInAttempt } = useSignIn();
+
+// Clear current attempt
+discardSignInAttempt();
+```
+
+## Type-Safe Strategy Hook
+
+For type-safe usage with a specific strategy:
+
+```tsx
+import { useSignInWithStrategy, SignInStrategy } from '@snipextt/wacht';
+
+function EmailSignInForm() {
+  const { signIn, loading, errors } = useSignInWithStrategy(SignInStrategy.Email);
+
+  const handleSignIn = async (email: string, password: string) => {
+    // signIn.create is now type-safe for email strategy
+    const result = await signIn.create({ email, password });
+  };
+
+  return (
+    // Form implementation
+  );
+}
+```
+
+## Examples
+
+### Multi-Step Sign-In with Verification
+
+```tsx
+function MultiStepSignIn() {
+  const { signIn, signinAttempt, loading } = useSignIn();
+  const [step, setStep] = useState('initial');
+
+  const handlePhoneSignIn = async (phone: string) => {
+    const phoneSignIn = signIn.createStrategy(SignInStrategy.Phone);
+    const result = await phoneSignIn({ phone });
+    
+    if (result.data?.signin_attempts?.length) {
+      setStep('verification');
+    }
+  };
+
+  const handleVerification = async (code: string) => {
+    await signIn.completeVerification(code);
+    setStep('complete');
+  };
+
+  if (step === 'verification') {
+    return (
+      <div>
+        <h2>Enter verification code</h2>
+        <input 
+          type="text" 
+          placeholder="Enter 6-digit code"
+          onBlur={(e) => handleVerification(e.target.value)}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <input 
+        type="tel" 
+        placeholder="Phone number"
+        onBlur={(e) => handlePhoneSignIn(e.target.value)}
+      />
+    </div>
+  );
+}
+```
+
+### Error Handling
+
+```tsx
+function SignInWithErrorHandling() {
+  const { signIn, errors, loading } = useSignIn();
+
+  const handleSignIn = async (email: string, password: string) => {
+    const emailSignIn = signIn.createStrategy(SignInStrategy.Email);
+    const result = await emailSignIn({ email, password });
+    
+    if (result.errors) {
+      // Handle specific error types
+      result.errors.forEach(error => {
+        console.error('Sign-in error:', error.message);
+      });
+    }
+  };
+
+  return (
+    <div>
+      {errors && (
+        <div className="error">
+          {errors.errors?.map((error, index) => (
+            <p key={index}>{error.message}</p>
+          ))}
+        </div>
+      )}
+      {/* Sign-in form */}
+    </div>
+  );
+}
+```
+
+## Notes
+
+- Sign-in attempts are automatically tracked and managed
+- Verification codes are typically 6 digits for OTP methods
+- OAuth strategies will redirect to the provider's authentication page
+- Magic link strategies send an email with a sign-in link
+- Generic strategy allows mixing multiple authentication parameters
+- All strategies return a consistent `ApiResult` format

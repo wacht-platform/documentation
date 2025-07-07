@@ -1,0 +1,62 @@
+---
+title: '<CreateWorkspaceForm />'
+description: 'Form component for creating new workspaces within an organization'
+---
+
+## Overview
+
+The `<CreateWorkspaceForm />` component provides a form interface for creating new workspaces within a specific organization. It includes fields for workspace name, description, and logo upload with built-in validation.
+
+## Basic Usage
+
+```tsx
+import { CreateWorkspaceForm } from '@snipextt/wacht'
+
+function CreateWorkspacePage() {
+  return (
+    <div className="create-workspace-page">
+      <h1>Create Workspace</h1>
+      <CreateWorkspaceForm organizationId="org_123" />
+    </div>
+  )
+}
+```
+
+## Props
+
+<ParamField path="organizationId" type="string" required>
+  ID of the organization where the workspace will be created.
+</ParamField>
+
+<ParamField path="onSuccess" type="function" optional>
+  Callback function called when workspace is successfully created.
+</ParamField>
+
+<ParamField path="onCancel" type="function" optional>
+  Callback function called when form is cancelled.
+</ParamField>
+
+## What it includes
+
+### Form Fields
+- **Workspace Name** - Required text field with validation
+- **Description** - Optional textarea for workspace description
+- **Logo Upload** - Optional image upload with preview functionality
+
+### File Upload Features
+- **Supported Formats** - PNG, JPEG, GIF image files
+- **Size Limit** - 2MB maximum file size
+- **Image Preview** - Shows uploaded image with replace/remove options
+- **Organization Context** - Workspace is created within the specified organization
+
+### Form Functionality
+- **Validation** - Client-side validation for required fields
+- **Loading States** - Shows loading indicator during submission
+- **Error Handling** - Displays validation and submission errors
+- **Organization Binding** - Automatically associates workspace with the provided organization
+
+## Related Components
+
+- [`<CreateWorkspaceDialog />`](/components/create-workspace-dialog) - Dialog wrapper for this form
+- [`<CreateOrganizationForm />`](/components/create-organization-form) - Form for creating organizations
+- [`<OrganizationSwitcher />`](/components/organization-switcher) - Switch between organizations and workspaces

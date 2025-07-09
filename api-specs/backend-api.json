@@ -2,20 +2,17 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Wacht Backend API",
-    "description": "Backend services and data processing API",
+    "description": "Backend API for the Wacht platform console",
     "version": "1.0.0",
     "license": {
-      "name": "MIT"
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
     }
   },
   "servers": [
     {
       "url": "https://api.wacht.dev",
       "description": "Production backend server"
-    },
-    {
-      "url": "https://staging-api.wacht.dev",
-      "description": "Staging backend server"
     }
   ],
   "security": [
@@ -23,184 +20,1973 @@
       "bearerAuth": []
     }
   ],
-  "tags": [
-    {
-      "name": "Analytics",
-      "description": "Analytics and reporting endpoints"
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "JWT Bearer token authentication using the Authorization header"
+      }
     },
-    {
-      "name": "Data Processing",
-      "description": "Data processing and transformation endpoints"
-    },
-    {
-      "name": "Integrations",
-      "description": "Third-party service integrations"
-    },
-    {
-      "name": "Admin",
-      "description": "Administrative endpoints"
-    }
-  ],
-  "paths": {
-    "/analytics/events": {
-      "post": {
-        "tags": ["Analytics"],
-        "summary": "Track Event",
-        "description": "Track user events and analytics data",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/EventRequest"
-              },
-              "examples": {
-                "user_action": {
-                  "summary": "User Action Event",
-                  "value": {
-                    "event_type": "user_action",
-                    "user_id": "user_123",
-                    "action": "button_click",
-                    "metadata": {
-                      "button_id": "signup_cta",
-                      "page": "/landing"
-                    },
-                    "timestamp": "2024-01-01T12:00:00Z"
-                  }
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "user@example.com"
+          },
+          "username": {
+            "type": "string",
+            "example": "johndoe"
+          },
+          "first_name": {
+            "type": "string",
+            "example": "John"
+          },
+          "last_name": {
+            "type": "string",
+            "example": "Doe"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-01T12:00:00Z"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-01T12:00:00Z"
+          },
+          "is_active": {
+            "type": "boolean",
+            "example": true
+          },
+          "emails": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserEmail"
+            }
+          },
+          "phones": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserPhone"
+            }
+          },
+          "social_connections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SocialConnection"
+            }
+          }
+        }
+      },
+      "UserEmail": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "is_primary": {
+            "type": "boolean"
+          },
+          "is_verified": {
+            "type": "boolean"
+          },
+          "verified_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "UserPhone": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "phone_number": {
+            "type": "string",
+            "example": "+1234567890"
+          },
+          "is_primary": {
+            "type": "boolean"
+          },
+          "is_verified": {
+            "type": "boolean"
+          },
+          "verified_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "CreateUserRequest": {
+        "type": "object",
+        "required": ["email"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "username": {
+            "type": "string"
+          },
+          "first_name": {
+            "type": "string"
+          },
+          "last_name": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8
+          }
+        }
+      },
+      "UpdateUserRequest": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "first_name": {
+            "type": "string"
+          },
+          "last_name": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdatePasswordRequest": {
+        "type": "object",
+        "required": ["current_password", "new_password"],
+        "properties": {
+          "current_password": {
+            "type": "string"
+          },
+          "new_password": {
+            "type": "string",
+            "minLength": 8
+          }
+        }
+      },
+      "InviteUserRequest": {
+        "type": "object",
+        "required": ["email"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "role": {
+            "type": "string"
+          },
+          "organization_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          }
+        }
+      },
+      "WaitlistUser": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "requested_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "approved", "rejected"]
+          }
+        }
+      },
+      "PaginatedResponse": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer",
+            "example": 100
+          },
+          "page": {
+            "type": "integer",
+            "example": 1
+          },
+          "per_page": {
+            "type": "integer",
+            "example": 20
+          },
+          "total_pages": {
+            "type": "integer",
+            "example": 5
+          }
+        }
+      },
+      "Organization": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "Acme Corporation"
+          },
+          "display_name": {
+            "type": "string",
+            "example": "Acme Corp"
+          },
+          "slug": {
+            "type": "string",
+            "example": "acme-corp"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "logo_url": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "member_count": {
+            "type": "integer",
+            "example": 25
+          },
+          "workspace_count": {
+            "type": "integer",
+            "example": 5
+          }
+        }
+      },
+      "Workspace": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "organization_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "Engineering Team"
+          },
+          "slug": {
+            "type": "string",
+            "example": "engineering"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "member_count": {
+            "type": "integer",
+            "example": 12
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkspaceRole"
+            }
+          }
+        }
+      },
+      "WorkspaceRole": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "Admin"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": ["workspace.manage", "members.invite", "members.remove"]
+          },
+          "is_default": {
+            "type": "boolean",
+            "example": false
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "OrganizationRole": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "Owner"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": ["org.manage", "billing.manage", "members.manage"]
+          },
+          "is_default": {
+            "type": "boolean",
+            "example": false
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "OrganizationMember": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "organization_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "role_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "joined_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "user": {
+            "$ref": "#/components/schemas/User"
+          },
+          "role": {
+            "$ref": "#/components/schemas/OrganizationRole"
+          }
+        }
+      },
+      "CreateOrganizationRequest": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateOrganizationRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "logo_url": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      },
+      "CreateWorkspaceRequest": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateWorkspaceRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateRoleRequest": {
+        "type": "object",
+        "required": ["name", "permissions"],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "UpdateRoleRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "AddOrganizationMemberRequest": {
+        "type": "object",
+        "required": ["user_id", "role_id"],
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "role_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "UpdateOrganizationMemberRequest": {
+        "type": "object",
+        "required": ["role_id"],
+        "properties": {
+          "role_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "AIAgent": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "Customer Support Agent"
+          },
+          "description": {
+            "type": "string",
+            "example": "AI agent for handling customer support inquiries"
+          },
+          "model": {
+            "type": "string",
+            "example": "gpt-4"
+          },
+          "system_prompt": {
+            "type": "string"
+          },
+          "temperature": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 2,
+            "example": 0.7
+          },
+          "max_tokens": {
+            "type": "integer",
+            "example": 1000
+          },
+          "tools": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "knowledge_bases": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "is_active": {
+            "type": "boolean",
+            "example": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CreateAIAgentRequest": {
+        "type": "object",
+        "required": ["name", "model"],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "system_prompt": {
+            "type": "string"
+          },
+          "temperature": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 2
+          },
+          "max_tokens": {
+            "type": "integer"
+          },
+          "tools": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "knowledge_bases": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        }
+      },
+      "UpdateAIAgentRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "system_prompt": {
+            "type": "string"
+          },
+          "temperature": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 2
+          },
+          "max_tokens": {
+            "type": "integer"
+          },
+          "tools": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "knowledge_bases": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "is_active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "AIWorkflow": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "Customer Onboarding Workflow"
+          },
+          "description": {
+            "type": "string"
+          },
+          "trigger_type": {
+            "type": "string",
+            "enum": ["manual", "webhook", "schedule", "event"],
+            "example": "webhook"
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
                 },
-                "page_view": {
-                  "summary": "Page View Event",
-                  "value": {
-                    "event_type": "page_view",
-                    "user_id": "user_123",
-                    "page": "/dashboard",
-                    "metadata": {
-                      "referrer": "/auth/signin",
-                      "user_agent": "Mozilla/5.0..."
-                    },
-                    "timestamp": "2024-01-01T12:00:00Z"
-                  }
+                "name": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": ["agent", "tool", "condition", "loop"]
+                },
+                "config": {
+                  "type": "object"
                 }
               }
             }
+          },
+          "is_active": {
+            "type": "boolean",
+            "example": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
           }
-        },
-        "responses": {
-          "200": {
-            "description": "Event tracked successfully",
-            "content": {
-              "application/json": {
-                "schema": {
+        }
+      },
+      "CreateAIWorkflowRequest": {
+        "type": "object",
+        "required": ["name", "trigger_type", "steps"],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "trigger_type": {
+            "type": "string",
+            "enum": ["manual", "webhook", "schedule", "event"]
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "UpdateAIWorkflowRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "trigger_type": {
+            "type": "string",
+            "enum": ["manual", "webhook", "schedule", "event"]
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "is_active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "AITool": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "Web Scraper Tool"
+          },
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["api", "function", "webhook"],
+            "example": "api"
+          },
+          "config": {
+            "type": "object",
+            "properties": {
+              "endpoint": {
+                "type": "string",
+                "format": "uri"
+              },
+              "method": {
+                "type": "string",
+                "enum": ["GET", "POST", "PUT", "DELETE"]
+              },
+              "headers": {
+                "type": "object"
+              },
+              "parameters": {
+                "type": "array",
+                "items": {
                   "type": "object",
                   "properties": {
-                    "success": {
-                      "type": "boolean"
-                    },
-                    "event_id": {
+                    "name": {
                       "type": "string"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "required": {
+                      "type": "boolean"
                     }
                   }
                 }
               }
             }
           },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
+          "is_active": {
+            "type": "boolean",
+            "example": true
           },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
           }
         }
-      }
-    },
-    "/analytics/reports": {
-      "get": {
-        "tags": ["Analytics"],
-        "summary": "Get Analytics Report",
-        "description": "Generate analytics reports for a specified time period",
-        "parameters": [
-          {
-            "name": "start_date",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "date"
-            },
-            "description": "Start date for the report (YYYY-MM-DD)"
+      },
+      "CreateAIToolRequest": {
+        "type": "object",
+        "required": ["name", "type", "config"],
+        "properties": {
+          "name": {
+            "type": "string"
           },
-          {
-            "name": "end_date",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "date"
-            },
-            "description": "End date for the report (YYYY-MM-DD)"
+          "description": {
+            "type": "string"
           },
-          {
-            "name": "metric",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": ["page_views", "user_actions", "conversions", "retention"]
-            },
-            "description": "Specific metric to report on"
+          "type": {
+            "type": "string",
+            "enum": ["api", "function", "webhook"]
           },
-          {
-            "name": "group_by",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": ["day", "week", "month"]
-            },
-            "description": "Time period to group results by"
+          "config": {
+            "type": "object"
           }
-        ],
-        "responses": {
-          "200": {
-            "description": "Analytics report generated successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AnalyticsReport"
+        }
+      },
+      "UpdateAIToolRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["api", "function", "webhook"]
+          },
+          "config": {
+            "type": "object"
+          },
+          "is_active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "AIKnowledgeBase": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "Product Documentation"
+          },
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["vector", "graph", "hybrid"],
+            "example": "vector"
+          },
+          "embedding_model": {
+            "type": "string",
+            "example": "text-embedding-ada-002"
+          },
+          "document_count": {
+            "type": "integer",
+            "example": 150
+          },
+          "total_tokens": {
+            "type": "integer",
+            "example": 450000
+          },
+          "is_active": {
+            "type": "boolean",
+            "example": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CreateAIKnowledgeBaseRequest": {
+        "type": "object",
+        "required": ["name", "type"],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["vector", "graph", "hybrid"]
+          },
+          "embedding_model": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateAIKnowledgeBaseRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "is_active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "KnowledgeBaseDocument": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "knowledge_base_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "user-manual.pdf"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["pdf", "txt", "md", "docx", "html"],
+            "example": "pdf"
+          },
+          "size": {
+            "type": "integer",
+            "example": 2048576
+          },
+          "token_count": {
+            "type": "integer",
+            "example": 15000
+          },
+          "status": {
+            "type": "string",
+            "enum": ["processing", "ready", "failed"],
+            "example": "ready"
+          },
+          "uploaded_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "KnowledgeBaseSearchResult": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "document_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "document_name": {
+                  "type": "string"
+                },
+                "content": {
+                  "type": "string"
+                },
+                "score": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "metadata": {
+                  "type": "object"
                 }
               }
             }
           },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
+          "total_results": {
+            "type": "integer"
+          }
+        }
+      },
+      "AIExecutionContext": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
           },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
+          "agent_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "workflow_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "session_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "context": {
+            "type": "object"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CreateAIExecutionContextRequest": {
+        "type": "object",
+        "required": ["agent_id"],
+        "properties": {
+          "agent_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "workflow_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "session_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "context": {
+            "type": "object"
+          }
+        }
+      },
+      "JWTTemplate": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "Default JWT Template"
+          },
+          "description": {
+            "type": "string"
+          },
+          "claims": {
+            "type": "object",
+            "example": {
+              "sub": "{{user.id}}",
+              "email": "{{user.email}}",
+              "org_id": "{{user.organization_id}}"
+            }
+          },
+          "ttl": {
+            "type": "integer",
+            "description": "Token time-to-live in seconds",
+            "example": 3600
+          },
+          "is_default": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CreateJWTTemplateRequest": {
+        "type": "object",
+        "required": ["name", "claims", "ttl"],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "claims": {
+            "type": "object"
+          },
+          "ttl": {
+            "type": "integer",
+            "minimum": 60,
+            "maximum": 31536000
+          },
+          "is_default": {
+            "type": "boolean"
+          }
+        }
+      },
+      "UpdateJWTTemplateRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "claims": {
+            "type": "object"
+          },
+          "ttl": {
+            "type": "integer",
+            "minimum": 60,
+            "maximum": 31536000
+          },
+          "is_default": {
+            "type": "boolean"
+          }
+        }
+      },
+      "AuthenticationSettings": {
+        "type": "object",
+        "properties": {
+          "allow_signups": {
+            "type": "boolean",
+            "example": true
+          },
+          "require_email_verification": {
+            "type": "boolean",
+            "example": true
+          },
+          "password_min_length": {
+            "type": "integer",
+            "minimum": 6,
+            "maximum": 128,
+            "example": 8
+          },
+          "password_require_uppercase": {
+            "type": "boolean",
+            "example": true
+          },
+          "password_require_numbers": {
+            "type": "boolean",
+            "example": true
+          },
+          "password_require_special": {
+            "type": "boolean",
+            "example": true
+          },
+          "session_timeout": {
+            "type": "integer",
+            "description": "Session timeout in seconds",
+            "example": 86400
+          },
+          "mfa_enabled": {
+            "type": "boolean",
+            "example": false
+          },
+          "allowed_oauth_providers": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["google", "facebook", "github", "linkedin"]
+            }
+          }
+        }
+      },
+      "DisplaySettings": {
+        "type": "object",
+        "properties": {
+          "logo_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "primary_color": {
+            "type": "string",
+            "pattern": "^#[0-9A-F]{6}$",
+            "example": "#0066CC"
+          },
+          "secondary_color": {
+            "type": "string",
+            "pattern": "^#[0-9A-F]{6}$",
+            "example": "#F0F0F0"
+          },
+          "font_family": {
+            "type": "string",
+            "example": "Inter, sans-serif"
+          },
+          "app_name": {
+            "type": "string",
+            "example": "My App"
+          },
+          "welcome_message": {
+            "type": "string"
+          },
+          "support_email": {
+            "type": "string",
+            "format": "email"
+          },
+          "terms_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "privacy_url": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      },
+      "B2BSettings": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "allow_workspace_creation": {
+            "type": "boolean",
+            "example": true
+          },
+          "default_workspace_limit": {
+            "type": "integer",
+            "example": 5
+          },
+          "require_org_for_signup": {
+            "type": "boolean",
+            "example": false
+          },
+          "auto_assign_org_role": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "auto_assign_workspace_role": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          }
+        }
+      },
+      "DeploymentRestrictions": {
+        "type": "object",
+        "properties": {
+          "allowed_email_domains": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": ["company.com", "partner.com"]
+          },
+          "blocked_email_domains": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": ["temp-mail.com"]
+          },
+          "allowed_countries": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Z]{2}$"
+            },
+            "example": ["US", "CA", "GB"]
+          },
+          "blocked_countries": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Z]{2}$"
+            }
+          },
+          "ip_whitelist": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}(?:\\/[0-9]{1,2})?$"
+            }
+          },
+          "ip_blacklist": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}(?:\\/[0-9]{1,2})?$"
+            }
+          }
+        }
+      },
+      "SocialConnection": {
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string",
+            "enum": ["google", "facebook", "github", "linkedin"]
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "client_id": {
+            "type": "string"
+          },
+          "client_secret": {
+            "type": "string",
+            "writeOnly": true
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "redirect_uri": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      },
+      "EmailTemplate": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "welcome_email"
+          },
+          "subject": {
+            "type": "string",
+            "example": "Welcome to {{app_name}}!"
+          },
+          "html_body": {
+            "type": "string",
+            "example": "<h1>Welcome {{user.name}}!</h1><p>Thank you for joining us.</p>"
+          },
+          "text_body": {
+            "type": "string",
+            "example": "Welcome {{user.name}}! Thank you for joining us."
+          },
+          "variables": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": ["user.name", "user.email", "app_name"]
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "AnalyticsStats": {
+        "type": "object",
+        "properties": {
+          "total_users": {
+            "type": "integer",
+            "example": 1250
+          },
+          "active_users_30d": {
+            "type": "integer",
+            "example": 890
+          },
+          "new_users_30d": {
+            "type": "integer",
+            "example": 156
+          },
+          "total_organizations": {
+            "type": "integer",
+            "example": 45
+          },
+          "total_workspaces": {
+            "type": "integer",
+            "example": 128
+          },
+          "ai_agents_count": {
+            "type": "integer",
+            "example": 32
+          },
+          "ai_workflows_count": {
+            "type": "integer",
+            "example": 67
+          },
+          "ai_executions_30d": {
+            "type": "integer",
+            "example": 4523
+          },
+          "knowledge_base_documents": {
+            "type": "integer",
+            "example": 1890
+          },
+          "storage_used_gb": {
+            "type": "number",
+            "example": 45.7
+          }
+        }
+      },
+      "RecentSignup": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "username": {
+            "type": "string"
+          },
+          "signed_up_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "signup_method": {
+            "type": "string",
+            "enum": ["email", "google", "facebook", "github", "linkedin"]
+          },
+          "organization": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "ImageUploadResponse": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "example": "https://storage.wacht.dev/images/logo-abc123.png"
+          },
+          "size": {
+            "type": "integer",
+            "example": 45678
+          },
+          "mime_type": {
+            "type": "string",
+            "example": "image/png"
           }
         }
       }
     },
-    "/data/export": {
+    "responses": {
+      "UnauthorizedError": {
+        "description": "Authentication required",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          }
+        }
+      },
+      "NotFoundError": {
+        "description": "Resource not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Not found"
+                }
+              }
+            }
+          }
+        }
+      },
+      "BadRequestError": {
+        "description": "Invalid request",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Bad request"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Health",
+      "description": "Health check endpoints"
+    },
+    {
+      "name": "Users",
+      "description": "User management endpoints"
+    },
+    {
+      "name": "Organizations",
+      "description": "Organization management endpoints"
+    },
+    {
+      "name": "Workspaces",
+      "description": "Workspace management endpoints"
+    },
+    {
+      "name": "AI Agents",
+      "description": "AI agent management endpoints"
+    },
+    {
+      "name": "AI Workflows",
+      "description": "AI workflow management endpoints"
+    },
+    {
+      "name": "AI Tools",
+      "description": "AI tool management endpoints"
+    },
+    {
+      "name": "AI Knowledge Bases",
+      "description": "AI knowledge base management endpoints"
+    },
+    {
+      "name": "Settings",
+      "description": "Deployment settings and configuration endpoints"
+    },
+    {
+      "name": "Analytics",
+      "description": "Analytics and reporting endpoints"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": ["Health"],
+        "summary": "Health Check",
+        "description": "Check the health status of the backend API",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Service is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "ok"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": "2024-01-01T12:00:00Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service is unhealthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Service unavailable"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Get Active Users",
+        "description": "Retrieve a paginated list of active users",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "Items per page",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Search by email or username",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/PaginatedResponse" },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/User"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      },
       "post": {
-        "tags": ["Data Processing"],
-        "summary": "Export Data",
-        "description": "Export data in various formats (CSV, JSON, Excel)",
+        "tags": ["Users"],
+        "summary": "Create User",
+        "description": "Create a new user account",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ExportRequest"
-              },
-              "examples": {
-                "user_export": {
-                  "summary": "Export User Data",
-                  "value": {
-                    "data_type": "users",
-                    "format": "csv",
-                    "filters": {
-                      "created_after": "2024-01-01",
-                      "organization_id": "org_123"
-                    },
-                    "fields": ["id", "email", "first_name", "last_name", "created_at"]
+                "$ref": "#/components/schemas/CreateUserRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/users/{user_id}/details": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Get User Details",
+        "description": "Retrieve detailed information about a specific user",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
+    "/users/{user_id}": {
+      "patch": {
+        "tags": ["Users"],
+        "summary": "Update User",
+        "description": "Update user information",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
+    "/users/{user_id}/password": {
+      "patch": {
+        "tags": ["Users"],
+        "summary": "Update User Password",
+        "description": "Update a user's password",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePasswordRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Password updated successfully"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
+    "/users/{user_id}/emails": {
+      "post": {
+        "tags": ["Users"],
+        "summary": "Add User Email",
+        "description": "Add a new email address to a user account",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email"],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "is_primary": {
+                    "type": "boolean",
+                    "default": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Email added successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserEmail"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
+    "/users/{user_id}/emails/{email_id}": {
+      "patch": {
+        "tags": ["Users"],
+        "summary": "Update User Email",
+        "description": "Update user email properties",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "email_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "is_primary": {
+                    "type": "boolean"
+                  },
+                  "is_verified": {
+                    "type": "boolean"
                   }
                 }
               }
@@ -209,24 +1995,366 @@
         },
         "responses": {
           "200": {
-            "description": "Export initiated successfully",
+            "description": "Email updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserEmail"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Users"],
+        "summary": "Delete User Email",
+        "description": "Remove an email address from a user account",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "email_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Email deleted successfully"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
+    "/users/{user_id}/phones": {
+      "post": {
+        "tags": ["Users"],
+        "summary": "Add User Phone",
+        "description": "Add a new phone number to a user account",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["phone_number"],
+                "properties": {
+                  "phone_number": {
+                    "type": "string",
+                    "example": "+1234567890"
+                  },
+                  "is_primary": {
+                    "type": "boolean",
+                    "default": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Phone added successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserPhone"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
+    "/users/{user_id}/phones/{phone_id}": {
+      "patch": {
+        "tags": ["Users"],
+        "summary": "Update User Phone",
+        "description": "Update user phone properties",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "phone_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "is_primary": {
+                    "type": "boolean"
+                  },
+                  "is_verified": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Phone updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserPhone"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Users"],
+        "summary": "Delete User Phone",
+        "description": "Remove a phone number from a user account",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "phone_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Phone deleted successfully"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
+    "/users/{user_id}/social-connections/{connection_id}": {
+      "delete": {
+        "tags": ["Users"],
+        "summary": "Delete User Social Connection",
+        "description": "Remove a social connection from a user account",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "connection_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Social connection deleted successfully"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
+    "/invited-users": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Get Invited Users",
+        "description": "Retrieve a list of users who have been invited but not yet registered",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/PaginatedResponse" },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "email": {
+                                "type": "string",
+                                "format": "email"
+                              },
+                              "invited_at": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "expires_at": {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Users"],
+        "summary": "Invite User",
+        "description": "Send an invitation to a new user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InviteUserRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Invitation sent successfully",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "export_id": {
-                      "type": "string"
-                    },
-                    "status": {
+                    "id": {
                       "type": "string",
-                      "enum": ["processing", "completed", "failed"]
+                      "format": "uuid"
                     },
-                    "download_url": {
+                    "email": {
                       "type": "string",
-                      "nullable": true
+                      "format": "email"
                     },
-                    "estimated_completion": {
+                    "invited_at": {
                       "type": "string",
                       "format": "date-time"
                     }
@@ -236,34 +2364,2032 @@
             }
           },
           "400": {
-            "$ref": "#/components/responses/BadRequest"
+            "$ref": "#/components/responses/BadRequestError"
           },
           "401": {
-            "$ref": "#/components/responses/Unauthorized"
+            "$ref": "#/components/responses/UnauthorizedError"
           }
         }
       }
     },
-    "/integrations/webhooks": {
+    "/user-waitlist": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Get User Waitlist",
+        "description": "Retrieve users on the waitlist",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["pending", "approved", "rejected"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/PaginatedResponse" },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/WaitlistUser"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/user-waitlist/{waitlist_user_id}/approve": {
       "post": {
-        "tags": ["Integrations"],
-        "summary": "Create Webhook",
-        "description": "Set up a webhook endpoint for real-time notifications",
+        "tags": ["Users"],
+        "summary": "Approve Waitlist User",
+        "description": "Approve a user from the waitlist",
+        "parameters": [
+          {
+            "name": "waitlist_user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User approved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "User approved and invitation sent"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "tags": ["Organizations"],
+        "summary": "Get Deployment Info",
+        "description": "Get deployment information with settings",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "deployment_id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "environment": {
+                      "type": "string",
+                      "enum": ["production", "staging", "development"]
+                    },
+                    "settings": {
+                      "type": "object",
+                      "properties": {
+                        "auth_settings": {
+                          "type": "object"
+                        },
+                        "display_settings": {
+                          "type": "object"
+                        },
+                        "b2b_settings": {
+                          "type": "object"
+                        },
+                        "restrictions": {
+                          "type": "object"
+                        }
+                      }
+                    },
+                    "created_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/workspaces": {
+      "get": {
+        "tags": ["Workspaces"],
+        "summary": "List Workspaces",
+        "description": "Get a list of all workspaces",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          },
+          {
+            "name": "organization_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/PaginatedResponse" },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Workspace"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/workspaces/{workspace_id}": {
+      "get": {
+        "tags": ["Workspaces"],
+        "summary": "Get Workspace Details",
+        "description": "Get detailed information about a specific workspace",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Workspace"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      },
+      "patch": {
+        "tags": ["Workspaces"],
+        "summary": "Update Workspace",
+        "description": "Update workspace information",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/WebhookRequest"
-              },
-              "examples": {
-                "user_events": {
-                  "summary": "User Events Webhook",
-                  "value": {
-                    "url": "https://your-app.com/webhooks/user-events",
-                    "events": ["user.created", "user.updated", "user.deleted"],
-                    "secret": "webhook_secret_key",
-                    "active": true
+                "$ref": "#/components/schemas/UpdateWorkspaceRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Workspace updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Workspace"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Workspaces"],
+        "summary": "Delete Workspace",
+        "description": "Delete a workspace",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Workspace deleted successfully"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
+    "/workspace-roles": {
+      "get": {
+        "tags": ["Workspaces"],
+        "summary": "Get Deployment Workspace Roles",
+        "description": "Get all available workspace roles for the deployment",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkspaceRole"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/organizations": {
+      "get": {
+        "tags": ["Organizations"],
+        "summary": "List Organizations",
+        "description": "Get a list of all organizations",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/PaginatedResponse" },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Organization"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Organizations"],
+        "summary": "Create Organization",
+        "description": "Create a new organization",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrganizationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Organization created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Organization"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/organizations/{organization_id}": {
+      "get": {
+        "tags": ["Organizations"],
+        "summary": "Get Organization Details",
+        "description": "Get detailed information about a specific organization",
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Organization"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      },
+      "patch": {
+        "tags": ["Organizations"],
+        "summary": "Update Organization",
+        "description": "Update organization information",
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOrganizationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Organization updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Organization"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Organizations"],
+        "summary": "Delete Organization",
+        "description": "Delete an organization",
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Organization deleted successfully"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
+    "/organizations/{organization_id}/workspaces": {
+      "post": {
+        "tags": ["Organizations"],
+        "summary": "Create Workspace for Organization",
+        "description": "Create a new workspace within an organization",
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWorkspaceRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Workspace created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Workspace"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
+    "/workspaces/{workspace_id}/roles": {
+      "post": {
+        "tags": ["Workspaces"],
+        "summary": "Create Workspace Role",
+        "description": "Create a new role for a workspace",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRoleRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Role created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceRole"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
+    "/workspaces/{workspace_id}/roles/{role_id}": {
+      "patch": {
+        "tags": ["Workspaces"],
+        "summary": "Update Workspace Role",
+        "description": "Update a workspace role",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "role_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRoleRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Role updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceRole"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Workspaces"],
+        "summary": "Delete Workspace Role",
+        "description": "Delete a workspace role",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "role_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Role deleted successfully"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
+    "/organizations/{organization_id}/members": {
+      "post": {
+        "tags": ["Organizations"],
+        "summary": "Add Organization Member",
+        "description": "Add a new member to an organization",
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddOrganizationMemberRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Member added successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationMember"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
+    "/organizations/{organization_id}/members/{membership_id}": {
+      "patch": {
+        "tags": ["Organizations"],
+        "summary": "Update Organization Member",
+        "description": "Update a member's role in an organization",
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "membership_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOrganizationMemberRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Member updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationMember"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Organizations"],
+        "summary": "Remove Organization Member",
+        "description": "Remove a member from an organization",
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "membership_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Member removed successfully"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
+    "/organizations/{organization_id}/roles": {
+      "post": {
+        "tags": ["Organizations"],
+        "summary": "Create Organization Role",
+        "description": "Create a new role for an organization",
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRoleRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Role created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationRole"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
+    "/organizations/{organization_id}/roles/{role_id}": {
+      "patch": {
+        "tags": ["Organizations"],
+        "summary": "Update Organization Role",
+        "description": "Update an organization role",
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "role_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRoleRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Role updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationRole"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Organizations"],
+        "summary": "Delete Organization Role",
+        "description": "Delete an organization role",
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "role_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Role deleted successfully"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
+    "/organization-roles": {
+      "get": {
+        "tags": ["Organizations"],
+        "summary": "Get Deployment Organization Roles",
+        "description": "Get all available organization roles for the deployment",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OrganizationRole"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/ai-agents": {
+      "get": {
+        "tags": ["AI Agents"],
+        "summary": "List AI Agents",
+        "description": "Get a list of all AI agents",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          },
+          {
+            "name": "is_active",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/PaginatedResponse" },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/AIAgent"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      },
+      "post": {
+        "tags": ["AI Agents"],
+        "summary": "Create AI Agent",
+        "description": "Create a new AI agent",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAIAgentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "AI agent created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AIAgent"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/ai-agents/{agent_id}": {
+      "get": {
+        "tags": ["AI Agents"],
+        "summary": "Get AI Agent",
+        "description": "Get details of a specific AI agent",
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AIAgent"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      },
+      "patch": {
+        "tags": ["AI Agents"],
+        "summary": "Update AI Agent",
+        "description": "Update an AI agent",
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAIAgentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "AI agent updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AIAgent"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["AI Agents"],
+        "summary": "Delete AI Agent",
+        "description": "Delete an AI agent",
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "AI agent deleted successfully"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
+    "/ai-workflows": {
+      "get": {
+        "tags": ["AI Workflows"],
+        "summary": "List AI Workflows",
+        "description": "Get a list of all AI workflows",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          },
+          {
+            "name": "is_active",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "trigger_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["manual", "webhook", "schedule", "event"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/PaginatedResponse" },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/AIWorkflow"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      },
+      "post": {
+        "tags": ["AI Workflows"],
+        "summary": "Create AI Workflow",
+        "description": "Create a new AI workflow",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAIWorkflowRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "AI workflow created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AIWorkflow"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/ai-workflows/{workflow_id}": {
+      "get": {
+        "tags": ["AI Workflows"],
+        "summary": "Get AI Workflow",
+        "description": "Get details of a specific AI workflow",
+        "parameters": [
+          {
+            "name": "workflow_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AIWorkflow"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      },
+      "patch": {
+        "tags": ["AI Workflows"],
+        "summary": "Update AI Workflow",
+        "description": "Update an AI workflow",
+        "parameters": [
+          {
+            "name": "workflow_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAIWorkflowRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "AI workflow updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AIWorkflow"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["AI Workflows"],
+        "summary": "Delete AI Workflow",
+        "description": "Delete an AI workflow",
+        "parameters": [
+          {
+            "name": "workflow_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "AI workflow deleted successfully"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
+    "/ai-tools": {
+      "get": {
+        "tags": ["AI Tools"],
+        "summary": "List AI Tools",
+        "description": "Get a list of all AI tools",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          },
+          {
+            "name": "is_active",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["api", "function", "webhook"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/PaginatedResponse" },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/AITool"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      },
+      "post": {
+        "tags": ["AI Tools"],
+        "summary": "Create AI Tool",
+        "description": "Create a new AI tool",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAIToolRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "AI tool created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AITool"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/ai-tools/{tool_id}": {
+      "get": {
+        "tags": ["AI Tools"],
+        "summary": "Get AI Tool",
+        "description": "Get details of a specific AI tool",
+        "parameters": [
+          {
+            "name": "tool_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AITool"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      },
+      "patch": {
+        "tags": ["AI Tools"],
+        "summary": "Update AI Tool",
+        "description": "Update an AI tool",
+        "parameters": [
+          {
+            "name": "tool_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAIToolRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "AI tool updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AITool"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["AI Tools"],
+        "summary": "Delete AI Tool",
+        "description": "Delete an AI tool",
+        "parameters": [
+          {
+            "name": "tool_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "AI tool deleted successfully"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
+    "/ai-knowledge-bases": {
+      "get": {
+        "tags": ["AI Knowledge Bases"],
+        "summary": "List AI Knowledge Bases",
+        "description": "Get a list of all AI knowledge bases",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          },
+          {
+            "name": "is_active",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["vector", "graph", "hybrid"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/PaginatedResponse" },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/AIKnowledgeBase"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      },
+      "post": {
+        "tags": ["AI Knowledge Bases"],
+        "summary": "Create AI Knowledge Base",
+        "description": "Create a new AI knowledge base",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAIKnowledgeBaseRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "AI knowledge base created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AIKnowledgeBase"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/ai-knowledge-bases/{kb_id}": {
+      "get": {
+        "tags": ["AI Knowledge Bases"],
+        "summary": "Get AI Knowledge Base",
+        "description": "Get details of a specific AI knowledge base",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AIKnowledgeBase"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      },
+      "patch": {
+        "tags": ["AI Knowledge Bases"],
+        "summary": "Update AI Knowledge Base",
+        "description": "Update an AI knowledge base",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAIKnowledgeBaseRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "AI knowledge base updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AIKnowledgeBase"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["AI Knowledge Bases"],
+        "summary": "Delete AI Knowledge Base",
+        "description": "Delete an AI knowledge base",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "AI knowledge base deleted successfully"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
+    "/ai-knowledge-bases/{kb_id}/documents": {
+      "get": {
+        "tags": ["AI Knowledge Bases"],
+        "summary": "List Knowledge Base Documents",
+        "description": "Get a list of documents in a knowledge base",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/PaginatedResponse" },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/KnowledgeBaseDocument"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      },
+      "post": {
+        "tags": ["AI Knowledge Bases"],
+        "summary": "Upload Document to Knowledge Base",
+        "description": "Upload a document to a knowledge base",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["file"],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Document file (PDF, TXT, MD, DOCX, HTML)"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "description": "Additional metadata for the document"
                   }
                 }
               }
@@ -272,79 +4398,785 @@
         },
         "responses": {
           "201": {
-            "description": "Webhook created successfully",
+            "description": "Document uploaded successfully",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Webhook"
+                  "$ref": "#/components/schemas/KnowledgeBaseDocument"
                 }
               }
             }
           },
           "400": {
-            "$ref": "#/components/responses/BadRequest"
+            "$ref": "#/components/responses/BadRequestError"
           },
           "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          }
-        }
-      },
-      "get": {
-        "tags": ["Integrations"],
-        "summary": "List Webhooks",
-        "description": "Get all configured webhooks for the current deployment",
-        "responses": {
-          "200": {
-            "description": "Webhooks retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/Webhook"
-                      }
-                    }
-                  }
-                }
-              }
-            }
+            "$ref": "#/components/responses/UnauthorizedError"
           },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
           }
         }
       }
     },
-    "/admin/deployments": {
-      "get": {
-        "tags": ["Admin"],
-        "summary": "List Deployments",
-        "description": "Get all deployments (admin only)",
+    "/ai-knowledge-bases/{kb_id}/documents/{document_id}": {
+      "delete": {
+        "tags": ["AI Knowledge Bases"],
+        "summary": "Delete Knowledge Base Document",
+        "description": "Delete a document from a knowledge base",
         "parameters": [
           {
-            "name": "page",
-            "in": "query",
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
             "schema": {
-              "type": "integer",
-              "default": 1
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Document deleted successfully"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
+    "/ai-knowledge-bases/search": {
+      "get": {
+        "tags": ["AI Knowledge Bases"],
+        "summary": "Search Knowledge Bases",
+        "description": "Search across all knowledge bases",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
           },
           {
             "name": "limit",
             "in": "query",
+            "required": false,
             "schema": {
               "type": "integer",
-              "default": 20,
+              "default": 10,
+              "minimum": 1,
               "maximum": 100
+            }
+          },
+          {
+            "name": "threshold",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "default": 0.7,
+              "minimum": 0,
+              "maximum": 1
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Deployments retrieved successfully",
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeBaseSearchResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/ai-knowledge-bases/{kb_id}/search": {
+      "get": {
+        "tags": ["AI Knowledge Bases"],
+        "summary": "Search Specific Knowledge Base",
+        "description": "Search within a specific knowledge base",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 10,
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "threshold",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "default": 0.7,
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeBaseSearchResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
+    "/ai-execution-context": {
+      "post": {
+        "tags": ["AI Agents"],
+        "summary": "Create AI Execution Context",
+        "description": "Create an execution context for AI agent operations",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAIExecutionContextRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Execution context created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AIExecutionContext"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/jwt-templates": {
+      "get": {
+        "tags": ["Settings"],
+        "summary": "List JWT Templates",
+        "description": "Get all JWT templates for the deployment",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/JWTTemplate"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Settings"],
+        "summary": "Create JWT Template",
+        "description": "Create a new JWT template",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateJWTTemplateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "JWT template created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JWTTemplate"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/jwt-templates/{id}": {
+      "patch": {
+        "tags": ["Settings"],
+        "summary": "Update JWT Template",
+        "description": "Update a JWT template",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateJWTTemplateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "JWT template updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JWTTemplate"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Settings"],
+        "summary": "Delete JWT Template",
+        "description": "Delete a JWT template",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "JWT template deleted successfully"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
+    "/settings/auth-settings": {
+      "patch": {
+        "tags": ["Settings"],
+        "summary": "Update Authentication Settings",
+        "description": "Update deployment authentication settings",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthenticationSettings"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Settings updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthenticationSettings"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/settings/display-settings": {
+      "patch": {
+        "tags": ["Settings"],
+        "summary": "Update Display Settings",
+        "description": "Update deployment UI/display settings",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DisplaySettings"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Settings updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DisplaySettings"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/settings/b2b-settings": {
+      "patch": {
+        "tags": ["Settings"],
+        "summary": "Update B2B Settings",
+        "description": "Update deployment B2B/multi-tenancy settings",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/B2BSettings"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Settings updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/B2BSettings"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/restrictions": {
+      "patch": {
+        "tags": ["Settings"],
+        "summary": "Update Deployment Restrictions",
+        "description": "Update deployment access restrictions",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeploymentRestrictions"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Restrictions updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeploymentRestrictions"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/social-connections": {
+      "get": {
+        "tags": ["Settings"],
+        "summary": "Get Social Connections",
+        "description": "Get all configured social connections",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SocialConnection"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      },
+      "put": {
+        "tags": ["Settings"],
+        "summary": "Upsert Social Connection",
+        "description": "Create or update a social connection configuration",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SocialConnection"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Social connection updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SocialConnection"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/email-templates/{template_name}": {
+      "get": {
+        "tags": ["Settings"],
+        "summary": "Get Email Template",
+        "description": "Get a specific email template",
+        "parameters": [
+          {
+            "name": "template_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "welcome_email",
+                "password_reset",
+                "email_verification",
+                "invitation"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailTemplate"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      },
+      "patch": {
+        "tags": ["Settings"],
+        "summary": "Update Email Template",
+        "description": "Update an email template",
+        "parameters": [
+          {
+            "name": "template_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "welcome_email",
+                "password_reset",
+                "email_verification",
+                "invitation"
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "subject": {
+                    "type": "string"
+                  },
+                  "html_body": {
+                    "type": "string"
+                  },
+                  "text_body": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Template updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailTemplate"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
+    "/upload/{image_type}": {
+      "post": {
+        "tags": ["Settings"],
+        "summary": "Upload Image",
+        "description": "Upload an image (logo, avatar, etc.)",
+        "parameters": [
+          {
+            "name": "image_type",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["logo", "avatar", "banner"]
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["file"],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Image file (PNG, JPG, GIF)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Image uploaded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageUploadResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/analytics/stats": {
+      "get": {
+        "tags": ["Analytics"],
+        "summary": "Get Analytics Stats",
+        "description": "Get overall analytics statistics for the deployment",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "example": "2024-01-01"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "example": "2024-12-31"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsStats"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/analytics/recent-signups": {
+      "get": {
+        "tags": ["Analytics"],
+        "summary": "Get Recent Signups",
+        "description": "Get a list of recent user signups",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
             "content": {
               "application/json": {
                 "schema": {
@@ -353,11 +5185,17 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/components/schemas/Deployment"
+                        "$ref": "#/components/schemas/RecentSignup"
                       }
                     },
-                    "pagination": {
-                      "$ref": "#/components/schemas/Pagination"
+                    "total": {
+                      "type": "integer"
+                    },
+                    "limit": {
+                      "type": "integer"
+                    },
+                    "offset": {
+                      "type": "integer"
                     }
                   }
                 }
@@ -365,318 +5203,7 @@
             }
           },
           "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          }
-        }
-      }
-    }
-  },
-  "components": {
-    "securitySchemes": {
-      "bearerAuth": {
-        "type": "http",
-        "scheme": "bearer",
-        "bearerFormat": "JWT"
-      }
-    },
-    "schemas": {
-      "EventRequest": {
-        "type": "object",
-        "properties": {
-          "event_type": {
-            "type": "string",
-            "enum": ["user_action", "page_view", "conversion", "error"]
-          },
-          "user_id": {
-            "type": "string"
-          },
-          "action": {
-            "type": "string"
-          },
-          "page": {
-            "type": "string"
-          },
-          "metadata": {
-            "type": "object",
-            "additionalProperties": true
-          },
-          "timestamp": {
-            "type": "string",
-            "format": "date-time"
-          }
-        },
-        "required": ["event_type", "timestamp"]
-      },
-      "AnalyticsReport": {
-        "type": "object",
-        "properties": {
-          "report_id": {
-            "type": "string"
-          },
-          "start_date": {
-            "type": "string",
-            "format": "date"
-          },
-          "end_date": {
-            "type": "string",
-            "format": "date"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "date": {
-                  "type": "string",
-                  "format": "date"
-                },
-                "value": {
-                  "type": "number"
-                },
-                "metric": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "summary": {
-            "type": "object",
-            "properties": {
-              "total": {
-                "type": "number"
-              },
-              "average": {
-                "type": "number"
-              },
-              "change_percentage": {
-                "type": "number"
-              }
-            }
-          }
-        }
-      },
-      "ExportRequest": {
-        "type": "object",
-        "properties": {
-          "data_type": {
-            "type": "string",
-            "enum": ["users", "organizations", "events", "analytics"]
-          },
-          "format": {
-            "type": "string",
-            "enum": ["csv", "json", "excel"]
-          },
-          "filters": {
-            "type": "object",
-            "additionalProperties": true
-          },
-          "fields": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        },
-        "required": ["data_type", "format"]
-      },
-      "WebhookRequest": {
-        "type": "object",
-        "properties": {
-          "url": {
-            "type": "string",
-            "format": "uri"
-          },
-          "events": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": ["user.created", "user.updated", "user.deleted", "organization.created", "organization.updated"]
-            }
-          },
-          "secret": {
-            "type": "string",
-            "minLength": 10
-          },
-          "active": {
-            "type": "boolean",
-            "default": true
-          }
-        },
-        "required": ["url", "events"]
-      },
-      "Webhook": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "url": {
-            "type": "string",
-            "format": "uri"
-          },
-          "events": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "active": {
-            "type": "boolean"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "last_delivery": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "delivery_success_rate": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 1
-          }
-        }
-      },
-      "Deployment": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "domain": {
-            "type": "string"
-          },
-          "plan": {
-            "type": "string",
-            "enum": ["free", "pro", "enterprise"]
-          },
-          "status": {
-            "type": "string",
-            "enum": ["active", "suspended", "pending"]
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "user_count": {
-            "type": "integer"
-          },
-          "organization_count": {
-            "type": "integer"
-          }
-        }
-      },
-      "Pagination": {
-        "type": "object",
-        "properties": {
-          "page": {
-            "type": "integer"
-          },
-          "limit": {
-            "type": "integer"
-          },
-          "total": {
-            "type": "integer"
-          },
-          "total_pages": {
-            "type": "integer"
-          }
-        }
-      },
-      "ErrorResponse": {
-        "type": "object",
-        "properties": {
-          "error": {
-            "type": "object",
-            "properties": {
-              "code": {
-                "type": "string"
-              },
-              "message": {
-                "type": "string"
-              },
-              "details": {
-                "type": "object",
-                "additionalProperties": true
-              }
-            }
-          }
-        }
-      }
-    },
-    "responses": {
-      "BadRequest": {
-        "description": "Bad Request",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/ErrorResponse"
-            },
-            "examples": {
-              "validation_error": {
-                "summary": "Validation Error",
-                "value": {
-                  "error": {
-                    "code": "VALIDATION_ERROR",
-                    "message": "Invalid request parameters",
-                    "details": {
-                      "field": "start_date",
-                      "issue": "Date must be in YYYY-MM-DD format"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "Unauthorized": {
-        "description": "Unauthorized",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/ErrorResponse"
-            },
-            "examples": {
-              "invalid_token": {
-                "summary": "Invalid Token",
-                "value": {
-                  "error": {
-                    "code": "INVALID_TOKEN",
-                    "message": "Invalid or expired authentication token"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "Forbidden": {
-        "description": "Forbidden",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/ErrorResponse"
-            },
-            "examples": {
-              "insufficient_permissions": {
-                "summary": "Insufficient Permissions",
-                "value": {
-                  "error": {
-                    "code": "INSUFFICIENT_PERMISSIONS",
-                    "message": "Admin access required for this operation"
-                  }
-                }
-              }
-            }
+            "$ref": "#/components/responses/UnauthorizedError"
           }
         }
       }

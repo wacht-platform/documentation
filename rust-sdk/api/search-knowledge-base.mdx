@@ -1,0 +1,125 @@
+---
+title: "search_knowledge_base"
+description: "Search within specific knowledge base"
+---
+
+## Overview
+
+The `search_knowledge_base` function performs a semantic search within a specific knowledge base.
+
+## Function Signature
+
+```rust
+pub async fn search_knowledge_base(
+    knowledge_base_id: &str,
+    options: KnowledgeBaseSearchOptions
+) -> Result<KnowledgeBaseSearchResult>
+```
+
+## Parameters
+
+<ParamField path="knowledge_base_id" type="&str" required>
+  The unique identifier of the knowledge base to search
+</ParamField>
+
+<ParamField path="options" type="KnowledgeBaseSearchOptions" required>
+  Search configuration:
+  - `query`: Search query text (required)
+  - `limit`: Maximum number of results to return (optional, default: 10)
+  - `threshold`: Minimum similarity score (optional, default: 0.7)
+</ParamField>
+
+## Return Value
+
+Returns `Result<KnowledgeBaseSearchResult>` containing:
+- `results`: Vector of search results with relevance scores
+- `total_results`: Total number of matching results
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::knowledge_bases::*;
+
+let search_options = KnowledgeBaseSearchOptions {
+    query: "installation guide".to_string(),
+    limit: Some(5),
+    threshold: Some(0.8),
+};
+
+let results = search_knowledge_base("kb_123", search_options).await?;
+println!("Found {} results", results.total_results);
+
+for result in results.results {
+    println!("Score: {:.2} - {}", result.score, result.content);
+    println!("  Document: {}", result.document_name);
+}
+```
+
+## Advanced Usage
+
+```rust
+use wacht_rs::api::knowledge_bases::*;
+
+async fn find_relevant_content(
+    kb_id: &str,
+    query: &str,
+    min_score: f32
+) -> Result<Vec<(f32, String)>> {
+    let options = KnowledgeBaseSearchOptions {
+        query: query.to_string(),
+        limit: Some(20),
+        threshold: Some(min_score),
+    };
+    
+    let results = search_knowledge_base(kb_id, options).await?;
+    
+    let relevant: Vec<(f32, String)> = results.results
+        .into_iter()
+        .filter(|r| r.score >= min_score)
+        .map(|r| (r.score, r.content))
+        .collect();
+    
+    println!("Found {} results with score >= {}", relevant.len(), min_score);
+    Ok(relevant)
+}
+```
+
+## Error Handling
+
+```rust
+match search_knowledge_base("kb_123", options).await {
+    Ok(results) => {
+        println!("Search completed: {} results", results.total_results);
+        if results.results.is_empty() {
+            println!("No results found matching your query");
+        } else {
+            for result in results.results {
+                println!("- {:.1}% match: {}", 
+                    result.score * 100.0, 
+                    result.content.chars().take(100).collect::<String>()
+                );
+            }
+        }
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            404 => println!("Knowledge base not found"),
+            400 => println!("Invalid search query: {}", message),
+            403 => println!("Access denied: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Search failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **Search operations**: 200 requests per minute
+- **Burst limit**: 20 requests per second
+
+## Related Functions
+
+- [search_global](search-global) - Search across all knowledge bases
+- [fetch_knowledge_base](fetch-knowledge-base) - Get knowledge base details
+- [fetch_documents](fetch-documents) - List documents in knowledge base

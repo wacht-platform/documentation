@@ -1,0 +1,73 @@
+---
+title: "ListWorkspacesOptions"
+description: "Query options for listing workspaces"
+---
+
+## Overview
+
+The `ListWorkspacesOptions` struct provides filtering and pagination options when fetching workspaces.
+
+## Definition
+
+```rust
+pub struct ListWorkspacesOptions {
+    pub page: Option<u32>,
+    pub per_page: Option<u32>,
+    pub search: Option<String>,
+    pub organization_id: Option<String>,
+}
+```
+
+## Fields
+
+<ParamField path="page" type="Option<u32>">
+  The page number to retrieve (1-indexed). Defaults to 1 if not specified.
+</ParamField>
+
+<ParamField path="per_page" type="Option<u32>">
+  Number of workspaces to return per page. Defaults to 20 if not specified.
+</ParamField>
+
+<ParamField path="search" type="Option<String>">
+  Search query to filter workspaces by name or other attributes.
+</ParamField>
+
+<ParamField path="organization_id" type="Option<String>">
+  Filter workspaces by organization ID. Only returns workspaces belonging to the specified organization.
+</ParamField>
+
+## Usage Example
+
+```rust
+use wacht_rs::api::workspaces::{fetch_workspaces, ListWorkspacesOptions};
+
+// Fetch all workspaces with default pagination
+let all_workspaces = fetch_workspaces(None).await?;
+
+// Fetch workspaces with specific options
+let options = ListWorkspacesOptions {
+    page: Some(2),
+    per_page: Some(50),
+    search: Some("production".to_string()),
+    organization_id: Some("org_123".to_string()),
+};
+
+let filtered_workspaces = fetch_workspaces(Some(options)).await?;
+
+// Using the builder pattern with Default
+let search_options = ListWorkspacesOptions {
+    search: Some("dev".to_string()),
+    ..Default::default()
+};
+
+let dev_workspaces = fetch_workspaces(Some(search_options)).await?;
+```
+
+## Related Types
+
+- [WorkspaceListResponse](/rust-sdk/types/workspace-list-response) - The response type returned when listing workspaces
+- [Workspace](/rust-sdk/types/workspace) - The workspace model
+
+## See Also
+
+- [fetch_workspaces](/rust-sdk/api/fetch-workspaces) - API method that uses this type

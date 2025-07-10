@@ -1,0 +1,97 @@
+---
+title: "ListToolsOptions"
+description: "Query options for listing AI tools"
+---
+
+## Overview
+
+The `ListToolsOptions` struct provides filtering and pagination options when fetching AI tools.
+
+## Definition
+
+```rust
+pub struct ListToolsOptions {
+    pub page: Option<u32>,
+    pub per_page: Option<u32>,
+    pub search: Option<String>,
+    pub is_active: Option<bool>,
+}
+```
+
+## Fields
+
+<ParamField path="page" type="Option<u32>">
+  The page number to retrieve (1-indexed). Defaults to 1 if not specified.
+</ParamField>
+
+<ParamField path="per_page" type="Option<u32>">
+  Number of tools to return per page. Defaults to 20 if not specified.
+</ParamField>
+
+<ParamField path="search" type="Option<String>">
+  Search query to filter tools by name, description, or other attributes.
+</ParamField>
+
+<ParamField path="is_active" type="Option<bool>">
+  Filter tools by active status. When true, only returns active tools. When false, only returns inactive tools.
+</ParamField>
+
+## Usage Example
+
+```rust
+use wacht_rs::api::tools::{fetch_tools, ListToolsOptions};
+
+// Fetch all tools with default pagination
+let all_tools = fetch_tools(None).await?;
+
+// Fetch only active tools
+let active_options = ListToolsOptions {
+    is_active: Some(true),
+    ..Default::default()
+};
+let active_tools = fetch_tools(Some(active_options)).await?;
+
+// Search for specific tools
+let search_options = ListToolsOptions {
+    page: Some(1),
+    per_page: Some(50),
+    search: Some("api integration".to_string()),
+    is_active: None, // Include both active and inactive
+};
+let api_tools = fetch_tools(Some(search_options)).await?;
+
+// Paginate through all tools
+let mut all_tool_names = Vec::new();
+let mut page = 1;
+
+loop {
+    let options = ListToolsOptions {
+        page: Some(page),
+        per_page: Some(100),
+        is_active: Some(true), // Only active tools
+        ..Default::default()
+    };
+    
+    let response = fetch_tools(Some(options)).await?;
+    
+    for tool in &response.data {
+        all_tool_names.push(tool.name.clone());
+    }
+    
+    if !response.has_more {
+        break;
+    }
+    page += 1;
+}
+
+println!("Found {} active tools", all_tool_names.len());
+```
+
+## Related Types
+
+- [ToolListResponse](/rust-sdk/types/tool-list-response) - The response type returned when listing tools
+- [AiTool](/rust-sdk/types/ai-tool) - The AI tool model
+
+## See Also
+
+- [fetch_tools](/rust-sdk/api/fetch-tools) - API method that uses this type

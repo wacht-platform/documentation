@@ -1,0 +1,72 @@
+---
+title: "fetch_workflow"
+description: "Get AI workflow by ID"
+---
+
+## Overview
+
+The `fetch_workflow` function retrieves a specific AI workflow by its unique identifier.
+
+## Function Signature
+
+```rust
+pub async fn fetch_workflow(workflow_id: &str) -> Result<AiWorkflow>
+```
+
+## Parameters
+
+<ParamField path="workflow_id" type="&str" required>
+  The unique identifier of the workflow to retrieve
+</ParamField>
+
+## Return Value
+
+Returns `Result<AiWorkflow>` containing the workflow details.
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::workflows::*;
+
+let workflow = fetch_workflow("52057194421551105").await?;
+println!("Workflow: {} ({})", workflow.name, workflow.id);
+println!("Description: {}", workflow.description);
+println!("Steps: {}", workflow.steps.len());
+println!("Active: {}", workflow.is_active);
+```
+
+## Error Handling
+
+```rust
+match fetch_workflow("52057194421551105").await {
+    Ok(workflow) => {
+        println!("Found workflow: {}", workflow.name);
+        println!("Trigger type: {}", workflow.trigger_type);
+        println!("Number of steps: {}", workflow.steps.len());
+        
+        for (i, step) in workflow.steps.iter().enumerate() {
+            println!("  Step {}: {} ({})", i + 1, step.name, step.type_);
+        }
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            404 => println!("Workflow not found"),
+            403 => println!("Access denied: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **Get operations**: 1000 requests per minute
+- **Burst limit**: 50 requests per second
+
+## Related Functions
+
+- [fetch_workflows](fetch-workflows) - List all workflows
+- [create_workflow](create-workflow) - Create a new workflow
+- [update_workflow](update-workflow) - Update workflow configuration
+- [delete_workflow](delete-workflow) - Delete workflow

@@ -1,0 +1,100 @@
+---
+title: "fetch_user_details"
+description: "Get user with organizations and workspaces"
+---
+
+## Overview
+
+The `fetch_user_details` function retrieves comprehensive user information including their organization and workspace memberships.
+
+## Function Signature
+
+```rust
+pub async fn fetch_user_details(user_id: &str) -> Result<UserDetailsResponse>
+```
+
+## Parameters
+
+<ParamField path="user_id" type="&str" required>
+  The unique identifier of the user to retrieve
+</ParamField>
+
+## Return Value
+
+Returns `Result<UserDetailsResponse>` containing:
+- `user`: Complete user information
+- `organizations`: List of user's organizations
+- `workspaces`: List of user's workspaces
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::users::*;
+
+let details = fetch_user_details("52057194421551105").await?;
+println!("User: {} {}", details.user.first_name, details.user.last_name);
+println!("Organizations: {}", details.organizations.len());
+println!("Workspaces: {}", details.workspaces.len());
+```
+
+## Advanced Usage
+
+```rust
+use wacht_rs::api::users::*;
+
+let details = fetch_user_details("52057194421551105").await?;
+
+// User information
+let user = &details.user;
+println!("User: {} {} ({})", user.first_name, user.last_name, user.email);
+println!("Created: {}", user.created_at);
+println!("Last sign in: {}", user.last_sign_in_at.unwrap_or("Never".to_string()));
+
+// Organizations
+println!("\nOrganizations:");
+for org in &details.organizations {
+    if let Some(name) = org.get("name").and_then(|v| v.as_str()) {
+        println!("- {}", name);
+    }
+}
+
+// Workspaces
+println!("\nWorkspaces:");
+for workspace in &details.workspaces {
+    if let Some(name) = workspace.get("name").and_then(|v| v.as_str()) {
+        println!("- {}", name);
+    }
+}
+```
+
+## Error Handling
+
+```rust
+match fetch_user_details("52057194421551105").await {
+    Ok(details) => {
+        println!("Found user: {}", details.user.email);
+        println!("Member of {} organizations", details.organizations.len());
+        println!("Access to {} workspaces", details.workspaces.len());
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            404 => println!("User not found"),
+            403 => println!("Access denied: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **Get operations**: 1000 requests per minute
+- **Burst limit**: 50 requests per second
+
+## Related Functions
+
+- [fetch_users](fetch-users) - List all users
+- [update_user](update-user) - Update user information
+- [add_email](add-email) - Add email to user
+- [add_phone](add-phone) - Add phone to user

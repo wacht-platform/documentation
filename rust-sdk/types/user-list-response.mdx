@@ -1,0 +1,60 @@
+---
+title: "UserListResponse"
+description: "Response type for paginated user lists"
+---
+
+## Overview
+
+The `UserListResponse` struct represents the response returned when fetching a paginated list of users.
+
+## Definition
+
+```rust
+pub struct UserListResponse {
+    pub data: Vec<User>,
+    pub has_more: bool,
+}
+```
+
+## Fields
+
+<ParamField path="data" type="Vec<User>" required>
+  A vector containing the users for the current page. Each user is represented by a `User` struct.
+</ParamField>
+
+<ParamField path="has_more" type="bool" required>
+  Indicates whether there are more users available beyond the current page. Used for pagination.
+</ParamField>
+
+## Usage Example
+
+```rust
+use wacht_rs::api::users::*;
+
+let options = ListUsersOptions {
+    page: Some(1),
+    per_page: Some(20),
+    search: None,
+    is_active: Some(true),
+};
+
+let response = fetch_users(Some(options)).await?;
+
+println!("Found {} users", response.data.len());
+if response.has_more {
+    println!("More users available on next page");
+}
+
+for user in response.data {
+    println!("User: {} ({})", user.name, user.email);
+}
+```
+
+## Related Types
+
+- [User](/rust-sdk/types/user) - The user model
+- [ListUsersOptions](/rust-sdk/types/list-users-options) - Query options for listing users
+
+## See Also
+
+- [fetch_users](/rust-sdk/api/fetch-users) - API method that returns this type

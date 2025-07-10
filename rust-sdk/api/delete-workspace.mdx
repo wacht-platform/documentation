@@ -1,0 +1,69 @@
+---
+title: "delete_workspace"
+description: "Delete workspace"
+---
+
+## Overview
+
+The `delete_workspace` function permanently deletes a workspace from the system.
+
+## Function Signature
+
+```rust
+pub async fn delete_workspace(workspace_id: &str) -> Result<()>
+```
+
+## Parameters
+
+<ParamField path="workspace_id" type="&str" required>
+  The unique identifier of the workspace to delete
+</ParamField>
+
+## Return Value
+
+Returns `Result<()>` indicating success or failure.
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::workspaces::*;
+
+delete_workspace("52057194421551105").await?;
+println!("Workspace deleted successfully");
+```
+
+## Error Handling
+
+```rust
+match delete_workspace("52057194421551105").await {
+    Ok(()) => {
+        println!("Workspace deleted successfully");
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            404 => println!("Workspace not found"),
+            403 => println!("Access denied: {}", message),
+            409 => println!("Cannot delete workspace with active members: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Important Notes
+
+- This operation is **irreversible**
+- All workspace data including members, roles, and content will be deleted
+- You must be a workspace owner to delete a workspace
+- Workspaces with active members cannot be deleted unless all members are removed first
+
+## Rate Limits
+
+- **Delete operations**: 20 requests per minute
+- **Burst limit**: 5 requests per second
+
+## Related Functions
+
+- [fetch_workspace](fetch-workspace) - Get workspace by ID
+- [update_workspace](update-workspace) - Update workspace details

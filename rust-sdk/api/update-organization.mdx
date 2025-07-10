@@ -1,0 +1,82 @@
+---
+title: "update_organization"
+description: "Update organization details"
+---
+
+## Overview
+
+The `update_organization` function updates an existing organization's details.
+
+## Function Signature
+
+```rust
+pub async fn update_organization(
+    organization_id: &str,
+    request: UpdateOrganizationRequest
+) -> Result<Organization>
+```
+
+## Parameters
+
+<ParamField path="organization_id" type="&str" required>
+  The unique identifier of the organization to update
+</ParamField>
+
+<ParamField path="request" type="UpdateOrganizationRequest" required>
+  The organization fields to update (all optional):
+  - `name`: Organization name
+  - `description`: Organization description
+  - `logo_url`: URL to organization logo
+  - `website`: Organization website URL
+</ParamField>
+
+## Return Value
+
+Returns `Result<Organization>` containing the updated organization details.
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::organizations::*;
+
+let update = UpdateOrganizationRequest {
+    name: Some("Acme Corporation Ltd".to_string()),
+    description: Some("Updated description".to_string()),
+    website: Some("https://acme.corp".to_string()),
+    ..Default::default()
+};
+
+let updated_org = update_organization("52057194421551105", update).await?;
+println!("Updated organization: {}", updated_org.name);
+```
+
+## Error Handling
+
+```rust
+match update_organization("52057194421551105", request).await {
+    Ok(org) => {
+        println!("Successfully updated organization: {}", org.name);
+        println!("Last updated: {}", org.updated_at);
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            404 => println!("Organization not found"),
+            400 => println!("Invalid request: {}", message),
+            403 => println!("Access denied: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **Update operations**: 100 requests per minute
+- **Burst limit**: 10 requests per second
+
+## Related Functions
+
+- [fetch_organization](fetch-organization) - Get organization by ID
+- [create_organization](create-organization) - Create a new organization
+- [delete_organization](delete-organization) - Delete organization

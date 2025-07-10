@@ -1,0 +1,60 @@
+---
+title: "WorkspaceListResponse"
+description: "Response type for paginated workspace lists"
+---
+
+## Overview
+
+The `WorkspaceListResponse` struct represents the response returned when fetching a paginated list of workspaces.
+
+## Definition
+
+```rust
+pub struct WorkspaceListResponse {
+    pub data: Vec<Workspace>,
+    pub has_more: bool,
+}
+```
+
+## Fields
+
+<ParamField path="data" type="Vec<Workspace>" required>
+  A vector containing the workspaces for the current page. Each workspace is represented by a `Workspace` struct.
+</ParamField>
+
+<ParamField path="has_more" type="bool" required>
+  Indicates whether there are more workspaces available beyond the current page. Used for pagination.
+</ParamField>
+
+## Usage Example
+
+```rust
+use wacht_rs::api::workspaces::*;
+
+let options = ListWorkspacesOptions {
+    page: Some(1),
+    per_page: Some(20),
+    search: None,
+    organization_id: Some("org_123".to_string()),
+};
+
+let response = fetch_workspaces(Some(options)).await?;
+
+println!("Found {} workspaces", response.data.len());
+if response.has_more {
+    println!("More workspaces available on next page");
+}
+
+for workspace in response.data {
+    println!("Workspace: {} ({})", workspace.name, workspace.id);
+}
+```
+
+## Related Types
+
+- [Workspace](/rust-sdk/types/workspace) - The workspace model
+- [ListWorkspacesOptions](/rust-sdk/types/list-workspaces-options) - Query options for listing workspaces
+
+## See Also
+
+- [fetch_workspaces](/rust-sdk/api/fetch-workspaces) - API method that returns this type

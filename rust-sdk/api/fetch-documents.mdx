@@ -1,0 +1,74 @@
+---
+title: "fetch_documents"
+description: "Get documents in knowledge base"
+---
+
+## Overview
+
+The `fetch_documents` function retrieves all documents within a specific knowledge base.
+
+## Function Signature
+
+```rust
+pub async fn fetch_documents(knowledge_base_id: &str) -> Result<DocumentListResponse>
+```
+
+## Parameters
+
+<ParamField path="knowledge_base_id" type="&str" required>
+  The unique identifier of the knowledge base
+</ParamField>
+
+## Return Value
+
+Returns `Result<DocumentListResponse>` containing:
+- `data`: Vector of `KnowledgeBaseDocument` objects
+- `has_more`: Boolean indicating if more results are available
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::knowledge_bases::*;
+
+let documents = fetch_documents("52057194421551105").await?;
+println!("Found {} documents", documents.data.len());
+
+for doc in documents.data {
+    println!("Document: {} ({})", doc.name, doc.id);
+    println!("  Size: {} bytes", doc.size);
+    println!("  Type: {}", doc.content_type);
+}
+```
+
+## Error Handling
+
+```rust
+match fetch_documents("52057194421551105").await {
+    Ok(response) => {
+        println!("Successfully retrieved {} documents", response.data.len());
+        for doc in response.data {
+            println!("- {} ({} bytes)", doc.name, doc.size);
+            println!("  Uploaded: {}", doc.uploaded_at);
+        }
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            404 => println!("Knowledge base not found"),
+            403 => println!("Access denied: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **List operations**: 100 requests per minute
+- **Burst limit**: 10 requests per second
+
+## Related Functions
+
+- [upload_document](upload-document) - Upload document to knowledge base
+- [delete_document](delete-document) - Delete document from knowledge base
+- [fetch_knowledge_base](fetch-knowledge-base) - Get knowledge base details

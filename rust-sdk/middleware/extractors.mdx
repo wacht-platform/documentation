@@ -1,0 +1,428 @@
+---
+title: "Request Extractors"
+description: "Handler-level authentication and permission extractors for Axum"
+---
+
+Request extractors provide handler-level authentication and authorization checks. They offer a more granular approach compared to middleware layers, allowing you to enforce requirements directly in your handler functions.
+
+## Import
+
+```rust
+use wacht_rs::middleware::{
+    RequireAuth,
+    RequirePermission,
+    OptionalAuth,
+    Permission,
+    PermissionScope,
+    AuthContext
+};
+```
+
+## Authentication Extractors
+
+### RequireAuth
+
+Ensures the request has valid authentication. Returns 401 if not authenticated.
+
+```rust
+use axum::{Json, Extension};
+use wacht_rs::middleware::{RequireAuth, AuthContext};
+use serde_json::{json, Value};
+
+async fn protected_handler(
+    _auth: RequireAuth,  // Validates authentication
+    Extension(ctx): Extension<AuthContext>  // Access context
+) -> Json<Value> {
+    Json(json!({
+        "message": "Authenticated!",
+        "user_id": ctx.user_id,
+        "session_id": ctx.session_id
+    }))
+}
+```
+
+### OptionalAuth
+
+Allows both authenticated and unauthenticated requests. Useful for routes that behave differently based on authentication status.
+
+```rust
+use wacht_rs::middleware::{OptionalAuth, AuthContext};
+
+async fn public_handler(auth: OptionalAuth) -> String {
+    match auth.0 {
+        Some(ctx) => format!("Welcome, user {}!", ctx.user_id),
+        None => "Welcome, guest!".to_string()
+    }
+}
+```
+
+## Permission Extractors
+
+### Using the Macro
+
+Define custom permission requirements using the `require_permission!` macro:
+
+```rust
+use wacht_rs::{require_permission, middleware::PermissionScope};
+
+// Define permissions at compile time
+require_permission!(CanReadUsers, "users:read", Organization);
+require_permission!(CanWriteProjects, "projects:write", Workspace);
+require_permission!(CanManageBilling, "billing:manage", Organization);
+```
+
+### Using Permission Extractors
+
+```rust
+async fn list_users(_perm: CanReadUsers) -> &'static str {
+    "User list here"
+}
+
+async fn create_project(_perm: CanWriteProjects) -> &'static str {
+    "Project created"
+}
+
+async fn update_billing(
+    _perm: CanManageBilling,
+    Extension(auth): Extension<AuthContext>
+) -> String {
+    format!("Billing updated for org: {:?}", auth.organization_id)
+}
+```
+
+### Generic RequirePermission
+
+For dynamic permission checks:
+
+```rust
+use wacht_rs::middleware::{RequirePermission, Permission};
+
+// Define a permission type
+struct AdminPermission;
+
+impl Permission for AdminPermission {
+    const PERMISSION: &'static str = "admin:full";
+    const SCOPE: PermissionScope = PermissionScope::Organization;
+}
+
+async fn admin_handler(
+    _perm: RequirePermission<AdminPermission>
+) -> &'static str {
+    "Admin access granted"
+}
+```
+
+## How Extractors Work
+
+1. **Request Processing** - Extractors run before your handler
+2. **Context Validation** - Check for `AuthContext` in request extensions
+3. **Permission Verification** - Compare required vs actual permissions
+4. **Success/Failure** - Either proceed to handler or return error response
+
+## Error Responses
+
+### Authentication Errors (401)
+
+```json
+{
+    "error": "Authentication required",
+    "message": "No valid authentication token provided"
+}
+```
+
+Headers:
+- `WWW-Authenticate: Bearer`
+
+### Permission Errors (403)
+
+```json
+{
+    "error": "Insufficient permissions",
+    "required": "projects:write",
+    "scope": "workspace"
+}
+```
+
+## Complete Examples
+
+### REST API with Mixed Authentication
+
+```rust
+use axum::{
+    Router,
+    routing::{get, post, put, delete},
+    Json,
+    Extension,
+    extract::Path,
+};
+use wacht_rs::{
+    init_from_env,
+    middleware::*,
+    require_permission,
+};
+use serde::{Deserialize, Serialize};
+use serde_json::{json, Value};
+
+// Define permissions
+require_permission!(CanReadPosts, "posts:read", Workspace);
+require_permission!(CanWritePosts, "posts:write", Workspace);
+require_permission!(CanDeletePosts, "posts:delete", Workspace);
+
+#[derive(Serialize, Deserialize)]
+struct Post {
+    id: String,
+    title: String,
+    content: String,
+    author_id: String,
+}
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    init_from_env().await?;
+    
+    let app = Router::new()
+        // Public routes
+        .route("/posts", get(list_posts_public))
+        .route("/posts/:id", get(get_post_public))
+        
+        // Authenticated routes
+        .route("/posts", post(create_post))
+        .route("/posts/:id", put(update_post))
+        .route("/posts/:id", delete(delete_post))
+        .route("/my-posts", get(list_my_posts))
+        
+        // Apply auth middleware
+        .layer(AuthLayer::new());
+    
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await?;
+    axum::serve(listener, app).await?;
+    
+    Ok(())
+}
+
+// Public endpoint with optional auth
+async fn list_posts_public(auth: OptionalAuth) -> Json<Value> {
+    let posts = match auth.0 {
+        Some(ctx) => {
+            // Show more posts for authenticated users
+            format!("All posts (user: {})", ctx.user_id)
+        }
+        None => {
+            // Show limited posts for guests
+            "Public posts only".to_string()
+        }
+    };
+    
+    Json(json!({ "posts": posts }))
+}
+
+// Public endpoint
+async fn get_post_public(Path(id): Path<String>) -> Json<Value> {
+    Json(json!({
+        "id": id,
+        "title": "Sample Post",
+        "content": "Post content here"
+    }))
+}
+
+// Requires authentication and write permission
+async fn create_post(
+    _perm: CanWritePosts,
+    Extension(auth): Extension<AuthContext>,
+    Json(post): Json<Post>,
+) -> Json<Value> {
+    Json(json!({
+        "message": "Post created",
+        "post_id": post.id,
+        "author": auth.user_id
+    }))
+}
+
+// Requires authentication and write permission
+async fn update_post(
+    _perm: CanWritePosts,
+    Path(id): Path<String>,
+    Json(post): Json<Post>,
+) -> Json<Value> {
+    Json(json!({
+        "message": "Post updated",
+        "post_id": id
+    }))
+}
+
+// Requires authentication and delete permission
+async fn delete_post(
+    _perm: CanDeletePosts,
+    Path(id): Path<String>,
+) -> Json<Value> {
+    Json(json!({
+        "message": "Post deleted",
+        "post_id": id
+    }))
+}
+
+// Requires only authentication
+async fn list_my_posts(
+    _auth: RequireAuth,
+    Extension(ctx): Extension<AuthContext>,
+) -> Json<Value> {
+    Json(json!({
+        "user_id": ctx.user_id,
+        "posts": ["post1", "post2"]
+    }))
+}
+```
+
+### Combining Extractors
+
+```rust
+use wacht_rs::middleware::*;
+
+// Multiple requirements in one handler
+async fn advanced_handler(
+    _auth: RequireAuth,                    // Must be authenticated
+    _perm: CanManageBilling,              // Must have billing permission
+    Extension(ctx): Extension<AuthContext>, // Access context
+    OptionalAuth(opt): OptionalAuth,      // Also check optional auth
+) -> String {
+    format!(
+        "User {} managing billing for org {:?}",
+        ctx.user_id,
+        ctx.organization_id
+    )
+}
+```
+
+### Custom Extractor Logic
+
+Create your own extractors for complex requirements:
+
+```rust
+use axum::{
+    async_trait,
+    extract::FromRequestParts,
+    http::{request::Parts, StatusCode},
+};
+
+struct RequireOwnership(String);
+
+#[async_trait]
+impl<S> FromRequestParts<S> for RequireOwnership
+where
+    S: Send + Sync,
+{
+    type Rejection = StatusCode;
+    
+    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
+        // Get auth context
+        let auth = parts.extensions
+            .get::<AuthContext>()
+            .ok_or(StatusCode::UNAUTHORIZED)?;
+        
+        // Custom ownership logic
+        if auth.user_id == "owner-id" {
+            Ok(RequireOwnership(auth.user_id.clone()))
+        } else {
+            Err(StatusCode::FORBIDDEN)
+        }
+    }
+}
+```
+
+## Testing Extractors
+
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum::http::{Request, header};
+    use tower::ServiceExt;
+    
+    #[tokio::test]
+    async fn test_require_auth() {
+        let app = Router::new()
+            .route("/protected", get(protected_handler))
+            .layer(AuthLayer::new());
+        
+        // Without auth
+        let response = app
+            .clone()
+            .oneshot(Request::get("/protected").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+        
+        assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+        
+        // With auth
+        let response = app
+            .oneshot(
+                Request::get("/protected")
+                    .header(header::AUTHORIZATION, "Bearer valid-token")
+                    .body(Body::empty())
+                    .unwrap()
+            )
+            .await
+            .unwrap();
+        
+        assert_eq!(response.status(), StatusCode::OK);
+    }
+}
+```
+
+## Best Practices
+
+1. **Use Extractors for Handler-Specific Logic** - When permissions vary per handler
+2. **Use Layers for Route Groups** - When multiple routes share requirements
+3. **Combine Both** - Layers for base auth, extractors for specific permissions
+4. **Type Safety** - Define permissions at compile time when possible
+5. **Clear Error Messages** - Help users understand what permissions they need
+
+## Common Patterns
+
+### Admin-Only Endpoints
+
+```rust
+require_permission!(IsAdmin, "admin:full", Organization);
+
+async fn admin_dashboard(_: IsAdmin) -> &'static str {
+    "Admin Dashboard"
+}
+```
+
+### Owner-Only Access
+
+```rust
+async fn update_profile(
+    _auth: RequireAuth,
+    Extension(ctx): Extension<AuthContext>,
+    Path(user_id): Path<String>,
+) -> Result<String, StatusCode> {
+    if ctx.user_id != user_id {
+        return Err(StatusCode::FORBIDDEN);
+    }
+    
+    Ok("Profile updated".to_string())
+}
+```
+
+### Workspace Member Access
+
+```rust
+require_permission!(IsWorkspaceMember, "workspace:access", Workspace);
+
+async fn workspace_resources(
+    _perm: IsWorkspaceMember,
+    Extension(ctx): Extension<AuthContext>,
+) -> Json<Value> {
+    Json(json!({
+        "workspace_id": ctx.workspace_id,
+        "resources": ["resource1", "resource2"]
+    }))
+}
+```
+
+## Next Steps
+
+- [Auth Layer](auth-layer) - Middleware-level authentication
+- [Permission Layers](permission-layer) - Route-level permissions
+- [Token Claims](../auth/token-claims) - Understanding JWT structure

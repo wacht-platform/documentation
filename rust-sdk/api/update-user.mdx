@@ -1,0 +1,90 @@
+---
+title: "update_user"
+description: "Update user information"
+---
+
+## Overview
+
+The `update_user` function updates an existing user's profile information.
+
+## Function Signature
+
+```rust
+pub async fn update_user(
+    user_id: &str,
+    request: UpdateUserRequest
+) -> Result<User>
+```
+
+## Parameters
+
+<ParamField path="user_id" type="&str" required>
+  The unique identifier of the user to update
+</ParamField>
+
+<ParamField path="request" type="UpdateUserRequest" required>
+  The user fields to update (all optional):
+  - `first_name`: User's first name
+  - `last_name`: User's last name
+  - `username`: Username
+  - `phone`: Phone number
+  - `metadata`: Custom metadata
+</ParamField>
+
+## Return Value
+
+Returns `Result<User>` containing the updated user details.
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::users::*;
+
+let update = UpdateUserRequest {
+    first_name: Some("Jane".to_string()),
+    last_name: Some("Smith".to_string()),
+    username: Some("janesmith".to_string()),
+    phone: None,
+    metadata: Some(serde_json::json!({
+        "department": "marketing",
+        "title": "Senior Manager"
+    })),
+};
+
+let updated_user = update_user("52057194421551105", update).await?;
+println!("Updated user: {} {}", updated_user.first_name, updated_user.last_name);
+```
+
+## Error Handling
+
+```rust
+match update_user("52057194421551105", request).await {
+    Ok(user) => {
+        println!("Successfully updated user: {}", user.email);
+        println!("Username: {}", user.username);
+        println!("Last updated: {}", user.updated_at);
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            404 => println!("User not found"),
+            400 => println!("Invalid request: {}", message),
+            409 => println!("Username already taken: {}", message),
+            403 => println!("Access denied: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **Update operations**: 100 requests per minute
+- **Burst limit**: 10 requests per second
+
+## Related Functions
+
+- [fetch_user_details](fetch-user-details) - Get user details
+- [update_password](update-password) - Change user password
+- [add_email](add-email) - Add email address
+- [add_phone](add-phone) - Add phone number

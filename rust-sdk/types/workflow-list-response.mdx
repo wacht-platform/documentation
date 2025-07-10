@@ -1,0 +1,64 @@
+---
+title: "WorkflowListResponse"
+description: "Response type for paginated AI workflow lists"
+---
+
+## Overview
+
+The `WorkflowListResponse` struct represents the response returned when fetching a paginated list of AI workflows.
+
+## Definition
+
+```rust
+pub struct WorkflowListResponse {
+    pub data: Vec<AiWorkflow>,
+    pub has_more: bool,
+}
+```
+
+## Fields
+
+<ParamField path="data" type="Vec<AiWorkflow>" required>
+  A vector containing the AI workflows for the current page. Each workflow is represented by an `AiWorkflow` struct.
+</ParamField>
+
+<ParamField path="has_more" type="bool" required>
+  Indicates whether there are more workflows available beyond the current page. Used for pagination.
+</ParamField>
+
+## Usage Example
+
+```rust
+use wacht_rs::api::workflows::*;
+
+let options = ListWorkflowsOptions {
+    page: Some(1),
+    per_page: Some(20),
+    search: None,
+    is_active: Some(true),
+};
+
+let response = fetch_workflows(Some(options)).await?;
+
+println!("Found {} workflows", response.data.len());
+if response.has_more {
+    println!("More workflows available on next page");
+}
+
+for workflow in response.data {
+    println!("Workflow: {} - {}", workflow.name, workflow.description);
+    println!("  Steps: {}", workflow.steps.len());
+    println!("  Active: {}", workflow.is_active);
+}
+```
+
+## Related Types
+
+- [AiWorkflow](/rust-sdk/types/ai-workflow) - The AI workflow model
+- [ListWorkflowsOptions](/rust-sdk/types/list-workflows-options) - Query options for listing workflows
+
+## See Also
+
+- [fetch_workflows](/rust-sdk/api/fetch-workflows) - API method that returns this type
+- [create_workflow](/rust-sdk/api/create-workflow) - Create a new AI workflow
+- [fetch_workflow](/rust-sdk/api/fetch-workflow) - Get a specific workflow by ID

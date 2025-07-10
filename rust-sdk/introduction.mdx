@@ -1,0 +1,90 @@
+---
+title: 'Introduction'
+description: 'Complete Rust SDK for Wacht platform with authentication middleware'
+---
+
+## Overview
+
+The Wacht Rust SDK provides a comprehensive, type-safe client for all Wacht platform APIs along with production-ready authentication middleware for Axum web applications. Built with modern Rust patterns, it offers excellent performance and developer experience.
+
+## Key Features
+
+### Complete API Coverage
+- **All 72 Backend Endpoints** - Full coverage of Wacht platform APIs
+- **Type-Safe Models** - Strongly typed request/response structures
+- **Async/Await** - Modern asynchronous Rust with Tokio
+- **Automatic Retries** - Built-in retry logic for transient failures
+
+### Authentication Middleware
+- **JWT Validation** - Production-ready JWT token validation
+- **Multiple Algorithms** - Support for HS256/384/512, RS256/384/512, ES256/384
+- **Permission System** - Fine-grained permission checks at route and handler level
+- **Axum Integration** - Seamless integration with Axum web framework
+
+### Developer Experience
+- **Lazy Initialization** - Global HTTP client with connection pooling
+- **Environment Configuration** - Easy setup via environment variables
+- **Comprehensive Error Handling** - Detailed error types with context
+- **Tracing Support** - Built-in observability with tracing crate
+
+## Architecture
+
+The SDK follows a modular architecture with clear separation of concerns:
+
+```
+wacht-rs
+├── API Modules (Users, Organizations, Workspaces, etc.)
+├── Authentication Middleware
+│   ├── JWT Validation Layer
+│   ├── Permission Layers
+│   └── Request Extractors
+├── Global Client Configuration
+└── Error Handling
+```
+
+## Use Cases
+
+### Backend Services
+Build secure backend services that interact with the Wacht platform:
+- User management systems
+- Organization and workspace administration
+- AI agent orchestration
+- Analytics and reporting services
+
+### API Gateways
+Create API gateways with built-in authentication:
+- Validate JWT tokens from Wacht
+- Enforce permissions at the gateway level
+- Route requests based on user context
+- Multi-tenant request routing
+
+### Microservices
+Build microservices that integrate with Wacht:
+- Service-to-service authentication
+- Permission-based access control
+- Async task processing
+- Event-driven architectures
+
+## Comparison with React SDK
+
+While the React SDK focuses on frontend authentication flows and UI components, the Rust SDK provides:
+
+| Feature | React SDK | Rust SDK |
+|---------|-----------|----------|
+| Target | Frontend applications | Backend services |
+| Authentication | Client-side flows | JWT validation middleware |
+| API Access | Limited frontend APIs | All backend APIs |
+| Components | UI components | Middleware layers |
+| State Management | React hooks | Stateless validation |
+| Use Case | User-facing apps | Services & APIs |
+
+## Getting Started
+
+The SDK is designed to get you up and running quickly:
+
+1. Add the dependency to your `Cargo.toml`
+2. Set environment variables for API key and host
+3. Initialize the SDK in your main function
+4. Start making API calls or add auth middleware
+
+Continue to the [Installation](installation) guide to begin using the Wacht Rust SDK.

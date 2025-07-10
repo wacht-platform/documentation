@@ -1,0 +1,127 @@
+---
+title: "update_deployment_restrictions"
+description: "Update access restrictions"
+---
+
+## Overview
+
+The `update_deployment_restrictions` function updates access restrictions for your deployment, controlling who can sign up and access your application.
+
+## Function Signature
+
+```rust
+pub async fn update_deployment_restrictions(
+    restrictions: DeploymentRestrictions
+) -> Result<()>
+```
+
+## Parameters
+
+<ParamField path="restrictions" type="DeploymentRestrictions" required>
+  Access restriction configuration including:
+  - `allowed_domains`: List of allowed email domains for signup
+  - `blocked_domains`: List of blocked email domains
+  - `allowed_countries`: List of allowed countries (ISO codes)
+  - `blocked_countries`: List of blocked countries (ISO codes)
+  - `require_email_verification`: Require email verification before access
+  - `require_phone_verification`: Require phone verification before access
+</ParamField>
+
+## Return Value
+
+Returns `Result<()>` indicating success or failure.
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::settings::*;
+
+let restrictions = DeploymentRestrictions {
+    allowed_domains: vec!["company.com".to_string(), "partner.com".to_string()],
+    blocked_domains: vec!["competitor.com".to_string()],
+    allowed_countries: vec!["US".to_string(), "CA".to_string(), "GB".to_string()],
+    blocked_countries: vec![],
+    require_email_verification: true,
+    require_phone_verification: false,
+};
+
+update_deployment_restrictions(restrictions).await?;
+println!("Access restrictions updated successfully");
+```
+
+## Advanced Usage
+
+```rust
+use wacht_rs::api::settings::*;
+
+// Set up strict enterprise restrictions
+let enterprise_restrictions = DeploymentRestrictions {
+    // Only allow corporate domains
+    allowed_domains: vec![
+        "acme.com".to_string(),
+        "acme-corp.com".to_string(),
+    ],
+    blocked_domains: vec![],
+    
+    // Restrict to specific regions
+    allowed_countries: vec![
+        "US".to_string(), // United States
+        "CA".to_string(), // Canada
+        "GB".to_string(), // United Kingdom
+        "DE".to_string(), // Germany
+        "FR".to_string(), // France
+    ],
+    blocked_countries: vec![],
+    
+    // Require full verification
+    require_email_verification: true,
+    require_phone_verification: true,
+};
+
+match update_deployment_restrictions(enterprise_restrictions).await {
+    Ok(()) => {
+        println!("Enterprise restrictions applied:");
+        println!("- Domain whitelist active");
+        println!("- Geographic restrictions enabled");
+        println!("- Full verification required");
+    }
+    Err(e) => println!("Failed to apply restrictions: {}", e),
+}
+```
+
+## Error Handling
+
+```rust
+match update_deployment_restrictions(restrictions).await {
+    Ok(()) => {
+        println!("Successfully updated deployment restrictions");
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            400 => println!("Invalid restrictions: {}", message),
+            403 => println!("Access denied: {}", message),
+            409 => println!("Conflicting restrictions: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Update failed: {}", e),
+}
+```
+
+## Important Notes
+
+- Domain restrictions apply only to new signups
+- Country restrictions are based on IP geolocation
+- Existing users are not affected by new restrictions
+- Both allowed and blocked lists cannot be used simultaneously
+
+## Rate Limits
+
+- **Update operations**: 50 requests per minute
+- **Burst limit**: 5 requests per second
+
+## Related Functions
+
+- [fetch_deployment_settings](fetch-deployment-settings) - Get current settings
+- [update_authentication_settings](update-authentication-settings) - Update auth settings
+- [update_b2b_settings](update-b2b-settings) - Update B2B configuration

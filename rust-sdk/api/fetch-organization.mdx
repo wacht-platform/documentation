@@ -1,0 +1,69 @@
+---
+title: "fetch_organization"
+description: "Get organization by ID"
+---
+
+## Overview
+
+The `fetch_organization` function retrieves a specific organization by its unique identifier.
+
+## Function Signature
+
+```rust
+pub async fn fetch_organization(organization_id: &str) -> Result<Organization>
+```
+
+## Parameters
+
+<ParamField path="organization_id" type="&str" required>
+  The unique identifier of the organization to retrieve
+</ParamField>
+
+## Return Value
+
+Returns `Result<Organization>` containing the organization details.
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::organizations::*;
+
+let org = fetch_organization("52057194421551105").await?;
+println!("Organization: {} ({})", org.name, org.slug);
+println!("Created: {}", org.created_at);
+println!("Member count: {}", org.member_count);
+```
+
+## Error Handling
+
+```rust
+match fetch_organization("52057194421551105").await {
+    Ok(org) => {
+        println!("Found organization: {}", org.name);
+        println!("Description: {}", org.description.unwrap_or("No description".to_string()));
+        if let Some(website) = org.website {
+            println!("Website: {}", website);
+        }
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            404 => println!("Organization not found"),
+            403 => println!("Access denied: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **Get operations**: 1000 requests per minute
+- **Burst limit**: 50 requests per second
+
+## Related Functions
+
+- [fetch_organizations](fetch-organizations) - List all organizations
+- [create_organization](create-organization) - Create a new organization
+- [update_organization](update-organization) - Update organization details
+- [delete_organization](delete-organization) - Delete organization

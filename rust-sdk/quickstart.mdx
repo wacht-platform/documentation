@@ -1,0 +1,246 @@
+---
+title: 'Quick Start'
+description: 'Get up and running with the Wacht Rust SDK in minutes'
+---
+
+This guide will help you set up the Wacht Rust SDK and make your first API calls.
+
+## Basic Setup
+
+### 1. Create a new Rust project
+
+```bash
+cargo new my-wacht-app
+cd my-wacht-app
+```
+
+### 2. Add dependencies
+
+```toml
+[dependencies]
+wacht-rs = "2.0.0"
+tokio = { version = "1", features = ["full"] }
+```
+
+### 3. Set environment variables
+
+```bash
+export WACHT_API_KEY="your-api-key"
+export WACHT_FRONTEND_HOST="https://your-app.wacht.io"
+```
+
+### 4. Initialize and use the SDK
+
+```rust
+use wacht_rs::{init_from_env, UsersApi, HealthApi};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Initialize SDK from environment variables
+    init_from_env().await?;
+    
+    // Check API health
+    let health = HealthApi::health_get().await?;
+    println!("API Status: {:?}", health);
+    
+    // Get current user
+    let user = UsersApi::users_current_get().await?;
+    println!("Current user: {} ({})", user.first_name, user.email);
+    
+    Ok(())
+}
+```
+
+## Making API Calls
+
+### User Management
+
+```rust
+use wacht_rs::{UsersApi, models::*};
+
+async fn user_examples() -> Result<(), Box<dyn std::error::Error>> {
+    // List users with pagination
+    let users = UsersApi::users_get(
+        Some(10),  // limit
+        Some(0),   // offset
+        None       // search
+    ).await?;
+    
+    for user in users.data {
+        println!("User: {} - {}", user.id, user.email);
+    }
+    
+    // Get specific user
+    let user_id = "52057194421551105";
+    let user = UsersApi::users_user_id_get(user_id).await?;
+    println!("Found user: {}", user.username);
+    
+    // Update user
+    let update = UpdateUserRequest {
+        first_name: Some("Updated".to_string()),
+        last_name: Some("Name".to_string()),
+        ..Default::default()
+    };
+    let updated = UsersApi::users_user_id_patch(user_id, update).await?;
+    
+    Ok(())
+}
+```
+
+### Organization Management
+
+```rust
+use wacht_rs::{OrganizationsApi, models::*};
+
+async fn org_examples() -> Result<(), Box<dyn std::error::Error>> {
+    // List organizations
+    let orgs = OrganizationsApi::organizations_get(None, None).await?;
+    
+    // Create organization
+    let new_org = CreateOrganizationRequest {
+        name: "My Company".to_string(),
+        slug: Some("my-company".to_string()),
+        ..Default::default()
+    };
+    let org = OrganizationsApi::organizations_post(new_org).await?;
+    println!("Created org: {}", org.id);
+    
+    // Add member
+    let member = OrganizationMemberRequest {
+        user_id: "52057194421551105".to_string(),
+        role: "member".to_string(),
+    };
+    OrganizationsApi::organizations_organization_id_members_post(
+        &org.id,
+        member
+    ).await?;
+    
+    Ok(())
+}
+```
+
+## Using Authentication Middleware
+
+### Basic Axum Setup
+
+```rust
+use axum::{Router, routing::get, Json};
+use wacht_rs::{init_from_env, middleware::AuthLayer};
+use serde_json::Value;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Initialize SDK
+    init_from_env().await?;
+    
+    // Create router with auth middleware
+    let app = Router::new()
+        .route("/protected", get(protected_handler))
+        .route("/public", get(public_handler))
+        .layer(AuthLayer::new());
+    
+    // Run server
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await?;
+    axum::serve(listener, app).await?;
+    
+    Ok(())
+}
+
+async fn protected_handler() -> Json<Value> {
+    Json(serde_json::json!({
+        "message": "This route requires authentication!"
+    }))
+}
+
+async fn public_handler() -> &'static str {
+    "This route is public"
+}
+```
+
+### Using Request Extractors
+
+```rust
+use axum::{Router, routing::get, Json, Extension};
+use wacht_rs::middleware::{RequireAuth, AuthContext};
+use serde_json::Value;
+
+async fn user_info_handler(
+    _auth: RequireAuth,  // Ensures user is authenticated
+    Extension(ctx): Extension<AuthContext>  // Access auth context
+) -> Json<Value> {
+    Json(serde_json::json!({
+        "user_id": ctx.user_id,
+        "session_id": ctx.session_id,
+        "organization": ctx.organization_id,
+        "workspace": ctx.workspace_id
+    }))
+}
+
+let app = Router::new()
+    .route("/user/info", get(user_info_handler))
+    .layer(AuthLayer::new());
+```
+
+### Permission-Based Access
+
+```rust
+use wacht_rs::{middleware::*, require_permission};
+use axum::{Router, routing::get};
+
+// Define custom permissions
+require_permission!(CanReadReports, "reports:read", Organization);
+require_permission!(CanManageUsers, "users:manage", Workspace);
+
+async fn reports_handler(_perm: CanReadReports) -> &'static str {
+    "Reports data here"
+}
+
+async fn admin_handler(_perm: CanManageUsers) -> &'static str {
+    "Admin panel"
+}
+
+let app = Router::new()
+    .route("/reports", get(reports_handler))
+    .route("/admin", get(admin_handler))
+    .layer(AuthLayer::new());
+```
+
+## Error Handling
+
+```rust
+use wacht_rs::{Error, UsersApi};
+
+async fn handle_errors() {
+    match UsersApi::users_user_id_get("invalid-id").await {
+        Ok(user) => println!("Found user: {}", user.email),
+        Err(Error::Api { status, message, details }) => {
+            eprintln!("API error {}: {}", status, message);
+            if let Some(details) = details {
+                eprintln!("Details: {:?}", details);
+            }
+        }
+        Err(Error::Request(e)) => {
+            eprintln!("Network error: {}", e);
+        }
+        Err(e) => {
+            eprintln!("Other error: {}", e);
+        }
+    }
+}
+```
+
+## Next Steps
+
+Now that you have the basics working:
+
+1. **Explore API Modules** - Check out the full API documentation
+2. **Learn Authentication** - Deep dive into JWT validation and permissions
+3. **Production Setup** - Configure for production deployments
+4. **Advanced Patterns** - Learn async patterns and best practices
+
+### Useful Resources
+
+- [Configuration Guide](configuration) - Detailed configuration options
+- [Authentication Middleware](middleware/auth-layer) - JWT validation setup
+- [API Reference](api/users-api) - Complete API documentation
+- [Error Handling](error-handling) - Comprehensive error handling

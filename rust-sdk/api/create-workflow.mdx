@@ -1,0 +1,98 @@
+---
+title: "create_workflow"
+description: "Create a new AI workflow"
+---
+
+## Overview
+
+The `create_workflow` function creates a new AI workflow in the system.
+
+## Function Signature
+
+```rust
+pub async fn create_workflow(
+    request: CreateAiWorkflowRequest
+) -> Result<AiWorkflow>
+```
+
+## Parameters
+
+<ParamField path="request" type="CreateAiWorkflowRequest" required>
+  The workflow data for creation including:
+  - `name`: Workflow name (required)
+  - `description`: Workflow description (required)
+  - `steps`: Array of workflow steps (required)
+  - `trigger_type`: Type of trigger for the workflow (required)
+  - `is_active`: Whether workflow is active (optional, defaults to true)
+</ParamField>
+
+## Return Value
+
+Returns `Result<AiWorkflow>` containing the created workflow details.
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::workflows::*;
+
+let new_workflow = CreateAiWorkflowRequest {
+    name: "Customer Onboarding".to_string(),
+    description: "Automated customer onboarding workflow".to_string(),
+    steps: vec![
+        WorkflowStep {
+            name: "Send Welcome Email".to_string(),
+            type_: "email".to_string(),
+            config: serde_json::json!({
+                "template": "welcome",
+                "delay": 0
+            }),
+        },
+        WorkflowStep {
+            name: "Create Account".to_string(),
+            type_: "api_call".to_string(),
+            config: serde_json::json!({
+                "endpoint": "/api/accounts",
+                "method": "POST"
+            }),
+        }
+    ],
+    trigger_type: "user_signup".to_string(),
+    is_active: Some(true),
+};
+
+let created_workflow = create_workflow(new_workflow).await?;
+println!("Created workflow: {} (ID: {})", created_workflow.name, created_workflow.id);
+```
+
+## Error Handling
+
+```rust
+match create_workflow(request).await {
+    Ok(workflow) => {
+        println!("Successfully created workflow: {}", workflow.name);
+        println!("Workflow ID: {}", workflow.id);
+        println!("Number of steps: {}", workflow.steps.len());
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            400 => println!("Invalid request: {}", message),
+            403 => println!("Access denied: {}", message),
+            409 => println!("Workflow name already exists: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **Create operations**: 20 requests per minute
+- **Burst limit**: 5 requests per second
+
+## Related Functions
+
+- [fetch_workflows](fetch-workflows) - List all workflows
+- [fetch_workflow](fetch-workflow) - Get workflow by ID
+- [update_workflow](update-workflow) - Update workflow configuration
+- [delete_workflow](delete-workflow) - Delete workflow

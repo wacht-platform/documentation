@@ -1,0 +1,98 @@
+---
+title: "fetch_tools"
+description: "Fetch a paginated list of AI tools"
+---
+
+## Overview
+
+The `fetch_tools` function retrieves a list of AI tools with optional filtering and pagination support.
+
+## Function Signature
+
+```rust
+pub async fn fetch_tools(
+    options: Option<ListToolsOptions>
+) -> Result<ToolListResponse>
+```
+
+## Parameters
+
+<ParamField path="options" type="Option<ListToolsOptions>">
+  Optional configuration for filtering and pagination:
+  - `page`: Page number for pagination (optional)
+  - `per_page`: Number of results per page (optional)
+  - `search`: Search query to filter tools (optional)
+  - `is_active`: Filter tools by active status (optional)
+</ParamField>
+
+## Return Value
+
+Returns `Result<ToolListResponse>` containing:
+- `data`: Vector of `AiTool` objects
+- `has_more`: Boolean indicating if more results are available
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::tools::*;
+
+// Fetch all tools
+let tools = fetch_tools(None).await?;
+for tool in tools.data {
+    println!("Tool: {} - {}", tool.name, tool.id);
+}
+```
+
+## Advanced Usage
+
+```rust
+use wacht_rs::api::tools::*;
+
+// Fetch active tools with search
+let options = ListToolsOptions {
+    page: Some(1),
+    per_page: Some(20),
+    search: Some("api".to_string()),
+    is_active: Some(true),
+};
+
+let filtered_tools = fetch_tools(Some(options)).await?;
+println!("Found {} active tools", filtered_tools.data.len());
+
+for tool in filtered_tools.data {
+    println!("- {} (Type: {})", tool.name, tool.tool_type);
+}
+```
+
+## Error Handling
+
+```rust
+match fetch_tools(None).await {
+    Ok(response) => {
+        println!("Successfully retrieved {} tools", response.data.len());
+        for tool in response.data {
+            println!("- {} ({})", tool.name, tool.description);
+        }
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            403 => println!("Access denied: {}", message),
+            429 => println!("Rate limited: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **List operations**: 100 requests per minute
+- **Burst limit**: 10 requests per second
+
+## Related Functions
+
+- [create_tool](create-tool) - Create a new AI tool
+- [fetch_tool](fetch-tool) - Get tool by ID
+- [update_tool](update-tool) - Update tool configuration
+- [delete_tool](delete-tool) - Delete tool

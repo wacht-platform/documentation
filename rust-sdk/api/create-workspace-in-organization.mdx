@@ -1,0 +1,83 @@
+---
+title: "create_workspace_in_organization"
+description: "Create workspace in organization"
+---
+
+## Overview
+
+The `create_workspace_in_organization` function creates a new workspace within an organization.
+
+## Function Signature
+
+```rust
+pub async fn create_workspace_in_organization(
+    organization_id: &str,
+    request: CreateWorkspaceRequest
+) -> Result<Workspace>
+```
+
+## Parameters
+
+<ParamField path="organization_id" type="&str" required>
+  The unique identifier of the organization where the workspace will be created
+</ParamField>
+
+<ParamField path="request" type="CreateWorkspaceRequest" required>
+  The workspace data for creation including:
+  - `name`: Workspace name (required)
+  - `slug`: URL-friendly identifier (optional)
+  - `description`: Workspace description (optional)
+</ParamField>
+
+## Return Value
+
+Returns `Result<Workspace>` containing the created workspace details.
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::workspaces::*;
+
+let new_workspace = CreateWorkspaceRequest {
+    name: "Development Team".to_string(),
+    slug: Some("dev-team".to_string()),
+    description: Some("Development team workspace".to_string()),
+};
+
+let created_workspace = create_workspace_in_organization("org_123", new_workspace).await?;
+println!("Created workspace: {} (ID: {})", created_workspace.name, created_workspace.id);
+```
+
+## Error Handling
+
+```rust
+match create_workspace_in_organization("org_123", request).await {
+    Ok(workspace) => {
+        println!("Successfully created workspace: {}", workspace.name);
+        println!("Workspace ID: {}", workspace.id);
+        println!("Organization: {}", workspace.organization_id);
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            400 => println!("Invalid request: {}", message),
+            404 => println!("Organization not found"),
+            409 => println!("Workspace name already exists: {}", message),
+            403 => println!("Access denied: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **Create operations**: 20 requests per minute
+- **Burst limit**: 5 requests per second
+
+## Related Functions
+
+- [fetch_workspaces](fetch-workspaces) - List all workspaces
+- [fetch_workspace](fetch-workspace) - Get workspace by ID
+- [update_workspace](update-workspace) - Update workspace details
+- [delete_workspace](delete-workspace) - Delete workspace

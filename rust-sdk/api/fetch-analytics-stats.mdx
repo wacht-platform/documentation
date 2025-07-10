@@ -1,0 +1,89 @@
+---
+title: "fetch_analytics_stats"
+description: "Fetch analytics statistics"
+---
+
+## Overview
+
+The `fetch_analytics_stats` function retrieves analytics statistics with optional filtering by date range and organization.
+
+## Function Signature
+
+```rust
+pub async fn fetch_analytics_stats(
+    options: Option<AnalyticsStatsOptions>
+) -> Result<AnalyticsStats>
+```
+
+## Parameters
+
+<ParamField path="options" type="Option<AnalyticsStatsOptions>">
+  Optional configuration for filtering:
+  - `start_date`: Start date for analytics range (optional, format: YYYY-MM-DD)
+  - `end_date`: End date for analytics range (optional, format: YYYY-MM-DD)
+  - `organization_id`: Filter by specific organization (optional)
+</ParamField>
+
+## Return Value
+
+Returns `Result<AnalyticsStats>` containing comprehensive analytics data.
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::analytics::*;
+
+// Fetch all-time analytics
+let stats = fetch_analytics_stats(None).await?;
+println!("Total users: {}", stats.total_users);
+println!("Active users: {}", stats.active_users);
+println!("Total sessions: {}", stats.total_sessions);
+```
+
+## Advanced Usage
+
+```rust
+use wacht_rs::api::analytics::*;
+
+// Fetch analytics for specific date range
+let options = AnalyticsStatsOptions {
+    start_date: Some("2024-01-01".to_string()),
+    end_date: Some("2024-01-31".to_string()),
+    organization_id: Some("org_123".to_string()),
+};
+
+let stats = fetch_analytics_stats(Some(options)).await?;
+println!("Analytics for January 2024:");
+println!("- New users: {}", stats.new_users);
+println!("- Conversion rate: {:.2}%", stats.conversion_rate);
+println!("- Average session duration: {} minutes", stats.avg_session_duration);
+```
+
+## Error Handling
+
+```rust
+match fetch_analytics_stats(None).await {
+    Ok(stats) => {
+        println!("Successfully retrieved analytics");
+        println!("Total signups: {}", stats.total_signups);
+        println!("Active organizations: {}", stats.active_organizations);
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            403 => println!("Access denied: {}", message),
+            400 => println!("Invalid date range: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **Analytics operations**: 100 requests per minute
+- **Burst limit**: 10 requests per second
+
+## Related Functions
+
+- [fetch_recent_signups](fetch-recent-signups) - Get recent signup details

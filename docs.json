@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "linden",
+  "theme": "maple",
   "name": "Wacht API Documentation",
   "search": { "prompt": "Search docs" },
   "colors": {
@@ -128,6 +128,270 @@
                 "pages": [
                   "guides/guide-signin-flow",
                   "guides/guide-signup-flow"
+                ]
+              }
+            ]
+          },
+          {
+            "dropdown": "Rust Core",
+            "icon": "rust",
+            "anchors": [
+              {
+                "anchor": "Overview",
+                "icon": "house",
+                "groups": [
+                  {
+                    "group": "Getting Started",
+                    "pages": [
+                      "rust-sdk/introduction",
+                      "rust-sdk/installation",
+                      "rust-sdk/quickstart"
+                    ]
+                  },
+                  {
+                    "group": "Configuration",
+                    "pages": [
+                      "rust-sdk/configuration",
+                      "rust-sdk/environment-variables"
+                    ]
+                  }
+                ]
+              },
+              {
+                "anchor": "Authentication",
+                "icon": "shield",
+                "groups": [
+                  {
+                    "group": "Middleware",
+                    "pages": [
+                      "rust-sdk/middleware/auth-layer",
+                      "rust-sdk/middleware/permission-layer",
+                      "rust-sdk/middleware/extractors"
+                    ]
+                  },
+                  {
+                    "group": "JWT",
+                    "pages": [
+                      "rust-sdk/auth/jwt-validation",
+                      "rust-sdk/auth/token-claims"
+                    ]
+                  }
+                ]
+              },
+              {
+                "anchor": "API Modules",
+                "icon": "code",
+                "groups": [
+                  {
+                    "group": "Users API",
+                    "pages": [
+                      "rust-sdk/api/fetch-users",
+                      "rust-sdk/api/create-user",
+                      "rust-sdk/api/fetch-user-details",
+                      "rust-sdk/api/update-user",
+                      "rust-sdk/api/update-password",
+                      "rust-sdk/api/add-email",
+                      "rust-sdk/api/invite-user"
+                    ]
+                  },
+                  {
+                    "group": "Organizations API",
+                    "pages": [
+                      "rust-sdk/api/fetch-organizations",
+                      "rust-sdk/api/create-organization",
+                      "rust-sdk/api/fetch-organization",
+                      "rust-sdk/api/update-organization",
+                      "rust-sdk/api/delete-organization",
+                      "rust-sdk/api/add-organization-member",
+                      "rust-sdk/api/update-organization-member",
+                      "rust-sdk/api/remove-organization-member",
+                      "rust-sdk/api/fetch-organization-roles",
+                      "rust-sdk/api/create-organization-role",
+                      "rust-sdk/api/update-organization-role",
+                      "rust-sdk/api/delete-organization-role"
+                    ]
+                  },
+                  {
+                    "group": "Workspaces API",
+                    "pages": [
+                      "rust-sdk/api/fetch-workspaces",
+                      "rust-sdk/api/fetch-workspace",
+                      "rust-sdk/api/create-workspace-in-organization",
+                      "rust-sdk/api/update-workspace",
+                      "rust-sdk/api/delete-workspace"
+                    ]
+                  },
+                  {
+                    "group": "Agents API",
+                    "pages": [
+                      "rust-sdk/api/fetch-agents",
+                      "rust-sdk/api/fetch-agent",
+                      "rust-sdk/api/create-agent",
+                      "rust-sdk/api/update-agent",
+                      "rust-sdk/api/delete-agent"
+                    ]
+                  },
+                  {
+                    "group": "Workflows API",
+                    "pages": [
+                      "rust-sdk/api/fetch-workflows",
+                      "rust-sdk/api/fetch-workflow",
+                      "rust-sdk/api/create-workflow",
+                      "rust-sdk/api/update-workflow",
+                      "rust-sdk/api/delete-workflow"
+                    ]
+                  },
+                  {
+                    "group": "Knowledge Bases API",
+                    "pages": [
+                      "rust-sdk/api/fetch-knowledge-bases",
+                      "rust-sdk/api/create-knowledge-base",
+                      "rust-sdk/api/fetch-knowledge-base",
+                      "rust-sdk/api/update-knowledge-base",
+                      "rust-sdk/api/delete-knowledge-base",
+                      "rust-sdk/api/fetch-documents",
+                      "rust-sdk/api/upload-document",
+                      "rust-sdk/api/delete-document",
+                      "rust-sdk/api/search-global",
+                      "rust-sdk/api/search-knowledge-base"
+                    ]
+                  },
+                  {
+                    "group": "Tools API",
+                    "pages": [
+                      "rust-sdk/api/fetch-tools",
+                      "rust-sdk/api/fetch-tool",
+                      "rust-sdk/api/create-tool",
+                      "rust-sdk/api/update-tool",
+                      "rust-sdk/api/delete-tool"
+                    ]
+                  },
+                  {
+                    "group": "Analytics API",
+                    "pages": [
+                      "rust-sdk/api/fetch-analytics-stats",
+                      "rust-sdk/api/fetch-recent-signups"
+                    ]
+                  },
+                  {
+                    "group": "Settings API",
+                    "pages": [
+                      "rust-sdk/api/fetch-deployment-settings",
+                      "rust-sdk/api/update-authentication-settings",
+                      "rust-sdk/api/update-display-settings",
+                      "rust-sdk/api/update-b2b-settings",
+                      "rust-sdk/api/update-deployment-restrictions",
+                      "rust-sdk/api/fetch-jwt-templates",
+                      "rust-sdk/api/upload-image"
+                    ]
+                  },
+                  {
+                    "group": "Health API",
+                    "pages": [
+                      "rust-sdk/api/check-health",
+                      "rust-sdk/api/ping"
+                    ]
+                  },
+                  {
+                    "group": "Execution Context API",
+                    "pages": [
+                      "rust-sdk/api/create-execution-context"
+                    ]
+                  }
+                ]
+              },
+              {
+                "anchor": "Advanced",
+                "icon": "gear",
+                "pages": [
+                  "rust-sdk/error-handling",
+                  "rust-sdk/async-patterns",
+                  "rust-sdk/testing"
+                ]
+              },
+              {
+                "anchor": "API Types",
+                "icon": "database",
+                "groups": [
+                  {
+                    "group": "Users Types",
+                    "pages": [
+                      "rust-sdk/types/user-list-response",
+                      "rust-sdk/types/user-details-response",
+                      "rust-sdk/types/list-users-options",
+                      "rust-sdk/types/user-invitation",
+                      "rust-sdk/types/invitation-list-response",
+                      "rust-sdk/types/waitlist-response"
+                    ]
+                  },
+                  {
+                    "group": "Organizations Types",
+                    "pages": [
+                      "rust-sdk/types/organization-list-response",
+                      "rust-sdk/types/organization-role-list-response",
+                      "rust-sdk/types/list-organizations-options"
+                    ]
+                  },
+                  {
+                    "group": "Workspaces Types",
+                    "pages": [
+                      "rust-sdk/types/workspace-list-response",
+                      "rust-sdk/types/workspace-role-list-response",
+                      "rust-sdk/types/list-workspaces-options"
+                    ]
+                  },
+                  {
+                    "group": "Agents Types",
+                    "pages": [
+                      "rust-sdk/types/agent-list-response",
+                      "rust-sdk/types/list-agents-options"
+                    ]
+                  },
+                  {
+                    "group": "Workflows Types",
+                    "pages": [
+                      "rust-sdk/types/workflow-list-response",
+                      "rust-sdk/types/list-workflows-options"
+                    ]
+                  },
+                  {
+                    "group": "Knowledge Bases Types",
+                    "pages": [
+                      "rust-sdk/types/knowledge-base-list-response",
+                      "rust-sdk/types/document-list-response",
+                      "rust-sdk/types/list-knowledge-bases-options",
+                      "rust-sdk/types/knowledge-base-search-options"
+                    ]
+                  },
+                  {
+                    "group": "Tools Types",
+                    "pages": [
+                      "rust-sdk/types/tool-list-response",
+                      "rust-sdk/types/list-tools-options"
+                    ]
+                  },
+                  {
+                    "group": "Analytics Types",
+                    "pages": [
+                      "rust-sdk/types/recent-signups-response",
+                      "rust-sdk/types/analytics-stats-options"
+                    ]
+                  },
+                  {
+                    "group": "Settings Types",
+                    "pages": [
+                      "rust-sdk/types/deployment-settings-response",
+                      "rust-sdk/types/jwt-template-list-response",
+                      "rust-sdk/types/image-upload-response"
+                    ]
+                  },
+                  {
+                    "group": "Health Types",
+                    "pages": [
+                      "rust-sdk/types/health-status",
+                      "rust-sdk/types/service-health"
+                    ]
+                  }
                 ]
               }
             ]

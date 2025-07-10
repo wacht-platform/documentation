@@ -1,0 +1,77 @@
+---
+title: "update_authentication_settings"
+description: "Update authentication configuration"
+---
+
+## Overview
+
+The `update_authentication_settings` function updates the authentication configuration for your deployment.
+
+## Function Signature
+
+```rust
+pub async fn update_authentication_settings(
+    settings: AuthenticationSettings
+) -> Result<()>
+```
+
+## Parameters
+
+<ParamField path="settings" type="AuthenticationSettings" required>
+  Authentication configuration including:
+  - `password_enabled`: Enable password authentication
+  - `magic_link_enabled`: Enable magic link authentication
+  - `social_providers`: List of enabled social providers
+  - `mfa_enabled`: Enable multi-factor authentication
+  - `session_duration`: Session duration in seconds
+</ParamField>
+
+## Return Value
+
+Returns `Result<()>` indicating success or failure.
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::settings::*;
+
+let auth_settings = AuthenticationSettings {
+    password_enabled: true,
+    magic_link_enabled: true,
+    social_providers: vec!["google".to_string(), "github".to_string()],
+    mfa_enabled: false,
+    session_duration: 86400, // 24 hours
+};
+
+update_authentication_settings(auth_settings).await?;
+println!("Authentication settings updated successfully");
+```
+
+## Error Handling
+
+```rust
+match update_authentication_settings(settings).await {
+    Ok(()) => {
+        println!("Successfully updated authentication settings");
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            400 => println!("Invalid settings: {}", message),
+            403 => println!("Access denied: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Update failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **Update operations**: 50 requests per minute
+- **Burst limit**: 5 requests per second
+
+## Related Functions
+
+- [fetch_deployment_settings](fetch-deployment-settings) - Get current settings
+- [update_display_settings](update-display-settings) - Update UI settings
+- [update_b2b_settings](update-b2b-settings) - Update B2B configuration

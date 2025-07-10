@@ -1,0 +1,332 @@
+---
+title: "AuthLayer"
+description: "JWT authentication middleware for Axum applications"
+---
+
+The `AuthLayer` provides JWT token validation middleware that integrates seamlessly with Axum web applications. It validates Bearer tokens, extracts user context, and makes it available to your route handlers.
+
+## Import
+
+```rust
+use wacht_rs::middleware::AuthLayer;
+```
+
+## Basic Usage
+
+```rust
+use axum::{Router, routing::get};
+use wacht_rs::middleware::AuthLayer;
+
+#[tokio::main]
+async fn main() {
+    // Initialize SDK first
+    wacht_rs::init_from_env().await.unwrap();
+    
+    // Create router with auth middleware
+    let app = Router::new()
+        .route("/protected", get(protected_handler))
+        .layer(AuthLayer::new());
+    
+    // Routes under this layer require valid JWT tokens
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000")
+        .await
+        .unwrap();
+    axum::serve(listener, app).await.unwrap();
+}
+
+async fn protected_handler() -> &'static str {
+    "This route requires authentication!"
+}
+```
+
+## Configuration
+
+### Default Configuration
+
+The `AuthLayer::new()` constructor uses the public key from the global SDK configuration:
+
+```rust
+// Uses public key from SDK initialization
+let auth_layer = AuthLayer::new();
+```
+
+### Custom Public Key
+
+Provide a specific public key for token validation:
+
+```rust
+let auth_layer = AuthLayer::with_public_key(
+    "-----BEGIN PUBLIC KEY-----\nMIIBIjANBg...\n-----END PUBLIC KEY-----"
+);
+```
+
+### Advanced Configuration
+
+Configure validation parameters:
+
+```rust
+let auth_layer = AuthLayer::with_public_key(public_key)
+    .allowed_clock_skew(10)        // Allow 10 seconds clock skew
+    .validate_exp(true)            // Validate expiration (default: true)
+    .validate_nbf(true)            // Validate not-before (default: true)
+    .required_issuer("wacht.io");  // Require specific issuer
+```
+
+## How It Works
+
+### Request Flow
+
+1. **Extract Token** - Looks for `Authorization: Bearer <token>` header
+2. **Decode Header** - Determines the algorithm used for signing
+3. **Validate Signature** - Verifies token using the public key
+4. **Check Claims** - Validates expiration, not-before, and issuer
+5. **Extract Context** - Creates `AuthContext` from token claims
+6. **Inject Context** - Adds context to request extensions
+
+### Supported Algorithms
+
+The middleware supports multiple JWT signing algorithms:
+
+| Algorithm | Type | Description |
+|-----------|------|-------------|
+| HS256/384/512 | HMAC | Symmetric key signing |
+| RS256/384/512 | RSA | Asymmetric RSA signing |
+| ES256/384 | ECDSA | Elliptic curve signing |
+
+## Authentication Context
+
+After successful validation, an `AuthContext` is added to request extensions:
+
+```rust
+#[derive(Debug, Clone)]
+pub struct AuthContext {
+    pub user_id: String,
+    pub session_id: String,
+    pub organization_id: Option<String>,
+    pub organization_permissions: Option<Vec<String>>,
+    pub workspace_id: Option<String>,
+    pub workspace_permissions: Option<Vec<String>>,
+    pub claims: TokenClaims,
+}
+```
+
+### Accessing Context in Handlers
+
+Use the `Extension` extractor:
+
+```rust
+use axum::{Extension, Json};
+use wacht_rs::middleware::AuthContext;
+use serde_json::json;
+
+async fn user_info(
+    Extension(auth): Extension<AuthContext>
+) -> Json<serde_json::Value> {
+    Json(json!({
+        "user_id": auth.user_id,
+        "organization": auth.organization_id,
+        "workspace": auth.workspace_id,
+        "session": auth.session_id
+    }))
+}
+```
+
+## Error Responses
+
+The middleware returns appropriate HTTP responses for various error conditions:
+
+### 401 Unauthorized
+
+Returned when:
+- Missing authorization header
+- Invalid token format
+- Expired token
+- Invalid signature
+- Unsupported algorithm
+
+Response includes:
+- `X-Auth-Error` header with error details
+- `WWW-Authenticate: Bearer` header
+- Error message in response body
+
+### 500 Internal Server Error
+
+Returned when:
+- Invalid public key configuration
+- Internal processing errors
+
+## Complete Example
+
+```rust
+use axum::{
+    Router, 
+    routing::{get, post},
+    Extension,
+    Json,
+};
+use wacht_rs::{
+    init_from_env,
+    middleware::{AuthLayer, AuthContext},
+};
+use serde_json::{json, Value};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Initialize SDK
+    init_from_env().await?;
+    
+    // Public routes (no auth required)
+    let public_routes = Router::new()
+        .route("/health", get(health_check))
+        .route("/login", post(login));
+    
+    // Protected routes (auth required)
+    let protected_routes = Router::new()
+        .route("/profile", get(get_profile))
+        .route("/organizations", get(list_organizations))
+        .layer(AuthLayer::new());
+    
+    // Combine routers
+    let app = Router::new()
+        .merge(public_routes)
+        .merge(protected_routes);
+    
+    // Start server
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await?;
+    println!("Server running on http://0.0.0.0:3000");
+    axum::serve(listener, app).await?;
+    
+    Ok(())
+}
+
+// Public endpoint
+async fn health_check() -> &'static str {
+    "OK"
+}
+
+// Public endpoint
+async fn login() -> Json<Value> {
+    // Your login logic here
+    Json(json!({
+        "token": "jwt-token-here"
+    }))
+}
+
+// Protected endpoint
+async fn get_profile(
+    Extension(auth): Extension<AuthContext>
+) -> Json<Value> {
+    Json(json!({
+        "user_id": auth.user_id,
+        "session_id": auth.session_id
+    }))
+}
+
+// Protected endpoint
+async fn list_organizations(
+    Extension(auth): Extension<AuthContext>
+) -> Json<Value> {
+    let orgs = auth.organization_permissions
+        .unwrap_or_default();
+    
+    Json(json!({
+        "user_id": auth.user_id,
+        "organizations": orgs
+    }))
+}
+```
+
+## Layering Order
+
+When combining with other middleware, order matters:
+
+```rust
+use tower_http::trace::TraceLayer;
+
+let app = Router::new()
+    .route("/api/users", get(list_users))
+    .layer(AuthLayer::new())        // Auth first
+    .layer(TraceLayer::new_for_http()); // Then tracing
+```
+
+## Selective Authentication
+
+Apply authentication to specific routes:
+
+```rust
+let app = Router::new()
+    // Public routes
+    .route("/", get(home))
+    .route("/about", get(about))
+    
+    // Nested protected routes
+    .nest("/api", Router::new()
+        .route("/users", get(list_users))
+        .route("/profile", get(profile))
+        .layer(AuthLayer::new())
+    );
+```
+
+## Testing
+
+### Unit Testing
+
+Mock the authentication in tests:
+
+```rust
+#[cfg(test)]
+mod tests {
+    use axum::http::{Request, header};
+    use tower::ServiceExt;
+    
+    #[tokio::test]
+    async fn test_protected_route() {
+        let app = create_app();
+        
+        // Test without auth
+        let response = app
+            .oneshot(Request::get("/protected").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+        
+        assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+        
+        // Test with auth
+        let response = app
+            .oneshot(
+                Request::get("/protected")
+                    .header(header::AUTHORIZATION, "Bearer valid-token")
+                    .body(Body::empty())
+                    .unwrap()
+            )
+            .await
+            .unwrap();
+        
+        assert_eq!(response.status(), StatusCode::OK);
+    }
+}
+```
+
+## Debugging
+
+Enable debug logging to troubleshoot authentication issues:
+
+```rust
+use tracing_subscriber;
+
+#[tokio::main]
+async fn main() {
+    // Enable debug logging
+    tracing_subscriber::fmt()
+        .with_env_filter("wacht_rs=debug")
+        .init();
+    
+    // Your app setup...
+}
+```
+
+## Next Steps
+
+- [Permission Layer](permission-layer) - Add permission-based access control
+- [Extractors](extractors) - Use request extractors for authentication
+- [Token Claims](../auth/token-claims) - Understanding JWT token structure

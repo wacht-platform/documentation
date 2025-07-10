@@ -1,0 +1,81 @@
+---
+title: "add_organization_member"
+description: "Add member to organization"
+---
+
+## Overview
+
+The `add_organization_member` function adds a new member to an organization by sending an invitation.
+
+## Function Signature
+
+```rust
+pub async fn add_organization_member(
+    organization_id: &str,
+    request: AddOrganizationMemberRequest
+) -> Result<OrganizationMember>
+```
+
+## Parameters
+
+<ParamField path="organization_id" type="&str" required>
+  The unique identifier of the organization
+</ParamField>
+
+<ParamField path="request" type="AddOrganizationMemberRequest" required>
+  The member invitation data including:
+  - `email`: Email address of the user to invite (required)
+  - `role`: Role to assign to the member (required)
+  - `invited_by`: Email of the person sending the invitation (required)
+</ParamField>
+
+## Return Value
+
+Returns `Result<OrganizationMember>` containing the created membership details.
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::organizations::*;
+
+let member_request = AddOrganizationMemberRequest {
+    email: "newmember@example.com".to_string(),
+    role: "member".to_string(),
+    invited_by: "admin@example.com".to_string(),
+};
+
+let member = add_organization_member("org_123", member_request).await?;
+println!("Added member: {} with role: {}", member.email, member.role);
+```
+
+## Error Handling
+
+```rust
+match add_organization_member("org_123", request).await {
+    Ok(member) => {
+        println!("Successfully added member: {}", member.email);
+        println!("Member ID: {}", member.id);
+        println!("Status: {}", member.status);
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            404 => println!("Organization not found"),
+            409 => println!("User is already a member: {}", message),
+            403 => println!("Access denied: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **Member operations**: 50 requests per minute
+- **Burst limit**: 10 requests per second
+
+## Related Functions
+
+- [update_organization_member](update-organization-member) - Update member role
+- [remove_organization_member](remove-organization-member) - Remove member
+- [fetch_organization_roles](fetch-organization-roles) - Get available roles

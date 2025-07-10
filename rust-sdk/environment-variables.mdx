@@ -1,0 +1,332 @@
+---
+title: 'Environment Variables'
+description: 'Complete guide to environment variables for the Wacht Rust SDK'
+---
+
+## Required Variables
+
+These environment variables must be set for the SDK to function:
+
+<ParamField path="WACHT_API_KEY" type="string" required>
+  Your Wacht API key for authentication. This key is sent as a Bearer token in all API requests.
+  
+  **Example**: `wacht_sk_1234567890abcdef`
+</ParamField>
+
+<ParamField path="WACHT_FRONTEND_HOST" type="string" required>
+  The base URL of your Wacht frontend deployment. Used for API requests and fetching configuration.
+  
+  **Example**: `https://your-app.wacht.io`
+  
+  **Note**: Include the protocol (`https://`) and exclude trailing slashes.
+</ParamField>
+
+## Optional Variables
+
+<ParamField path="WACHT_PUBLIC_SIGNING_KEY" type="string">
+  PEM-encoded public key for JWT signature verification. If not provided, the SDK will automatically fetch it from the `/.well-known/jwk` endpoint.
+  
+  **Format**: Must include PEM headers and footers.
+</ParamField>
+
+## Setting Environment Variables
+
+### Using a .env File
+
+Create a `.env` file in your project root:
+
+```bash
+# .env
+WACHT_API_KEY=wacht_sk_your_api_key_here
+WACHT_FRONTEND_HOST=https://your-app.wacht.io
+WACHT_PUBLIC_SIGNING_KEY="-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA...
+-----END PUBLIC KEY-----"
+```
+
+Load with the `dotenv` crate:
+
+```rust
+use dotenv::dotenv;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Load .env file
+    dotenv().ok();
+    
+    // Initialize SDK
+    wacht_rs::init_from_env().await?;
+    
+    Ok(())
+}
+```
+
+### Shell Export
+
+<CodeGroup>
+
+```bash Linux/macOS
+export WACHT_API_KEY="wacht_sk_your_api_key_here"
+export WACHT_FRONTEND_HOST="https://your-app.wacht.io"
+```
+
+```powershell Windows PowerShell
+$env:WACHT_API_KEY="wacht_sk_your_api_key_here"
+$env:WACHT_FRONTEND_HOST="https://your-app.wacht.io"
+```
+
+```cmd Windows CMD
+set WACHT_API_KEY=wacht_sk_your_api_key_here
+set WACHT_FRONTEND_HOST=https://your-app.wacht.io
+```
+
+</CodeGroup>
+
+### Docker
+
+In your `Dockerfile` or `docker-compose.yml`:
+
+<CodeGroup>
+
+```dockerfile Dockerfile
+ENV WACHT_API_KEY=wacht_sk_your_api_key_here
+ENV WACHT_FRONTEND_HOST=https://your-app.wacht.io
+```
+
+```yaml docker-compose.yml
+services:
+  app:
+    image: your-app
+    environment:
+      - WACHT_API_KEY=wacht_sk_your_api_key_here
+      - WACHT_FRONTEND_HOST=https://your-app.wacht.io
+```
+
+</CodeGroup>
+
+### Kubernetes
+
+Using ConfigMaps and Secrets:
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: wacht-config
+type: Opaque
+data:
+  api-key: d2FjaHRfc2tfeW91cl9hcGlfa2V5X2hlcmU= # base64 encoded
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wacht-config
+data:
+  frontend-host: https://your-app.wacht.io
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: your-app
+spec:
+  template:
+    spec:
+      containers:
+      - name: app
+        env:
+        - name: WACHT_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: wacht-config
+              key: api-key
+        - name: WACHT_FRONTEND_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: wacht-config
+              key: frontend-host
+```
+
+## Platform-Specific Setup
+
+### Heroku
+
+```bash
+heroku config:set WACHT_API_KEY=wacht_sk_your_api_key_here
+heroku config:set WACHT_FRONTEND_HOST=https://your-app.wacht.io
+```
+
+### AWS Lambda
+
+Using AWS Systems Manager Parameter Store:
+
+```rust
+use aws_config::meta::region::RegionProviderChain;
+use aws_sdk_ssm::Client;
+
+async fn load_config() -> Result<(), Box<dyn std::error::Error>> {
+    let region_provider = RegionProviderChain::default_provider();
+    let config = aws_config::from_env().region(region_provider).load().await;
+    let client = Client::new(&config);
+    
+    // Fetch from Parameter Store
+    let api_key = client
+        .get_parameter()
+        .name("/wacht/api_key")
+        .with_decryption(true)
+        .send()
+        .await?
+        .parameter()
+        .unwrap()
+        .value()
+        .unwrap();
+    
+    std::env::set_var("WACHT_API_KEY", api_key);
+    
+    // Initialize SDK
+    wacht_rs::init_from_env().await?;
+    
+    Ok(())
+}
+```
+
+### Vercel
+
+Set in `vercel.json`:
+
+```json
+{
+  "env": {
+    "WACHT_API_KEY": "@wacht-api-key",
+    "WACHT_FRONTEND_HOST": "https://your-app.wacht.io"
+  }
+}
+```
+
+## Security Best Practices
+
+### 1. Never Commit Secrets
+
+Add to `.gitignore`:
+
+```gitignore
+.env
+.env.local
+.env.*.local
+```
+
+### 2. Use Secret Management
+
+For production, use proper secret management:
+
+- **AWS Secrets Manager**
+- **HashiCorp Vault**
+- **Azure Key Vault**
+- **Google Secret Manager**
+
+### 3. Principle of Least Privilege
+
+Create API keys with minimal required permissions:
+
+```rust
+// Only grant necessary permissions
+let api_key = create_api_key(vec![
+    "users:read",
+    "organizations:read"
+]);
+```
+
+### 4. Rotate Keys Regularly
+
+Implement key rotation:
+
+```rust
+async fn rotate_api_key() -> Result<(), Box<dyn std::error::Error>> {
+    // Create new key
+    let new_key = create_new_api_key().await?;
+    
+    // Update configuration
+    std::env::set_var("WACHT_API_KEY", new_key);
+    
+    // Re-initialize SDK
+    wacht_rs::init_from_env().await?;
+    
+    // Revoke old key
+    revoke_old_key().await?;
+    
+    Ok(())
+}
+```
+
+## Debugging
+
+### Verify Environment Variables
+
+```rust
+fn check_environment() {
+    match std::env::var("WACHT_API_KEY") {
+        Ok(val) => println!("API Key: {}...", &val[..8]),
+        Err(e) => eprintln!("API Key not set: {}", e),
+    }
+    
+    match std::env::var("WACHT_FRONTEND_HOST") {
+        Ok(val) => println!("Frontend Host: {}", val),
+        Err(e) => eprintln!("Frontend Host not set: {}", e),
+    }
+    
+    match std::env::var("WACHT_PUBLIC_SIGNING_KEY") {
+        Ok(_) => println!("Public Key: Set"),
+        Err(_) => println!("Public Key: Not set (will auto-fetch)"),
+    }
+}
+```
+
+### Enable Debug Logging
+
+Set Rust log level:
+
+```bash
+export RUST_LOG=wacht_rs=debug
+```
+
+### Common Issues
+
+<AccordionGroup>
+
+<Accordion title="Environment variable not found">
+**Symptom**: `environment variable not found`
+
+**Solutions**:
+1. Verify variable names are spelled correctly
+2. Ensure variables are exported (not just set)
+3. Check if running in correct environment
+4. Restart your application after setting variables
+</Accordion>
+
+<Accordion title="Invalid characters in API key">
+**Symptom**: `invalid header value`
+
+**Solution**: Ensure the API key doesn't contain:
+- Newlines or spaces
+- Non-ASCII characters
+- Special shell characters that need escaping
+</Accordion>
+
+<Accordion title="URL parsing errors">
+**Symptom**: `invalid URL`
+
+**Solutions**:
+1. Include protocol: `https://`
+2. Remove trailing slashes
+3. Ensure valid hostname
+4. Check for typos
+</Accordion>
+
+</AccordionGroup>
+
+## Next Steps
+
+- [Configuration](configuration) - Programmatic configuration options
+- [Authentication](middleware/auth-layer) - Setting up JWT validation
+- [Quick Start](quickstart) - Get started with the SDK

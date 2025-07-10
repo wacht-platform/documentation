@@ -1,0 +1,76 @@
+---
+title: "delete_organization_role"
+description: "Delete organization role"
+---
+
+## Overview
+
+The `delete_organization_role` function permanently deletes a custom organization role.
+
+## Function Signature
+
+```rust
+pub async fn delete_organization_role(
+    organization_id: &str,
+    role_id: &str
+) -> Result<()>
+```
+
+## Parameters
+
+<ParamField path="organization_id" type="&str" required>
+  The unique identifier of the organization
+</ParamField>
+
+<ParamField path="role_id" type="&str" required>
+  The unique identifier of the role to delete
+</ParamField>
+
+## Return Value
+
+Returns `Result<()>` indicating success or failure.
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::organizations::*;
+
+delete_organization_role("org_123", "role_456").await?;
+println!("Role deleted successfully");
+```
+
+## Error Handling
+
+```rust
+match delete_organization_role("org_123", "role_456").await {
+    Ok(()) => {
+        println!("Role deleted successfully");
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            404 => println!("Organization or role not found"),
+            403 => println!("Access denied: {}", message),
+            409 => println!("Cannot delete role with assigned members: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Important Notes
+
+- Cannot delete built-in system roles (owner, admin, member)
+- Cannot delete roles that are currently assigned to members
+- This operation is irreversible
+
+## Rate Limits
+
+- **Delete operations**: 20 requests per minute
+- **Burst limit**: 5 requests per second
+
+## Related Functions
+
+- [create_organization_role](create-organization-role) - Create custom role
+- [update_organization_role](update-organization-role) - Update role
+- [fetch_organization_roles](fetch-organization-roles) - Get available roles

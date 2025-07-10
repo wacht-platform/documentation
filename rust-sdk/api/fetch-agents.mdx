@@ -1,0 +1,99 @@
+---
+title: "fetch_agents"
+description: "Fetch a paginated list of AI agents"
+---
+
+## Overview
+
+The `fetch_agents` function retrieves a list of AI agents with optional filtering and pagination support.
+
+## Function Signature
+
+```rust
+pub async fn fetch_agents(
+    options: Option<ListAgentsOptions>
+) -> Result<AgentListResponse>
+```
+
+## Parameters
+
+<ParamField path="options" type="Option<ListAgentsOptions>">
+  Optional configuration for filtering and pagination:
+  - `page`: Page number for pagination (optional)
+  - `per_page`: Number of results per page (optional)
+  - `is_active`: Filter agents by active status (optional)
+  - `search`: Search query to filter agents (optional)
+</ParamField>
+
+## Return Value
+
+Returns `Result<AgentListResponse>` containing:
+- `data`: Vector of `AiAgent` objects
+- `has_more`: Boolean indicating if more results are available
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::agents::*;
+
+// Fetch all agents
+let agents = fetch_agents(None).await?;
+for agent in agents.data {
+    println!("Agent: {} - {}", agent.name, agent.id);
+}
+```
+
+## Advanced Usage
+
+```rust
+use wacht_rs::api::agents::*;
+
+// Fetch active agents with search
+let options = ListAgentsOptions {
+    page: Some(1),
+    per_page: Some(20),
+    is_active: Some(true),
+    search: Some("customer-service".to_string()),
+};
+
+let filtered_agents = fetch_agents(Some(options)).await?;
+println!("Found {} active agents", filtered_agents.data.len());
+
+for agent in filtered_agents.data {
+    println!("- {} (Status: {})", agent.name, 
+        if agent.is_active { "Active" } else { "Inactive" });
+}
+```
+
+## Error Handling
+
+```rust
+match fetch_agents(None).await {
+    Ok(response) => {
+        println!("Successfully retrieved {} agents", response.data.len());
+        for agent in response.data {
+            println!("- {} ({})", agent.name, agent.description);
+        }
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            403 => println!("Access denied: {}", message),
+            429 => println!("Rate limited: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **List operations**: 100 requests per minute
+- **Burst limit**: 10 requests per second
+
+## Related Functions
+
+- [create_agent](create-agent) - Create a new AI agent
+- [fetch_agent](fetch-agent) - Get agent by ID
+- [update_agent](update-agent) - Update agent configuration
+- [delete_agent](delete-agent) - Delete agent

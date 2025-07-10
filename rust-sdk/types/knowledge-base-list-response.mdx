@@ -1,0 +1,63 @@
+---
+title: "KnowledgeBaseListResponse"
+description: "Response type for paginated knowledge base lists"
+---
+
+## Overview
+
+The `KnowledgeBaseListResponse` struct represents the response returned when fetching a paginated list of AI knowledge bases.
+
+## Definition
+
+```rust
+pub struct KnowledgeBaseListResponse {
+    pub data: Vec<AiKnowledgeBase>,
+    pub has_more: bool,
+}
+```
+
+## Fields
+
+<ParamField path="data" type="Vec<AiKnowledgeBase>" required>
+  A vector containing the knowledge bases for the current page. Each knowledge base is represented by an `AiKnowledgeBase` struct.
+</ParamField>
+
+<ParamField path="has_more" type="bool" required>
+  Indicates whether there are more knowledge bases available beyond the current page. Used for pagination.
+</ParamField>
+
+## Usage Example
+
+```rust
+use wacht_rs::api::knowledge_bases::*;
+
+let options = ListKnowledgeBasesOptions {
+    page: Some(1),
+    per_page: Some(20),
+    search: Some("product docs".to_string()),
+};
+
+let response = fetch_knowledge_bases(Some(options)).await?;
+
+println!("Found {} knowledge bases", response.data.len());
+if response.has_more {
+    println!("More knowledge bases available on next page");
+}
+
+for kb in response.data {
+    println!("Knowledge Base: {} - {}", kb.name, kb.description);
+    println!("  Documents: {}", kb.document_count);
+    println!("  Created: {}", kb.created_at);
+}
+```
+
+## Related Types
+
+- [AiKnowledgeBase](/rust-sdk/types/ai-knowledge-base) - The knowledge base model
+- [ListKnowledgeBasesOptions](/rust-sdk/types/list-knowledge-bases-options) - Query options for listing knowledge bases
+
+## See Also
+
+- [fetch_knowledge_bases](/rust-sdk/api/fetch-knowledge-bases) - API method that returns this type
+- [create_knowledge_base](/rust-sdk/api/create-knowledge-base) - Create a new knowledge base
+- [fetch_knowledge_base](/rust-sdk/api/fetch-knowledge-base) - Get a specific knowledge base by ID

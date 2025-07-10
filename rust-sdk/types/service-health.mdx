@@ -1,0 +1,111 @@
+---
+title: "ServiceHealth"
+description: "Individual service health status information"
+---
+
+## Overview
+
+The `ServiceHealth` struct represents the health status of an individual service or dependency within the system.
+
+## Definition
+
+```rust
+pub struct ServiceHealth {
+    pub name: String,
+    pub status: String,
+    pub message: Option<String>,
+}
+```
+
+## Fields
+
+<ParamField path="name" type="String" required>
+  The name of the service being monitored (e.g., "database", "redis", "storage").
+</ParamField>
+
+<ParamField path="status" type="String" required>
+  The health status of the service. Common values include "healthy", "degraded", or "unhealthy".
+</ParamField>
+
+<ParamField path="message" type="Option<String>">
+  Optional message providing additional context about the service status, especially useful for degraded or unhealthy states.
+</ParamField>
+
+## Usage Example
+
+```rust
+use wacht_rs::api::health::check_health;
+
+let health = check_health().await?;
+
+// Process each service health status
+for service in &health.services {
+    match service.status.as_str() {
+        "healthy" => {
+            println!("✅ {} is operational", service.name);
+        }
+        "degraded" => {
+            println!("⚠️  {} is degraded", service.name);
+            if let Some(msg) = &service.message {
+                println!("   Reason: {}", msg);
+            }
+        }
+        "unhealthy" => {
+            println!("❌ {} is down", service.name);
+            if let Some(msg) = &service.message {
+                println!("   Error: {}", msg);
+            }
+        }
+        _ => {
+            println!("❓ {} status unknown: {}", service.name, service.status);
+        }
+    }
+}
+
+// Check specific service
+let database_health = health.services.iter()
+    .find(|s| s.name == "database");
+
+if let Some(db) = database_health {
+    if db.status != "healthy" {
+        eprintln!("Database issue detected: {:?}", db.message);
+        // Implement fallback or alert logic
+    }
+}
+
+// Group services by status
+use std::collections::HashMap;
+
+let mut services_by_status: HashMap<String, Vec<&ServiceHealth>> = HashMap::new();
+
+for service in &health.services {
+    services_by_status
+        .entry(service.status.clone())
+        .or_insert_with(Vec::new)
+        .push(service);
+}
+
+for (status, services) in services_by_status {
+    println!("\n{} services ({}):", status, services.len());
+    for service in services {
+        println!("  - {}", service.name);
+    }
+}
+```
+
+## Common Service Names
+
+- `database` - Primary database connection
+- `redis` - Redis cache service
+- `storage` - File storage service (S3, etc.)
+- `email` - Email delivery service
+- `search` - Search/vector database service
+- `queue` - Message queue service
+
+## Related Types
+
+- [HealthStatus](/rust-sdk/types/health-status) - Complete health check response containing service statuses
+
+## See Also
+
+- [check_health](/rust-sdk/api/check-health) - API method that returns health status including service information

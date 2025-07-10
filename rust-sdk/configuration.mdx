@@ -1,0 +1,273 @@
+---
+title: 'Configuration'
+description: 'Configure the Wacht Rust SDK for your application'
+---
+
+## Configuration Methods
+
+The Wacht Rust SDK supports multiple configuration methods to suit different deployment scenarios.
+
+### Environment Variables (Recommended)
+
+The simplest way to configure the SDK is using environment variables:
+
+```rust
+use wacht_rs::init_from_env;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Automatically reads from environment
+    init_from_env().await?;
+    
+    // SDK is now ready to use
+    Ok(())
+}
+```
+
+### Manual Configuration
+
+For more control, configure the SDK programmatically:
+
+```rust
+use wacht_rs::{init, WachtConfig};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let config = WachtConfig::new(
+        "your-api-key".to_string(),
+        "https://your-app.wacht.io".to_string()
+    );
+    
+    init(config)?;
+    
+    Ok(())
+}
+```
+
+### With Public Key
+
+If you have the JWT public key, provide it directly:
+
+```rust
+use wacht_rs::{init, WachtConfig};
+
+let config = WachtConfig::new(
+    "your-api-key".to_string(),
+    "https://your-app.wacht.io".to_string()
+)
+.with_public_key("-----BEGIN PUBLIC KEY-----\nMIIBIjANBg...\n-----END PUBLIC KEY-----");
+
+init(config)?;
+```
+
+### Auto-fetch Public Key
+
+The SDK can automatically fetch the public key from your deployment:
+
+```rust
+use wacht_rs::{init, WachtConfig};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let mut config = WachtConfig::new(
+        "your-api-key".to_string(),
+        "https://your-app.wacht.io".to_string()
+    );
+    
+    // Fetches from /.well-known/jwk endpoint
+    config = config.load_public_key().await?;
+    
+    init(config)?;
+    
+    Ok(())
+}
+```
+
+## Configuration Options
+
+### WachtConfig Structure
+
+```rust
+pub struct WachtConfig {
+    /// API key for authentication
+    pub api_key: String,
+    
+    /// Frontend host URL (e.g., https://app.wacht.io)
+    pub frontend_host: String,
+    
+    /// Optional JWT public signing key
+    pub public_signing_key: Option<String>,
+}
+```
+
+### Methods
+
+<ParamField path="new()" type="fn(String, String) -> Self">
+  Creates a new configuration with API key and frontend host.
+</ParamField>
+
+<ParamField path="from_env()" type="fn() -> Result<Self>">
+  Creates configuration from environment variables. Requires `WACHT_API_KEY` and `WACHT_FRONTEND_HOST`.
+</ParamField>
+
+<ParamField path="with_public_key()" type="fn(self, String) -> Self">
+  Sets the JWT public signing key for token validation.
+</ParamField>
+
+<ParamField path="load_public_key()" type="async fn(&mut self) -> Result<Self>">
+  Fetches the public key from the `/.well-known/jwk` endpoint.
+</ParamField>
+
+## Global Client Configuration
+
+The SDK maintains a global HTTP client with:
+
+- **Connection Pooling** - Reuses connections for better performance
+- **Default Headers** - Automatically includes authentication
+- **Retry Logic** - Built-in retry for transient failures
+- **Timeout Configuration** - Reasonable defaults for API calls
+
+### Accessing the Global Client
+
+```rust
+use wacht_rs::get_client;
+
+// Get the configured HTTP client
+let client = get_client();
+
+// Make custom requests if needed
+let response = client
+    .get("https://api.example.com/custom")
+    .send()
+    .await?;
+```
+
+## Authentication Configuration
+
+### For API Calls
+
+When initialized, the SDK automatically adds authentication headers:
+
+```http
+Authorization: Bearer your-api-key
+```
+
+### For JWT Validation
+
+The public key is used to validate incoming JWT tokens:
+
+```rust
+use wacht_rs::middleware::AuthLayer;
+
+// Uses public key from configuration
+let auth_layer = AuthLayer::new();
+
+// Or provide a custom key
+let auth_layer = AuthLayer::with_public_key(custom_key);
+```
+
+## Best Practices
+
+### Development Environment
+
+Use a `.env` file for local development:
+
+```bash
+# .env
+WACHT_API_KEY=dev-api-key
+WACHT_FRONTEND_HOST=https://dev.wacht.io
+WACHT_PUBLIC_SIGNING_KEY=-----BEGIN PUBLIC KEY-----...
+```
+
+Load with `dotenv` crate:
+
+```rust
+use dotenv::dotenv;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    dotenv().ok();  // Load .env file
+    wacht_rs::init_from_env().await?;
+    
+    Ok(())
+}
+```
+
+### Production Environment
+
+1. **Use environment variables** from your deployment platform
+2. **Never hardcode** API keys in source code
+3. **Validate configuration** at startup
+4. **Monitor initialization** errors
+
+### Configuration Validation
+
+```rust
+use wacht_rs::{init_from_env, is_initialized};
+
+async fn setup() -> Result<(), Box<dyn std::error::Error>> {
+    // Try to initialize
+    init_from_env().await?;
+    
+    // Verify initialization
+    if !is_initialized() {
+        return Err("SDK initialization failed".into());
+    }
+    
+    // Test with health check
+    use wacht_rs::HealthApi;
+    HealthApi::health_get().await?;
+    
+    println!("SDK configured successfully!");
+    Ok(())
+}
+```
+
+## Troubleshooting
+
+### Common Configuration Issues
+
+<AccordionGroup>
+
+<Accordion title="Missing API Key">
+**Error**: `WACHT_API_KEY must be set`
+
+**Solution**: Ensure the environment variable is set:
+```bash
+export WACHT_API_KEY="your-api-key"
+```
+</Accordion>
+
+<Accordion title="Invalid Frontend Host">
+**Error**: `Failed to fetch public key`
+
+**Solution**: Verify the frontend host URL:
+- Include the protocol (`https://`)
+- Remove trailing slashes
+- Ensure the host is accessible
+</Accordion>
+
+<Accordion title="Public Key Format">
+**Error**: `Invalid public key format`
+
+**Solution**: The public key must be in PEM format:
+```
+-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA...
+-----END PUBLIC KEY-----
+```
+</Accordion>
+
+<Accordion title="Already Initialized">
+**Error**: `Wacht SDK already initialized`
+
+**Solution**: The SDK can only be initialized once. Check with `is_initialized()` before calling `init()`.
+</Accordion>
+
+</AccordionGroup>
+
+## Next Steps
+
+- [Environment Variables](environment-variables) - Detailed environment setup
+- [Authentication](middleware/auth-layer) - JWT validation configuration
+- [Error Handling](error-handling) - Handle configuration errors

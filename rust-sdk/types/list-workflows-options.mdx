@@ -1,0 +1,96 @@
+---
+title: "ListWorkflowsOptions"
+description: "Query options for listing AI workflows"
+---
+
+## Overview
+
+The `ListWorkflowsOptions` struct provides filtering and pagination options when fetching AI workflows.
+
+## Definition
+
+```rust
+pub struct ListWorkflowsOptions {
+    pub page: Option<u32>,
+    pub per_page: Option<u32>,
+    pub search: Option<String>,
+    pub is_active: Option<bool>,
+}
+```
+
+## Fields
+
+<ParamField path="page" type="Option<u32>">
+  The page number to retrieve (1-indexed). Defaults to 1 if not specified.
+</ParamField>
+
+<ParamField path="per_page" type="Option<u32>">
+  Number of workflows to return per page. Defaults to 20 if not specified.
+</ParamField>
+
+<ParamField path="search" type="Option<String>">
+  Search query to filter workflows by name, description, or other attributes.
+</ParamField>
+
+<ParamField path="is_active" type="Option<bool>">
+  Filter workflows by active status. When true, only returns active workflows. When false, only returns inactive workflows.
+</ParamField>
+
+## Usage Example
+
+```rust
+use wacht_rs::api::workflows::{fetch_workflows, ListWorkflowsOptions};
+
+// Fetch all workflows with default pagination
+let all_workflows = fetch_workflows(None).await?;
+
+// Fetch only active workflows
+let active_options = ListWorkflowsOptions {
+    is_active: Some(true),
+    ..Default::default()
+};
+let active_workflows = fetch_workflows(Some(active_options)).await?;
+
+// Search for specific workflows with custom pagination
+let search_options = ListWorkflowsOptions {
+    page: Some(1),
+    per_page: Some(50),
+    search: Some("data processing".to_string()),
+    is_active: None, // Include both active and inactive
+};
+let data_workflows = fetch_workflows(Some(search_options)).await?;
+
+// Process all workflows page by page
+let mut all_workflow_ids = Vec::new();
+let mut page = 1;
+
+loop {
+    let options = ListWorkflowsOptions {
+        page: Some(page),
+        per_page: Some(100),
+        ..Default::default()
+    };
+    
+    let response = fetch_workflows(Some(options)).await?;
+    
+    for workflow in &response.data {
+        all_workflow_ids.push(workflow.id.clone());
+    }
+    
+    if !response.has_more {
+        break;
+    }
+    page += 1;
+}
+
+println!("Total workflows: {}", all_workflow_ids.len());
+```
+
+## Related Types
+
+- [WorkflowListResponse](/rust-sdk/types/workflow-list-response) - The response type returned when listing workflows
+- [AiWorkflow](/rust-sdk/types/ai-workflow) - The AI workflow model
+
+## See Also
+
+- [fetch_workflows](/rust-sdk/api/fetch-workflows) - API method that uses this type

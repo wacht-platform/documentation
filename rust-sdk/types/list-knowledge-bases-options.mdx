@@ -1,0 +1,87 @@
+---
+title: "ListKnowledgeBasesOptions"
+description: "Query options for listing knowledge bases"
+---
+
+## Overview
+
+The `ListKnowledgeBasesOptions` struct provides filtering and pagination options when fetching AI knowledge bases.
+
+## Definition
+
+```rust
+pub struct ListKnowledgeBasesOptions {
+    pub page: Option<u32>,
+    pub per_page: Option<u32>,
+    pub search: Option<String>,
+}
+```
+
+## Fields
+
+<ParamField path="page" type="Option<u32>">
+  The page number to retrieve (1-indexed). Defaults to 1 if not specified.
+</ParamField>
+
+<ParamField path="per_page" type="Option<u32>">
+  Number of knowledge bases to return per page. Defaults to 20 if not specified.
+</ParamField>
+
+<ParamField path="search" type="Option<String>">
+  Search query to filter knowledge bases by name, description, or other attributes.
+</ParamField>
+
+## Usage Example
+
+```rust
+use wacht_rs::api::knowledge_bases::{fetch_knowledge_bases, ListKnowledgeBasesOptions};
+
+// Fetch all knowledge bases with default pagination
+let all_kb = fetch_knowledge_bases(None).await?;
+
+// Search for specific knowledge bases
+let search_options = ListKnowledgeBasesOptions {
+    search: Some("technical documentation".to_string()),
+    ..Default::default()
+};
+let tech_kb = fetch_knowledge_bases(Some(search_options)).await?;
+
+// Custom pagination
+let page_options = ListKnowledgeBasesOptions {
+    page: Some(2),
+    per_page: Some(50),
+    search: None,
+};
+let page_2 = fetch_knowledge_bases(Some(page_options)).await?;
+
+// Fetch all knowledge bases across all pages
+let mut all_knowledge_bases = Vec::new();
+let mut page = 1;
+
+loop {
+    let options = ListKnowledgeBasesOptions {
+        page: Some(page),
+        per_page: Some(100),
+        ..Default::default()
+    };
+    
+    let response = fetch_knowledge_bases(Some(options)).await?;
+    all_knowledge_bases.extend(response.data);
+    
+    if !response.has_more {
+        break;
+    }
+    page += 1;
+}
+
+println!("Total knowledge bases: {}", all_knowledge_bases.len());
+```
+
+## Related Types
+
+- [KnowledgeBaseListResponse](/rust-sdk/types/knowledge-base-list-response) - The response type returned when listing knowledge bases
+- [AiKnowledgeBase](/rust-sdk/types/ai-knowledge-base) - The knowledge base model
+
+## See Also
+
+- [fetch_knowledge_bases](/rust-sdk/api/fetch-knowledge-bases) - API method that uses this type

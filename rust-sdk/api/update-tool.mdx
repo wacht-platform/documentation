@@ -1,0 +1,83 @@
+---
+title: "update_tool"
+description: "Update AI tool configuration"
+---
+
+## Overview
+
+The `update_tool` function updates an existing AI tool's configuration.
+
+## Function Signature
+
+```rust
+pub async fn update_tool(
+    tool_id: &str,
+    request: UpdateAiToolRequest
+) -> Result<AiTool>
+```
+
+## Parameters
+
+<ParamField path="tool_id" type="&str" required>
+  The unique identifier of the tool to update
+</ParamField>
+
+<ParamField path="request" type="UpdateAiToolRequest" required>
+  The tool fields to update (all optional):
+  - `name`: Tool name
+  - `description`: Tool description
+  - `config`: Tool configuration
+  - `is_active`: Whether tool is active
+</ParamField>
+
+## Return Value
+
+Returns `Result<AiTool>` containing the updated tool details.
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::tools::*;
+
+let update = UpdateAiToolRequest {
+    name: Some("Updated Tool Name".to_string()),
+    description: Some("Updated description".to_string()),
+    is_active: Some(false),
+    ..Default::default()
+};
+
+let updated_tool = update_tool("52057194421551105", update).await?;
+println!("Updated tool: {}", updated_tool.name);
+```
+
+## Error Handling
+
+```rust
+match update_tool("52057194421551105", request).await {
+    Ok(tool) => {
+        println!("Successfully updated tool: {}", tool.name);
+        println!("Last updated: {}", tool.updated_at);
+        println!("Active status: {}", tool.is_active);
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            404 => println!("Tool not found"),
+            400 => println!("Invalid request: {}", message),
+            403 => println!("Access denied: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **Update operations**: 100 requests per minute
+- **Burst limit**: 10 requests per second
+
+## Related Functions
+
+- [fetch_tool](fetch-tool) - Get tool by ID
+- [create_tool](create-tool) - Create a new tool
+- [delete_tool](delete-tool) - Delete tool

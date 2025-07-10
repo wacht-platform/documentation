@@ -1,0 +1,84 @@
+---
+title: "invite_user"
+description: "Send user invitation"
+---
+
+## Overview
+
+The `invite_user` function sends an invitation to a new user to join the platform.
+
+## Function Signature
+
+```rust
+pub async fn invite_user(
+    request: InviteUserRequest
+) -> Result<UserInvitation>
+```
+
+## Parameters
+
+<ParamField path="request" type="InviteUserRequest" required>
+  The invitation details including:
+  - `email`: Email address to invite (required)
+  - `role`: Initial role for the user (optional)
+  - `organization_id`: Organization to invite user to (optional)
+  - `expires_in`: Invitation expiry time in hours (optional)
+  - `metadata`: Custom invitation metadata (optional)
+</ParamField>
+
+## Return Value
+
+Returns `Result<UserInvitation>` containing the invitation details.
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::users::*;
+
+let invitation = InviteUserRequest {
+    email: "newuser@example.com".to_string(),
+    role: Some("member".to_string()),
+    organization_id: Some("org_123".to_string()),
+    expires_in: Some(72), // 72 hours
+    metadata: Some(serde_json::json!({
+        "invited_by": "admin@example.com",
+        "team": "engineering"
+    })),
+};
+
+let sent_invitation = invite_user(invitation).await?;
+println!("Invitation sent to: {}", sent_invitation.email);
+println!("Expires at: {}", sent_invitation.expires_at);
+```
+
+## Error Handling
+
+```rust
+match invite_user(request).await {
+    Ok(invitation) => {
+        println!("Successfully sent invitation to: {}", invitation.email);
+        println!("Invitation ID: {}", invitation.id);
+        println!("Expires: {}", invitation.expires_at);
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            409 => println!("User already exists or invited: {}", message),
+            400 => println!("Invalid request: {}", message),
+            403 => println!("Access denied: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **Invitation operations**: 50 requests per minute
+- **Burst limit**: 10 requests per second
+
+## Related Functions
+
+- [fetch_invited_users](fetch-invited-users) - List pending invitations
+- [create_user](create-user) - Create user directly
+- [fetch_waitlist](fetch-waitlist) - View waitlisted users

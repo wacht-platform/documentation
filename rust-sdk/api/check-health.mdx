@@ -1,0 +1,95 @@
+---
+title: "check_health"
+description: "Check API health status"
+---
+
+## Overview
+
+The `check_health` function retrieves the health status of the API and its dependent services.
+
+## Function Signature
+
+```rust
+pub async fn check_health() -> Result<HealthStatus>
+```
+
+## Parameters
+
+This function takes no parameters.
+
+## Return Value
+
+Returns `Result<HealthStatus>` containing:
+- `status`: Overall health status ("healthy", "degraded", or "unhealthy")
+- `version`: API version
+- `timestamp`: Health check timestamp
+- `services`: Vector of individual service health statuses
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::health::*;
+
+let health = check_health().await?;
+println!("API Status: {}", health.status);
+println!("Version: {}", health.version);
+println!("Checked at: {}", health.timestamp);
+```
+
+## Advanced Usage
+
+```rust
+use wacht_rs::api::health::*;
+
+match check_health().await {
+    Ok(health) => {
+        println!("System Health: {}", health.status);
+        println!("API Version: {}", health.version);
+        
+        // Check individual services
+        for service in health.services {
+            println!("- {} : {}", service.name, service.status);
+            if let Some(message) = service.message {
+                println!("  Message: {}", message);
+            }
+        }
+        
+        // Determine if action needed
+        if health.status != "healthy" {
+            println!("⚠️  System is not fully healthy!");
+        }
+    }
+    Err(e) => {
+        println!("❌ Health check failed: {}", e);
+        // Assume worst case if health check fails
+    }
+}
+```
+
+## Error Handling
+
+```rust
+match check_health().await {
+    Ok(health) => {
+        match health.status.as_str() {
+            "healthy" => println!("✅ All systems operational"),
+            "degraded" => println!("⚠️  Some services degraded"),
+            "unhealthy" => println!("❌ System unhealthy"),
+            _ => println!("Unknown status: {}", health.status),
+        }
+    }
+    Err(Error::Api { status, message, .. }) => {
+        println!("Health check error {}: {}", status, message);
+    }
+    Err(e) => println!("Health check failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **Health check operations**: 300 requests per minute
+- **Burst limit**: 50 requests per second
+
+## Related Functions
+
+- [ping](ping) - Simple connectivity check

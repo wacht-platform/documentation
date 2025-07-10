@@ -1,0 +1,108 @@
+---
+title: "ping"
+description: "Simple API connectivity check"
+---
+
+## Overview
+
+The `ping` function performs a simple connectivity check to verify the API is reachable.
+
+## Function Signature
+
+```rust
+pub async fn ping() -> Result<bool>
+```
+
+## Parameters
+
+This function takes no parameters.
+
+## Return Value
+
+Returns `Result<bool>`:
+- `true` if the API is reachable
+- `false` if the API is not responding
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::health::*;
+
+if ping().await? {
+    println!("API is reachable");
+} else {
+    println!("API is not responding");
+}
+```
+
+## Advanced Usage
+
+```rust
+use wacht_rs::api::health::*;
+use std::time::Duration;
+use tokio::time::timeout;
+
+// Ping with timeout
+async fn check_api_connectivity() -> bool {
+    match timeout(Duration::from_secs(5), ping()).await {
+        Ok(Ok(true)) => {
+            println!("✅ API is online");
+            true
+        }
+        Ok(Ok(false)) => {
+            println!("❌ API returned false");
+            false
+        }
+        Ok(Err(e)) => {
+            println!("❌ Ping error: {}", e);
+            false
+        }
+        Err(_) => {
+            println!("❌ Ping timeout after 5 seconds");
+            false
+        }
+    }
+}
+
+// Retry logic
+async fn ping_with_retry(max_attempts: u32) -> bool {
+    for attempt in 1..=max_attempts {
+        println!("Ping attempt {}/{}", attempt, max_attempts);
+        
+        if ping().await.unwrap_or(false) {
+            return true;
+        }
+        
+        if attempt < max_attempts {
+            tokio::time::sleep(Duration::from_secs(1)).await;
+        }
+    }
+    false
+}
+```
+
+## Error Handling
+
+```rust
+match ping().await {
+    Ok(true) => println!("API is operational"),
+    Ok(false) => println!("API returned negative response"),
+    Err(e) => println!("Connection error: {}", e),
+}
+```
+
+## Use Cases
+
+- Pre-flight checks before making API calls
+- Monitoring scripts to verify API availability
+- Debugging connectivity issues
+- Health monitoring dashboards
+
+## Rate Limits
+
+- **Ping operations**: 1000 requests per minute
+- **Burst limit**: 100 requests per second
+
+## Related Functions
+
+- [check_health](check-health) - Comprehensive health status check

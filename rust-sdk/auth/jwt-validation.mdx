@@ -1,0 +1,317 @@
+---
+title: "JWT Validation"
+description: "Understanding JWT token validation in the Wacht Rust SDK"
+---
+
+## Overview
+
+The Wacht Rust SDK provides robust JWT (JSON Web Token) validation for authenticating requests. The validation process ensures tokens are properly signed, not expired, and contain valid claims.
+
+## Validation Process
+
+### 1. Token Extraction
+
+The SDK extracts tokens from the `Authorization` header:
+
+```http
+Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+### 2. Algorithm Detection
+
+The token header is decoded to determine the signing algorithm:
+
+```json
+{
+  "alg": "RS256",
+  "typ": "JWT"
+}
+```
+
+### 3. Signature Verification
+
+Based on the algorithm, the appropriate verification method is used:
+
+| Algorithm | Type | Key Type | Description |
+|-----------|------|----------|-------------|
+| HS256 | HMAC | Symmetric | HMAC with SHA-256 |
+| HS384 | HMAC | Symmetric | HMAC with SHA-384 |
+| HS512 | HMAC | Symmetric | HMAC with SHA-512 |
+| RS256 | RSA | Asymmetric | RSA Signature with SHA-256 |
+| RS384 | RSA | Asymmetric | RSA Signature with SHA-384 |
+| RS512 | RSA | Asymmetric | RSA Signature with SHA-512 |
+| ES256 | ECDSA | Asymmetric | ECDSA using P-256 and SHA-256 |
+| ES384 | ECDSA | Asymmetric | ECDSA using P-384 and SHA-384 |
+
+### 4. Claims Validation
+
+The SDK validates standard JWT claims:
+
+- **exp** (Expiration Time) - Token must not be expired
+- **nbf** (Not Before) - Token must be valid for use
+- **iat** (Issued At) - Token issue time
+- **iss** (Issuer) - Optional issuer verification
+
+## Configuration Options
+
+### Clock Skew Tolerance
+
+Allow for small time differences between servers:
+
+```rust
+let auth_layer = AuthLayer::new()
+    .allowed_clock_skew(10); // 10 seconds tolerance
+```
+
+### Disable Expiration Check
+
+For testing or special cases:
+
+```rust
+let auth_layer = AuthLayer::new()
+    .validate_exp(false); // Don't check expiration
+```
+
+### Require Specific Issuer
+
+Ensure tokens come from a trusted source:
+
+```rust
+let auth_layer = AuthLayer::new()
+    .required_issuer("https://wacht.io");
+```
+
+## Public Key Management
+
+### Automatic Fetching
+
+By default, the SDK fetches the public key from your deployment:
+
+```rust
+// Fetches from https://your-app.wacht.io/.well-known/jwk
+wacht_rs::init_from_env().await?;
+```
+
+### Manual Configuration
+
+Provide the public key directly:
+
+```rust
+use wacht_rs::{WachtConfig, init};
+
+let config = WachtConfig::new(
+    "api-key".to_string(),
+    "https://your-app.wacht.io".to_string()
+)
+.with_public_key("-----BEGIN PUBLIC KEY-----\nMIIBIjANBg...\n-----END PUBLIC KEY-----");
+
+init(config)?;
+```
+
+### Environment Variable
+
+Set via environment:
+
+```bash
+export WACHT_PUBLIC_SIGNING_KEY="-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA...
+-----END PUBLIC KEY-----"
+```
+
+## Token Structure
+
+### Header
+
+```json
+{
+  "alg": "RS256",
+  "typ": "JWT",
+  "kid": "key-id"
+}
+```
+
+### Payload (Claims)
+
+```json
+{
+  "iss": "https://wacht.io",
+  "sub": "52057194421551105",
+  "iat": 1699564800,
+  "exp": 1699568400,
+  "nbf": 1699564800,
+  "session_id": "session_abc123",
+  "organization": "org_123",
+  "organization_permissions": ["users:read", "users:write"],
+  "workspace": "ws_456",
+  "workspace_permissions": ["projects:manage"]
+}
+```
+
+## Validation Errors
+
+### Common Error Scenarios
+
+| Error | HTTP Status | Description |
+|-------|-------------|-------------|
+| Missing Authorization Header | 401 | No token provided |
+| Invalid Token Format | 401 | Not a valid JWT |
+| Expired Token | 401 | Token exp claim has passed |
+| Invalid Signature | 401 | Token signature doesn't match |
+| Unsupported Algorithm | 401 | Algorithm not in allowed list |
+| Invalid Public Key | 500 | Server configuration error |
+
+### Error Response Format
+
+```json
+{
+  "error": "Invalid token: ExpiredSignature",
+  "message": "Token has expired"
+}
+```
+
+Headers:
+- `X-Auth-Error: Invalid token: ExpiredSignature`
+- `WWW-Authenticate: Bearer`
+
+## Security Considerations
+
+### Algorithm Restrictions
+
+The SDK only accepts specific algorithms to prevent attacks:
+
+```rust
+// These algorithms are blocked:
+// - None (no signature)
+// - Weak algorithms
+// - Non-standard algorithms
+```
+
+### Key Validation
+
+Public keys are validated before use:
+
+```rust
+// RSA keys must be valid PEM format
+// EC keys must use supported curves
+// HMAC secrets must be provided as-is
+```
+
+### Time-Based Security
+
+```rust
+// Default configuration
+AuthConfig {
+    allowed_clock_skew: 5,    // 5 seconds
+    validate_exp: true,       // Check expiration
+    validate_nbf: true,       // Check not-before
+}
+```
+
+## Debugging JWT Issues
+
+### Enable Debug Logging
+
+```rust
+use tracing_subscriber;
+
+tracing_subscriber::fmt()
+    .with_env_filter("wacht_rs=debug")
+    .init();
+```
+
+### Common Issues and Solutions
+
+<AccordionGroup>
+
+<Accordion title="Token Expired">
+**Error**: `Invalid token: ExpiredSignature`
+
+**Debug**:
+```bash
+# Decode token to check exp claim
+echo "your.jwt.token" | cut -d. -f2 | base64 -d | jq .
+```
+
+**Solution**: Request a new token or increase token lifetime
+</Accordion>
+
+<Accordion title="Invalid Signature">
+**Error**: `Invalid token: InvalidSignature`
+
+**Causes**:
+1. Wrong public key
+2. Token signed with different key
+3. Token tampered with
+
+**Debug**: Verify public key matches the signing key
+</Accordion>
+
+<Accordion title="Unsupported Algorithm">
+**Error**: `Unsupported algorithm`
+
+**Solution**: Ensure your token uses a supported algorithm (HS256/384/512, RS256/384/512, ES256/384)
+</Accordion>
+
+<Accordion title="Clock Skew">
+**Error**: Token validation fails intermittently
+
+**Solution**: Increase clock skew tolerance:
+```rust
+AuthLayer::new().allowed_clock_skew(30)
+```
+</Accordion>
+
+</AccordionGroup>
+
+## Testing JWT Validation
+
+### Create Test Tokens
+
+```rust
+use jsonwebtoken::{encode, Header, EncodingKey};
+use chrono::Utc;
+
+fn create_test_token() -> String {
+    let claims = TokenClaims {
+        iss: "test".to_string(),
+        sub: "user123".to_string(),
+        iat: Utc::now().timestamp(),
+        exp: Utc::now().timestamp() + 3600,
+        session_id: "session123".to_string(),
+        organization: Some("org123".to_string()),
+        organization_permissions: Some(vec!["read".to_string()]),
+        workspace: None,
+        workspace_permissions: None,
+        custom_claims: Default::default(),
+    };
+    
+    let header = Header::new(Algorithm::RS256);
+    let key = EncodingKey::from_rsa_pem(PRIVATE_KEY.as_bytes()).unwrap();
+    
+    encode(&header, &claims, &key).unwrap()
+}
+```
+
+### Validate Custom Tokens
+
+```rust
+use wacht_rs::middleware::AuthLayer;
+
+// Use custom public key for testing
+let auth_layer = AuthLayer::with_public_key(TEST_PUBLIC_KEY)
+    .validate_exp(false); // Disable expiration for tests
+```
+
+## Best Practices
+
+1. **Always Use HTTPS** - Tokens can be intercepted over HTTP
+2. **Short Token Lifetime** - Reduce window for compromised tokens
+3. **Validate All Claims** - Don't skip expiration or other checks
+4. **Secure Key Storage** - Protect private keys, rotate regularly
+5. **Monitor Failures** - Log and alert on validation failures
+
+## Next Steps
+
+- [Token Claims](token-claims) - Understanding claim structure
+- [Auth Layer](../middleware/auth-layer) - Implementing authentication
+- [Error Handling](../error-handling) - Handling validation errors

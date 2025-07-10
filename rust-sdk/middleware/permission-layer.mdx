@@ -1,0 +1,325 @@
+---
+title: "Permission Layers"
+description: "Fine-grained permission checking middleware for Axum"
+---
+
+Permission layers provide route-level authorization checks after authentication. They ensure users have the required permissions before accessing protected resources.
+
+## Import
+
+```rust
+use wacht_rs::middleware::{
+    PermissionLayer, 
+    MultiplePermissionLayers,
+    RequireAnyPermissionLayer,
+    PermissionScope
+};
+```
+
+## Basic Usage
+
+### Single Permission Check
+
+```rust
+use axum::{Router, routing::get};
+use wacht_rs::middleware::{AuthLayer, PermissionLayer};
+
+let app = Router::new()
+    .route("/admin/users", get(list_users))
+    .layer(PermissionLayer::organization("users:read"))
+    .layer(AuthLayer::new());
+```
+
+### Permission Scopes
+
+Permissions can be checked at two levels:
+
+```rust
+// Organization-level permission
+let org_layer = PermissionLayer::organization("billing:manage");
+
+// Workspace-level permission  
+let workspace_layer = PermissionLayer::workspace("projects:write");
+```
+
+## Permission Layer Types
+
+### PermissionLayer
+
+Checks a single permission at a specific scope:
+
+```rust
+use wacht_rs::middleware::{PermissionLayer, PermissionScope};
+
+// Using convenience methods
+let layer = PermissionLayer::organization("admin:read");
+let layer = PermissionLayer::workspace("content:write");
+
+// Using constructor with explicit scope
+let layer = PermissionLayer::new(
+    "custom:permission",
+    PermissionScope::Organization
+);
+```
+
+### MultiplePermissionLayers
+
+Checks multiple permissions with AND/OR logic:
+
+```rust
+use wacht_rs::middleware::{MultiplePermissionLayers, PermissionScope};
+
+// Require ALL permissions (AND logic)
+let admin_layer = MultiplePermissionLayers::all(vec![
+    ("users:read", PermissionScope::Organization),
+    ("users:write", PermissionScope::Organization),
+    ("audit:read", PermissionScope::Organization),
+]);
+
+// Require ANY permission (OR logic)
+let content_layer = MultiplePermissionLayers::any(vec![
+    ("content:write", PermissionScope::Workspace),
+    ("content:admin", PermissionScope::Workspace),
+]);
+```
+
+### RequireAnyPermissionLayer
+
+Specialized layer for checking if user has any of the specified permissions:
+
+```rust
+use wacht_rs::middleware::{RequireAnyPermissionLayer, PermissionScope};
+
+let layer = RequireAnyPermissionLayer::new(vec![
+    ("reports:view", PermissionScope::Organization),
+    ("reports:admin", PermissionScope::Organization),
+    ("super:admin", PermissionScope::Organization),
+]);
+```
+
+## How It Works
+
+1. **Extract AuthContext** - Gets authentication context from request extensions
+2. **Check Permissions** - Compares required permissions against user's permissions
+3. **Allow/Deny** - Returns 403 Forbidden if permissions don't match
+
+## Error Responses
+
+### 401 Unauthorized
+- No authentication context found (user not authenticated)
+- Returns `X-Auth-Error` header with details
+- Returns `WWW-Authenticate: Bearer` header
+
+### 403 Forbidden
+- User authenticated but lacks required permissions
+- Returns `X-Auth-Error` header with missing permissions
+- Clear error message in response body
+
+## Complete Examples
+
+### Admin Panel with Multiple Permissions
+
+```rust
+use axum::{Router, routing::get, Json, Extension};
+use wacht_rs::middleware::*;
+use serde_json::{json, Value};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    wacht_rs::init_from_env().await?;
+    
+    let app = Router::new()
+        // Super admin routes - require all permissions
+        .nest("/admin", Router::new()
+            .route("/users", get(manage_users))
+            .route("/billing", get(manage_billing))
+            .route("/audit", get(view_audit_logs))
+            .layer(MultiplePermissionLayers::all(vec![
+                ("admin:users", PermissionScope::Organization),
+                ("admin:billing", PermissionScope::Organization),
+                ("admin:audit", PermissionScope::Organization),
+            ]))
+        )
+        // Content management - require any permission
+        .nest("/content", Router::new()
+            .route("/posts", get(list_posts))
+            .route("/media", get(list_media))
+            .layer(RequireAnyPermissionLayer::new(vec![
+                ("content:read", PermissionScope::Workspace),
+                ("content:write", PermissionScope::Workspace),
+                ("content:admin", PermissionScope::Workspace),
+            ]))
+        )
+        // Reports - specific permission
+        .route("/reports/financial", get(financial_reports))
+        .layer(PermissionLayer::organization("reports:financial"))
+        // Apply auth to all routes
+        .layer(AuthLayer::new());
+    
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await?;
+    axum::serve(listener, app).await?;
+    
+    Ok(())
+}
+
+async fn manage_users(Extension(auth): Extension<AuthContext>) -> Json<Value> {
+    Json(json!({
+        "message": "User management",
+        "user": auth.user_id
+    }))
+}
+
+async fn financial_reports(Extension(auth): Extension<AuthContext>) -> Json<Value> {
+    Json(json!({
+        "report": "Financial data",
+        "organization": auth.organization_id
+    }))
+}
+```
+
+### Workspace-Based Permissions
+
+```rust
+use axum::{Router, routing::{get, post, delete}};
+use wacht_rs::middleware::*;
+
+let workspace_routes = Router::new()
+    // Read-only routes
+    .route("/projects", get(list_projects))
+    .route("/projects/:id", get(get_project))
+    .layer(PermissionLayer::workspace("projects:read"))
+    
+    // Write routes
+    .route("/projects", post(create_project))
+    .route("/projects/:id", delete(delete_project))
+    .layer(PermissionLayer::workspace("projects:write"))
+    
+    // Apply auth
+    .layer(AuthLayer::new());
+```
+
+### Dynamic Permission Checks
+
+Sometimes you need to check permissions based on request data:
+
+```rust
+use axum::{
+    extract::{Path, Extension},
+    http::StatusCode,
+    response::IntoResponse,
+};
+
+async fn update_resource(
+    Path(resource_id): Path<String>,
+    Extension(auth): Extension<AuthContext>,
+) -> impl IntoResponse {
+    // Check workspace-specific permission
+    let required_permission = format!("resource:{}:write", resource_id);
+    
+    let has_permission = auth.workspace_permissions
+        .as_ref()
+        .map(|perms| perms.contains(&required_permission))
+        .unwrap_or(false);
+    
+    if !has_permission {
+        return (
+            StatusCode::FORBIDDEN,
+            "Missing required permission"
+        ).into_response();
+    }
+    
+    // Process the update...
+    (StatusCode::OK, "Resource updated").into_response()
+}
+```
+
+## Layering Order
+
+Permission layers must be applied **after** the AuthLayer:
+
+```rust
+// Correct order
+let app = Router::new()
+    .route("/admin", get(admin_handler))
+    .layer(PermissionLayer::organization("admin:access"))  // Second
+    .layer(AuthLayer::new());                             // First
+
+// Incorrect - will fail
+let app = Router::new()
+    .route("/admin", get(admin_handler))
+    .layer(AuthLayer::new())                              // Wrong order!
+    .layer(PermissionLayer::organization("admin:access"));
+```
+
+## Combining with Extractors
+
+You can use both layers and extractors for maximum flexibility:
+
+```rust
+use wacht_rs::{middleware::*, require_permission};
+
+// Define permission at compile time
+require_permission!(CanManageBilling, "billing:manage", Organization);
+
+async fn billing_handler(
+    _perm: CanManageBilling,  // Handler-level check
+    Extension(auth): Extension<AuthContext>
+) -> &'static str {
+    "Billing management"
+}
+
+let app = Router::new()
+    .route("/billing", get(billing_handler))
+    .layer(PermissionLayer::organization("billing:read"))  // Route-level check
+    .layer(AuthLayer::new());
+```
+
+## Testing Permissions
+
+```rust
+#[cfg(test)]
+mod tests {
+    use axum::http::{Request, header, StatusCode};
+    use tower::ServiceExt;
+    
+    #[tokio::test]
+    async fn test_permission_denied() {
+        let app = create_app();
+        
+        // User with insufficient permissions
+        let token = create_test_token(vec!["users:read"]);
+        
+        let response = app
+            .oneshot(
+                Request::get("/admin/billing")
+                    .header(header::AUTHORIZATION, format!("Bearer {}", token))
+                    .body(Body::empty())
+                    .unwrap()
+            )
+            .await
+            .unwrap();
+        
+        assert_eq!(response.status(), StatusCode::FORBIDDEN);
+        
+        // Check error header
+        let error_header = response.headers()
+            .get("X-Auth-Error")
+            .unwrap();
+        assert!(error_header.to_str().unwrap().contains("billing:manage"));
+    }
+}
+```
+
+## Best Practices
+
+1. **Use Specific Permissions** - Avoid overly broad permissions
+2. **Layer at Router Level** - Apply permissions to route groups
+3. **Document Required Permissions** - Make it clear what each route needs
+4. **Fail Securely** - Default to denying access
+5. **Log Permission Failures** - For security auditing
+
+## Next Steps
+
+- [Extractors](extractors) - Handler-level permission checks
+- [Auth Layer](auth-layer) - Authentication setup
+- [Token Claims](../auth/token-claims) - Understanding permission structure

@@ -1,0 +1,69 @@
+---
+title: "delete_tool"
+description: "Delete AI tool"
+---
+
+## Overview
+
+The `delete_tool` function permanently deletes an AI tool from the system.
+
+## Function Signature
+
+```rust
+pub async fn delete_tool(tool_id: &str) -> Result<()>
+```
+
+## Parameters
+
+<ParamField path="tool_id" type="&str" required>
+  The unique identifier of the tool to delete
+</ParamField>
+
+## Return Value
+
+Returns `Result<()>` indicating success or failure.
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::tools::*;
+
+delete_tool("52057194421551105").await?;
+println!("Tool deleted successfully");
+```
+
+## Error Handling
+
+```rust
+match delete_tool("52057194421551105").await {
+    Ok(()) => {
+        println!("Tool deleted successfully");
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            404 => println!("Tool not found"),
+            403 => println!("Access denied: {}", message),
+            409 => println!("Cannot delete tool in use: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Important Notes
+
+- This operation is **irreversible**
+- Tools currently in use by agents or workflows cannot be deleted
+- You must have appropriate permissions to delete tools
+
+## Rate Limits
+
+- **Delete operations**: 20 requests per minute
+- **Burst limit**: 5 requests per second
+
+## Related Functions
+
+- [fetch_tool](fetch-tool) - Get tool by ID
+- [update_tool](update-tool) - Update tool configuration
+- [create_tool](create-tool) - Create a new tool

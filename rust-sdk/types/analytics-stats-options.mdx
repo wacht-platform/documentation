@@ -1,0 +1,82 @@
+---
+title: "AnalyticsStatsOptions"
+description: "Query options for analytics statistics"
+---
+
+## Overview
+
+The `AnalyticsStatsOptions` struct provides filtering options when fetching analytics statistics.
+
+## Definition
+
+```rust
+pub struct AnalyticsStatsOptions {
+    pub start_date: Option<String>,
+    pub end_date: Option<String>,
+    pub organization_id: Option<String>,
+}
+```
+
+## Fields
+
+<ParamField path="start_date" type="Option<String>">
+  The start date for the analytics period in ISO 8601 format (YYYY-MM-DD). If not specified, defaults to 30 days ago.
+</ParamField>
+
+<ParamField path="end_date" type="Option<String>">
+  The end date for the analytics period in ISO 8601 format (YYYY-MM-DD). If not specified, defaults to today.
+</ParamField>
+
+<ParamField path="organization_id" type="Option<String>">
+  Filter analytics to a specific organization. If not specified, returns analytics across all organizations.
+</ParamField>
+
+## Usage Example
+
+```rust
+use wacht_rs::api::analytics::{fetch_analytics_stats, AnalyticsStatsOptions};
+
+// Fetch analytics with default date range (last 30 days)
+let default_stats = fetch_analytics_stats(None).await?;
+
+// Fetch analytics for a specific date range
+let date_range_options = AnalyticsStatsOptions {
+    start_date: Some("2024-01-01".to_string()),
+    end_date: Some("2024-01-31".to_string()),
+    organization_id: None,
+};
+let january_stats = fetch_analytics_stats(Some(date_range_options)).await?;
+
+// Fetch analytics for a specific organization
+let org_options = AnalyticsStatsOptions {
+    organization_id: Some("org_123".to_string()),
+    ..Default::default()
+};
+let org_stats = fetch_analytics_stats(Some(org_options)).await?;
+
+// Fetch year-to-date analytics for an organization
+use chrono::{Local, Datelike};
+let current_year = Local::now().year();
+
+let ytd_options = AnalyticsStatsOptions {
+    start_date: Some(format!("{}-01-01", current_year)),
+    end_date: None, // Defaults to today
+    organization_id: Some("org_123".to_string()),
+};
+let ytd_stats = fetch_analytics_stats(Some(ytd_options)).await?;
+
+// Display analytics
+println!("Total users: {}", default_stats.total_users);
+println!("Active users: {}", default_stats.active_users);
+println!("New signups: {}", default_stats.new_signups);
+println!("Total organizations: {}", default_stats.total_organizations);
+```
+
+## Related Types
+
+- [AnalyticsStats](/rust-sdk/types/analytics-stats) - The analytics statistics response
+
+## See Also
+
+- [fetch_analytics_stats](/rust-sdk/api/fetch-analytics-stats) - API method that uses this type
+- [fetch_recent_signups](/rust-sdk/api/fetch-recent-signups) - Get detailed recent signup information

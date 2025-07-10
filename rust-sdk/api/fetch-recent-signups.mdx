@@ -1,0 +1,86 @@
+---
+title: "fetch_recent_signups"
+description: "Fetch recent user signups"
+---
+
+## Overview
+
+The `fetch_recent_signups` function retrieves a list of recent user signups with their details.
+
+## Function Signature
+
+```rust
+pub async fn fetch_recent_signups(limit: Option<u32>) -> Result<RecentSignupsResponse>
+```
+
+## Parameters
+
+<ParamField path="limit" type="Option<u32>">
+  Maximum number of recent signups to return (optional, default: 10)
+</ParamField>
+
+## Return Value
+
+Returns `Result<RecentSignupsResponse>` containing:
+- `data`: Vector of `RecentSignup` objects
+- `total`: Total count of recent signups
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::analytics::*;
+
+// Fetch recent signups with default limit
+let signups = fetch_recent_signups(None).await?;
+println!("Recent signups: {}", signups.total);
+
+for signup in signups.data {
+    println!("- {} ({}) - {}", signup.name, signup.email, signup.signed_up_at);
+}
+```
+
+## Advanced Usage
+
+```rust
+use wacht_rs::api::analytics::*;
+
+// Fetch last 25 signups
+let signups = fetch_recent_signups(Some(25)).await?;
+
+println!("Last {} signups:", signups.data.len());
+for (i, signup) in signups.data.iter().enumerate() {
+    println!("{}. {} - {}", i + 1, signup.name, signup.email);
+    if let Some(org) = &signup.organization {
+        println!("   Organization: {}", org.name);
+    }
+    println!("   Source: {}", signup.source.unwrap_or("direct".to_string()));
+}
+```
+
+## Error Handling
+
+```rust
+match fetch_recent_signups(Some(50)).await {
+    Ok(response) => {
+        println!("Retrieved {} recent signups", response.data.len());
+        println!("Total signups available: {}", response.total);
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            403 => println!("Access denied: {}", message),
+            429 => println!("Rate limited: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **Analytics operations**: 100 requests per minute
+- **Burst limit**: 10 requests per second
+
+## Related Functions
+
+- [fetch_analytics_stats](fetch-analytics-stats) - Get comprehensive analytics statistics

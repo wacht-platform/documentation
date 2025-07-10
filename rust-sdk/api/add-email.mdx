@@ -1,0 +1,78 @@
+---
+title: "add_email"
+description: "Add email address to user"
+---
+
+## Overview
+
+The `add_email` function adds a new email address to a user's account.
+
+## Function Signature
+
+```rust
+pub async fn add_email(
+    user_id: &str,
+    email: String
+) -> Result<UserEmail>
+```
+
+## Parameters
+
+<ParamField path="user_id" type="&str" required>
+  The unique identifier of the user
+</ParamField>
+
+<ParamField path="email" type="String" required>
+  The email address to add
+</ParamField>
+
+## Return Value
+
+Returns `Result<UserEmail>` containing the added email details.
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::users::*;
+
+let user_email = add_email(
+    "52057194421551105", 
+    "secondary@example.com".to_string()
+).await?;
+
+println!("Added email: {} (ID: {})", user_email.email, user_email.id);
+println!("Verified: {}", user_email.is_verified);
+```
+
+## Error Handling
+
+```rust
+match add_email("52057194421551105", email).await {
+    Ok(user_email) => {
+        println!("Successfully added email: {}", user_email.email);
+        println!("Email ID: {}", user_email.id);
+        println!("Verification required: {}", !user_email.is_verified);
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            404 => println!("User not found"),
+            409 => println!("Email already exists: {}", message),
+            400 => println!("Invalid email format: {}", message),
+            403 => println!("Access denied: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **Email operations**: 20 requests per minute per user
+- **Burst limit**: 5 requests per second
+
+## Related Functions
+
+- [update_email](update-email) - Update email properties
+- [delete_email](delete-email) - Remove email address
+- [fetch_user_details](fetch-user-details) - Get user with all emails

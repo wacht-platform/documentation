@@ -1,0 +1,61 @@
+---
+title: "JwtTemplateListResponse"
+description: "Response type for JWT template lists"
+---
+
+## Overview
+
+The `JwtTemplateListResponse` struct represents the response returned when fetching a list of JWT templates.
+
+## Definition
+
+```rust
+pub struct JwtTemplateListResponse {
+    pub data: Vec<JwtTemplate>,
+}
+```
+
+## Fields
+
+<ParamField path="data" type="Vec<JwtTemplate>" required>
+  A vector containing all JWT templates. Each template is represented by a `JwtTemplate` struct.
+</ParamField>
+
+## Usage Example
+
+```rust
+use wacht_rs::api::settings::fetch_jwt_templates;
+
+let response = fetch_jwt_templates().await?;
+
+println!("Found {} JWT templates", response.data.len());
+
+for template in response.data {
+    println!("Template: {} ({})", template.name, template.id);
+    println!("  Algorithm: {}", template.algorithm);
+    println!("  Lifetime: {} seconds", template.lifetime_seconds);
+    println!("  Claims: {:?}", template.custom_claims);
+    
+    if template.is_default {
+        println!("  This is the default template");
+    }
+}
+
+// Find a specific template by name
+let api_template = response.data.iter()
+    .find(|t| t.name == "api-access")
+    .expect("API access template not found");
+
+println!("API template uses {} algorithm", api_template.algorithm);
+```
+
+## Related Types
+
+- [JwtTemplate](/rust-sdk/types/jwt-template) - Individual JWT template configuration
+
+## See Also
+
+- [fetch_jwt_templates](/rust-sdk/api/fetch-jwt-templates) - API method that returns this type
+- [create_jwt_template](/rust-sdk/api/create-jwt-template) - Create a new JWT template
+- [update_jwt_template](/rust-sdk/api/update-jwt-template) - Update an existing JWT template
+- [delete_jwt_template](/rust-sdk/api/delete-jwt-template) - Delete a JWT template

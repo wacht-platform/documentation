@@ -1,0 +1,62 @@
+---
+title: "WaitlistResponse"
+description: "Response type for paginated waitlist user lists"
+---
+
+## Overview
+
+The `WaitlistResponse` struct represents the response returned when fetching users on the waitlist.
+
+## Definition
+
+```rust
+pub struct WaitlistResponse {
+    pub data: Vec<WaitlistUser>,
+    pub has_more: bool,
+}
+```
+
+## Fields
+
+<ParamField path="data" type="Vec<WaitlistUser>" required>
+  A vector containing the waitlist users for the current page.
+</ParamField>
+
+<ParamField path="has_more" type="bool" required>
+  Indicates whether there are more waitlist users available beyond the current page.
+</ParamField>
+
+## Usage Example
+
+```rust
+use wacht_rs::api::users::*;
+
+// Fetch waitlist users
+let options = ListWaitlistOptions {
+    page: Some(1),
+    per_page: Some(100),
+};
+
+let response = fetch_waitlist(Some(options)).await?;
+
+println!("Found {} users on waitlist", response.data.len());
+
+if response.has_more {
+    println!("More waitlist users available");
+}
+
+// Process waitlist entries
+for user in response.data {
+    println!("Waitlist user: {} (joined: {})", user.email, user.created_at);
+}
+```
+
+## Related Types
+
+- [WaitlistUser](/rust-sdk/types/waitlist-user) - The waitlist user model
+- [ListWaitlistOptions](/rust-sdk/types/list-waitlist-options) - Query options for listing waitlist users
+
+## See Also
+
+- [fetch_waitlist](/rust-sdk/api/fetch-waitlist) - API method that returns this type
+- [add_to_waitlist](/rust-sdk/api/add-to-waitlist) - API method to add users to waitlist

@@ -1,0 +1,60 @@
+---
+title: "DocumentListResponse"
+description: "Response type for knowledge base document lists"
+---
+
+## Overview
+
+The `DocumentListResponse` struct represents the response returned when fetching documents from a knowledge base.
+
+## Definition
+
+```rust
+pub struct DocumentListResponse {
+    pub data: Vec<KnowledgeBaseDocument>,
+    pub has_more: bool,
+}
+```
+
+## Fields
+
+<ParamField path="data" type="Vec<KnowledgeBaseDocument>" required>
+  A vector containing the documents in the knowledge base. Each document is represented by a `KnowledgeBaseDocument` struct.
+</ParamField>
+
+<ParamField path="has_more" type="bool" required>
+  Indicates whether there are more documents available beyond the current page. Used for pagination.
+</ParamField>
+
+## Usage Example
+
+```rust
+use wacht_rs::api::knowledge_bases::fetch_documents;
+
+let knowledge_base_id = "kb_123";
+
+let response = fetch_documents(knowledge_base_id).await?;
+
+println!("Found {} documents", response.data.len());
+if response.has_more {
+    println!("More documents available");
+}
+
+for doc in response.data {
+    println!("Document: {}", doc.filename);
+    println!("  Type: {}", doc.content_type);
+    println!("  Size: {} bytes", doc.size);
+    println!("  Uploaded: {}", doc.uploaded_at);
+}
+```
+
+## Related Types
+
+- [KnowledgeBaseDocument](/rust-sdk/types/knowledge-base-document) - The document model
+- [AiKnowledgeBase](/rust-sdk/types/ai-knowledge-base) - The knowledge base model
+
+## See Also
+
+- [fetch_documents](/rust-sdk/api/fetch-documents) - API method that returns this type
+- [upload_document](/rust-sdk/api/upload-document) - Upload a new document to a knowledge base
+- [delete_document](/rust-sdk/api/delete-document) - Delete a document from a knowledge base

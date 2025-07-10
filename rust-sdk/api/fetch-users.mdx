@@ -1,0 +1,98 @@
+---
+title: "fetch_users"
+description: "Fetch a paginated list of users"
+---
+
+## Overview
+
+The `fetch_users` function retrieves a list of users with optional filtering and pagination support.
+
+## Function Signature
+
+```rust
+pub async fn fetch_users(
+    options: Option<ListUsersOptions>
+) -> Result<UserListResponse>
+```
+
+## Parameters
+
+<ParamField path="options" type="Option<ListUsersOptions>">
+  Optional configuration for filtering and pagination:
+  - `page`: Page number for pagination (optional)
+  - `per_page`: Number of results per page (optional)
+  - `search`: Search query to filter users (optional)
+  - `is_active`: Filter users by active status (optional)
+</ParamField>
+
+## Return Value
+
+Returns `Result<UserListResponse>` containing:
+- `data`: Vector of `User` objects
+- `has_more`: Boolean indicating if more results are available
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::users::*;
+
+// Fetch all users
+let users = fetch_users(None).await?;
+for user in users.data {
+    println!("User: {} - {}", user.email, user.id);
+}
+```
+
+## Advanced Usage
+
+```rust
+use wacht_rs::api::users::*;
+
+// Fetch active users with search
+let options = ListUsersOptions {
+    page: Some(1),
+    per_page: Some(20),
+    search: Some("john".to_string()),
+    is_active: Some(true),
+};
+
+let filtered_users = fetch_users(Some(options)).await?;
+println!("Found {} active users", filtered_users.data.len());
+
+for user in filtered_users.data {
+    println!("- {} {} ({})", user.first_name, user.last_name, user.email);
+}
+```
+
+## Error Handling
+
+```rust
+match fetch_users(None).await {
+    Ok(response) => {
+        println!("Successfully retrieved {} users", response.data.len());
+        for user in response.data {
+            println!("- {} (verified: {})", user.email, user.email_verified);
+        }
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            403 => println!("Access denied: {}", message),
+            429 => println!("Rate limited: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **List operations**: 100 requests per minute
+- **Burst limit**: 10 requests per second
+
+## Related Functions
+
+- [create_user](create-user) - Create a new user
+- [fetch_user_details](fetch-user-details) - Get user with full details
+- [update_user](update-user) - Update user information
+- [invite_user](invite-user) - Send user invitation

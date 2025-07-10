@@ -1,0 +1,70 @@
+---
+title: "delete_agent"
+description: "Delete AI agent"
+---
+
+## Overview
+
+The `delete_agent` function permanently deletes an AI agent from the system.
+
+## Function Signature
+
+```rust
+pub async fn delete_agent(agent_id: &str) -> Result<()>
+```
+
+## Parameters
+
+<ParamField path="agent_id" type="&str" required>
+  The unique identifier of the agent to delete
+</ParamField>
+
+## Return Value
+
+Returns `Result<()>` indicating success or failure.
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::agents::*;
+
+delete_agent("52057194421551105").await?;
+println!("Agent deleted successfully");
+```
+
+## Error Handling
+
+```rust
+match delete_agent("52057194421551105").await {
+    Ok(()) => {
+        println!("Agent deleted successfully");
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            404 => println!("Agent not found"),
+            403 => println!("Access denied: {}", message),
+            409 => println!("Cannot delete agent with active workflows: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Important Notes
+
+- This operation is **irreversible**
+- All agent data including conversation history will be deleted
+- Agents connected to active workflows cannot be deleted
+- You must have appropriate permissions to delete agents
+
+## Rate Limits
+
+- **Delete operations**: 20 requests per minute
+- **Burst limit**: 5 requests per second
+
+## Related Functions
+
+- [fetch_agent](fetch-agent) - Get agent by ID
+- [update_agent](update-agent) - Update agent configuration
+- [create_agent](create-agent) - Create a new agent

@@ -1,0 +1,80 @@
+---
+title: "create_organization"
+description: "Create a new organization"
+---
+
+## Overview
+
+The `create_organization` function creates a new organization in the system.
+
+## Function Signature
+
+```rust
+pub async fn create_organization(
+    request: CreateOrganizationRequest
+) -> Result<Organization>
+```
+
+## Parameters
+
+<ParamField path="request" type="CreateOrganizationRequest" required>
+  The organization data for creation including:
+  - `name`: Organization name (required)
+  - `slug`: URL-friendly identifier (optional)
+  - `description`: Organization description (optional)
+  - `logo_url`: URL to organization logo (optional)
+  - `website`: Organization website URL (optional)
+</ParamField>
+
+## Return Value
+
+Returns `Result<Organization>` containing the created organization details.
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::organizations::*;
+
+let new_org = CreateOrganizationRequest {
+    name: "Acme Corporation".to_string(),
+    slug: Some("acme-corp".to_string()),
+    description: Some("Leading technology company".to_string()),
+    logo_url: Some("https://example.com/logo.png".to_string()),
+    website: Some("https://acme.com".to_string()),
+};
+
+let created_org = create_organization(new_org).await?;
+println!("Created organization: {} (ID: {})", created_org.name, created_org.id);
+```
+
+## Error Handling
+
+```rust
+match create_organization(request).await {
+    Ok(org) => {
+        println!("Successfully created organization: {}", org.name);
+        println!("Organization ID: {}", org.id);
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            400 => println!("Invalid request: {}", message),
+            409 => println!("Organization already exists: {}", message),
+            403 => println!("Access denied: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **Create operations**: 20 requests per minute
+- **Burst limit**: 5 requests per second
+
+## Related Functions
+
+- [fetch_organizations](fetch-organizations) - List all organizations
+- [fetch_organization](fetch-organization) - Get organization by ID
+- [update_organization](update-organization) - Update organization details
+- [delete_organization](delete-organization) - Delete organization

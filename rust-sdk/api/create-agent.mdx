@@ -1,0 +1,85 @@
+---
+title: "create_agent"
+description: "Create a new AI agent"
+---
+
+## Overview
+
+The `create_agent` function creates a new AI agent in the system.
+
+## Function Signature
+
+```rust
+pub async fn create_agent(
+    request: CreateAiAgentRequest
+) -> Result<AiAgent>
+```
+
+## Parameters
+
+<ParamField path="request" type="CreateAiAgentRequest" required>
+  The agent data for creation including:
+  - `name`: Agent name (required)
+  - `description`: Agent description (required)
+  - `agent_type`: Type of agent (required)
+  - `model`: AI model to use (required)
+  - `instructions`: System instructions for the agent (optional)
+  - `temperature`: Model temperature (optional)
+  - `is_active`: Whether agent is active (optional, defaults to true)
+</ParamField>
+
+## Return Value
+
+Returns `Result<AiAgent>` containing the created agent details.
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::agents::*;
+
+let new_agent = CreateAiAgentRequest {
+    name: "Customer Support Agent".to_string(),
+    description: "Handles customer inquiries and support tickets".to_string(),
+    agent_type: "support".to_string(),
+    model: "gpt-4".to_string(),
+    instructions: Some("You are a helpful customer support agent...".to_string()),
+    temperature: Some(0.7),
+    is_active: Some(true),
+};
+
+let created_agent = create_agent(new_agent).await?;
+println!("Created agent: {} (ID: {})", created_agent.name, created_agent.id);
+```
+
+## Error Handling
+
+```rust
+match create_agent(request).await {
+    Ok(agent) => {
+        println!("Successfully created agent: {}", agent.name);
+        println!("Agent ID: {}", agent.id);
+        println!("Model: {}", agent.model);
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            400 => println!("Invalid request: {}", message),
+            403 => println!("Access denied: {}", message),
+            409 => println!("Agent name already exists: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **Create operations**: 20 requests per minute
+- **Burst limit**: 5 requests per second
+
+## Related Functions
+
+- [fetch_agents](fetch-agents) - List all agents
+- [fetch_agent](fetch-agent) - Get agent by ID
+- [update_agent](update-agent) - Update agent configuration
+- [delete_agent](delete-agent) - Delete agent

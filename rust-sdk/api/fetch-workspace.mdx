@@ -1,0 +1,67 @@
+---
+title: "fetch_workspace"
+description: "Get workspace by ID"
+---
+
+## Overview
+
+The `fetch_workspace` function retrieves a specific workspace by its unique identifier.
+
+## Function Signature
+
+```rust
+pub async fn fetch_workspace(workspace_id: &str) -> Result<Workspace>
+```
+
+## Parameters
+
+<ParamField path="workspace_id" type="&str" required>
+  The unique identifier of the workspace to retrieve
+</ParamField>
+
+## Return Value
+
+Returns `Result<Workspace>` containing the workspace details.
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::workspaces::*;
+
+let workspace = fetch_workspace("52057194421551105").await?;
+println!("Workspace: {} ({})", workspace.name, workspace.slug);
+println!("Organization: {}", workspace.organization_id);
+println!("Created: {}", workspace.created_at);
+```
+
+## Error Handling
+
+```rust
+match fetch_workspace("52057194421551105").await {
+    Ok(workspace) => {
+        println!("Found workspace: {}", workspace.name);
+        println!("Description: {}", workspace.description.unwrap_or("No description".to_string()));
+        println!("Member count: {}", workspace.member_count);
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            404 => println!("Workspace not found"),
+            403 => println!("Access denied: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **Get operations**: 1000 requests per minute
+- **Burst limit**: 50 requests per second
+
+## Related Functions
+
+- [fetch_workspaces](fetch-workspaces) - List all workspaces
+- [create_workspace_in_organization](create-workspace-in-organization) - Create workspace
+- [update_workspace](update-workspace) - Update workspace details
+- [delete_workspace](delete-workspace) - Delete workspace

@@ -1,0 +1,98 @@
+---
+title: "fetch_workflows"
+description: "Fetch a paginated list of AI workflows"
+---
+
+## Overview
+
+The `fetch_workflows` function retrieves a list of AI workflows with optional filtering and pagination support.
+
+## Function Signature
+
+```rust
+pub async fn fetch_workflows(
+    options: Option<ListWorkflowsOptions>
+) -> Result<WorkflowListResponse>
+```
+
+## Parameters
+
+<ParamField path="options" type="Option<ListWorkflowsOptions>">
+  Optional configuration for filtering and pagination:
+  - `page`: Page number for pagination (optional)
+  - `per_page`: Number of results per page (optional)
+  - `search`: Search query to filter workflows (optional)
+  - `is_active`: Filter workflows by active status (optional)
+</ParamField>
+
+## Return Value
+
+Returns `Result<WorkflowListResponse>` containing:
+- `data`: Vector of `AiWorkflow` objects
+- `has_more`: Boolean indicating if more results are available
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::workflows::*;
+
+// Fetch all workflows
+let workflows = fetch_workflows(None).await?;
+for workflow in workflows.data {
+    println!("Workflow: {} - {}", workflow.name, workflow.id);
+}
+```
+
+## Advanced Usage
+
+```rust
+use wacht_rs::api::workflows::*;
+
+// Fetch active workflows with search
+let options = ListWorkflowsOptions {
+    page: Some(1),
+    per_page: Some(20),
+    search: Some("automation".to_string()),
+    is_active: Some(true),
+};
+
+let filtered_workflows = fetch_workflows(Some(options)).await?;
+println!("Found {} active workflows", filtered_workflows.data.len());
+
+for workflow in filtered_workflows.data {
+    println!("- {} (Steps: {})", workflow.name, workflow.steps.len());
+}
+```
+
+## Error Handling
+
+```rust
+match fetch_workflows(None).await {
+    Ok(response) => {
+        println!("Successfully retrieved {} workflows", response.data.len());
+        for workflow in response.data {
+            println!("- {} ({})", workflow.name, workflow.description);
+        }
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            403 => println!("Access denied: {}", message),
+            429 => println!("Rate limited: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **List operations**: 100 requests per minute
+- **Burst limit**: 10 requests per second
+
+## Related Functions
+
+- [create_workflow](create-workflow) - Create a new AI workflow
+- [fetch_workflow](fetch-workflow) - Get workflow by ID
+- [update_workflow](update-workflow) - Update workflow configuration
+- [delete_workflow](delete-workflow) - Delete workflow

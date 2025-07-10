@@ -1,0 +1,77 @@
+---
+title: "fetch_tool"
+description: "Get AI tool by ID"
+---
+
+## Overview
+
+The `fetch_tool` function retrieves a specific AI tool by its unique identifier.
+
+## Function Signature
+
+```rust
+pub async fn fetch_tool(tool_id: &str) -> Result<AiTool>
+```
+
+## Parameters
+
+<ParamField path="tool_id" type="&str" required>
+  The unique identifier of the tool to retrieve
+</ParamField>
+
+## Return Value
+
+Returns `Result<AiTool>` containing the tool details.
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::tools::*;
+
+let tool = fetch_tool("52057194421551105").await?;
+println!("Tool: {} ({})", tool.name, tool.id);
+println!("Description: {}", tool.description);
+println!("Type: {}", tool.tool_type);
+println!("Active: {}", tool.is_active);
+```
+
+## Error Handling
+
+```rust
+match fetch_tool("52057194421551105").await {
+    Ok(tool) => {
+        println!("Found tool: {}", tool.name);
+        println!("Type: {}", tool.tool_type);
+        
+        if let Some(config) = &tool.config {
+            println!("Configuration:");
+            if let Some(url) = &config.url {
+                println!("  URL: {}", url);
+            }
+            if let Some(method) = &config.method {
+                println!("  Method: {}", method);
+            }
+        }
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            404 => println!("Tool not found"),
+            403 => println!("Access denied: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **Get operations**: 1000 requests per minute
+- **Burst limit**: 50 requests per second
+
+## Related Functions
+
+- [fetch_tools](fetch-tools) - List all tools
+- [create_tool](create-tool) - Create a new tool
+- [update_tool](update-tool) - Update tool configuration
+- [delete_tool](delete-tool) - Delete tool

@@ -1,0 +1,63 @@
+---
+title: "OrganizationRoleListResponse"
+description: "Response type for organization role lists"
+---
+
+## Overview
+
+The `OrganizationRoleListResponse` struct represents the response returned when fetching roles within an organization.
+
+## Definition
+
+```rust
+pub struct OrganizationRoleListResponse {
+    pub data: Vec<OrganizationRole>,
+}
+```
+
+## Fields
+
+<ParamField path="data" type="Vec<OrganizationRole>" required>
+  A vector containing all roles defined for the organization. Each role includes permissions and metadata.
+</ParamField>
+
+## Usage Example
+
+```rust
+use wacht_rs::api::organizations::*;
+
+let organization_id = "org_123";
+let response = fetch_organization_roles(organization_id).await?;
+
+println!("Found {} roles", response.data.len());
+
+for role in response.data {
+    println!("Role: {} ({})", role.name, role.id);
+    println!("  Description: {}", role.description.unwrap_or_default());
+    println!("  Permissions: {:?}", role.permissions);
+    println!("  Is Custom: {}", role.is_custom);
+}
+
+// Find admin role
+let admin_role = response.data.iter()
+    .find(|r| r.name == "admin")
+    .expect("Admin role not found");
+```
+
+## Role Types
+
+Organizations typically have:
+- **Built-in roles**: `admin`, `member`, `viewer`
+- **Custom roles**: Created by organization administrators
+
+## Related Types
+
+- [OrganizationRole](/rust-sdk/types/organization-role) - The role model
+- [CreateRoleRequest](/rust-sdk/types/create-role-request) - Request to create custom role
+- [UpdateRoleRequest](/rust-sdk/types/update-role-request) - Request to update role
+
+## See Also
+
+- [fetch_organization_roles](/rust-sdk/api/fetch-organization-roles) - API method that returns this type
+- [create_organization_role](/rust-sdk/api/create-organization-role) - API method to create custom roles
+- [update_organization_role](/rust-sdk/api/update-organization-role) - API method to update roles

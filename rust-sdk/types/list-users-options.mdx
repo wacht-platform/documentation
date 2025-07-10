@@ -1,0 +1,84 @@
+---
+title: "ListUsersOptions"
+description: "Query options for filtering and paginating user lists"
+---
+
+## Overview
+
+The `ListUsersOptions` struct provides parameters for filtering and paginating user list requests.
+
+## Definition
+
+```rust
+pub struct ListUsersOptions {
+    pub page: Option<u32>,
+    pub per_page: Option<u32>,
+    pub search: Option<String>,
+    pub is_active: Option<bool>,
+}
+```
+
+## Fields
+
+<ParamField path="page" type="Option<u32>">
+  The page number to retrieve. Defaults to 1 if not specified.
+</ParamField>
+
+<ParamField path="per_page" type="Option<u32>">
+  Number of users to return per page. Defaults to 20 if not specified. Maximum is typically 100.
+</ParamField>
+
+<ParamField path="search" type="Option<String>">
+  Search term to filter users by name or email. Searches are case-insensitive and partial matches are supported.
+</ParamField>
+
+<ParamField path="is_active" type="Option<bool>">
+  Filter users by active status. Set to `true` for active users only, `false` for inactive users only, or `None` for all users.
+</ParamField>
+
+## Usage Example
+
+```rust
+use wacht_rs::api::users::*;
+
+// Basic pagination
+let options = ListUsersOptions {
+    page: Some(2),
+    per_page: Some(50),
+    search: None,
+    is_active: None,
+};
+
+// Search for active users
+let search_options = ListUsersOptions {
+    page: Some(1),
+    per_page: Some(20),
+    search: Some("john".to_string()),
+    is_active: Some(true),
+};
+
+// Get all inactive users
+let inactive_options = ListUsersOptions {
+    page: None,
+    per_page: None,
+    search: None,
+    is_active: Some(false),
+};
+
+let response = fetch_users(Some(search_options)).await?;
+```
+
+## Default Values
+
+- `page`: 1
+- `per_page`: 20
+- `search`: None (no filtering)
+- `is_active`: None (all users)
+
+## Related Types
+
+- [UserListResponse](/rust-sdk/types/user-list-response) - Response type returned by user list queries
+
+## See Also
+
+- [fetch_users](/rust-sdk/api/fetch-users) - API method that uses this type

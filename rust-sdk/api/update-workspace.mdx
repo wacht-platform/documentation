@@ -1,0 +1,78 @@
+---
+title: "update_workspace"
+description: "Update workspace details"
+---
+
+## Overview
+
+The `update_workspace` function updates an existing workspace's details.
+
+## Function Signature
+
+```rust
+pub async fn update_workspace(
+    workspace_id: &str,
+    request: UpdateWorkspaceRequest
+) -> Result<Workspace>
+```
+
+## Parameters
+
+<ParamField path="workspace_id" type="&str" required>
+  The unique identifier of the workspace to update
+</ParamField>
+
+<ParamField path="request" type="UpdateWorkspaceRequest" required>
+  The workspace fields to update (all optional):
+  - `name`: Workspace name
+  - `description`: Workspace description
+</ParamField>
+
+## Return Value
+
+Returns `Result<Workspace>` containing the updated workspace details.
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::workspaces::*;
+
+let update = UpdateWorkspaceRequest {
+    name: Some("Updated Workspace Name".to_string()),
+    description: Some("Updated description".to_string()),
+};
+
+let updated_workspace = update_workspace("52057194421551105", update).await?;
+println!("Updated workspace: {}", updated_workspace.name);
+```
+
+## Error Handling
+
+```rust
+match update_workspace("52057194421551105", request).await {
+    Ok(workspace) => {
+        println!("Successfully updated workspace: {}", workspace.name);
+        println!("Last updated: {}", workspace.updated_at);
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            404 => println!("Workspace not found"),
+            400 => println!("Invalid request: {}", message),
+            403 => println!("Access denied: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **Update operations**: 100 requests per minute
+- **Burst limit**: 10 requests per second
+
+## Related Functions
+
+- [fetch_workspace](fetch-workspace) - Get workspace by ID
+- [create_workspace_in_organization](create-workspace-in-organization) - Create workspace
+- [delete_workspace](delete-workspace) - Delete workspace

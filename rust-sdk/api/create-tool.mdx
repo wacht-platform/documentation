@@ -1,0 +1,95 @@
+---
+title: "create_tool"
+description: "Create a new AI tool"
+---
+
+## Overview
+
+The `create_tool` function creates a new AI tool in the system.
+
+## Function Signature
+
+```rust
+pub async fn create_tool(
+    request: CreateAiToolRequest
+) -> Result<AiTool>
+```
+
+## Parameters
+
+<ParamField path="request" type="CreateAiToolRequest" required>
+  The tool data for creation including:
+  - `name`: Tool name (required)
+  - `description`: Tool description (required)
+  - `tool_type`: Type of tool (required)
+  - `config`: Tool configuration (required)
+  - `is_active`: Whether tool is active (optional, defaults to true)
+</ParamField>
+
+## Return Value
+
+Returns `Result<AiTool>` containing the created tool details.
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::tools::*;
+
+let new_tool = CreateAiToolRequest {
+    name: "Weather API".to_string(),
+    description: "Fetches current weather data for a location".to_string(),
+    tool_type: "api".to_string(),
+    config: AiToolConfig {
+        url: Some("https://api.weather.com/v1/current".to_string()),
+        method: Some("GET".to_string()),
+        headers: Some(serde_json::json!({
+            "Authorization": "Bearer API_KEY"
+        })),
+        parameters: vec![
+            AiToolConfigParameter {
+                name: "location".to_string(),
+                type_: "string".to_string(),
+                description: "City name or coordinates".to_string(),
+                required: true,
+            }
+        ],
+    },
+    is_active: Some(true),
+};
+
+let created_tool = create_tool(new_tool).await?;
+println!("Created tool: {} (ID: {})", created_tool.name, created_tool.id);
+```
+
+## Error Handling
+
+```rust
+match create_tool(request).await {
+    Ok(tool) => {
+        println!("Successfully created tool: {}", tool.name);
+        println!("Tool ID: {}", tool.id);
+        println!("Tool type: {}", tool.tool_type);
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            400 => println!("Invalid request: {}", message),
+            403 => println!("Access denied: {}", message),
+            409 => println!("Tool name already exists: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **Create operations**: 20 requests per minute
+- **Burst limit**: 5 requests per second
+
+## Related Functions
+
+- [fetch_tools](fetch-tools) - List all tools
+- [fetch_tool](fetch-tool) - Get tool by ID
+- [update_tool](update-tool) - Update tool configuration
+- [delete_tool](delete-tool) - Delete tool

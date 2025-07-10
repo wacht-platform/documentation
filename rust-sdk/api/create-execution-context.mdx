@@ -1,0 +1,119 @@
+---
+title: "create_execution_context"
+description: "Create AI execution context"
+---
+
+## Overview
+
+The `create_execution_context` function creates a new execution context for AI operations, establishing a session for agent interactions.
+
+## Function Signature
+
+```rust
+pub async fn create_execution_context(
+    request: CreateAiExecutionContextRequest
+) -> Result<AiExecutionContext>
+```
+
+## Parameters
+
+<ParamField path="request" type="CreateAiExecutionContextRequest" required>
+  The execution context configuration including:
+  - `agent_id`: ID of the AI agent to use (required)
+  - `user_id`: ID of the user initiating the context (required)
+  - `session_id`: Unique session identifier (optional)
+  - `metadata`: Additional context metadata (optional)
+</ParamField>
+
+## Return Value
+
+Returns `Result<AiExecutionContext>` containing the created execution context details.
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::execution_context::*;
+
+let context_request = CreateAiExecutionContextRequest {
+    agent_id: "agent_123".to_string(),
+    user_id: "user_456".to_string(),
+    session_id: Some("session_789".to_string()),
+    metadata: Some(serde_json::json!({
+        "source": "web_app",
+        "version": "1.0.0"
+    })),
+};
+
+let context = create_execution_context(context_request).await?;
+println!("Created execution context: {}", context.id);
+println!("Session: {}", context.session_id);
+```
+
+## Advanced Usage
+
+```rust
+use wacht_rs::api::execution_context::*;
+use uuid::Uuid;
+
+async fn start_ai_session(agent_id: &str, user_id: &str) -> Result<AiExecutionContext> {
+    let session_id = Uuid::new_v4().to_string();
+    
+    let request = CreateAiExecutionContextRequest {
+        agent_id: agent_id.to_string(),
+        user_id: user_id.to_string(),
+        session_id: Some(session_id.clone()),
+        metadata: Some(serde_json::json!({
+            "platform": std::env::consts::OS,
+            "timestamp": chrono::Utc::now().to_rfc3339(),
+            "user_agent": "rust-sdk/1.0"
+        })),
+    };
+    
+    let context = create_execution_context(request).await?;
+    
+    println!("AI session started");
+    println!("Context ID: {}", context.id);
+    println!("Agent: {}", context.agent_id);
+    println!("Session: {}", context.session_id);
+    
+    Ok(context)
+}
+```
+
+## Error Handling
+
+```rust
+match create_execution_context(request).await {
+    Ok(context) => {
+        println!("Successfully created execution context");
+        println!("Context ID: {}", context.id);
+        println!("Ready for AI operations");
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            404 => println!("Agent not found: {}", message),
+            403 => println!("Access denied: {}", message),
+            400 => println!("Invalid request: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Failed to create context: {}", e),
+}
+```
+
+## Important Notes
+
+- Execution contexts are required for agent interactions
+- Contexts maintain conversation state and history
+- Each context is tied to a specific agent and user
+- Contexts expire after a period of inactivity
+
+## Rate Limits
+
+- **Create operations**: 100 requests per minute per user
+- **Burst limit**: 10 requests per second
+
+## Related Functions
+
+- [fetch_agent](fetch-agent) - Get agent details before creating context
+- [create_agent](create-agent) - Create new AI agents

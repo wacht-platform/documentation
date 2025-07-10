@@ -1,0 +1,66 @@
+---
+title: "fetch_organization_roles"
+description: "Get available organization roles"
+---
+
+## Overview
+
+The `fetch_organization_roles` function retrieves all available organization roles in the system.
+
+## Function Signature
+
+```rust
+pub async fn fetch_organization_roles() -> Result<OrganizationRoleListResponse>
+```
+
+## Parameters
+
+This function takes no parameters.
+
+## Return Value
+
+Returns `Result<OrganizationRoleListResponse>` containing:
+- `data`: Vector of `OrganizationRole` objects
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::organizations::*;
+
+let roles = fetch_organization_roles().await?;
+for role in roles.data {
+    println!("Role: {} - {}", role.name, role.description);
+    println!("Permissions: {:?}", role.permissions);
+}
+```
+
+## Error Handling
+
+```rust
+match fetch_organization_roles().await {
+    Ok(response) => {
+        println!("Available roles:");
+        for role in response.data {
+            println!("- {} ({})", role.name, role.description);
+        }
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            403 => println!("Access denied: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **List operations**: 100 requests per minute
+- **Burst limit**: 20 requests per second
+
+## Related Functions
+
+- [create_organization_role](create-organization-role) - Create custom role
+- [update_organization_role](update-organization-role) - Update role
+- [delete_organization_role](delete-organization-role) - Delete role

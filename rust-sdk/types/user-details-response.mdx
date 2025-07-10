@@ -1,0 +1,62 @@
+---
+title: "UserDetailsResponse"
+description: "Detailed user information with associated organizations and workspaces"
+---
+
+## Overview
+
+The `UserDetailsResponse` struct provides comprehensive user information including their associated organizations and workspaces.
+
+## Definition
+
+```rust
+pub struct UserDetailsResponse {
+    pub user: User,
+    pub organizations: Vec<serde_json::Value>,
+    pub workspaces: Vec<serde_json::Value>,
+}
+```
+
+## Fields
+
+<ParamField path="user" type="User" required>
+  The complete user object containing all user details.
+</ParamField>
+
+<ParamField path="organizations" type="Vec<serde_json::Value>" required>
+  A vector of organizations the user belongs to. Each organization is represented as a JSON value.
+</ParamField>
+
+<ParamField path="workspaces" type="Vec<serde_json::Value>" required>
+  A vector of workspaces the user has access to. Each workspace is represented as a JSON value.
+</ParamField>
+
+## Usage Example
+
+```rust
+use wacht_rs::api::users::*;
+
+let user_id = "user_123";
+let response = fetch_user_details(user_id).await?;
+
+println!("User: {} ({})", response.user.name, response.user.email);
+println!("Member of {} organizations", response.organizations.len());
+println!("Access to {} workspaces", response.workspaces.len());
+
+// Process organizations
+for org in response.organizations {
+    if let Some(name) = org.get("name").and_then(|v| v.as_str()) {
+        println!("Organization: {}", name);
+    }
+}
+```
+
+## Related Types
+
+- [User](/rust-sdk/types/user) - The user model
+- [Organization](/rust-sdk/types/organization) - Organization model (in JSON format)
+- [Workspace](/rust-sdk/types/workspace) - Workspace model (in JSON format)
+
+## See Also
+
+- [fetch_user_details](/rust-sdk/api/fetch-user-details) - API method that returns this type

@@ -1,0 +1,107 @@
+---
+title: "update_b2b_settings"
+description: "Update B2B configuration"
+---
+
+## Overview
+
+The `update_b2b_settings` function updates the B2B (business-to-business) feature configuration for your deployment.
+
+## Function Signature
+
+```rust
+pub async fn update_b2b_settings(
+    settings: B2BSettings
+) -> Result<()>
+```
+
+## Parameters
+
+<ParamField path="settings" type="B2BSettings" required>
+  B2B configuration including:
+  - `enabled`: Enable B2B features
+  - `sso_enabled`: Enable single sign-on
+  - `custom_roles_enabled`: Allow custom role creation
+  - `workspace_enabled`: Enable workspace features
+  - `organization_domains_enabled`: Enable domain-based organization assignment
+  - `invitation_required`: Require invitations for new users
+</ParamField>
+
+## Return Value
+
+Returns `Result<()>` indicating success or failure.
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::settings::*;
+
+let b2b_settings = B2BSettings {
+    enabled: true,
+    sso_enabled: true,
+    custom_roles_enabled: true,
+    workspace_enabled: true,
+    organization_domains_enabled: false,
+    invitation_required: true,
+};
+
+update_b2b_settings(b2b_settings).await?;
+println!("B2B settings updated successfully");
+```
+
+## Advanced Usage
+
+```rust
+use wacht_rs::api::settings::*;
+
+// Enable full B2B suite
+let enterprise_settings = B2BSettings {
+    enabled: true,
+    sso_enabled: true,
+    custom_roles_enabled: true,
+    workspace_enabled: true,
+    organization_domains_enabled: true,
+    invitation_required: true,
+};
+
+match update_b2b_settings(enterprise_settings).await {
+    Ok(()) => {
+        println!("Enterprise B2B features enabled");
+        println!("- SSO authentication available");
+        println!("- Custom roles can be created");
+        println!("- Workspaces enabled for teams");
+        println!("- Domain-based org assignment active");
+    }
+    Err(e) => println!("Failed to enable B2B features: {}", e),
+}
+```
+
+## Error Handling
+
+```rust
+match update_b2b_settings(settings).await {
+    Ok(()) => {
+        println!("Successfully updated B2B settings");
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            400 => println!("Invalid settings combination: {}", message),
+            403 => println!("Access denied: {}", message),
+            402 => println!("Feature requires upgrade: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Update failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **Update operations**: 50 requests per minute
+- **Burst limit**: 5 requests per second
+
+## Related Functions
+
+- [fetch_deployment_settings](fetch-deployment-settings) - Get current settings
+- [update_authentication_settings](update-authentication-settings) - Update auth settings
+- [update_display_settings](update-display-settings) - Update UI settings

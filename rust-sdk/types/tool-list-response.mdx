@@ -1,0 +1,67 @@
+---
+title: "ToolListResponse"
+description: "Response type for paginated AI tool lists"
+---
+
+## Overview
+
+The `ToolListResponse` struct represents the response returned when fetching a paginated list of AI tools.
+
+## Definition
+
+```rust
+pub struct ToolListResponse {
+    pub data: Vec<AiTool>,
+    pub has_more: bool,
+}
+```
+
+## Fields
+
+<ParamField path="data" type="Vec<AiTool>" required>
+  A vector containing the AI tools for the current page. Each tool is represented by an `AiTool` struct.
+</ParamField>
+
+<ParamField path="has_more" type="bool" required>
+  Indicates whether there are more tools available beyond the current page. Used for pagination.
+</ParamField>
+
+## Usage Example
+
+```rust
+use wacht_rs::api::tools::*;
+
+let options = ListToolsOptions {
+    page: Some(1),
+    per_page: Some(20),
+    search: None,
+    is_active: Some(true),
+};
+
+let response = fetch_tools(Some(options)).await?;
+
+println!("Found {} tools", response.data.len());
+if response.has_more {
+    println!("More tools available on next page");
+}
+
+for tool in response.data {
+    println!("Tool: {} - {}", tool.name, tool.description);
+    println!("  Type: {}", tool.tool_type);
+    println!("  Active: {}", tool.is_active);
+    if let Some(config) = tool.config {
+        println!("  Config: {:?}", config);
+    }
+}
+```
+
+## Related Types
+
+- [AiTool](/rust-sdk/types/ai-tool) - The AI tool model
+- [ListToolsOptions](/rust-sdk/types/list-tools-options) - Query options for listing tools
+
+## See Also
+
+- [fetch_tools](/rust-sdk/api/fetch-tools) - API method that returns this type
+- [create_tool](/rust-sdk/api/create-tool) - Create a new AI tool
+- [fetch_tool](/rust-sdk/api/fetch-tool) - Get a specific tool by ID

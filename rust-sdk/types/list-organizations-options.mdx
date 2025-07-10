@@ -1,0 +1,76 @@
+---
+title: "ListOrganizationsOptions"
+description: "Query options for filtering and paginating organization lists"
+---
+
+## Overview
+
+The `ListOrganizationsOptions` struct provides parameters for filtering and paginating organization list requests.
+
+## Definition
+
+```rust
+pub struct ListOrganizationsOptions {
+    pub page: Option<u32>,
+    pub per_page: Option<u32>,
+    pub search: Option<String>,
+}
+```
+
+## Fields
+
+<ParamField path="page" type="Option<u32>">
+  The page number to retrieve. Defaults to 1 if not specified.
+</ParamField>
+
+<ParamField path="per_page" type="Option<u32>">
+  Number of organizations to return per page. Defaults to 20 if not specified. Maximum is typically 100.
+</ParamField>
+
+<ParamField path="search" type="Option<String>">
+  Search term to filter organizations by name. Searches are case-insensitive and support partial matches.
+</ParamField>
+
+## Usage Example
+
+```rust
+use wacht_rs::api::organizations::*;
+
+// Basic pagination
+let options = ListOrganizationsOptions {
+    page: Some(2),
+    per_page: Some(50),
+    search: None,
+};
+
+// Search for organizations
+let search_options = ListOrganizationsOptions {
+    page: Some(1),
+    per_page: Some(10),
+    search: Some("tech".to_string()),
+};
+
+// Get all organizations (default pagination)
+let default_options = ListOrganizationsOptions {
+    page: None,
+    per_page: None,
+    search: None,
+};
+
+let response = fetch_organizations(Some(search_options)).await?;
+println!("Found {} organizations matching 'tech'", response.data.len());
+```
+
+## Default Values
+
+- `page`: 1
+- `per_page`: 20
+- `search`: None (no filtering)
+
+## Related Types
+
+- [OrganizationListResponse](/rust-sdk/types/organization-list-response) - Response type returned by organization list queries
+
+## See Also
+
+- [fetch_organizations](/rust-sdk/api/fetch-organizations) - API method that uses this type

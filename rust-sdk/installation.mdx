@@ -1,0 +1,154 @@
+---
+title: 'Installation'
+description: 'How to install and set up the Wacht Rust SDK'
+---
+
+## Requirements
+
+Before installing the Wacht Rust SDK, ensure you have:
+
+- **Rust 1.70+** - The SDK requires a recent version of Rust
+- **Tokio Runtime** - Async runtime for Rust
+- **Valid Wacht API Key** - Required for authentication
+
+## Adding the Dependency
+
+Add the SDK to your `Cargo.toml` file:
+
+<CodeGroup>
+
+```toml Cargo.toml
+[dependencies]
+wacht-rs = "2.0.0"
+tokio = { version = "1", features = ["full"] }
+```
+
+```toml With specific features
+[dependencies]
+# With Axum middleware support (default)
+wacht-rs = { version = "2.0.0", features = ["axum"] }
+
+# Without Axum middleware
+wacht-rs = { version = "2.0.0", default-features = false }
+
+# Required runtime
+tokio = { version = "1", features = ["full"] }
+```
+
+</CodeGroup>
+
+## Environment Variables
+
+The SDK can be configured using environment variables:
+
+<ParamField path="WACHT_API_KEY" type="string" required>
+  Your Wacht API key for authentication. This will be sent as a Bearer token.
+</ParamField>
+
+<ParamField path="WACHT_FRONTEND_HOST" type="string" required>
+  The base URL of your Wacht frontend (e.g., `https://your-app.wacht.io`)
+</ParamField>
+
+<ParamField path="WACHT_PUBLIC_SIGNING_KEY" type="string">
+  Optional PEM-encoded public key for JWT verification. If not provided, the SDK will fetch it automatically from the `/.well-known/jwk` endpoint.
+</ParamField>
+
+### Setting Environment Variables
+
+<CodeGroup>
+
+```bash .env file
+WACHT_API_KEY=your-api-key-here
+WACHT_FRONTEND_HOST=https://your-app.wacht.io
+```
+
+```bash Shell export
+export WACHT_API_KEY="your-api-key-here"
+export WACHT_FRONTEND_HOST="https://your-app.wacht.io"
+```
+
+```bash Windows PowerShell
+$env:WACHT_API_KEY="your-api-key-here"
+$env:WACHT_FRONTEND_HOST="https://your-app.wacht.io"
+```
+
+</CodeGroup>
+
+## Feature Flags
+
+The SDK supports the following feature flags:
+
+### `axum` (default)
+
+Enables Axum middleware support for JWT authentication and permission checking.
+
+```toml
+[dependencies]
+wacht-rs = { version = "2.0.0", features = ["axum"] }
+```
+
+This feature adds:
+- `AuthLayer` - JWT validation middleware
+- `PermissionLayer` - Permission checking middleware
+- Request extractors (`RequireAuth`, `RequirePermission`, etc.)
+- Integration with Axum 0.8+
+
+## Version Compatibility
+
+| SDK Version | Rust Version | Axum Version | Tokio Version |
+|-------------|--------------|--------------|---------------|
+| 2.0.x | 1.70+ | 0.8.x | 1.x |
+| 1.x.x | 1.65+ | 0.7.x | 1.x |
+
+## Verifying Installation
+
+After adding the dependency, verify the installation:
+
+```bash
+# Update dependencies
+cargo update
+
+# Build your project
+cargo build
+
+# Check for any version conflicts
+cargo tree -i wacht-rs
+```
+
+## Next Steps
+
+Once installed, proceed to:
+- [Quick Start](quickstart) - Get up and running quickly
+- [Configuration](configuration) - Detailed configuration options
+- [Environment Variables](environment-variables) - Complete environment setup
+
+## Troubleshooting
+
+### Common Issues
+
+<AccordionGroup>
+
+<Accordion title="Error: WACHT_API_KEY must be set">
+Ensure you've set the `WACHT_API_KEY` environment variable before running your application:
+
+```bash
+export WACHT_API_KEY="your-api-key"
+cargo run
+```
+</Accordion>
+
+<Accordion title="Version conflicts with Axum">
+If you're using Axum in your project, ensure you're using version 0.8.x to match the SDK:
+
+```toml
+[dependencies]
+axum = "0.8"
+wacht-rs = "2.0.0"
+```
+</Accordion>
+
+<Accordion title="Cannot find crate 'wacht-rs'">
+Ensure you've run `cargo build` or `cargo update` after adding the dependency to your `Cargo.toml`.
+</Accordion>
+
+</AccordionGroup>

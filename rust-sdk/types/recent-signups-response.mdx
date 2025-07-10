@@ -1,0 +1,66 @@
+---
+title: "RecentSignupsResponse"
+description: "Response type for recent signup analytics"
+---
+
+## Overview
+
+The `RecentSignupsResponse` struct represents the response returned when fetching recent signup analytics data.
+
+## Definition
+
+```rust
+pub struct RecentSignupsResponse {
+    pub data: Vec<RecentSignup>,
+    pub total: u32,
+}
+```
+
+## Fields
+
+<ParamField path="data" type="Vec<RecentSignup>" required>
+  A vector containing recent signup records. Each signup is represented by a `RecentSignup` struct.
+</ParamField>
+
+<ParamField path="total" type="u32" required>
+  The total count of recent signups, which may be larger than the number of items in the data array if a limit was applied.
+</ParamField>
+
+## Usage Example
+
+```rust
+use wacht_rs::api::analytics::fetch_recent_signups;
+
+// Fetch recent signups with default limit
+let recent = fetch_recent_signups(None).await?;
+
+println!("Recent signups: {} of {} total", recent.data.len(), recent.total);
+
+for signup in recent.data {
+    println!("User: {} ({})", signup.user_name, signup.user_email);
+    println!("  Signed up: {}", signup.created_at);
+    if let Some(org) = signup.organization {
+        println!("  Organization: {}", org.name);
+    }
+}
+
+// Fetch with custom limit
+let top_10 = fetch_recent_signups(Some(10)).await?;
+println!("Showing {} of {} recent signups", top_10.data.len(), top_10.total);
+
+// Check if there are more signups than displayed
+if top_10.total > top_10.data.len() as u32 {
+    println!("There are {} more signups not shown", 
+             top_10.total - top_10.data.len() as u32);
+}
+```
+
+## Related Types
+
+- [RecentSignup](/rust-sdk/types/recent-signup) - Individual signup record
+- [AnalyticsStats](/rust-sdk/types/analytics-stats) - General analytics statistics
+
+## See Also
+
+- [fetch_recent_signups](/rust-sdk/api/fetch-recent-signups) - API method that returns this type
+- [fetch_analytics_stats](/rust-sdk/api/fetch-analytics-stats) - Get comprehensive analytics statistics

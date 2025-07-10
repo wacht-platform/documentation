@@ -1,0 +1,79 @@
+---
+title: "KnowledgeBaseSearchOptions"
+description: "Search options for querying knowledge bases"
+---
+
+## Overview
+
+The `KnowledgeBaseSearchOptions` struct provides options for searching within knowledge bases using semantic search.
+
+## Definition
+
+```rust
+pub struct KnowledgeBaseSearchOptions {
+    pub query: String,
+    pub limit: Option<u32>,
+    pub threshold: Option<f32>,
+}
+```
+
+## Fields
+
+<ParamField path="query" type="String" required>
+  The search query text. This will be used for semantic search across the knowledge base content.
+</ParamField>
+
+<ParamField path="limit" type="Option<u32>">
+  Maximum number of search results to return. Defaults to 10 if not specified.
+</ParamField>
+
+<ParamField path="threshold" type="Option<f32>">
+  Minimum similarity threshold for search results (0.0 to 1.0). Results with similarity scores below this threshold will be excluded. Defaults to 0.7 if not specified.
+</ParamField>
+
+## Usage Example
+
+```rust
+use wacht_rs::api::knowledge_bases::{search_global, search_knowledge_base, KnowledgeBaseSearchOptions};
+
+// Basic search across all knowledge bases
+let search_options = KnowledgeBaseSearchOptions {
+    query: "How to implement authentication?".to_string(),
+    limit: None,
+    threshold: None,
+};
+let global_results = search_global(search_options).await?;
+
+// Search with custom parameters
+let detailed_search = KnowledgeBaseSearchOptions {
+    query: "OAuth2 implementation best practices".to_string(),
+    limit: Some(20),
+    threshold: Some(0.8), // Only highly relevant results
+};
+let oauth_results = search_global(detailed_search).await?;
+
+// Search within a specific knowledge base
+let kb_id = "kb_123";
+let kb_search = KnowledgeBaseSearchOptions {
+    query: "API rate limiting".to_string(),
+    limit: Some(5),
+    threshold: Some(0.6),
+};
+let kb_results = search_knowledge_base(kb_id, kb_search).await?;
+
+// Process search results
+for result in kb_results.results {
+    println!("Match: {}", result.content);
+    println!("  Score: {}", result.score);
+    println!("  Document: {}", result.document_id);
+}
+```
+
+## Related Types
+
+- [KnowledgeBaseSearchResult](/rust-sdk/types/knowledge-base-search-result) - The search result response type
+
+## See Also
+
+- [search_global](/rust-sdk/api/search-global) - Search across all knowledge bases
+- [search_knowledge_base](/rust-sdk/api/search-knowledge-base) - Search within a specific knowledge base

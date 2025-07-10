@@ -1,0 +1,120 @@
+---
+title: "upload_document"
+description: "Upload document to knowledge base"
+---
+
+## Overview
+
+The `upload_document` function uploads a document to a knowledge base for processing and indexing.
+
+## Function Signature
+
+```rust
+pub async fn upload_document(
+    knowledge_base_id: &str,
+    file_content: Vec<u8>,
+    file_name: String
+) -> Result<KnowledgeBaseDocument>
+```
+
+## Parameters
+
+<ParamField path="knowledge_base_id" type="&str" required>
+  The unique identifier of the knowledge base
+</ParamField>
+
+<ParamField path="file_content" type="Vec<u8>" required>
+  The raw file content as bytes
+</ParamField>
+
+<ParamField path="file_name" type="String" required>
+  The name of the file being uploaded
+</ParamField>
+
+## Return Value
+
+Returns `Result<KnowledgeBaseDocument>` containing the uploaded document details.
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::knowledge_bases::*;
+use std::fs;
+
+// Read file content
+let content = fs::read("product-guide.pdf")?;
+let file_name = "product-guide.pdf".to_string();
+
+let document = upload_document("52057194421551105", content, file_name).await?;
+println!("Uploaded document: {} (ID: {})", document.name, document.id);
+println!("Size: {} bytes", document.size);
+```
+
+## Advanced Usage
+
+```rust
+use wacht_rs::api::knowledge_bases::*;
+use std::fs;
+use std::path::Path;
+
+async fn upload_file_to_kb(kb_id: &str, file_path: &str) -> Result<KnowledgeBaseDocument> {
+    let path = Path::new(file_path);
+    let file_name = path.file_name()
+        .ok_or("Invalid file path")?
+        .to_string_lossy()
+        .to_string();
+    
+    let content = fs::read(file_path)?;
+    
+    println!("Uploading {} ({} bytes)...", file_name, content.len());
+    let doc = upload_document(kb_id, content, file_name).await?;
+    
+    println!("Upload complete!");
+    println!("Document ID: {}", doc.id);
+    println!("Processing status: {}", doc.status);
+    
+    Ok(doc)
+}
+```
+
+## Error Handling
+
+```rust
+match upload_document(kb_id, content, file_name).await {
+    Ok(doc) => {
+        println!("Successfully uploaded document: {}", doc.name);
+        println!("Document ID: {}", doc.id);
+        println!("Status: {}", doc.status);
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            404 => println!("Knowledge base not found"),
+            413 => println!("File too large: {}", message),
+            415 => println!("Unsupported file type: {}", message),
+            403 => println!("Access denied: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Upload failed: {}", e),
+}
+```
+
+## Supported File Types
+
+- PDF documents
+- Text files (.txt, .md)
+- Word documents (.docx)
+- HTML files
+- JSON files
+
+## Rate Limits
+
+- **Upload operations**: 50 requests per minute
+- **File size limit**: 10MB per file
+- **Burst limit**: 5 requests per second
+
+## Related Functions
+
+- [fetch_documents](fetch-documents) - List documents in knowledge base
+- [delete_document](delete-document) - Delete document from knowledge base
+- [fetch_knowledge_base](fetch-knowledge-base) - Get knowledge base details

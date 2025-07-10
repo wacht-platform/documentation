@@ -1,0 +1,84 @@
+---
+title: "UserInvitation"
+description: "Represents a pending user invitation"
+---
+
+## Overview
+
+The `UserInvitation` struct represents a pending invitation sent to a user to join the platform or organization.
+
+## Definition
+
+```rust
+pub struct UserInvitation {
+    pub id: String,
+    pub email: String,
+    pub role: Option<String>,
+    pub organization_id: Option<String>,
+    pub invited_at: String,
+    pub expires_at: String,
+}
+```
+
+## Fields
+
+<ParamField path="id" type="String" required>
+  Unique identifier for the invitation.
+</ParamField>
+
+<ParamField path="email" type="String" required>
+  Email address of the invited user.
+</ParamField>
+
+<ParamField path="role" type="Option<String>">
+  The role assigned to the user upon acceptance. Can be a predefined role or custom role ID.
+</ParamField>
+
+<ParamField path="organization_id" type="Option<String>">
+  ID of the organization the user is being invited to. If None, it's a platform-level invitation.
+</ParamField>
+
+<ParamField path="invited_at" type="String" required>
+  ISO 8601 timestamp of when the invitation was created.
+</ParamField>
+
+<ParamField path="expires_at" type="String" required>
+  ISO 8601 timestamp of when the invitation expires. Typically 7 days from creation.
+</ParamField>
+
+## Usage Example
+
+```rust
+use wacht_rs::api::users::*;
+
+// Fetch all pending invitations
+let invitations = fetch_invitations(None).await?;
+
+for invitation in invitations.data {
+    println!("Invitation to: {}", invitation.email);
+    println!("  ID: {}", invitation.id);
+    println!("  Role: {}", invitation.role.unwrap_or("default".to_string()));
+    println!("  Expires: {}", invitation.expires_at);
+    
+    if let Some(org_id) = invitation.organization_id {
+        println!("  Organization: {}", org_id);
+    }
+}
+
+// Check if invitation is expired
+use chrono::{DateTime, Utc};
+let expires = DateTime::parse_from_rfc3339(&invitation.expires_at).unwrap();
+if expires < Utc::now() {
+    println!("Invitation has expired");
+}
+```
+
+## Related Types
+
+- [InvitationListResponse](/rust-sdk/types/invitation-list-response) - Response containing list of invitations
+- [InviteUserRequest](/rust-sdk/types/invite-user-request) - Request to create new invitation
+
+## See Also
+
+- [invite_user](/rust-sdk/api/invite-user) - API method to send invitations
+- [fetch_invitations](/rust-sdk/api/fetch-invitations) - API method to list invitations

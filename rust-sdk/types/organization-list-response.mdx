@@ -1,0 +1,63 @@
+---
+title: "OrganizationListResponse"
+description: "Response type for paginated organization lists"
+---
+
+## Overview
+
+The `OrganizationListResponse` struct represents the response returned when fetching a paginated list of organizations.
+
+## Definition
+
+```rust
+pub struct OrganizationListResponse {
+    pub data: Vec<Organization>,
+    pub has_more: bool,
+}
+```
+
+## Fields
+
+<ParamField path="data" type="Vec<Organization>" required>
+  A vector containing the organizations for the current page. Each organization includes details like name, ID, and settings.
+</ParamField>
+
+<ParamField path="has_more" type="bool" required>
+  Indicates whether there are more organizations available beyond the current page.
+</ParamField>
+
+## Usage Example
+
+```rust
+use wacht_rs::api::organizations::*;
+
+let options = ListOrganizationsOptions {
+    page: Some(1),
+    per_page: Some(20),
+    search: Some("tech".to_string()),
+};
+
+let response = fetch_organizations(Some(options)).await?;
+
+println!("Found {} organizations", response.data.len());
+
+if response.has_more {
+    println!("More organizations available on next page");
+}
+
+for org in response.data {
+    println!("Organization: {} ({})", org.name, org.id);
+    println!("  Created: {}", org.created_at);
+    println!("  Members: {}", org.member_count);
+}
+```
+
+## Related Types
+
+- [Organization](/rust-sdk/types/organization) - The organization model
+- [ListOrganizationsOptions](/rust-sdk/types/list-organizations-options) - Query options for listing organizations
+
+## See Also
+
+- [fetch_organizations](/rust-sdk/api/fetch-organizations) - API method that returns this type
+- [create_organization](/rust-sdk/api/create-organization) - API method to create organizations

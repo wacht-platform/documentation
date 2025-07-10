@@ -1,0 +1,92 @@
+---
+title: "create_user"
+description: "Create a new user"
+---
+
+## Overview
+
+The `create_user` function creates a new user in the system.
+
+## Function Signature
+
+```rust
+pub async fn create_user(
+    request: CreateUserRequest
+) -> Result<User>
+```
+
+## Parameters
+
+<ParamField path="request" type="CreateUserRequest" required>
+  The user data for creation including:
+  - `email`: User's email address (required)
+  - `first_name`: User's first name (required)
+  - `last_name`: User's last name (required)
+  - `username`: Username (optional)
+  - `password`: Initial password (optional)
+  - `phone`: Phone number (optional)
+  - `email_verified`: Whether email is pre-verified (optional)
+  - `phone_verified`: Whether phone is pre-verified (optional)
+  - `metadata`: Custom metadata (optional)
+</ParamField>
+
+## Return Value
+
+Returns `Result<User>` containing the created user details.
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::users::*;
+
+let new_user = CreateUserRequest {
+    email: "john.doe@example.com".to_string(),
+    first_name: "John".to_string(),
+    last_name: "Doe".to_string(),
+    username: Some("johndoe".to_string()),
+    password: Some("secure-password-123".to_string()),
+    phone: Some("+1234567890".to_string()),
+    email_verified: Some(false),
+    phone_verified: Some(false),
+    metadata: Some(serde_json::json!({
+        "source": "api",
+        "department": "engineering"
+    })),
+};
+
+let created_user = create_user(new_user).await?;
+println!("Created user: {} (ID: {})", created_user.email, created_user.id);
+```
+
+## Error Handling
+
+```rust
+match create_user(request).await {
+    Ok(user) => {
+        println!("Successfully created user: {}", user.email);
+        println!("User ID: {}", user.id);
+        println!("Username: {}", user.username);
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            400 => println!("Invalid request: {}", message),
+            409 => println!("User already exists: {}", message),
+            403 => println!("Access denied: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **Create operations**: 20 requests per minute
+- **Burst limit**: 5 requests per second
+
+## Related Functions
+
+- [fetch_users](fetch-users) - List all users
+- [fetch_user_details](fetch-user-details) - Get user details
+- [update_user](update-user) - Update user information
+- [invite_user](invite-user) - Send invitation instead of creating directly

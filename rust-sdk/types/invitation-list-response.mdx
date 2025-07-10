@@ -1,0 +1,63 @@
+---
+title: "InvitationListResponse"
+description: "Response type for paginated invitation lists"
+---
+
+## Overview
+
+The `InvitationListResponse` struct represents the response returned when fetching a paginated list of user invitations.
+
+## Definition
+
+```rust
+pub struct InvitationListResponse {
+    pub data: Vec<UserInvitation>,
+    pub has_more: bool,
+}
+```
+
+## Fields
+
+<ParamField path="data" type="Vec<UserInvitation>" required>
+  A vector containing the invitations for the current page.
+</ParamField>
+
+<ParamField path="has_more" type="bool" required>
+  Indicates whether there are more invitations available beyond the current page.
+</ParamField>
+
+## Usage Example
+
+```rust
+use wacht_rs::api::users::*;
+
+// Fetch pending invitations with pagination
+let options = ListInvitationsOptions {
+    page: Some(1),
+    per_page: Some(50),
+    status: Some("pending".to_string()),
+};
+
+let response = fetch_invitations(Some(options)).await?;
+
+println!("Found {} invitations", response.data.len());
+
+if response.has_more {
+    println!("More invitations available on next page");
+}
+
+// Process invitations
+for invitation in response.data {
+    println!("Invitation: {} -> {}", invitation.id, invitation.email);
+}
+```
+
+## Related Types
+
+- [UserInvitation](/rust-sdk/types/user-invitation) - The invitation model
+- [ListInvitationsOptions](/rust-sdk/types/list-invitations-options) - Query options for listing invitations
+
+## See Also
+
+- [fetch_invitations](/rust-sdk/api/fetch-invitations) - API method that returns this type
+- [invite_user](/rust-sdk/api/invite-user) - API method to create invitations

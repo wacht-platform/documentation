@@ -1,0 +1,64 @@
+---
+title: "AgentListResponse"
+description: "Response type for paginated AI agent lists"
+---
+
+## Overview
+
+The `AgentListResponse` struct represents the response returned when fetching a paginated list of AI agents.
+
+## Definition
+
+```rust
+pub struct AgentListResponse {
+    pub data: Vec<AiAgent>,
+    pub has_more: bool,
+}
+```
+
+## Fields
+
+<ParamField path="data" type="Vec<AiAgent>" required>
+  A vector containing the AI agents for the current page. Each agent is represented by an `AiAgent` struct.
+</ParamField>
+
+<ParamField path="has_more" type="bool" required>
+  Indicates whether there are more agents available beyond the current page. Used for pagination.
+</ParamField>
+
+## Usage Example
+
+```rust
+use wacht_rs::api::agents::*;
+
+let options = ListAgentsOptions {
+    page: Some(1),
+    per_page: Some(10),
+    is_active: Some(true),
+    search: None,
+};
+
+let response = fetch_agents(Some(options)).await?;
+
+println!("Found {} agents", response.data.len());
+if response.has_more {
+    println!("More agents available on next page");
+}
+
+for agent in response.data {
+    println!("Agent: {} - {}", agent.name, agent.description);
+    println!("  Model: {}", agent.model);
+    println!("  Active: {}", agent.is_active);
+}
+```
+
+## Related Types
+
+- [AiAgent](/rust-sdk/types/ai-agent) - The AI agent model
+- [ListAgentsOptions](/rust-sdk/types/list-agents-options) - Query options for listing agents
+
+## See Also
+
+- [fetch_agents](/rust-sdk/api/fetch-agents) - API method that returns this type
+- [create_agent](/rust-sdk/api/create-agent) - Create a new AI agent
+- [fetch_agent](/rust-sdk/api/fetch-agent) - Get a specific agent by ID

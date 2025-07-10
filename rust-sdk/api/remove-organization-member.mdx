@@ -1,0 +1,75 @@
+---
+title: "remove_organization_member"
+description: "Remove member from organization"
+---
+
+## Overview
+
+The `remove_organization_member` function removes a member from an organization.
+
+## Function Signature
+
+```rust
+pub async fn remove_organization_member(
+    organization_id: &str,
+    membership_id: &str
+) -> Result<()>
+```
+
+## Parameters
+
+<ParamField path="organization_id" type="&str" required>
+  The unique identifier of the organization
+</ParamField>
+
+<ParamField path="membership_id" type="&str" required>
+  The unique identifier of the membership to remove
+</ParamField>
+
+## Return Value
+
+Returns `Result<()>` indicating success or failure.
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::organizations::*;
+
+remove_organization_member("org_123", "member_456").await?;
+println!("Member removed successfully");
+```
+
+## Error Handling
+
+```rust
+match remove_organization_member("org_123", "member_456").await {
+    Ok(()) => {
+        println!("Member removed successfully");
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            404 => println!("Organization or member not found"),
+            403 => println!("Access denied: {}", message),
+            409 => println!("Cannot remove last admin: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Important Notes
+
+- Cannot remove the last admin from an organization
+- Members lose access to all organization resources immediately
+- This operation is irreversible (member must be re-invited to rejoin)
+
+## Rate Limits
+
+- **Member operations**: 50 requests per minute
+- **Burst limit**: 10 requests per second
+
+## Related Functions
+
+- [add_organization_member](add-organization-member) - Add new member
+- [update_organization_member](update-organization-member) - Update member role

@@ -1,0 +1,85 @@
+---
+title: "update_agent"
+description: "Update AI agent configuration"
+---
+
+## Overview
+
+The `update_agent` function updates an existing AI agent's configuration.
+
+## Function Signature
+
+```rust
+pub async fn update_agent(
+    agent_id: &str,
+    request: UpdateAiAgentRequest
+) -> Result<AiAgent>
+```
+
+## Parameters
+
+<ParamField path="agent_id" type="&str" required>
+  The unique identifier of the agent to update
+</ParamField>
+
+<ParamField path="request" type="UpdateAiAgentRequest" required>
+  The agent fields to update (all optional):
+  - `name`: Agent name
+  - `description`: Agent description
+  - `instructions`: System instructions for the agent
+  - `temperature`: Model temperature
+  - `is_active`: Whether agent is active
+</ParamField>
+
+## Return Value
+
+Returns `Result<AiAgent>` containing the updated agent details.
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::agents::*;
+
+let update = UpdateAiAgentRequest {
+    name: Some("Updated Agent Name".to_string()),
+    description: Some("Updated description".to_string()),
+    temperature: Some(0.8),
+    is_active: Some(false),
+    ..Default::default()
+};
+
+let updated_agent = update_agent("52057194421551105", update).await?;
+println!("Updated agent: {}", updated_agent.name);
+```
+
+## Error Handling
+
+```rust
+match update_agent("52057194421551105", request).await {
+    Ok(agent) => {
+        println!("Successfully updated agent: {}", agent.name);
+        println!("Last updated: {}", agent.updated_at);
+        println!("Active status: {}", agent.is_active);
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            404 => println!("Agent not found"),
+            400 => println!("Invalid request: {}", message),
+            403 => println!("Access denied: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **Update operations**: 100 requests per minute
+- **Burst limit**: 10 requests per second
+
+## Related Functions
+
+- [fetch_agent](fetch-agent) - Get agent by ID
+- [create_agent](create-agent) - Create a new agent
+- [delete_agent](delete-agent) - Delete agent

@@ -1,0 +1,83 @@
+---
+title: "update_workflow"
+description: "Update AI workflow configuration"
+---
+
+## Overview
+
+The `update_workflow` function updates an existing AI workflow's configuration.
+
+## Function Signature
+
+```rust
+pub async fn update_workflow(
+    workflow_id: &str,
+    request: UpdateAiWorkflowRequest
+) -> Result<AiWorkflow>
+```
+
+## Parameters
+
+<ParamField path="workflow_id" type="&str" required>
+  The unique identifier of the workflow to update
+</ParamField>
+
+<ParamField path="request" type="UpdateAiWorkflowRequest" required>
+  The workflow fields to update (all optional):
+  - `name`: Workflow name
+  - `description`: Workflow description
+  - `steps`: Array of workflow steps
+  - `is_active`: Whether workflow is active
+</ParamField>
+
+## Return Value
+
+Returns `Result<AiWorkflow>` containing the updated workflow details.
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::workflows::*;
+
+let update = UpdateAiWorkflowRequest {
+    name: Some("Updated Workflow Name".to_string()),
+    description: Some("Updated description".to_string()),
+    is_active: Some(false),
+    ..Default::default()
+};
+
+let updated_workflow = update_workflow("52057194421551105", update).await?;
+println!("Updated workflow: {}", updated_workflow.name);
+```
+
+## Error Handling
+
+```rust
+match update_workflow("52057194421551105", request).await {
+    Ok(workflow) => {
+        println!("Successfully updated workflow: {}", workflow.name);
+        println!("Last updated: {}", workflow.updated_at);
+        println!("Active status: {}", workflow.is_active);
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            404 => println!("Workflow not found"),
+            400 => println!("Invalid request: {}", message),
+            403 => println!("Access denied: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **Update operations**: 100 requests per minute
+- **Burst limit**: 10 requests per second
+
+## Related Functions
+
+- [fetch_workflow](fetch-workflow) - Get workflow by ID
+- [create_workflow](create-workflow) - Create a new workflow
+- [delete_workflow](delete-workflow) - Delete workflow

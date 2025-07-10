@@ -1,0 +1,95 @@
+---
+title: "DeploymentSettingsResponse"
+description: "Response type for deployment configuration settings"
+---
+
+## Overview
+
+The `DeploymentSettingsResponse` struct represents the complete deployment configuration including authentication, display, B2B settings, and restrictions.
+
+## Definition
+
+```rust
+pub struct DeploymentSettingsResponse {
+    pub id: String,
+    pub name: String,
+    pub authentication_settings: AuthenticationSettings,
+    pub display_settings: DisplaySettings,
+    pub b2b_settings: B2BSettings,
+    pub restrictions: DeploymentRestrictions,
+}
+```
+
+## Fields
+
+<ParamField path="id" type="String" required>
+  The unique identifier of the deployment.
+</ParamField>
+
+<ParamField path="name" type="String" required>
+  The name of the deployment.
+</ParamField>
+
+<ParamField path="authentication_settings" type="AuthenticationSettings" required>
+  Authentication configuration including password policies, session settings, and authentication methods.
+</ParamField>
+
+<ParamField path="display_settings" type="DisplaySettings" required>
+  UI and branding configuration including logos, colors, and custom styling.
+</ParamField>
+
+<ParamField path="b2b_settings" type="B2BSettings" required>
+  Business-to-business configuration including organization features and permissions.
+</ParamField>
+
+<ParamField path="restrictions" type="DeploymentRestrictions" required>
+  Access restrictions and allowed domains configuration.
+</ParamField>
+
+## Usage Example
+
+```rust
+use wacht_rs::api::settings::fetch_deployment_settings;
+
+let settings = fetch_deployment_settings().await?;
+
+println!("Deployment: {} ({})", settings.name, settings.id);
+
+// Check authentication settings
+println!("Authentication Settings:");
+println!("  Password min length: {}", settings.authentication_settings.password_min_length);
+println!("  Require uppercase: {}", settings.authentication_settings.require_uppercase);
+println!("  Session timeout: {} minutes", settings.authentication_settings.session_timeout_minutes);
+
+// Check display settings
+println!("Display Settings:");
+println!("  Primary color: {}", settings.display_settings.primary_color);
+if let Some(logo_url) = &settings.display_settings.logo_url {
+    println!("  Logo URL: {}", logo_url);
+}
+
+// Check B2B settings
+println!("B2B Settings:");
+println!("  Organizations enabled: {}", settings.b2b_settings.organizations_enabled);
+println!("  Max orgs per user: {:?}", settings.b2b_settings.max_organizations_per_user);
+
+// Check restrictions
+println!("Restrictions:");
+if let Some(allowed_domains) = &settings.restrictions.allowed_email_domains {
+    println!("  Allowed domains: {:?}", allowed_domains);
+}
+```
+
+## Related Types
+
+- [AuthenticationSettings](/rust-sdk/types/authentication-settings) - Authentication configuration
+- [DisplaySettings](/rust-sdk/types/display-settings) - UI and branding configuration
+- [B2BSettings](/rust-sdk/types/b2b-settings) - B2B feature configuration
+- [DeploymentRestrictions](/rust-sdk/types/deployment-restrictions) - Access restrictions
+
+## See Also
+
+- [fetch_deployment_settings](/rust-sdk/api/fetch-deployment-settings) - API method that returns this type
+- [update_authentication_settings](/rust-sdk/api/update-authentication-settings) - Update authentication settings
+- [update_display_settings](/rust-sdk/api/update-display-settings) - Update display settings
+- [update_b2b_settings](/rust-sdk/api/update-b2b-settings) - Update B2B settings

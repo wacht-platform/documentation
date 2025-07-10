@@ -1,0 +1,70 @@
+---
+title: "delete_workflow"
+description: "Delete AI workflow"
+---
+
+## Overview
+
+The `delete_workflow` function permanently deletes an AI workflow from the system.
+
+## Function Signature
+
+```rust
+pub async fn delete_workflow(workflow_id: &str) -> Result<()>
+```
+
+## Parameters
+
+<ParamField path="workflow_id" type="&str" required>
+  The unique identifier of the workflow to delete
+</ParamField>
+
+## Return Value
+
+Returns `Result<()>` indicating success or failure.
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::workflows::*;
+
+delete_workflow("52057194421551105").await?;
+println!("Workflow deleted successfully");
+```
+
+## Error Handling
+
+```rust
+match delete_workflow("52057194421551105").await {
+    Ok(()) => {
+        println!("Workflow deleted successfully");
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            404 => println!("Workflow not found"),
+            403 => println!("Access denied: {}", message),
+            409 => println!("Cannot delete active workflow: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Important Notes
+
+- This operation is **irreversible**
+- All workflow data including execution history will be deleted
+- Active workflows must be deactivated before deletion
+- You must have appropriate permissions to delete workflows
+
+## Rate Limits
+
+- **Delete operations**: 20 requests per minute
+- **Burst limit**: 5 requests per second
+
+## Related Functions
+
+- [fetch_workflow](fetch-workflow) - Get workflow by ID
+- [update_workflow](update-workflow) - Update workflow configuration
+- [create_workflow](create-workflow) - Create a new workflow

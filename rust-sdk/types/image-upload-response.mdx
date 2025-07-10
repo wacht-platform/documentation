@@ -1,0 +1,94 @@
+---
+title: "ImageUploadResponse"
+description: "Response type for image upload operations"
+---
+
+## Overview
+
+The `ImageUploadResponse` struct represents the response returned after successfully uploading an image.
+
+## Definition
+
+```rust
+pub struct ImageUploadResponse {
+    pub url: String,
+    pub public_id: String,
+    pub size: u64,
+    pub format: String,
+    pub width: Option<u32>,
+    pub height: Option<u32>,
+}
+```
+
+## Fields
+
+<ParamField path="url" type="String" required>
+  The public URL where the uploaded image can be accessed.
+</ParamField>
+
+<ParamField path="public_id" type="String" required>
+  A unique identifier for the uploaded image, used for reference and management.
+</ParamField>
+
+<ParamField path="size" type="u64" required>
+  The file size of the uploaded image in bytes.
+</ParamField>
+
+<ParamField path="format" type="String" required>
+  The image format (e.g., "png", "jpg", "webp").
+</ParamField>
+
+<ParamField path="width" type="Option<u32>">
+  The width of the image in pixels, if available.
+</ParamField>
+
+<ParamField path="height" type="Option<u32>">
+  The height of the image in pixels, if available.
+</ParamField>
+
+## Usage Example
+
+```rust
+use wacht_rs::api::settings::upload_image;
+use std::fs;
+
+// Read image file
+let image_data = fs::read("logo.png")?;
+
+// Upload as logo
+let response = upload_image("logo", image_data, "logo.png".to_string()).await?;
+
+println!("Image uploaded successfully!");
+println!("URL: {}", response.url);
+println!("Public ID: {}", response.public_id);
+println!("Size: {} KB", response.size / 1024);
+println!("Format: {}", response.format);
+
+if let (Some(width), Some(height)) = (response.width, response.height) {
+    println!("Dimensions: {}x{}", width, height);
+}
+
+// Upload avatar image
+let avatar_data = fs::read("avatar.jpg")?;
+let avatar_response = upload_image("avatar", avatar_data, "avatar.jpg".to_string()).await?;
+
+// Update display settings with the new logo URL
+use wacht_rs::api::settings::{fetch_deployment_settings, update_display_settings};
+
+let mut settings = fetch_deployment_settings().await?;
+settings.display_settings.logo_url = Some(response.url);
+update_display_settings(settings.display_settings).await?;
+```
+
+## Image Types
+
+The `image_type` parameter in the upload function accepts:
+- `"logo"` - For deployment logo images
+- `"avatar"` - For user avatar images
+- `"favicon"` - For favicon images
+- `"banner"` - For banner images
+
+## See Also
+
+- [upload_image](/rust-sdk/api/upload-image) - API method that returns this type
+- [DisplaySettings](/rust-sdk/types/display-settings) - Settings that use uploaded images

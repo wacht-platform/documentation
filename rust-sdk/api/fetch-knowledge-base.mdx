@@ -1,0 +1,69 @@
+---
+title: "fetch_knowledge_base"
+description: "Get knowledge base by ID"
+---
+
+## Overview
+
+The `fetch_knowledge_base` function retrieves a specific knowledge base by its unique identifier.
+
+## Function Signature
+
+```rust
+pub async fn fetch_knowledge_base(knowledge_base_id: &str) -> Result<AiKnowledgeBase>
+```
+
+## Parameters
+
+<ParamField path="knowledge_base_id" type="&str" required>
+  The unique identifier of the knowledge base to retrieve
+</ParamField>
+
+## Return Value
+
+Returns `Result<AiKnowledgeBase>` containing the knowledge base details.
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::knowledge_bases::*;
+
+let kb = fetch_knowledge_base("52057194421551105").await?;
+println!("Knowledge Base: {} ({})", kb.name, kb.id);
+println!("Description: {}", kb.description);
+println!("Documents: {}", kb.document_count);
+println!("Total size: {} bytes", kb.total_size);
+```
+
+## Error Handling
+
+```rust
+match fetch_knowledge_base("52057194421551105").await {
+    Ok(kb) => {
+        println!("Found knowledge base: {}", kb.name);
+        println!("Embedding model: {}", kb.embedding_model);
+        println!("Chunk size: {}", kb.chunk_size);
+        println!("Created at: {}", kb.created_at);
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            404 => println!("Knowledge base not found"),
+            403 => println!("Access denied: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **Get operations**: 1000 requests per minute
+- **Burst limit**: 50 requests per second
+
+## Related Functions
+
+- [fetch_knowledge_bases](fetch-knowledge-bases) - List all knowledge bases
+- [update_knowledge_base](update-knowledge-base) - Update knowledge base
+- [fetch_documents](fetch-documents) - Get documents in knowledge base
+- [search_knowledge_base](search-knowledge-base) - Search within knowledge base

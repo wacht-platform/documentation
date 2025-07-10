@@ -1,0 +1,84 @@
+---
+title: "create_organization_role"
+description: "Create custom organization role"
+---
+
+## Overview
+
+The `create_organization_role` function creates a new custom role for an organization.
+
+## Function Signature
+
+```rust
+pub async fn create_organization_role(
+    organization_id: &str,
+    request: CreateRoleRequest
+) -> Result<OrganizationRole>
+```
+
+## Parameters
+
+<ParamField path="organization_id" type="&str" required>
+  The unique identifier of the organization
+</ParamField>
+
+<ParamField path="request" type="CreateRoleRequest" required>
+  The role data for creation including:
+  - `name`: Role name (required)
+  - `description`: Role description (optional)
+  - `permissions`: List of permissions (required)
+</ParamField>
+
+## Return Value
+
+Returns `Result<OrganizationRole>` containing the created role details.
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::organizations::*;
+
+let role_request = CreateRoleRequest {
+    name: "Editor".to_string(),
+    description: Some("Can edit organization content".to_string()),
+    permissions: vec![
+        "read:organization".to_string(),
+        "write:organization".to_string(),
+    ],
+};
+
+let role = create_organization_role("org_123", role_request).await?;
+println!("Created role: {} with {} permissions", role.name, role.permissions.len());
+```
+
+## Error Handling
+
+```rust
+match create_organization_role("org_123", request).await {
+    Ok(role) => {
+        println!("Successfully created role: {}", role.name);
+        println!("Role ID: {}", role.id);
+        println!("Permissions: {:?}", role.permissions);
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            404 => println!("Organization not found"),
+            409 => println!("Role name already exists: {}", message),
+            403 => println!("Access denied: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **Create operations**: 20 requests per minute
+- **Burst limit**: 5 requests per second
+
+## Related Functions
+
+- [fetch_organization_roles](fetch-organization-roles) - Get available roles
+- [update_organization_role](update-organization-role) - Update role
+- [delete_organization_role](delete-organization-role) - Delete role

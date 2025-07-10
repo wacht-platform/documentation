@@ -1,0 +1,107 @@
+---
+title: "search_global"
+description: "Search across all knowledge bases"
+---
+
+## Overview
+
+The `search_global` function performs a semantic search across all accessible knowledge bases.
+
+## Function Signature
+
+```rust
+pub async fn search_global(
+    options: KnowledgeBaseSearchOptions
+) -> Result<KnowledgeBaseSearchResult>
+```
+
+## Parameters
+
+<ParamField path="options" type="KnowledgeBaseSearchOptions" required>
+  Search configuration:
+  - `query`: Search query text (required)
+  - `limit`: Maximum number of results to return (optional, default: 10)
+  - `threshold`: Minimum similarity score (optional, default: 0.7)
+</ParamField>
+
+## Return Value
+
+Returns `Result<KnowledgeBaseSearchResult>` containing:
+- `results`: Vector of search results with relevance scores
+- `total_results`: Total number of matching results
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::knowledge_bases::*;
+
+let search_options = KnowledgeBaseSearchOptions {
+    query: "How to configure authentication?".to_string(),
+    limit: Some(5),
+    threshold: Some(0.8),
+};
+
+let results = search_global(search_options).await?;
+println!("Found {} results", results.total_results);
+
+for result in results.results {
+    println!("Score: {:.2} - {}", result.score, result.content);
+    println!("  From: {} ({})", result.document_name, result.knowledge_base_name);
+}
+```
+
+## Advanced Usage
+
+```rust
+use wacht_rs::api::knowledge_bases::*;
+
+async fn search_with_context(query: &str) -> Result<Vec<String>> {
+    let options = KnowledgeBaseSearchOptions {
+        query: query.to_string(),
+        limit: Some(10),
+        threshold: Some(0.75),
+    };
+    
+    let results = search_global(options).await?;
+    
+    let contexts: Vec<String> = results.results
+        .into_iter()
+        .map(|r| format!("[{}] {}", r.knowledge_base_name, r.content))
+        .collect();
+    
+    Ok(contexts)
+}
+```
+
+## Error Handling
+
+```rust
+match search_global(options).await {
+    Ok(results) => {
+        println!("Search completed: {} results", results.total_results);
+        for (i, result) in results.results.iter().enumerate() {
+            println!("{}. Score: {:.3} - {} chars", 
+                i + 1, result.score, result.content.len());
+        }
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            400 => println!("Invalid search query: {}", message),
+            403 => println!("Access denied: {}", message),
+            429 => println!("Rate limited: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Search failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **Search operations**: 200 requests per minute
+- **Burst limit**: 20 requests per second
+
+## Related Functions
+
+- [search_knowledge_base](search-knowledge-base) - Search within specific knowledge base
+- [fetch_knowledge_bases](fetch-knowledge-bases) - List all knowledge bases

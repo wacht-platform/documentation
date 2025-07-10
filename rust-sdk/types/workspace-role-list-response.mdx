@@ -1,0 +1,47 @@
+---
+title: "WorkspaceRoleListResponse"
+description: "Response type for workspace role lists"
+---
+
+## Overview
+
+The `WorkspaceRoleListResponse` struct represents the response returned when fetching a list of workspace roles.
+
+## Definition
+
+```rust
+pub struct WorkspaceRoleListResponse {
+    pub data: Vec<WorkspaceRole>,
+}
+```
+
+## Fields
+
+<ParamField path="data" type="Vec<WorkspaceRole>" required>
+  A vector containing all available workspace roles. Each role is represented by a `WorkspaceRole` struct.
+</ParamField>
+
+## Usage Example
+
+```rust
+use wacht_rs::api::workspaces::fetch_workspace_roles;
+
+let response = fetch_workspace_roles().await?;
+
+println!("Found {} workspace roles", response.data.len());
+
+for role in response.data {
+    println!("Role: {} - {}", role.name, role.description);
+    println!("  Permissions: {:?}", role.permissions);
+}
+```
+
+## Related Types
+
+- [WorkspaceRole](/rust-sdk/types/workspace-role) - The workspace role model
+
+## See Also
+
+- [fetch_workspace_roles](/rust-sdk/api/fetch-workspace-roles) - API method that returns this type
+- [create_workspace_role](/rust-sdk/api/create-workspace-role) - Create a new workspace role
+- [update_workspace_role](/rust-sdk/api/update-workspace-role) - Update an existing workspace role

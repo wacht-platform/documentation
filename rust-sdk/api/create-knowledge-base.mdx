@@ -1,0 +1,81 @@
+---
+title: "create_knowledge_base"
+description: "Create a new knowledge base"
+---
+
+## Overview
+
+The `create_knowledge_base` function creates a new AI knowledge base in the system.
+
+## Function Signature
+
+```rust
+pub async fn create_knowledge_base(
+    request: CreateAiKnowledgeBaseRequest
+) -> Result<AiKnowledgeBase>
+```
+
+## Parameters
+
+<ParamField path="request" type="CreateAiKnowledgeBaseRequest" required>
+  The knowledge base data for creation including:
+  - `name`: Knowledge base name (required)
+  - `description`: Knowledge base description (required)
+  - `embedding_model`: Model to use for embeddings (optional)
+  - `chunk_size`: Size of text chunks for processing (optional)
+  - `chunk_overlap`: Overlap between chunks (optional)
+</ParamField>
+
+## Return Value
+
+Returns `Result<AiKnowledgeBase>` containing the created knowledge base details.
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::knowledge_bases::*;
+
+let new_kb = CreateAiKnowledgeBaseRequest {
+    name: "Product Documentation".to_string(),
+    description: "Knowledge base for product documentation and guides".to_string(),
+    embedding_model: Some("text-embedding-ada-002".to_string()),
+    chunk_size: Some(1000),
+    chunk_overlap: Some(200),
+};
+
+let created_kb = create_knowledge_base(new_kb).await?;
+println!("Created knowledge base: {} (ID: {})", created_kb.name, created_kb.id);
+```
+
+## Error Handling
+
+```rust
+match create_knowledge_base(request).await {
+    Ok(kb) => {
+        println!("Successfully created knowledge base: {}", kb.name);
+        println!("Knowledge base ID: {}", kb.id);
+        println!("Embedding model: {}", kb.embedding_model);
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            400 => println!("Invalid request: {}", message),
+            403 => println!("Access denied: {}", message),
+            409 => println!("Knowledge base name already exists: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **Create operations**: 20 requests per minute
+- **Burst limit**: 5 requests per second
+
+## Related Functions
+
+- [fetch_knowledge_bases](fetch-knowledge-bases) - List all knowledge bases
+- [fetch_knowledge_base](fetch-knowledge-base) - Get knowledge base by ID
+- [update_knowledge_base](update-knowledge-base) - Update knowledge base
+- [upload_document](upload-document) - Add documents to knowledge base

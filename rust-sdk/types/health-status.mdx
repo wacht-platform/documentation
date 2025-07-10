@@ -1,0 +1,92 @@
+---
+title: "HealthStatus"
+description: "Health check response with service status information"
+---
+
+## Overview
+
+The `HealthStatus` struct represents the comprehensive health status of the API and its dependent services.
+
+## Definition
+
+```rust
+pub struct HealthStatus {
+    pub status: String,
+    pub version: String,
+    pub timestamp: String,
+    pub services: Vec<ServiceHealth>,
+}
+```
+
+## Fields
+
+<ParamField path="status" type="String" required>
+  The overall health status of the API. Typically "healthy", "degraded", or "unhealthy".
+</ParamField>
+
+<ParamField path="version" type="String" required>
+  The current version of the API.
+</ParamField>
+
+<ParamField path="timestamp" type="String" required>
+  ISO 8601 timestamp indicating when the health check was performed.
+</ParamField>
+
+<ParamField path="services" type="Vec<ServiceHealth>" required>
+  A vector containing the health status of individual services and dependencies.
+</ParamField>
+
+## Usage Example
+
+```rust
+use wacht_rs::api::health::check_health;
+
+let health = check_health().await?;
+
+println!("API Health: {}", health.status);
+println!("Version: {}", health.version);
+println!("Checked at: {}", health.timestamp);
+
+// Check individual services
+println!("\nService Status:");
+for service in &health.services {
+    println!("  {}: {}", service.name, service.status);
+    if let Some(message) = &service.message {
+        println!("    Message: {}", message);
+    }
+}
+
+// Determine if all services are healthy
+let all_healthy = health.services.iter()
+    .all(|s| s.status == "healthy");
+
+if !all_healthy {
+    println!("\nWarning: Some services are not healthy!");
+    
+    // Find unhealthy services
+    let unhealthy_services: Vec<&ServiceHealth> = health.services.iter()
+        .filter(|s| s.status != "healthy")
+        .collect();
+    
+    for service in unhealthy_services {
+        println!("  - {} is {}", service.name, service.status);
+    }
+}
+
+// Simple health check
+match health.status.as_str() {
+    "healthy" => println!("✅ All systems operational"),
+    "degraded" => println!("⚠️  Some services degraded"),
+    "unhealthy" => println!("❌ System unhealthy"),
+    _ => println!("Unknown status: {}", health.status),
+}
+```
+
+## Related Types
+
+- [ServiceHealth](/rust-sdk/types/service-health) - Individual service health status
+
+## See Also
+
+- [check_health](/rust-sdk/api/check-health) - API method that returns this type
+- [ping](/rust-sdk/api/ping) - Simple ping endpoint for basic connectivity check

@@ -1,0 +1,70 @@
+---
+title: "fetch_agent"
+description: "Get AI agent by ID"
+---
+
+## Overview
+
+The `fetch_agent` function retrieves a specific AI agent by its unique identifier.
+
+## Function Signature
+
+```rust
+pub async fn fetch_agent(agent_id: &str) -> Result<AiAgent>
+```
+
+## Parameters
+
+<ParamField path="agent_id" type="&str" required>
+  The unique identifier of the agent to retrieve
+</ParamField>
+
+## Return Value
+
+Returns `Result<AiAgent>` containing the agent details.
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::agents::*;
+
+let agent = fetch_agent("52057194421551105").await?;
+println!("Agent: {} ({})", agent.name, agent.id);
+println!("Description: {}", agent.description);
+println!("Active: {}", agent.is_active);
+```
+
+## Error Handling
+
+```rust
+match fetch_agent("52057194421551105").await {
+    Ok(agent) => {
+        println!("Found agent: {}", agent.name);
+        println!("Type: {}", agent.agent_type);
+        println!("Model: {}", agent.model);
+        if let Some(instructions) = agent.instructions {
+            println!("Instructions: {}", instructions);
+        }
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            404 => println!("Agent not found"),
+            403 => println!("Access denied: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **Get operations**: 1000 requests per minute
+- **Burst limit**: 50 requests per second
+
+## Related Functions
+
+- [fetch_agents](fetch-agents) - List all agents
+- [create_agent](create-agent) - Create a new agent
+- [update_agent](update-agent) - Update agent configuration
+- [delete_agent](delete-agent) - Delete agent

@@ -1,0 +1,134 @@
+---
+title: "upload_image"
+description: "Upload deployment images"
+---
+
+## Overview
+
+The `upload_image` function uploads images for deployment branding such as logos and favicons.
+
+## Function Signature
+
+```rust
+pub async fn upload_image(
+    image_type: &str,
+    file_content: Vec<u8>,
+    file_name: String
+) -> Result<ImageUploadResponse>
+```
+
+## Parameters
+
+<ParamField path="image_type" type="&str" required>
+  Type of image to upload ("logo", "favicon", "background")
+</ParamField>
+
+<ParamField path="file_content" type="Vec<u8>" required>
+  The raw image file content as bytes
+</ParamField>
+
+<ParamField path="file_name" type="String" required>
+  The name of the file being uploaded
+</ParamField>
+
+## Return Value
+
+Returns `Result<ImageUploadResponse>` containing:
+- `url`: Public URL of the uploaded image
+- `size`: File size in bytes
+- `type`: Image MIME type
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::settings::*;
+use std::fs;
+
+// Read logo file
+let logo_content = fs::read("company-logo.png")?;
+let file_name = "company-logo.png".to_string();
+
+let upload_result = upload_image("logo", logo_content, file_name).await?;
+println!("Logo uploaded to: {}", upload_result.url);
+println!("Size: {} bytes", upload_result.size);
+```
+
+## Advanced Usage
+
+```rust
+use wacht_rs::api::settings::*;
+use std::fs;
+use std::path::Path;
+
+async fn upload_branding_image(file_path: &str, image_type: &str) -> Result<String> {
+    let path = Path::new(file_path);
+    let file_name = path.file_name()
+        .ok_or("Invalid file path")?
+        .to_string_lossy()
+        .to_string();
+    
+    let content = fs::read(file_path)?;
+    
+    // Check file size (max 5MB)
+    if content.len() > 5 * 1024 * 1024 {
+        return Err("File too large".into());
+    }
+    
+    println!("Uploading {} ({} KB)...", file_name, content.len() / 1024);
+    
+    let result = upload_image(image_type, content, file_name).await?;
+    
+    println!("Upload successful!");
+    println!("URL: {}", result.url);
+    
+    Ok(result.url)
+}
+
+// Upload multiple branding images
+let logo_url = upload_branding_image("assets/logo.png", "logo").await?;
+let favicon_url = upload_branding_image("assets/favicon.ico", "favicon").await?;
+```
+
+## Error Handling
+
+```rust
+match upload_image(image_type, content, file_name).await {
+    Ok(result) => {
+        println!("Successfully uploaded image");
+        println!("URL: {}", result.url);
+        println!("Type: {}", result.type_);
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            413 => println!("File too large: {}", message),
+            415 => println!("Unsupported file type: {}", message),
+            403 => println!("Access denied: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Upload failed: {}", e),
+}
+```
+
+## Supported Image Types
+
+- **logo**: Main application logo (PNG, JPG, SVG)
+- **favicon**: Browser favicon (ICO, PNG)
+- **background**: Background images (PNG, JPG)
+
+## File Constraints
+
+- Maximum file size: 5MB
+- Supported formats: PNG, JPG, JPEG, GIF, SVG, ICO
+- Recommended logo size: 200x50 pixels
+- Recommended favicon size: 32x32 pixels
+
+## Rate Limits
+
+- **Upload operations**: 20 requests per minute
+- **Burst limit**: 5 requests per second
+
+## Related Functions
+
+- [update_display_settings](update-display-settings) - Apply uploaded images
+- [fetch_deployment_settings](fetch-deployment-settings) - Get current image URLs

@@ -1,0 +1,423 @@
+---
+title: 'Error Handling'
+description: 'Comprehensive error handling in the Wacht Rust SDK'
+---
+
+## Error Types
+
+The Wacht Rust SDK uses a unified `Error` enum for all error conditions:
+
+```rust
+#[derive(Debug, thiserror::Error)]
+pub enum Error {
+    /// API errors with HTTP status and message
+    #[error("API error ({status}): {message}")]
+    Api {
+        status: StatusCode,
+        message: String,
+        details: Option<serde_json::Value>,
+    },
+    
+    /// Network or request errors
+    #[error("Request error: {0}")]
+    Request(#[from] reqwest::Error),
+    
+    /// JSON parsing errors
+    #[error("JSON error: {0}")]
+    Json(#[from] serde_json::Error),
+    
+    /// Configuration errors
+    #[error("Configuration error: {0}")]
+    Config(String),
+    
+    /// Authentication errors
+    #[error("Authentication error: {0}")]
+    Auth(String),
+}
+```
+
+## Common Error Scenarios
+
+### API Errors
+
+API errors include HTTP status code, message, and optional details:
+
+```rust
+use wacht_rs::{UsersApi, Error};
+use axum::http::StatusCode;
+
+match UsersApi::users_user_id_get("invalid-id").await {
+    Ok(user) => println!("User: {}", user.email),
+    Err(Error::Api { status, message, details }) => {
+        match status {
+            StatusCode::NOT_FOUND => {
+                println!("User not found: {}", message);
+            }
+            StatusCode::FORBIDDEN => {
+                println!("Access denied: {}", message);
+            }
+            StatusCode::TOO_MANY_REQUESTS => {
+                println!("Rate limited: {}", message);
+                if let Some(details) = details {
+                    if let Some(retry_after) = details.get("retry_after") {
+                        println!("Retry after: {} seconds", retry_after);
+                    }
+                }
+            }
+            _ => {
+                println!("API error {}: {}", status, message);
+            }
+        }
+    }
+    Err(e) => println!("Other error: {}", e),
+}
+```
+
+### Network Errors
+
+Handle connection and timeout errors:
+
+```rust
+match some_api_call().await {
+    Ok(data) => process_data(data),
+    Err(Error::Request(e)) => {
+        if e.is_timeout() {
+            println!("Request timed out");
+        } else if e.is_connect() {
+            println!("Connection failed");
+        } else {
+            println!("Network error: {}", e);
+        }
+    }
+    Err(e) => println!("Other error: {}", e),
+}
+```
+
+### Configuration Errors
+
+Errors during SDK initialization:
+
+```rust
+use wacht_rs::{init_from_env, Error};
+
+match init_from_env().await {
+    Ok(()) => println!("SDK initialized"),
+    Err(e) => {
+        match e.downcast_ref::<Error>() {
+            Some(Error::Config(msg)) => {
+                eprintln!("Configuration error: {}", msg);
+                eprintln!("Check your environment variables");
+            }
+            _ => eprintln!("Initialization failed: {}", e),
+        }
+    }
+}
+```
+
+## Error Response Format
+
+### Standard API Error Response
+
+```json
+{
+  "error": {
+    "code": "RESOURCE_NOT_FOUND",
+    "message": "User not found",
+    "details": {
+      "user_id": "12345",
+      "suggestion": "Check if the user ID is correct"
+    }
+  },
+  "status": 404
+}
+```
+
+### Rate Limit Error Response
+
+```json
+{
+  "error": {
+    "code": "RATE_LIMIT_EXCEEDED",
+    "message": "Too many requests",
+    "details": {
+      "limit": 100,
+      "window": "1m",
+      "retry_after": 45
+    }
+  },
+  "status": 429
+}
+```
+
+## Error Handling Patterns
+
+### Basic Error Handling
+
+```rust
+use wacht_rs::{Result, Error};
+
+async fn get_user_safe(user_id: &str) -> Result<Option<User>> {
+    match UsersApi::users_user_id_get(user_id).await {
+        Ok(user) => Ok(Some(user)),
+        Err(Error::Api { status, .. }) if status == StatusCode::NOT_FOUND => {
+            Ok(None) // User doesn't exist
+        }
+        Err(e) => Err(e), // Propagate other errors
+    }
+}
+```
+
+### Retry Logic
+
+```rust
+use tokio::time::{sleep, Duration};
+
+async fn with_retry<T, F, Fut>(
+    mut f: F,
+    max_retries: u32,
+) -> Result<T>
+where
+    F: FnMut() -> Fut,
+    Fut: std::future::Future<Output = Result<T>>,
+{
+    let mut attempts = 0;
+    
+    loop {
+        match f().await {
+            Ok(result) => return Ok(result),
+            Err(Error::Api { status, .. }) if status == StatusCode::TOO_MANY_REQUESTS => {
+                attempts += 1;
+                if attempts >= max_retries {
+                    return Err(Error::Config("Max retries exceeded".to_string()));
+                }
+                
+                let delay = Duration::from_secs(2u64.pow(attempts));
+                println!("Rate limited, retrying in {:?}", delay);
+                sleep(delay).await;
+            }
+            Err(e) => return Err(e),
+        }
+    }
+}
+
+// Usage
+let user = with_retry(
+    || UsersApi::users_current_get(),
+    3
+).await?;
+```
+
+### Error Context
+
+Add context to errors for better debugging:
+
+```rust
+use wacht_rs::{Result, Error};
+
+trait ErrorContext<T> {
+    fn context(self, msg: &str) -> Result<T>;
+}
+
+impl<T> ErrorContext<T> for Result<T> {
+    fn context(self, msg: &str) -> Result<T> {
+        self.map_err(|e| {
+            Error::Config(format!("{}: {}", msg, e))
+        })
+    }
+}
+
+// Usage
+let user = UsersApi::users_user_id_get(user_id)
+    .await
+    .context("Failed to fetch user profile")?;
+```
+
+## Middleware Error Handling
+
+### Authentication Errors
+
+The authentication middleware returns specific error responses:
+
+```rust
+// Missing token
+Response {
+    status: 401,
+    headers: {
+        "X-Auth-Error": "Missing authorization header",
+        "WWW-Authenticate": "Bearer"
+    },
+    body: "Missing authorization header"
+}
+
+// Invalid token
+Response {
+    status: 401,
+    headers: {
+        "X-Auth-Error": "Invalid token: ExpiredSignature",
+        "WWW-Authenticate": "Bearer"
+    },
+    body: "Invalid token: ExpiredSignature"
+}
+
+// Missing permissions
+Response {
+    status: 403,
+    headers: {
+        "X-Auth-Error": "Missing required permission: admin:read"
+    },
+    body: "Missing required permission: admin:read"
+}
+```
+
+### Handling in Axum
+
+```rust
+use axum::{
+    response::{IntoResponse, Response},
+    http::StatusCode,
+    Json,
+};
+use serde_json::json;
+
+// Custom error type for handlers
+#[derive(Debug)]
+enum AppError {
+    Wacht(wacht_rs::Error),
+    Validation(String),
+    NotFound(String),
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        let (status, message) = match self {
+            AppError::Wacht(Error::Api { status, message, .. }) => {
+                (status, message)
+            }
+            AppError::Wacht(_) => {
+                (StatusCode::INTERNAL_SERVER_ERROR, "Internal error".to_string())
+            }
+            AppError::Validation(msg) => {
+                (StatusCode::BAD_REQUEST, msg)
+            }
+            AppError::NotFound(msg) => {
+                (StatusCode::NOT_FOUND, msg)
+            }
+        };
+        
+        (status, Json(json!({ "error": message }))).into_response()
+    }
+}
+
+// Usage in handler
+async fn get_user_handler(
+    Path(user_id): Path<String>
+) -> Result<Json<User>, AppError> {
+    let user = UsersApi::users_user_id_get(&user_id)
+        .await
+        .map_err(AppError::Wacht)?;
+    
+    Ok(Json(user))
+}
+```
+
+## Logging Errors
+
+### With tracing
+
+```rust
+use tracing::{error, warn, info};
+
+async fn process_user(user_id: &str) -> Result<()> {
+    match UsersApi::users_user_id_get(user_id).await {
+        Ok(user) => {
+            info!(user_id = %user_id, "Successfully fetched user");
+            // Process user...
+            Ok(())
+        }
+        Err(Error::Api { status, message, .. }) if status == StatusCode::NOT_FOUND => {
+            warn!(user_id = %user_id, "User not found");
+            Err(Error::Api { status, message, details: None })
+        }
+        Err(e) => {
+            error!(user_id = %user_id, error = %e, "Failed to fetch user");
+            Err(e)
+        }
+    }
+}
+```
+
+## Testing Error Handling
+
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use wacht_rs::{Error, StatusCode};
+    
+    #[test]
+    fn test_error_matching() {
+        let error = Error::Api {
+            status: StatusCode::NOT_FOUND,
+            message: "User not found".to_string(),
+            details: None,
+        };
+        
+        match error {
+            Error::Api { status, .. } if status == StatusCode::NOT_FOUND => {
+                // Success - error matched correctly
+            }
+            _ => panic!("Error matching failed"),
+        }
+    }
+    
+    #[tokio::test]
+    async fn test_error_recovery() {
+        // Mock a function that fails then succeeds
+        let mut attempt = 0;
+        let result = loop {
+            attempt += 1;
+            
+            match mock_api_call(attempt).await {
+                Ok(data) => break Ok(data),
+                Err(Error::Api { status, .. }) if status == StatusCode::SERVICE_UNAVAILABLE => {
+                    if attempt >= 3 {
+                        break Err("Service unavailable after 3 attempts".into());
+                    }
+                    tokio::time::sleep(Duration::from_millis(100)).await;
+                }
+                Err(e) => break Err(e),
+            }
+        };
+        
+        assert!(result.is_ok());
+    }
+}
+```
+
+## Best Practices
+
+1. **Always Handle Errors** - Don't use `.unwrap()` in production code
+2. **Provide Context** - Add meaningful error messages
+3. **Log Errors** - Use structured logging for debugging
+4. **Graceful Degradation** - Handle errors without crashing
+5. **Retry Transient Errors** - Implement exponential backoff
+6. **Monitor Error Rates** - Track error patterns in production
+
+## Common Error Codes
+
+| HTTP Status | Error Type | Description | Action |
+|-------------|------------|-------------|--------|
+| 400 | Bad Request | Invalid input data | Validate input |
+| 401 | Unauthorized | Missing/invalid auth | Check token |
+| 403 | Forbidden | Insufficient permissions | Check permissions |
+| 404 | Not Found | Resource doesn't exist | Handle gracefully |
+| 409 | Conflict | Resource already exists | Handle duplicates |
+| 429 | Too Many Requests | Rate limited | Implement retry |
+| 500 | Internal Error | Server error | Retry with backoff |
+| 503 | Service Unavailable | Temporary outage | Retry later |
+
+## Next Steps
+
+- [Async Patterns](async-patterns) - Async error handling patterns
+- [Testing](testing) - Testing error scenarios
+- [API Reference](api/users-api) - See errors in context

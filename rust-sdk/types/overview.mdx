@@ -1,0 +1,128 @@
+---
+title: "API Types Reference"
+description: "Complete reference for all types used in the Wacht Rust SDK API"
+---
+
+## Overview
+
+This reference documents all the public types available in the Wacht Rust SDK API modules. Types are organized by their respective API modules.
+
+## Users API Types
+
+### Response Types
+- **[UserListResponse](/rust-sdk/types/user-list-response)** - Response containing paginated list of users
+- **[UserDetailsResponse](/rust-sdk/types/user-details-response)** - Detailed user information with organizations and workspaces
+- **[InvitationListResponse](/rust-sdk/types/invitation-list-response)** - Response containing user invitations
+- **[WaitlistResponse](/rust-sdk/types/waitlist-response)** - Response containing waitlist users
+
+### Request Types
+- **[ListUsersOptions](/rust-sdk/types/list-users-options)** - Query options for listing users
+- **[UserInvitation](/rust-sdk/types/user-invitation)** - User invitation details structure
+
+## Organizations API Types
+
+### Response Types
+- **[OrganizationListResponse](/rust-sdk/types/organization-list-response)** - Response containing paginated list of organizations
+- **[OrganizationRoleListResponse](/rust-sdk/types/organization-role-list-response)** - Response containing organization roles
+
+### Request Types
+- **[ListOrganizationsOptions](/rust-sdk/types/list-organizations-options)** - Query options for listing organizations
+
+## Workspaces API Types
+
+### Response Types
+- **[WorkspaceListResponse](/rust-sdk/types/workspace-list-response)** - Response containing paginated list of workspaces
+- **[WorkspaceRoleListResponse](/rust-sdk/types/workspace-role-list-response)** - Response containing workspace roles
+
+### Request Types
+- **[ListWorkspacesOptions](/rust-sdk/types/list-workspaces-options)** - Query options for listing workspaces
+
+## Agents API Types
+
+### Response Types
+- **[AgentListResponse](/rust-sdk/types/agent-list-response)** - Response containing paginated list of AI agents
+
+### Request Types
+- **[ListAgentsOptions](/rust-sdk/types/list-agents-options)** - Query options for listing agents
+
+## Workflows API Types
+
+### Response Types
+- **[WorkflowListResponse](/rust-sdk/types/workflow-list-response)** - Response containing paginated list of workflows
+
+### Request Types
+- **[ListWorkflowsOptions](/rust-sdk/types/list-workflows-options)** - Query options for listing workflows
+
+## Knowledge Bases API Types
+
+### Response Types
+- **[KnowledgeBaseListResponse](/rust-sdk/types/knowledge-base-list-response)** - Response containing paginated list of knowledge bases
+- **[DocumentListResponse](/rust-sdk/types/document-list-response)** - Response containing list of documents
+
+### Request Types
+- **[ListKnowledgeBasesOptions](/rust-sdk/types/list-knowledge-bases-options)** - Query options for listing knowledge bases
+- **[KnowledgeBaseSearchOptions](/rust-sdk/types/knowledge-base-search-options)** - Options for searching knowledge bases
+
+## Tools API Types
+
+### Response Types
+- **[ToolListResponse](/rust-sdk/types/tool-list-response)** - Response containing paginated list of AI tools
+
+### Request Types
+- **[ListToolsOptions](/rust-sdk/types/list-tools-options)** - Query options for listing tools
+
+## Analytics API Types
+
+### Response Types
+- **[RecentSignupsResponse](/rust-sdk/types/recent-signups-response)** - Response containing recent signups data
+
+### Request Types
+- **[AnalyticsStatsOptions](/rust-sdk/types/analytics-stats-options)** - Query options for analytics statistics
+
+## Settings API Types
+
+### Response Types
+- **[DeploymentSettingsResponse](/rust-sdk/types/deployment-settings-response)** - Complete deployment settings structure
+- **[JwtTemplateListResponse](/rust-sdk/types/jwt-template-list-response)** - Response containing JWT templates
+- **[ImageUploadResponse](/rust-sdk/types/image-upload-response)** - Response after uploading an image
+
+## Health API Types
+
+### Response Types
+- **[HealthStatus](/rust-sdk/types/health-status)** - Overall health status of the API
+- **[ServiceHealth](/rust-sdk/types/service-health)** - Health status of individual service
+
+## Common Patterns
+
+Most API modules follow consistent patterns:
+
+1. **List Responses** - Include `data` array and `has_more` boolean for pagination
+2. **Options Types** - Provide filtering and pagination parameters
+3. **Request/Response Separation** - Clear distinction between input and output types
+4. **Nested Resources** - Proper handling of resources within resources (e.g., documents in knowledge bases)
+
+## Type Categories
+
+### Response Types
+Response types are returned by API methods and typically include:
+- Data arrays for list operations
+- Pagination indicators
+- Metadata about the response
+
+### Request Types
+Request types are used as input parameters and typically include:
+- Query options (pagination, filtering, search)
+- Creation payloads
+- Update payloads
+
+### Option Types
+Option types provide query parameters for list operations:
+- `page` and `per_page` for pagination
+- `search` for text searching
+- Filter fields like `is_active`, `organization_id`, etc.
+
+## See Also
+
+- [API Modules](/rust-sdk/api-modules) - Overview of all API modules
+- [Error Handling](/rust-sdk/error-handling) - How to handle API errors
+- [Authentication](/rust-sdk/auth/jwt-validation) - Authentication with the API

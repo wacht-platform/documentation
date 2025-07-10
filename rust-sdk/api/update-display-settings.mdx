@@ -1,0 +1,80 @@
+---
+title: "update_display_settings"
+description: "Update UI display settings"
+---
+
+## Overview
+
+The `update_display_settings` function updates the user interface display configuration for your deployment.
+
+## Function Signature
+
+```rust
+pub async fn update_display_settings(
+    settings: DisplaySettings
+) -> Result<()>
+```
+
+## Parameters
+
+<ParamField path="settings" type="DisplaySettings" required>
+  Display configuration including:
+  - `logo_url`: URL to the application logo
+  - `favicon_url`: URL to the favicon
+  - `primary_color`: Primary theme color
+  - `accent_color`: Accent theme color
+  - `dark_mode_enabled`: Enable dark mode option
+  - `custom_css`: Custom CSS styles
+</ParamField>
+
+## Return Value
+
+Returns `Result<()>` indicating success or failure.
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::settings::*;
+
+let display_settings = DisplaySettings {
+    logo_url: Some("https://example.com/logo.png".to_string()),
+    favicon_url: Some("https://example.com/favicon.ico".to_string()),
+    primary_color: Some("#1a73e8".to_string()),
+    accent_color: Some("#fbbc04".to_string()),
+    dark_mode_enabled: true,
+    custom_css: Some(".header { background: #f5f5f5; }".to_string()),
+};
+
+update_display_settings(display_settings).await?;
+println!("Display settings updated successfully");
+```
+
+## Error Handling
+
+```rust
+match update_display_settings(settings).await {
+    Ok(()) => {
+        println!("Successfully updated display settings");
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            400 => println!("Invalid settings: {}", message),
+            403 => println!("Access denied: {}", message),
+            413 => println!("Custom CSS too large: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Update failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **Update operations**: 50 requests per minute
+- **Burst limit**: 5 requests per second
+
+## Related Functions
+
+- [fetch_deployment_settings](fetch-deployment-settings) - Get current settings
+- [update_authentication_settings](update-authentication-settings) - Update auth settings
+- [update_b2b_settings](update-b2b-settings) - Update B2B configuration

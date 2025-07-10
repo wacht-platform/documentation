@@ -1,0 +1,93 @@
+---
+title: "ListAgentsOptions"
+description: "Query options for listing AI agents"
+---
+
+## Overview
+
+The `ListAgentsOptions` struct provides filtering and pagination options when fetching AI agents.
+
+## Definition
+
+```rust
+pub struct ListAgentsOptions {
+    pub page: Option<u32>,
+    pub per_page: Option<u32>,
+    pub is_active: Option<bool>,
+    pub search: Option<String>,
+}
+```
+
+## Fields
+
+<ParamField path="page" type="Option<u32>">
+  The page number to retrieve (1-indexed). Defaults to 1 if not specified.
+</ParamField>
+
+<ParamField path="per_page" type="Option<u32>">
+  Number of agents to return per page. Defaults to 20 if not specified.
+</ParamField>
+
+<ParamField path="is_active" type="Option<bool>">
+  Filter agents by active status. When true, only returns active agents. When false, only returns inactive agents.
+</ParamField>
+
+<ParamField path="search" type="Option<String>">
+  Search query to filter agents by name, description, or other attributes.
+</ParamField>
+
+## Usage Example
+
+```rust
+use wacht_rs::api::agents::{fetch_agents, ListAgentsOptions};
+
+// Fetch all agents with default pagination
+let all_agents = fetch_agents(None).await?;
+
+// Fetch only active agents
+let active_options = ListAgentsOptions {
+    is_active: Some(true),
+    ..Default::default()
+};
+let active_agents = fetch_agents(Some(active_options)).await?;
+
+// Search for specific agents with pagination
+let search_options = ListAgentsOptions {
+    page: Some(2),
+    per_page: Some(50),
+    search: Some("customer support".to_string()),
+    is_active: Some(true),
+};
+let support_agents = fetch_agents(Some(search_options)).await?;
+
+// Iterate through all pages
+let mut page = 1;
+loop {
+    let options = ListAgentsOptions {
+        page: Some(page),
+        per_page: Some(100),
+        ..Default::default()
+    };
+    
+    let response = fetch_agents(Some(options)).await?;
+    
+    // Process agents
+    for agent in &response.data {
+        println!("Agent: {}", agent.name);
+    }
+    
+    if !response.has_more {
+        break;
+    }
+    page += 1;
+}
+```
+
+## Related Types
+
+- [AgentListResponse](/rust-sdk/types/agent-list-response) - The response type returned when listing agents
+- [AiAgent](/rust-sdk/types/ai-agent) - The AI agent model
+
+## See Also
+
+- [fetch_agents](/rust-sdk/api/fetch-agents) - API method that uses this type

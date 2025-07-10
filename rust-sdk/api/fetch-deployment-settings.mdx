@@ -1,0 +1,98 @@
+---
+title: "fetch_deployment_settings"
+description: "Fetch deployment configuration settings"
+---
+
+## Overview
+
+The `fetch_deployment_settings` function retrieves comprehensive deployment configuration including authentication, display, B2B settings, and restrictions.
+
+## Function Signature
+
+```rust
+pub async fn fetch_deployment_settings() -> Result<DeploymentSettingsResponse>
+```
+
+## Parameters
+
+This function takes no parameters.
+
+## Return Value
+
+Returns `Result<DeploymentSettingsResponse>` containing:
+- `id`: Deployment ID
+- `name`: Deployment name
+- `authentication_settings`: Authentication configuration
+- `display_settings`: UI/UX settings
+- `b2b_settings`: B2B features configuration
+- `restrictions`: Access restrictions
+
+## Basic Usage
+
+```rust
+use wacht_rs::api::settings::*;
+
+let settings = fetch_deployment_settings().await?;
+println!("Deployment: {} ({})", settings.name, settings.id);
+println!("Auth providers: {:?}", settings.authentication_settings.providers);
+println!("B2B enabled: {}", settings.b2b_settings.enabled);
+```
+
+## Advanced Usage
+
+```rust
+use wacht_rs::api::settings::*;
+
+let settings = fetch_deployment_settings().await?;
+
+// Check authentication settings
+let auth = &settings.authentication_settings;
+println!("Authentication Configuration:");
+println!("- Password auth: {}", auth.password_enabled);
+println!("- Magic link: {}", auth.magic_link_enabled);
+println!("- Social providers: {:?}", auth.social_providers);
+
+// Check B2B settings
+if settings.b2b_settings.enabled {
+    println!("\nB2B Features:");
+    println!("- SSO enabled: {}", settings.b2b_settings.sso_enabled);
+    println!("- Custom roles: {}", settings.b2b_settings.custom_roles_enabled);
+}
+
+// Check restrictions
+let restrictions = &settings.restrictions;
+if !restrictions.allowed_domains.is_empty() {
+    println!("\nAllowed email domains: {:?}", restrictions.allowed_domains);
+}
+```
+
+## Error Handling
+
+```rust
+match fetch_deployment_settings().await {
+    Ok(settings) => {
+        println!("Successfully retrieved deployment settings");
+        println!("Deployment: {}", settings.name);
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            403 => println!("Access denied: {}", message),
+            404 => println!("Deployment not found"),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **Read operations**: 100 requests per minute
+- **Burst limit**: 20 requests per second
+
+## Related Functions
+
+- [update_authentication_settings](update-authentication-settings) - Update auth configuration
+- [update_display_settings](update-display-settings) - Update UI settings
+- [update_b2b_settings](update-b2b-settings) - Update B2B configuration
+- [update_deployment_restrictions](update-deployment-restrictions) - Update access restrictions

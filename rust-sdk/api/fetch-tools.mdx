@@ -34,7 +34,7 @@ Returns `Result<ToolListResponse>` containing:
 ## Basic Usage
 
 ```rust
-use wacht_rs::api::tools::*;
+use wacht::api::tools::*;
 
 // Fetch all tools
 let tools = fetch_tools(None).await?;
@@ -46,7 +46,7 @@ for tool in tools.data {
 ## Advanced Usage
 
 ```rust
-use wacht_rs::api::tools::*;
+use wacht::api::tools::*;
 
 // Fetch active tools with search
 let options = ListToolsOptions {

@@ -1,0 +1,32 @@
+---
+title: 'AI Workflow'
+description: 'Represents an AI Workflow in Wacht'
+---
+
+This interface defines the structure of an AI Workflow object.
+
+```typescript
+import { AiWorkflowStepsInner } from './ai-workflow-steps-inner';
+
+export interface AiWorkflow {
+    id?: string;
+    name?: string;
+    description?: string;
+    trigger_type?: 'manual' | 'webhook' | 'schedule' | 'event';
+    steps?: AiWorkflowStepsInner[];
+    is_active?: boolean;
+    created_at?: string;
+    updated_at?: string;
+}
+```
+
+#### Properties
+
+- `id` (string, optional): The unique identifier of the AI workflow.
+- `name` (string, optional): The name of the AI workflow.
+- `description` (string, optional): A description of the AI workflow.
+- `trigger_type` (string, optional): The type of trigger for the workflow ('manual', 'webhook', 'schedule', or 'event').
+- `steps` (AiWorkflowStepsInner[], optional): A list of steps in the workflow.
+- `is_active` (boolean, optional): Indicates if the workflow is active.
+- `created_at` (string, optional): The timestamp when the workflow was created.
+- `updated_at` (string, optional): The timestamp when the workflow was last updated.

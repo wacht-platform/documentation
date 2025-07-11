@@ -19,17 +19,17 @@ Add the SDK to your `Cargo.toml` file:
 
 ```toml Cargo.toml
 [dependencies]
-wacht-rs = "2.0.0"
+wacht = "2.0.0"
 tokio = { version = "1", features = ["full"] }
 ```
 
 ```toml With specific features
 [dependencies]
 # With Axum middleware support (default)
-wacht-rs = { version = "2.0.0", features = ["axum"] }
+wacht = { version = "2.0.0", features = ["axum"] }
 
 # Without Axum middleware
-wacht-rs = { version = "2.0.0", default-features = false }
+wacht = { version = "2.0.0", default-features = false }
 
 # Required runtime
 tokio = { version = "1", features = ["full"] }
@@ -84,7 +84,7 @@ Enables Axum middleware support for JWT authentication and permission checking.
 
 ```toml
 [dependencies]
-wacht-rs = { version = "2.0.0", features = ["axum"] }
+wacht = { version = "2.0.0", features = ["axum"] }
 ```
 
 This feature adds:
@@ -112,7 +112,7 @@ cargo update
 cargo build
 
 # Check for any version conflicts
-cargo tree -i wacht-rs
+cargo tree -i wacht
 ```
 
 ## Next Steps
@@ -143,11 +143,11 @@ If you're using Axum in your project, ensure you're using version 0.8.x to match
 ```toml
 [dependencies]
 axum = "0.8"
-wacht-rs = "2.0.0"
+wacht = "2.0.0"
 ```
 </Accordion>
 
-<Accordion title="Cannot find crate 'wacht-rs'">
+<Accordion title="Cannot find crate 'wacht'">
 Ensure you've run `cargo build` or `cargo update` after adding the dependency to your `Cargo.toml`.
 </Accordion>
 

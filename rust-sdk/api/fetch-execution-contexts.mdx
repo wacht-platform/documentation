@@ -1,0 +1,110 @@
+---
+title: "fetch_execution_contexts"
+description: "List all AI execution contexts"
+---
+
+## Overview
+
+The `fetch_execution_contexts` function retrieves a paginated list of execution contexts for the current workspace.
+
+## Function Signature
+
+```rust
+pub async fn fetch_execution_contexts(
+    options: Option<ListExecutionContextsOptions>
+) -> Result<ExecutionContextListResponse>
+```
+
+## Parameters
+
+<ParamField path="options" type="Option<ListExecutionContextsOptions>">
+  Optional query parameters including:
+  - `page`: Page number (default: 1)
+  - `per_page`: Items per page (default: 20, max: 100)
+  - `agent_id`: Filter by specific agent ID
+  - `workflow_id`: Filter by specific workflow ID
+</ParamField>
+
+## Return Value
+
+Returns `Result<ExecutionContextListResponse>` containing:
+- `data`: Vector of `AiExecutionContext` objects
+- `has_more`: Boolean indicating if more pages exist
+
+## Basic Usage
+
+```rust
+use wacht::api::execution_context::*;
+
+// Fetch all execution contexts
+let contexts = fetch_execution_contexts(None).await?;
+println!("Found {} execution contexts", contexts.data.len());
+
+for context in contexts.data {
+    println!("Context: {}", context.id.unwrap_or_default());
+    println!("  Agent: {}", context.agent_id.unwrap_or_default());
+    println!("  Created: {}", context.created_at.unwrap_or_default());
+}
+```
+
+## Advanced Usage
+
+```rust
+use wacht::api::execution_context::*;
+
+// Filter by agent with pagination
+let options = ListExecutionContextsOptions {
+    page: Some(1),
+    per_page: Some(50),
+    agent_id: Some("agent_123".to_string()),
+    workflow_id: None,
+};
+
+let mut all_contexts = Vec::new();
+let mut current_page = 1;
+
+loop {
+    let mut opts = options.clone();
+    opts.page = Some(current_page);
+
+    let response = fetch_execution_contexts(Some(opts)).await?;
+    all_contexts.extend(response.data);
+
+    if !response.has_more {
+        break;
+    }
+    current_page += 1;
+}
+
+println!("Total contexts for agent: {}", all_contexts.len());
+```
+
+## Error Handling
+
+```rust
+match fetch_execution_contexts(Some(options)).await {
+    Ok(response) => {
+        println!("Retrieved {} contexts", response.data.len());
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            401 => println!("Authentication failed: {}", message),
+            403 => println!("Access denied: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **Read operations**: 100 requests per minute
+- **Burst limit**: 20 requests per second
+
+## Related Functions
+
+- [fetch_execution_context](fetch-execution-context) - Get specific context
+- [create_execution_context](create-execution-context) - Create new context
+- [update_execution_context](update-execution-context) - Update context
+- [delete_execution_context](delete-execution-context) - Delete context

@@ -25,7 +25,7 @@ Returns `Result<OrganizationRoleListResponse>` containing:
 ## Basic Usage
 
 ```rust
-use wacht_rs::api::organizations::*;
+use wacht::api::organizations::*;
 
 let roles = fetch_organization_roles().await?;
 for role in roles.data {

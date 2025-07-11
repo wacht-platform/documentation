@@ -49,7 +49,7 @@ pub struct UserInvitation {
 ## Usage Example
 
 ```rust
-use wacht_rs::api::users::*;
+use wacht::api::users::*;
 
 // Fetch all pending invitations
 let invitations = fetch_invitations(None).await?;
@@ -59,7 +59,7 @@ for invitation in invitations.data {
     println!("  ID: {}", invitation.id);
     println!("  Role: {}", invitation.role.unwrap_or("default".to_string()));
     println!("  Expires: {}", invitation.expires_at);
-    
+
     if let Some(org_id) = invitation.organization_id {
         println!("  Organization: {}", org_id);
     }

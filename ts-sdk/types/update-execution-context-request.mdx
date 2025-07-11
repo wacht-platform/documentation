@@ -1,0 +1,16 @@
+---
+title: 'Update Execution Context Request'
+description: 'Request body for updating an existing AI Execution Context'
+---
+
+This type defines the structure of the request body used when updating an existing AI Execution Context. It is a partial representation of the `AiExecutionContext` interface, allowing for partial updates.
+
+```typescript
+import { AiExecutionContext } from './ai-execution-context';
+
+export type UpdateExecutionContextRequest = Partial<AiExecutionContext>;
+```
+
+#### Properties
+
+All properties are optional, as this is a partial update. Refer to `AiExecutionContext` for property details.

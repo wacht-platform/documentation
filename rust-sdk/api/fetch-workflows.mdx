@@ -34,7 +34,7 @@ Returns `Result<WorkflowListResponse>` containing:
 ## Basic Usage
 
 ```rust
-use wacht_rs::api::workflows::*;
+use wacht::api::workflows::*;
 
 // Fetch all workflows
 let workflows = fetch_workflows(None).await?;
@@ -46,7 +46,7 @@ for workflow in workflows.data {
 ## Advanced Usage
 
 ```rust
-use wacht_rs::api::workflows::*;
+use wacht::api::workflows::*;
 
 // Fetch active workflows with search
 let options = ListWorkflowsOptions {

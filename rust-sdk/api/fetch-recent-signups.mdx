@@ -28,7 +28,7 @@ Returns `Result<RecentSignupsResponse>` containing:
 ## Basic Usage
 
 ```rust
-use wacht_rs::api::analytics::*;
+use wacht::api::analytics::*;
 
 // Fetch recent signups with default limit
 let signups = fetch_recent_signups(None).await?;
@@ -42,7 +42,7 @@ for signup in signups.data {
 ## Advanced Usage
 
 ```rust
-use wacht_rs::api::analytics::*;
+use wacht::api::analytics::*;
 
 // Fetch last 25 signups
 let signups = fetch_recent_signups(Some(25)).await?;

@@ -1,0 +1,24 @@
+---
+title: 'Generate Token Response'
+description: 'Response containing a generated JWT token'
+---
+
+This interface defines the structure of the response when generating a JWT token.
+
+```typescript
+export interface GenerateTokenResponse {
+    /**
+     * The generated JWT token
+     */
+    token: string;
+    /**
+     * Token expiration timestamp in milliseconds
+     */
+    expires: number;
+}
+```
+
+#### Properties
+
+- `token` (string): The generated JWT token.
+- `expires` (number): Token expiration timestamp in milliseconds.

@@ -26,7 +26,7 @@ Returns `Result<Workspace>` containing the workspace details.
 ## Basic Usage
 
 ```rust
-use wacht_rs::api::workspaces::*;
+use wacht::api::workspaces::*;
 
 let workspace = fetch_workspace("52057194421551105").await?;
 println!("Workspace: {} ({})", workspace.name, workspace.slug);

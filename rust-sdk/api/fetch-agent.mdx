@@ -26,7 +26,7 @@ Returns `Result<AiAgent>` containing the agent details.
 ## Basic Usage
 
 ```rust
-use wacht_rs::api::agents::*;
+use wacht::api::agents::*;
 
 let agent = fetch_agent("52057194421551105").await?;
 println!("Agent: {} ({})", agent.name, agent.id);

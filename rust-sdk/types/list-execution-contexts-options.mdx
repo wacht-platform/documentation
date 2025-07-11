@@ -1,0 +1,84 @@
+---
+title: "ListExecutionContextsOptions"
+description: "Query options for filtering execution context lists"
+---
+
+## Overview
+
+The `ListExecutionContextsOptions` struct provides parameters for filtering and paginating execution context list requests.
+
+## Definition
+
+```rust
+pub struct ListExecutionContextsOptions {
+    pub page: Option<u32>,
+    pub per_page: Option<u32>,
+    pub agent_id: Option<String>,
+    pub workflow_id: Option<String>,
+}
+```
+
+## Fields
+
+<ParamField path="page" type="Option<u32>">
+  The page number to retrieve. Defaults to 1 if not specified.
+</ParamField>
+
+<ParamField path="per_page" type="Option<u32>">
+  Number of execution contexts to return per page. Defaults to 20 if not specified. Maximum is typically 100.
+</ParamField>
+
+<ParamField path="agent_id" type="Option<String>">
+  Filter execution contexts by specific agent ID.
+</ParamField>
+
+<ParamField path="workflow_id" type="Option<String>">
+  Filter execution contexts by specific workflow ID.
+</ParamField>
+
+## Usage Example
+
+```rust
+use wacht::api::execution_context::*;
+
+// Basic pagination
+let options = ListExecutionContextsOptions {
+    page: Some(2),
+    per_page: Some(50),
+    agent_id: None,
+    workflow_id: None,
+};
+
+// Filter by agent
+let agent_options = ListExecutionContextsOptions {
+    page: Some(1),
+    per_page: Some(20),
+    agent_id: Some("agent_123".to_string()),
+    workflow_id: None,
+};
+
+// Filter by workflow
+let workflow_options = ListExecutionContextsOptions {
+    page: None,
+    per_page: None,
+    agent_id: None,
+    workflow_id: Some("workflow_456".to_string()),
+};
+
+let response = fetch_execution_contexts(Some(agent_options)).await?;
+```
+
+## Default Values
+
+- `page`: 1
+- `per_page`: 20
+- `agent_id`: None (no filtering)
+- `workflow_id`: None (no filtering)
+
+## Related Types
+
+- [ExecutionContextListResponse](/rust-sdk/types/execution-context-list-response) - Response type returned
+
+## See Also
+
+- [fetch_execution_contexts](/rust-sdk/api/fetch-execution-contexts) - API method that uses this type

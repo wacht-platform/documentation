@@ -15,7 +15,7 @@
         "tab": "Documentation",
         "dropdowns": [
           {
-            "dropdown": "React Core",
+            "dropdown": "React",
             "icon": "react",
             "anchors": [
               {
@@ -133,7 +133,7 @@
             ]
           },
           {
-            "dropdown": "Rust Core",
+            "dropdown": "Rust",
             "icon": "rust",
             "anchors": [
               {
@@ -143,9 +143,162 @@
                   {
                     "group": "Getting Started",
                     "pages": [
-                      "rust-sdk/introduction",
-                      "rust-sdk/installation",
-                      "rust-sdk/quickstart"
+                      "ts-sdk/introduction",
+                      "ts-sdk/installation",
+                      "ts-sdk/quickstart"
+                    ]
+                  }
+                ]
+              },
+              {
+                "anchor": "Authentication",
+                "icon": "shield",
+                "groups": [
+                  {
+                    "group": "JWT",
+                    "pages": [
+                      "ts-sdk/auth/jwt-validation",
+                      "ts-sdk/auth/token-claims"
+                    ]
+                  },
+                  {
+                    "group": "Middleware",
+                    "pages": [
+                      "ts-sdk/middleware/node",
+                      "ts-sdk/middleware/hono"
+                    ]
+                  }
+                ]
+              },
+              {
+                "anchor": "API Modules",
+                "icon": "code",
+                "groups": [
+                  {
+                    "group": "Agents API",
+                    "pages": ["ts-sdk/api/agents"]
+                  },
+                  {
+                    "group": "Analytics API",
+                    "pages": ["ts-sdk/api/analytics"]
+                  },
+                  {
+                    "group": "Deployments API",
+                    "pages": ["ts-sdk/api/deployments"]
+                  },
+                  {
+                    "group": "Execution Context API",
+                    "pages": ["ts-sdk/api/execution-context"]
+                  },
+                  {
+                    "group": "Health API",
+                    "pages": ["ts-sdk/api/health"]
+                  },
+                  {
+                    "group": "Knowledge Bases API",
+                    "pages": ["ts-sdk/api/knowledge-bases"]
+                  },
+                  {
+                    "group": "Organizations API",
+                    "pages": ["ts-sdk/api/organizations"]
+                  },
+                  {
+                    "group": "Settings API",
+                    "pages": ["ts-sdk/api/settings"]
+                  },
+                  {
+                    "group": "Tools API",
+                    "pages": ["ts-sdk/api/tools"]
+                  },
+                  {
+                    "group": "Users API",
+                    "pages": ["ts-sdk/api/users"]
+                  },
+                  {
+                    "group": "Workflows API",
+                    "pages": ["ts-sdk/api/workflows"]
+                  },
+                  {
+                    "group": "Workspaces API",
+                    "pages": ["ts-sdk/api/workspaces"]
+                  }
+                ]
+              },
+              {
+                "anchor": "API Types",
+                "icon": "database",
+                "groups": [
+                  {
+                    "group": "Common Types",
+                    "pages": [
+                      "ts-sdk/types/add-organization-member-request",
+                      "ts-sdk/types/ai-agent",
+                      "ts-sdk/types/ai-execution-context",
+                      "ts-sdk/types/ai-knowledge-base",
+                      "ts-sdk/types/ai-tool-config-parameters-inner",
+                      "ts-sdk/types/ai-tool-config",
+                      "ts-sdk/types/ai-tool",
+                      "ts-sdk/types/ai-workflow-steps-inner",
+                      "ts-sdk/types/ai-workflow",
+                      "ts-sdk/types/analytics-stats",
+                      "ts-sdk/types/authentication-settings",
+                      "ts-sdk/types/b2-b-settings",
+                      "ts-sdk/types/create-ai-agent-request",
+                      "ts-sdk/types/create-ai-execution-context-request",
+                      "ts-sdk/types/create-ai-knowledge-base-request",
+                      "ts-sdk/types/create-ai-tool-request",
+                      "ts-sdk/types/create-ai-workflow-request",
+                      "ts-sdk/types/create-jwt-template-request",
+                      "ts-sdk/types/create-organization-request",
+                      "ts-sdk/types/create-role-request",
+                      "ts-sdk/types/create-user-request",
+                      "ts-sdk/types/create-workspace-request",
+                      "ts-sdk/types/deployment-restrictions",
+                      "ts-sdk/types/display-settings",
+                      "ts-sdk/types/email-template",
+                      "ts-sdk/types/generate-token-request",
+                      "ts-sdk/types/generate-token-response",
+                      "ts-sdk/types/image-upload-response",
+                      "ts-sdk/types/invite-user-request",
+                      "ts-sdk/types/jwt-template",
+                      "ts-sdk/types/knowledge-base-document",
+                      "ts-sdk/types/knowledge-base-search-result-results-inner",
+                      "ts-sdk/types/knowledge-base-search-result",
+                      "ts-sdk/types/organization-member",
+                      "ts-sdk/types/organization-role",
+                      "ts-sdk/types/organization",
+                      "ts-sdk/types/recent-signup-organization",
+                      "ts-sdk/types/recent-signup",
+                      "ts-sdk/types/social-connection",
+                      "ts-sdk/types/update-ai-agent-request",
+                      "ts-sdk/types/update-ai-knowledge-base-request",
+                      "ts-sdk/types/update-ai-tool-request",
+                      "ts-sdk/types/update-ai-workflow-request",
+                      "ts-sdk/types/update-execution-context-request",
+                      "ts-sdk/types/update-jwt-template-request",
+                      "ts-sdk/types/update-organization-member-request",
+                      "ts-sdk/types/update-organization-request",
+                      "ts-sdk/types/update-password-request",
+                      "ts-sdk/types/update-role-request",
+                      "ts-sdk/types/update-user-request",
+                      "ts-sdk/types/update-workspace-request",
+                      "ts-sdk/types/user-email",
+                      "ts-sdk/types/user-phone",
+                      "ts-sdk/types/user",
+                      "ts-sdk/types/waitlist-user",
+                      "ts-sdk/types/workspace-role",
+                      "ts-sdk/types/workspace"
+                    ]
+                  },
+                  {
+                    "group": "Authentication",
+                    "icon": "shield",
+                    "pages": [
+                      "ts-sdk/auth/jwt-validation",
+                      "ts-sdk/auth/token-claims",
+
+                      "ts-sdk/middleware/node",
+                      "ts-sdk/middleware/hono"
                     ]
                   },
                   {
@@ -223,13 +376,7 @@
                   },
                   {
                     "group": "Agents API",
-                    "pages": [
-                      "rust-sdk/api/fetch-agents",
-                      "rust-sdk/api/fetch-agent",
-                      "rust-sdk/api/create-agent",
-                      "rust-sdk/api/update-agent",
-                      "rust-sdk/api/delete-agent"
-                    ]
+                    "pages": ["ts-sdk/api/agents"]
                   },
                   {
                     "group": "Workflows API",
@@ -268,10 +415,7 @@
                   },
                   {
                     "group": "Analytics API",
-                    "pages": [
-                      "rust-sdk/api/fetch-analytics-stats",
-                      "rust-sdk/api/fetch-recent-signups"
-                    ]
+                    "pages": ["ts-sdk/api/analytics"]
                   },
                   {
                     "group": "Settings API",
@@ -287,15 +431,16 @@
                   },
                   {
                     "group": "Health API",
-                    "pages": [
-                      "rust-sdk/api/check-health",
-                      "rust-sdk/api/ping"
-                    ]
+                    "pages": ["rust-sdk/api/check-health", "rust-sdk/api/ping"]
                   },
                   {
                     "group": "Execution Context API",
                     "pages": [
-                      "rust-sdk/api/create-execution-context"
+                      "rust-sdk/api/fetch-execution-contexts",
+                      "rust-sdk/api/fetch-execution-context",
+                      "rust-sdk/api/create-execution-context",
+                      "rust-sdk/api/update-execution-context",
+                      "rust-sdk/api/delete-execution-context"
                     ]
                   }
                 ]
@@ -390,6 +535,14 @@
                     "pages": [
                       "rust-sdk/types/health-status",
                       "rust-sdk/types/service-health"
+                    ]
+                  },
+                  {
+                    "group": "Execution Context Types",
+                    "pages": [
+                      "rust-sdk/types/execution-context-list-response",
+                      "rust-sdk/types/list-execution-contexts-options",
+                      "rust-sdk/types/update-execution-context-request"
                     ]
                   }
                 ]

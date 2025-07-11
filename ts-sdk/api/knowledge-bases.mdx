@@ -1,0 +1,142 @@
+---
+title: 'Knowledge Bases API'
+description: 'Manage AI Knowledge Bases in Wacht'
+---
+
+## Overview
+
+The Knowledge Bases API allows you to manage AI knowledge bases and their associated documents within the Wacht platform. You can list, retrieve, create, update, and delete knowledge bases and documents, as well as perform searches.
+
+### `fetchKnowledgeBases(options?: ListKnowledgeBasesOptions)`
+
+Lists all AI knowledge bases.
+
+#### Parameters
+
+- `options` (optional): An object containing pagination and filtering options.
+  - `page` (number): The page number to retrieve.
+  - `per_page` (number): The number of items per page.
+  - `search` (string): Search term for knowledge bases.
+
+#### Returns
+
+`Promise<KnowledgeBaseListResponse>`: A promise that resolves to a list of AI knowledge bases and pagination information.
+
+### `createKnowledgeBase(request: CreateAiKnowledgeBaseRequest)`
+
+Creates a new AI knowledge base.
+
+#### Parameters
+
+- `request` (CreateAiKnowledgeBaseRequest): The request body containing the details of the new AI knowledge base.
+
+#### Returns
+
+`Promise<AiKnowledgeBase>`: A promise that resolves to the newly created AI knowledge base object.
+
+### `fetchKnowledgeBase(knowledgeBaseId: string)`
+
+Retrieves a specific AI knowledge base by its ID.
+
+#### Parameters
+
+- `knowledgeBaseId` (string): The unique identifier of the AI knowledge base.
+
+#### Returns
+
+`Promise<AiKnowledgeBase>`: A promise that resolves to the AI knowledge base object.
+
+### `updateKnowledgeBase(knowledgeBaseId: string, request: UpdateAiKnowledgeBaseRequest)`
+
+Updates an existing AI knowledge base.
+
+#### Parameters
+
+- `knowledgeBaseId` (string): The unique identifier of the AI knowledge base to update.
+- `request` (UpdateAiKnowledgeBaseRequest): The request body containing the updated details of the AI knowledge base.
+
+#### Returns
+
+`Promise<AiKnowledgeBase>`: A promise that resolves to the updated AI knowledge base object.
+
+### `deleteKnowledgeBase(knowledgeBaseId: string)`
+
+Deletes an AI knowledge base by its ID.
+
+#### Parameters
+
+- `knowledgeBaseId` (string): The unique identifier of the AI knowledge base to delete.
+
+#### Returns
+
+`Promise<void>`: A promise that resolves when the knowledge base is successfully deleted.
+
+### `fetchDocuments(knowledgeBaseId: string)`
+
+Lists all documents within a specific knowledge base.
+
+#### Parameters
+
+- `knowledgeBaseId` (string): The unique identifier of the knowledge base.
+
+#### Returns
+
+`Promise<DocumentListResponse>`: A promise that resolves to a list of documents and pagination information.
+
+### `uploadDocument(knowledgeBaseId: string, file: Buffer, fileName: string)`
+
+Uploads a new document to a specific knowledge base.
+
+#### Parameters
+
+- `knowledgeBaseId` (string): The unique identifier of the knowledge base.
+- `file` (Buffer): The content of the file to upload.
+- `fileName` (string): The name of the file.
+
+#### Returns
+
+`Promise<KnowledgeBaseDocument>`: A promise that resolves to the newly uploaded document object.
+
+### `deleteDocument(knowledgeBaseId: string, documentId: string)`
+
+Deletes a document from a specific knowledge base.
+
+#### Parameters
+
+- `knowledgeBaseId` (string): The unique identifier of the knowledge base.
+- `documentId` (string): The unique identifier of the document to delete.
+
+#### Returns
+
+`Promise<void>`: A promise that resolves when the document is successfully deleted.
+
+### `searchGlobal(options: KnowledgeBaseSearchOptions)`
+
+Performs a global search across all knowledge bases.
+
+#### Parameters
+
+- `options` (KnowledgeBaseSearchOptions): The search options.
+  - `query` (string): The search query.
+  - `limit` (number): The maximum number of search results to return.
+  - `threshold` (number): The minimum relevance score for results.
+
+#### Returns
+
+`Promise<KnowledgeBaseSearchResult>`: A promise that resolves to the search results.
+
+### `searchKnowledgeBase(knowledgeBaseId: string, options: KnowledgeBaseSearchOptions)`
+
+Performs a search within a specific knowledge base.
+
+#### Parameters
+
+- `knowledgeBaseId` (string): The unique identifier of the knowledge base.
+- `options` (KnowledgeBaseSearchOptions): The search options.
+  - `query` (string): The search query.
+  - `limit` (number): The maximum number of search results to return.
+  - `threshold` (number): The minimum relevance score for results.
+
+#### Returns
+
+`Promise<KnowledgeBaseSearchResult>`: A promise that resolves to the search results.

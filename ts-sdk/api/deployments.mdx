@@ -1,0 +1,21 @@
+---
+title: 'Deployments API'
+description: 'Manage Deployments in Wacht'
+---
+
+## Overview
+
+The Deployments API allows you to manage deployment-related operations, such as generating JWT tokens.
+
+### `generateToken(deploymentId: number, request: GenerateTokenRequest)`
+
+Generates a JWT token for a given session with optional custom claims using Handlebars templates. The token includes standard claims (iss, sub, iat, exp, session_id) plus organization and workspace permissions if applicable. Custom claims can be added using JWT templates with Handlebars syntax that has access to user, session, organization, and workspace data.
+
+#### Parameters
+
+- `deploymentId` (number): The ID of the deployment.
+- `request` (GenerateTokenRequest): The request body containing details for token generation.
+
+#### Returns
+
+`Promise<GenerateTokenResponse>`: A promise that resolves to the generated JWT token response.

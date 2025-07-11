@@ -33,10 +33,10 @@ Returns `Result<UserEmail>` containing the added email details.
 ## Basic Usage
 
 ```rust
-use wacht_rs::api::users::*;
+use wacht::api::users::*;
 
 let user_email = add_email(
-    "52057194421551105", 
+    "52057194421551105",
     "secondary@example.com".to_string()
 ).await?;
 

@@ -38,7 +38,7 @@ Returns `Result<KnowledgeBaseDocument>` containing the uploaded document details
 ## Basic Usage
 
 ```rust
-use wacht_rs::api::knowledge_bases::*;
+use wacht::api::knowledge_bases::*;
 use std::fs;
 
 // Read file content
@@ -53,7 +53,7 @@ println!("Size: {} bytes", document.size);
 ## Advanced Usage
 
 ```rust
-use wacht_rs::api::knowledge_bases::*;
+use wacht::api::knowledge_bases::*;
 use std::fs;
 use std::path::Path;
 
@@ -63,16 +63,16 @@ async fn upload_file_to_kb(kb_id: &str, file_path: &str) -> Result<KnowledgeBase
         .ok_or("Invalid file path")?
         .to_string_lossy()
         .to_string();
-    
+
     let content = fs::read(file_path)?;
-    
+
     println!("Uploading {} ({} bytes)...", file_name, content.len());
     let doc = upload_document(kb_id, content, file_name).await?;
-    
+
     println!("Upload complete!");
     println!("Document ID: {}", doc.id);
     println!("Processing status: {}", doc.status);
-    
+
     Ok(doc)
 }
 ```

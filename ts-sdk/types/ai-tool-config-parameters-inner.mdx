@@ -1,0 +1,20 @@
+---
+title: 'AI Tool Config Parameters Inner'
+description: 'Represents a parameter within an AI Tool Configuration in Wacht'
+---
+
+This interface defines the structure of a parameter within an AI Tool Configuration.
+
+```typescript
+export interface AiToolConfigParametersInner {
+    name?: string;
+    type?: string;
+    required?: boolean;
+}
+```
+
+#### Properties
+
+- `name` (string, optional): The name of the parameter.
+- `type` (string, optional): The data type of the parameter (e.g., 'string', 'number', 'boolean').
+- `required` (boolean, optional): Indicates if the parameter is required.

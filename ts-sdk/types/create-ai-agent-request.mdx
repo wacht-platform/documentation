@@ -1,0 +1,30 @@
+---
+title: 'Create AI Agent Request'
+description: 'Request body for creating a new AI Agent'
+---
+
+This interface defines the structure of the request body used when creating a new AI Agent.
+
+```typescript
+export interface CreateAiAgentRequest {
+    name: string;
+    description?: string;
+    model: string;
+    system_prompt?: string;
+    temperature?: number;
+    max_tokens?: number;
+    tools?: string[];
+    knowledge_bases?: string[];
+}
+```
+
+#### Properties
+
+- `name` (string): The name of the AI agent.
+- `description` (string, optional): A description of the AI agent.
+- `model` (string): The AI model to be used by the agent.
+- `system_prompt` (string, optional): The system prompt for the AI agent.
+- `temperature` (number, optional): The temperature setting for the AI model.
+- `max_tokens` (number, optional): The maximum number of tokens for the AI model.
+- `tools` (string[], optional): A list of tool IDs to associate with the agent.
+- `knowledge_bases` (string[], optional): A list of knowledge base IDs to associate with the agent.

@@ -1,0 +1,109 @@
+---
+title: 'Installation'
+description: 'How to install and set up the Wacht TypeScript SDK'
+---
+
+## Requirements
+
+Before installing the Wacht TypeScript SDK, ensure you have:
+
+- **Node.js 18+** - The SDK requires a recent version of Node.js
+- **pnpm 8+** - Recommended package manager
+- **Valid Wacht API Key** - Required for authentication
+
+## Adding the Dependency
+
+Add the main SDK package and the relevant middleware package to your project:
+
+<CodeGroup>
+
+```bash
+pnpm add wacht-ts
+# For Node.js (Express-style) applications
+pnpm add wacht-middleware-node
+# For Hono applications
+pnpm add wacht-middleware-hono
+```
+
+</CodeGroup>
+
+## Environment Variables
+
+The SDK can be configured using environment variables:
+
+<ParamField path="WACHT_API_KEY" type="string" required>
+  Your Wacht API key for authentication. This will be sent as a Bearer token.
+</ParamField>
+
+<ParamField path="WACHT_FRONTEND_HOST" type="string" required>
+  The base URL of your Wacht frontend (e.g., `https://your-app.wacht.io`)
+</ParamField>
+
+<ParamField path="WACHT_PUBLIC_SIGNING_KEY" type="string">
+  Optional PEM-encoded public key for JWT verification. If not provided, the SDK will fetch it automatically from the `/.well-known/jwk` endpoint.
+</ParamField>
+
+### Setting Environment Variables
+
+<CodeGroup>
+
+```bash .env file
+WACHT_API_KEY=your-api-key-here
+WACHT_FRONTEND_HOST=https://your-app.wacht.io
+```
+
+```bash Shell export
+export WACHT_API_KEY="your-api-key-here"
+export WACHT_FRONTEND_HOST="https://your-app.wacht.io"
+```
+
+```bash Windows PowerShell
+$env:WACHT_API_KEY="your-api-key-here"
+$env:WACHT_FRONTEND_HOST="https://your-app.wacht.io"
+```
+
+</CodeGroup>
+
+## Version Compatibility
+
+| Package | Version | Node.js Version | TypeScript Version |
+|---------|---------|-----------------|--------------------|
+| `wacht-ts` | 0.2.x | 18+ | 5.x |
+| `wacht-middleware-node` | 0.1.x | 18+ | 5.x |
+| `wacht-middleware-hono` | 0.1.x | 18+ | 5.x |
+
+## Verifying Installation
+
+After adding the dependencies, verify the installation:
+
+```bash
+pnpm install
+pnpm recursive run build
+```
+
+## Next Steps
+
+Once installed, proceed to:
+- [Quick Start](quickstart) - Get up and running quickly
+- [Configuration](configuration) - Detailed configuration options
+
+## Troubleshooting
+
+### Common Issues
+
+<AccordionGroup>
+
+<Accordion title="Error: WACHT_API_KEY must be set">
+Ensure you've set the `WACHT_API_KEY` environment variable before running your application:
+
+```bash
+export WACHT_API_KEY="your-api-key"
+pnpm start
+```
+</Accordion>
+
+<Accordion title="Cannot find module 'wacht-ts' or related middleware packages">
+Ensure you have run `pnpm install` in your project root and that your `tsconfig.json` includes `"baseUrl": "."` and `"paths": { "wacht-ts": ["./node_modules/wacht-ts"] }` (or similar, depending on your project setup).
+</Accordion>
+
+</AccordionGroup>

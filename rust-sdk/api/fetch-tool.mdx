@@ -26,7 +26,7 @@ Returns `Result<AiTool>` containing the tool details.
 ## Basic Usage
 
 ```rust
-use wacht_rs::api::tools::*;
+use wacht::api::tools::*;
 
 let tool = fetch_tool("52057194421551105").await?;
 println!("Tool: {} ({})", tool.name, tool.id);
@@ -42,7 +42,7 @@ match fetch_tool("52057194421551105").await {
     Ok(tool) => {
         println!("Found tool: {}", tool.name);
         println!("Type: {}", tool.tool_type);
-        
+
         if let Some(config) = &tool.config {
             println!("Configuration:");
             if let Some(url) = &config.url {

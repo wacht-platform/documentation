@@ -39,7 +39,7 @@ pub struct ListToolsOptions {
 ## Usage Example
 
 ```rust
-use wacht_rs::api::tools::{fetch_tools, ListToolsOptions};
+use wacht::api::tools::{fetch_tools, ListToolsOptions};
 
 // Fetch all tools with default pagination
 let all_tools = fetch_tools(None).await?;
@@ -71,13 +71,13 @@ loop {
         is_active: Some(true), // Only active tools
         ..Default::default()
     };
-    
+
     let response = fetch_tools(Some(options)).await?;
-    
+
     for tool in &response.data {
         all_tool_names.push(tool.name.clone());
     }
-    
+
     if !response.has_more {
         break;
     }

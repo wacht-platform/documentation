@@ -26,7 +26,7 @@ Returns `Result<bool>`:
 ## Basic Usage
 
 ```rust
-use wacht_rs::api::health::*;
+use wacht::api::health::*;
 
 if ping().await? {
     println!("API is reachable");
@@ -38,7 +38,7 @@ if ping().await? {
 ## Advanced Usage
 
 ```rust
-use wacht_rs::api::health::*;
+use wacht::api::health::*;
 use std::time::Duration;
 use tokio::time::timeout;
 
@@ -68,11 +68,11 @@ async fn check_api_connectivity() -> bool {
 async fn ping_with_retry(max_attempts: u32) -> bool {
     for attempt in 1..=max_attempts {
         println!("Ping attempt {}/{}", attempt, max_attempts);
-        
+
         if ping().await.unwrap_or(false) {
             return true;
         }
-        
+
         if attempt < max_attempts {
             tokio::time::sleep(Duration::from_secs(1)).await;
         }

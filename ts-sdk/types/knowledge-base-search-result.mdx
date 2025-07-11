@@ -1,0 +1,20 @@
+---
+title: 'Knowledge Base Search Result'
+description: 'Represents the result of a Knowledge Base search in Wacht'
+---
+
+This interface defines the structure of the result returned from a Knowledge Base search.
+
+```typescript
+import { KnowledgeBaseSearchResultResultsInner } from './knowledge-base-search-result-results-inner';
+
+export interface KnowledgeBaseSearchResult {
+    results?: KnowledgeBaseSearchResultResultsInner[];
+    total_results?: number;
+}
+```
+
+#### Properties
+
+- `results` (KnowledgeBaseSearchResultResultsInner[], optional): An array of individual search results.
+- `total_results` (number, optional): The total number of results found.

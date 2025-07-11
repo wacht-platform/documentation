@@ -1,0 +1,209 @@
+---
+title: 'Users API'
+description: 'Manage Users in Wacht'
+---
+
+## Overview
+
+The Users API allows you to manage user accounts, their emails, phone numbers, and social connections within the Wacht platform. You can also manage user invitations and waitlists.
+
+### `fetchUsers(options?: ListUsersOptions)`
+
+Lists all users.
+
+#### Parameters
+
+- `options` (optional): An object containing pagination and filtering options.
+  - `page` (number): The page number to retrieve.
+  - `per_page` (number): The number of items per page.
+  - `search` (string): Search term for users.
+  - `is_active` (boolean): Filter by active status.
+
+#### Returns
+
+`Promise<UserListResponse>`: A promise that resolves to a list of users and pagination information.
+
+### `createUser(request: CreateUserRequest)`
+
+Creates a new user.
+
+#### Parameters
+
+- `request` (CreateUserRequest): The request body containing the details of the new user.
+
+#### Returns
+
+`Promise<User>`: A promise that resolves to the newly created user object.
+
+### `fetchUserDetails(userId: string)`
+
+Retrieves a specific user's details, including their organizations and workspaces.
+
+#### Parameters
+
+- `userId` (string): The unique identifier of the user.
+
+#### Returns
+
+`Promise<UserDetailsResponse>`: A promise that resolves to the user details object.
+
+### `updateUser(userId: string, request: UpdateUserRequest)`
+
+Updates an existing user.
+
+#### Parameters
+
+- `userId` (string): The unique identifier of the user to update.
+- `request` (UpdateUserRequest): The request body containing the updated details of the user.
+
+#### Returns
+
+`Promise<User>`: A promise that resolves to the updated user object.
+
+### `updatePassword(userId: string, request: UpdatePasswordRequest)`
+
+Updates a user's password.
+
+#### Parameters
+
+- `userId` (string): The unique identifier of the user.
+- `request` (UpdatePasswordRequest): The request body containing the current and new passwords.
+
+#### Returns
+
+`Promise<void>`: A promise that resolves when the password is successfully updated.
+
+### `addEmail(userId: string, email: string)`
+
+Adds an email address to a user's account.
+
+#### Parameters
+
+- `userId` (string): The unique identifier of the user.
+- `email` (string): The email address to add.
+
+#### Returns
+
+`Promise<UserEmail>`: A promise that resolves to the newly added email object.
+
+### `updateEmail(userId: string, emailId: string, isPrimary: boolean, isVerified: boolean)`
+
+Updates an existing email address for a user.
+
+#### Parameters
+
+- `userId` (string): The unique identifier of the user.
+- `emailId` (string): The unique identifier of the email to update.
+- `isPrimary` (boolean): Whether this email should be the primary email.
+- `isVerified` (boolean): Whether this email has been verified.
+
+#### Returns
+
+`Promise<UserEmail>`: A promise that resolves to the updated email object.
+
+### `deleteEmail(userId: string, emailId: string)`
+
+Deletes an email address from a user's account.
+
+#### Parameters
+
+- `userId` (string): The unique identifier of the user.
+- `emailId` (string): The unique identifier of the email to delete.
+
+#### Returns
+
+`Promise<void>`: A promise that resolves when the email is successfully deleted.
+
+### `addPhone(userId: string, phoneNumber: string)`
+
+Adds a phone number to a user's account.
+
+#### Parameters
+
+- `userId` (string): The unique identifier of the user.
+- `phoneNumber` (string): The phone number to add.
+
+#### Returns
+
+`Promise<UserPhone>`: A promise that resolves to the newly added phone object.
+
+### `updatePhone(userId: string, phoneId: string, isPrimary: boolean, isVerified: boolean)`
+
+Updates an existing phone number for a user.
+
+#### Parameters
+
+- `userId` (string): The unique identifier of the user.
+- `phoneId` (string): The unique identifier of the phone number to update.
+- `isPrimary` (boolean): Whether this phone number should be the primary.
+- `isVerified` (boolean): Whether this phone number has been verified.
+
+#### Returns
+
+`Promise<UserPhone>`: A promise that resolves to the updated phone object.
+
+### `deletePhone(userId: string, phoneId: string)`
+
+Deletes a phone number from a user's account.
+
+#### Parameters
+
+- `userId` (string): The unique identifier of the user.
+- `phoneId` (string): The unique identifier of the phone number to delete.
+
+#### Returns
+
+`Promise<void>`: A promise that resolves when the phone number is successfully deleted.
+
+### `deleteSocialConnection(userId: string, connectionId: string)`
+
+Deletes a social connection from a user's account.
+
+#### Parameters
+
+- `userId` (string): The unique identifier of the user.
+- `connectionId` (string): The unique identifier of the social connection to delete.
+
+#### Returns
+
+`Promise<void>`: A promise that resolves when the social connection is successfully deleted.
+
+### `fetchInvitedUsers()`
+
+Retrieves a list of invited users.
+
+#### Returns
+
+`Promise<InvitationListResponse>`: A promise that resolves to a list of invited users.
+
+### `inviteUser(request: InviteUserRequest)`
+
+Invites a new user to the platform.
+
+#### Parameters
+
+- `request` (InviteUserRequest): The request body containing the invitation details.
+
+#### Returns
+
+`Promise<UserInvitation>`: A promise that resolves to the newly created user invitation object.
+
+### `fetchWaitlist()`
+
+Retrieves a list of users on the waitlist.
+
+#### Returns
+
+`Promise<WaitlistResponse>`: A promise that resolves to a list of waitlist users.
+
+### `approveWaitlistUser(waitlistUserId: string)`
+
+Approves a user on the waitlist, creating a new user account.
+
+#### Parameters
+
+- `waitlistUserId` (string): The unique identifier of the waitlist user to approve.
+
+#### Returns
+
+`Promise<User>`: A promise that resolves to the newly created user object.

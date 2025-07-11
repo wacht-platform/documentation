@@ -29,7 +29,7 @@ pub struct RecentSignupsResponse {
 ## Usage Example
 
 ```rust
-use wacht_rs::api::analytics::fetch_recent_signups;
+use wacht::api::analytics::fetch_recent_signups;
 
 // Fetch recent signups with default limit
 let recent = fetch_recent_signups(None).await?;
@@ -50,7 +50,7 @@ println!("Showing {} of {} recent signups", top_10.data.len(), top_10.total);
 
 // Check if there are more signups than displayed
 if top_10.total > top_10.data.len() as u32 {
-    println!("There are {} more signups not shown", 
+    println!("There are {} more signups not shown",
              top_10.total - top_10.data.len() as u32);
 }
 ```

@@ -1,0 +1,86 @@
+---
+title: 'Introduction'
+description: 'Complete TypeScript SDK for Wacht platform with framework-specific middlewares'
+---
+
+## Overview
+
+The Wacht TypeScript SDK provides a comprehensive, type-safe client for all Wacht platform APIs. It is designed for both frontend and backend applications, offering excellent developer experience and flexibility. Additionally, it provides framework-specific authentication and authorization middlewares for popular environments like Node.js (Express-style) and Hono.
+
+## Key Features
+
+### Complete API Coverage
+- **All Backend Endpoints** - Full coverage of Wacht platform APIs
+- **Type-Safe Models** - Strongly typed request/response structures
+- **Asynchronous Operations** - Modern asynchronous patterns with Promises
+- **Axios-based HTTP Client** - Robust and flexible HTTP client
+
+### Authentication & Authorization
+- **JWT Validation** - Core JWT token validation logic within the main SDK
+- **Framework-Specific Middlewares** - Dedicated middleware packages for Node.js (Express-style) and Hono for seamless integration.
+- **Permission System** - Fine-grained permission checks at route and handler level (via middlewares)
+
+### Developer Experience
+- **Easy Initialization** - Simple SDK initialization
+- **Environment Configuration** - Easy setup via environment variables
+- **Comprehensive Error Handling** - Detailed error types with context
+
+## Architecture
+
+The SDK follows a modular architecture with clear separation of concerns:
+
+```
+wacht-ts
+├── API Modules (Users, Organizations, Workspaces, etc.)
+├── Core Authentication Logic (JWT validation, types)
+├── Global Client Configuration
+└── Error Handling
+
+wacht-middleware-node
+├── Node.js (Express-style) Authentication Middleware
+└── Node.js (Express-style) Authorization Middleware
+
+wacht-middleware-hono
+├── Hono Authentication Middleware
+└── Hono Authorization Middleware
+```
+
+## Use Cases
+
+### Frontend Applications
+Build secure frontend applications that interact with the Wacht platform:
+- User authentication and session management
+- Accessing user-specific data
+- Integrating with Wacht APIs for various features
+
+### Backend Services
+Build secure backend services that interact with the Wacht platform:
+- User management systems
+- Organization and workspace administration
+- AI agent orchestration
+- Analytics and reporting services
+
+### API Gateways
+Create API gateways with built-in authentication:
+- Validate JWT tokens from Wacht
+- Enforce permissions at the gateway level
+- Route requests based on user context
+- Multi-tenant request routing
+
+### Microservices
+Build microservices that integrate with Wacht:
+- Service-to-service authentication
+- Permission-based access control
+- Async task processing
+- Event-driven architectures
+
+## Getting Started
+
+The SDK is designed to get you up and running quickly:
+
+1. Install the `wacht-ts` package and the relevant middleware package (e.g., `wacht-middleware-node` or `wacht-middleware-hono`).
+2. Set environment variables for API key and host.
+3. Initialize the SDK in your application.
+4. Start making API calls or integrate the authentication/authorization middlewares.
+
+Continue to the [Installation](installation) guide to begin using the Wacht TypeScript SDK.

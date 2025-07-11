@@ -49,7 +49,7 @@ pub struct ImageUploadResponse {
 ## Usage Example
 
 ```rust
-use wacht_rs::api::settings::upload_image;
+use wacht::api::settings::upload_image;
 use std::fs;
 
 // Read image file
@@ -73,7 +73,7 @@ let avatar_data = fs::read("avatar.jpg")?;
 let avatar_response = upload_image("avatar", avatar_data, "avatar.jpg".to_string()).await?;
 
 // Update display settings with the new logo URL
-use wacht_rs::api::settings::{fetch_deployment_settings, update_display_settings};
+use wacht::api::settings::{fetch_deployment_settings, update_display_settings};
 
 let mut settings = fetch_deployment_settings().await?;
 settings.display_settings.logo_url = Some(response.url);

@@ -9,15 +9,15 @@ These environment variables must be set for the SDK to function:
 
 <ParamField path="WACHT_API_KEY" type="string" required>
   Your Wacht API key for authentication. This key is sent as a Bearer token in all API requests.
-  
+
   **Example**: `wacht_sk_1234567890abcdef`
 </ParamField>
 
 <ParamField path="WACHT_FRONTEND_HOST" type="string" required>
   The base URL of your Wacht frontend deployment. Used for API requests and fetching configuration.
-  
+
   **Example**: `https://your-app.wacht.io`
-  
+
   **Note**: Include the protocol (`https://`) and exclude trailing slashes.
 </ParamField>
 
@@ -25,7 +25,7 @@ These environment variables must be set for the SDK to function:
 
 <ParamField path="WACHT_PUBLIC_SIGNING_KEY" type="string">
   PEM-encoded public key for JWT signature verification. If not provided, the SDK will automatically fetch it from the `/.well-known/jwk` endpoint.
-  
+
   **Format**: Must include PEM headers and footers.
 </ParamField>
 
@@ -53,10 +53,10 @@ use dotenv::dotenv;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Load .env file
     dotenv().ok();
-    
+
     // Initialize SDK
-    wacht_rs::init_from_env().await?;
-    
+    wacht::init_from_env().await?;
+
     Ok(())
 }
 ```
@@ -169,7 +169,7 @@ async fn load_config() -> Result<(), Box<dyn std::error::Error>> {
     let region_provider = RegionProviderChain::default_provider();
     let config = aws_config::from_env().region(region_provider).load().await;
     let client = Client::new(&config);
-    
+
     // Fetch from Parameter Store
     let api_key = client
         .get_parameter()
@@ -181,12 +181,12 @@ async fn load_config() -> Result<(), Box<dyn std::error::Error>> {
         .unwrap()
         .value()
         .unwrap();
-    
+
     std::env::set_var("WACHT_API_KEY", api_key);
-    
+
     // Initialize SDK
-    wacht_rs::init_from_env().await?;
-    
+    wacht::init_from_env().await?;
+
     Ok(())
 }
 ```
@@ -245,16 +245,16 @@ Implement key rotation:
 async fn rotate_api_key() -> Result<(), Box<dyn std::error::Error>> {
     // Create new key
     let new_key = create_new_api_key().await?;
-    
+
     // Update configuration
     std::env::set_var("WACHT_API_KEY", new_key);
-    
+
     // Re-initialize SDK
-    wacht_rs::init_from_env().await?;
-    
+    wacht::init_from_env().await?;
+
     // Revoke old key
     revoke_old_key().await?;
-    
+
     Ok(())
 }
 ```
@@ -269,12 +269,12 @@ fn check_environment() {
         Ok(val) => println!("API Key: {}...", &val[..8]),
         Err(e) => eprintln!("API Key not set: {}", e),
     }
-    
+
     match std::env::var("WACHT_FRONTEND_HOST") {
         Ok(val) => println!("Frontend Host: {}", val),
         Err(e) => eprintln!("Frontend Host not set: {}", e),
     }
-    
+
     match std::env::var("WACHT_PUBLIC_SIGNING_KEY") {
         Ok(_) => println!("Public Key: Set"),
         Err(_) => println!("Public Key: Not set (will auto-fetch)"),
@@ -287,7 +287,7 @@ fn check_environment() {
 Set Rust log level:
 
 ```bash
-export RUST_LOG=wacht_rs=debug
+export RUST_LOG=wacht=debug
 ```
 
 ### Common Issues

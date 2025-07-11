@@ -1,0 +1,32 @@
+---
+title: 'Display Settings'
+description: 'Display settings for a Wacht deployment'
+---
+
+This interface defines the display settings for a Wacht deployment.
+
+```typescript
+export interface DisplaySettings {
+    logo_url?: string;
+    primary_color?: string;
+    secondary_color?: string;
+    font_family?: string;
+    app_name?: string;
+    welcome_message?: string;
+    support_email?: string;
+    terms_url?: string;
+    privacy_url?: string;
+}
+```
+
+#### Properties
+
+- `logo_url` (string, optional): The URL of the deployment's logo.
+- `primary_color` (string, optional): The primary color used in the deployment's UI (e.g., hex code).
+- `secondary_color` (string, optional): The secondary color used in the deployment's UI (e.g., hex code).
+- `font_family` (string, optional): The font family used in the deployment's UI.
+- `app_name` (string, optional): The name of the application.
+- `welcome_message` (string, optional): A welcome message displayed to users.
+- `support_email` (string, optional): The support email address for the deployment.
+- `terms_url` (string, optional): The URL to the terms and conditions page.
+- `privacy_url` (string, optional): The URL to the privacy policy page.

@@ -12,13 +12,13 @@ The Wacht Rust SDK supports multiple configuration methods to suit different dep
 The simplest way to configure the SDK is using environment variables:
 
 ```rust
-use wacht_rs::init_from_env;
+use wacht::init_from_env;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Automatically reads from environment
     init_from_env().await?;
-    
+
     // SDK is now ready to use
     Ok(())
 }
@@ -29,7 +29,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 For more control, configure the SDK programmatically:
 
 ```rust
-use wacht_rs::{init, WachtConfig};
+use wacht::{init, WachtConfig};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -37,9 +37,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "your-api-key".to_string(),
         "https://your-app.wacht.io".to_string()
     );
-    
+
     init(config)?;
-    
+
     Ok(())
 }
 ```
@@ -49,7 +49,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 If you have the JWT public key, provide it directly:
 
 ```rust
-use wacht_rs::{init, WachtConfig};
+use wacht::{init, WachtConfig};
 
 let config = WachtConfig::new(
     "your-api-key".to_string(),
@@ -65,7 +65,7 @@ init(config)?;
 The SDK can automatically fetch the public key from your deployment:
 
 ```rust
-use wacht_rs::{init, WachtConfig};
+use wacht::{init, WachtConfig};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -73,12 +73,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "your-api-key".to_string(),
         "https://your-app.wacht.io".to_string()
     );
-    
+
     // Fetches from /.well-known/jwk endpoint
     config = config.load_public_key().await?;
-    
+
     init(config)?;
-    
+
     Ok(())
 }
 ```
@@ -91,10 +91,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 pub struct WachtConfig {
     /// API key for authentication
     pub api_key: String,
-    
+
     /// Frontend host URL (e.g., https://app.wacht.io)
     pub frontend_host: String,
-    
+
     /// Optional JWT public signing key
     pub public_signing_key: Option<String>,
 }
@@ -130,7 +130,7 @@ The SDK maintains a global HTTP client with:
 ### Accessing the Global Client
 
 ```rust
-use wacht_rs::get_client;
+use wacht::get_client;
 
 // Get the configured HTTP client
 let client = get_client();
@@ -157,7 +157,7 @@ Authorization: Bearer your-api-key
 The public key is used to validate incoming JWT tokens:
 
 ```rust
-use wacht_rs::middleware::AuthLayer;
+use wacht::middleware::AuthLayer;
 
 // Uses public key from configuration
 let auth_layer = AuthLayer::new();
@@ -187,8 +187,8 @@ use dotenv::dotenv;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();  // Load .env file
-    wacht_rs::init_from_env().await?;
-    
+    wacht::init_from_env().await?;
+
     Ok(())
 }
 ```
@@ -203,21 +203,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ### Configuration Validation
 
 ```rust
-use wacht_rs::{init_from_env, is_initialized};
+use wacht::{init_from_env, is_initialized};
 
 async fn setup() -> Result<(), Box<dyn std::error::Error>> {
     // Try to initialize
     init_from_env().await?;
-    
+
     // Verify initialization
     if !is_initialized() {
         return Err("SDK initialization failed".into());
     }
-    
+
     // Test with health check
-    use wacht_rs::HealthApi;
+    use wacht::HealthApi;
     HealthApi::health_get().await?;
-    
+
     println!("SDK configured successfully!");
     Ok(())
 }

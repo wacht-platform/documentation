@@ -1205,6 +1205,19 @@
           }
         }
       },
+      "UpdateAIExecutionContextRequest": {
+        "type": "object",
+        "properties": {
+          "context": {
+            "type": "object",
+            "description": "Updated context data"
+          },
+          "session_id": {
+            "type": "string",
+            "description": "Updated session ID"
+          }
+        }
+      },
       "JWTTemplate": {
         "type": "object",
         "properties": {
@@ -1702,6 +1715,43 @@
           }
         }
       }
+    },
+    "schemas": {
+      "GenerateTokenRequest": {
+        "type": "object",
+        "required": [
+          "session_id"
+        ],
+        "properties": {
+          "session_id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The session ID to generate a token for",
+            "example": 1234567890
+          },
+          "template": {
+            "type": "string",
+            "description": "Name of the JWT template to use. If not provided, 'default' template will be used.",
+            "example": "custom-claims"
+          }
+        }
+      },
+      "GenerateTokenResponse": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "The generated JWT token",
+            "example": "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "expires": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Token expiration timestamp in milliseconds",
+            "example": 1734567890000
+          }
+        }
+      }
     }
   },
   "tags": [
@@ -1744,6 +1794,10 @@
     {
       "name": "Analytics",
       "description": "Analytics and reporting endpoints"
+    },
+    {
+      "name": "Deployments", 
+      "description": "Deployment management and token generation endpoints"
     }
   ],
   "paths": {
@@ -4888,6 +4942,76 @@
       }
     },
     "/ai-execution-context": {
+      "get": {
+        "tags": [
+          "AI Agents"
+        ],
+        "summary": "List AI Execution Contexts",
+        "description": "Get all execution contexts for the current workspace",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "Items per page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "agent_id",
+            "in": "query",
+            "description": "Filter by agent ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "workflow_id",
+            "in": "query",
+            "description": "Filter by workflow ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AIExecutionContext"
+                      }
+                    },
+                    "has_more": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      },
       "post": {
         "tags": [
           "AI Agents"
@@ -4920,6 +5044,122 @@
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/ai-execution-context/{id}": {
+      "get": {
+        "tags": [
+          "AI Agents"
+        ],
+        "summary": "Get AI Execution Context",
+        "description": "Retrieve a specific execution context by ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Execution context ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AIExecutionContext"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "AI Agents"
+        ],
+        "summary": "Update AI Execution Context",
+        "description": "Update an existing execution context",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Execution context ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAIExecutionContextRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Execution context updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AIExecutionContext"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "AI Agents"
+        ],
+        "summary": "Delete AI Execution Context",
+        "description": "Delete an execution context",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Execution context ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Execution context deleted successfully"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
           }
         }
       }
@@ -5552,6 +5792,87 @@
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/deployments/{deployment_id}/token": {
+      "post": {
+        "tags": [
+          "Deployments"
+        ],
+        "summary": "Generate JWT Token",
+        "description": "Generate a JWT token for a given session with optional custom claims using handlebars templates. The token includes standard claims (iss, sub, iat, exp, session_id) plus organization and workspace permissions if applicable. Custom claims can be added using JWT templates with handlebars syntax that has access to user, session, organization, and workspace data.",
+        "parameters": [
+          {
+            "name": "deployment_id",
+            "in": "path", 
+            "required": true,
+            "description": "The deployment ID",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateTokenRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully generated JWT token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerateTokenResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "description": "Session, deployment, or template not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Session not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error (e.g., template rendering failed)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Failed to render template"
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }

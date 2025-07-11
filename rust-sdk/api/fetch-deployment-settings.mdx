@@ -30,7 +30,7 @@ Returns `Result<DeploymentSettingsResponse>` containing:
 ## Basic Usage
 
 ```rust
-use wacht_rs::api::settings::*;
+use wacht::api::settings::*;
 
 let settings = fetch_deployment_settings().await?;
 println!("Deployment: {} ({})", settings.name, settings.id);
@@ -41,7 +41,7 @@ println!("B2B enabled: {}", settings.b2b_settings.enabled);
 ## Advanced Usage
 
 ```rust
-use wacht_rs::api::settings::*;
+use wacht::api::settings::*;
 
 let settings = fetch_deployment_settings().await?;
 

@@ -31,7 +31,7 @@ Returns `Result<AnalyticsStats>` containing comprehensive analytics data.
 ## Basic Usage
 
 ```rust
-use wacht_rs::api::analytics::*;
+use wacht::api::analytics::*;
 
 // Fetch all-time analytics
 let stats = fetch_analytics_stats(None).await?;
@@ -43,7 +43,7 @@ println!("Total sessions: {}", stats.total_sessions);
 ## Advanced Usage
 
 ```rust
-use wacht_rs::api::analytics::*;
+use wacht::api::analytics::*;
 
 // Fetch analytics for specific date range
 let options = AnalyticsStatsOptions {

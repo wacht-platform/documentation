@@ -17,19 +17,19 @@ pub enum Error {
         message: String,
         details: Option<serde_json::Value>,
     },
-    
+
     /// Network or request errors
     #[error("Request error: {0}")]
     Request(#[from] reqwest::Error),
-    
+
     /// JSON parsing errors
     #[error("JSON error: {0}")]
     Json(#[from] serde_json::Error),
-    
+
     /// Configuration errors
     #[error("Configuration error: {0}")]
     Config(String),
-    
+
     /// Authentication errors
     #[error("Authentication error: {0}")]
     Auth(String),
@@ -43,7 +43,7 @@ pub enum Error {
 API errors include HTTP status code, message, and optional details:
 
 ```rust
-use wacht_rs::{UsersApi, Error};
+use wacht::{UsersApi, Error};
 use axum::http::StatusCode;
 
 match UsersApi::users_user_id_get("invalid-id").await {
@@ -98,7 +98,7 @@ match some_api_call().await {
 Errors during SDK initialization:
 
 ```rust
-use wacht_rs::{init_from_env, Error};
+use wacht::{init_from_env, Error};
 
 match init_from_env().await {
     Ok(()) => println!("SDK initialized"),
@@ -154,7 +154,7 @@ match init_from_env().await {
 ### Basic Error Handling
 
 ```rust
-use wacht_rs::{Result, Error};
+use wacht::{Result, Error};
 
 async fn get_user_safe(user_id: &str) -> Result<Option<User>> {
     match UsersApi::users_user_id_get(user_id).await {
@@ -181,7 +181,7 @@ where
     Fut: std::future::Future<Output = Result<T>>,
 {
     let mut attempts = 0;
-    
+
     loop {
         match f().await {
             Ok(result) => return Ok(result),
@@ -190,7 +190,7 @@ where
                 if attempts >= max_retries {
                     return Err(Error::Config("Max retries exceeded".to_string()));
                 }
-                
+
                 let delay = Duration::from_secs(2u64.pow(attempts));
                 println!("Rate limited, retrying in {:?}", delay);
                 sleep(delay).await;
@@ -212,7 +212,7 @@ let user = with_retry(
 Add context to errors for better debugging:
 
 ```rust
-use wacht_rs::{Result, Error};
+use wacht::{Result, Error};
 
 trait ErrorContext<T> {
     fn context(self, msg: &str) -> Result<T>;
@@ -282,7 +282,7 @@ use serde_json::json;
 // Custom error type for handlers
 #[derive(Debug)]
 enum AppError {
-    Wacht(wacht_rs::Error),
+    Wacht(wacht::Error),
     Validation(String),
     NotFound(String),
 }
@@ -303,7 +303,7 @@ impl IntoResponse for AppError {
                 (StatusCode::NOT_FOUND, msg)
             }
         };
-        
+
         (status, Json(json!({ "error": message }))).into_response()
     }
 }
@@ -315,7 +315,7 @@ async fn get_user_handler(
     let user = UsersApi::users_user_id_get(&user_id)
         .await
         .map_err(AppError::Wacht)?;
-    
+
     Ok(Json(user))
 }
 ```
@@ -352,8 +352,8 @@ async fn process_user(user_id: &str) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use wacht_rs::{Error, StatusCode};
-    
+    use wacht::{Error, StatusCode};
+
     #[test]
     fn test_error_matching() {
         let error = Error::Api {
@@ -361,7 +361,7 @@ mod tests {
             message: "User not found".to_string(),
             details: None,
         };
-        
+
         match error {
             Error::Api { status, .. } if status == StatusCode::NOT_FOUND => {
                 // Success - error matched correctly
@@ -369,14 +369,14 @@ mod tests {
             _ => panic!("Error matching failed"),
         }
     }
-    
+
     #[tokio::test]
     async fn test_error_recovery() {
         // Mock a function that fails then succeeds
         let mut attempt = 0;
         let result = loop {
             attempt += 1;
-            
+
             match mock_api_call(attempt).await {
                 Ok(data) => break Ok(data),
                 Err(Error::Api { status, .. }) if status == StatusCode::SERVICE_UNAVAILABLE => {
@@ -388,7 +388,7 @@ mod tests {
                 Err(e) => break Err(e),
             }
         };
-        
+
         assert!(result.is_ok());
     }
 }

@@ -16,31 +16,31 @@ Wacht JWT tokens contain claims that identify the user, their session, and their
 pub struct TokenClaims {
     /// Issuer - identifies token source
     pub iss: String,
-    
+
     /// Subject - user ID
     pub sub: String,
-    
+
     /// Issued At - Unix timestamp
     pub iat: i64,
-    
+
     /// Expiration - Unix timestamp
     pub exp: i64,
-    
+
     /// Session ID - unique session identifier
     pub session_id: String,
-    
+
     /// Organization context (optional)
     pub organization: Option<String>,
-    
+
     /// Organization permissions (optional)
     pub organization_permissions: Option<Vec<String>>,
-    
+
     /// Workspace context (optional)
     pub workspace: Option<String>,
-    
+
     /// Workspace permissions (optional)
     pub workspace_permissions: Option<Vec<String>>,
-    
+
     /// Additional custom claims
     #[serde(flatten)]
     pub custom_claims: serde_json::Map<String, serde_json::Value>,
@@ -173,31 +173,31 @@ After authentication, claims are available in the `AuthContext`:
 
 ```rust
 use axum::Extension;
-use wacht_rs::middleware::AuthContext;
+use wacht::middleware::AuthContext;
 
 async fn handler(Extension(auth): Extension<AuthContext>) {
     // Basic user info
     println!("User ID: {}", auth.user_id);
     println!("Session: {}", auth.session_id);
-    
+
     // Organization context
     if let Some(org_id) = &auth.organization_id {
         println!("Organization: {}", org_id);
-        
+
         if let Some(perms) = &auth.organization_permissions {
             println!("Org permissions: {:?}", perms);
         }
     }
-    
+
     // Workspace context
     if let Some(ws_id) = &auth.workspace_id {
         println!("Workspace: {}", ws_id);
-        
+
         if let Some(perms) = &auth.workspace_permissions {
             println!("Workspace permissions: {:?}", perms);
         }
     }
-    
+
     // Access full claims
     let claims = &auth.claims;
     println!("Issued at: {}", claims.iat);
@@ -294,14 +294,14 @@ use serde_json::Value;
 async fn handler(Extension(auth): Extension<AuthContext>) {
     // Access custom claims
     let claims = &auth.claims.custom_claims;
-    
+
     // Get specific custom claim
     if let Some(role) = claims.get("custom_role") {
         if let Some(role_str) = role.as_str() {
             println!("Custom role: {}", role_str);
         }
     }
-    
+
     // Check feature flags
     if let Some(Value::Array(flags)) = claims.get("feature_flags") {
         for flag in flags {

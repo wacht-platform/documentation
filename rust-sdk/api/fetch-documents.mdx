@@ -28,7 +28,7 @@ Returns `Result<DocumentListResponse>` containing:
 ## Basic Usage
 
 ```rust
-use wacht_rs::api::knowledge_bases::*;
+use wacht::api::knowledge_bases::*;
 
 let documents = fetch_documents("52057194421551105").await?;
 println!("Found {} documents", documents.data.len());

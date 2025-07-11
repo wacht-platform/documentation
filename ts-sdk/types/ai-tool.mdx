@@ -1,0 +1,32 @@
+---
+title: 'AI Tool'
+description: 'Represents an AI Tool in Wacht'
+---
+
+This interface defines the structure of an AI Tool object.
+
+```typescript
+import { AiToolConfig } from './ai-tool-config';
+
+export interface AiTool {
+    id?: string;
+    name?: string;
+    description?: string;
+    type?: 'api' | 'function' | 'webhook';
+    config?: AiToolConfig;
+    is_active?: boolean;
+    created_at?: string;
+    updated_at?: string;
+}
+```
+
+#### Properties
+
+- `id` (string, optional): The unique identifier of the AI tool.
+- `name` (string, optional): The name of the AI tool.
+- `description` (string, optional): A description of the AI tool.
+- `type` (string, optional): The type of the AI tool ('api', 'function', or 'webhook').
+- `config` (AiToolConfig, optional): The configuration details for the AI tool.
+- `is_active` (boolean, optional): Indicates if the tool is active.
+- `created_at` (string, optional): The timestamp when the tool was created.
+- `updated_at` (string, optional): The timestamp when the tool was last updated.

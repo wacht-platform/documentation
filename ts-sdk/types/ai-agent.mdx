@@ -1,0 +1,38 @@
+---
+title: 'AI Agent'
+description: 'Represents an AI Agent in Wacht'
+---
+
+This interface defines the structure of an AI Agent object.
+
+```typescript
+export interface AiAgent {
+    id?: string;
+    name?: string;
+    description?: string;
+    model?: string;
+    system_prompt?: string;
+    temperature?: number;
+    max_tokens?: number;
+    tools?: string[];
+    knowledge_bases?: string[];
+    is_active?: boolean;
+    created_at?: string;
+    updated_at?: string;
+}
+```
+
+#### Properties
+
+- `id` (string, optional): The unique identifier of the AI agent.
+- `name` (string, optional): The name of the AI agent.
+- `description` (string, optional): A description of the AI agent.
+- `model` (string, optional): The AI model used by the agent.
+- `system_prompt` (string, optional): The system prompt for the AI agent.
+- `temperature` (number, optional): The temperature setting for the AI model.
+- `max_tokens` (number, optional): The maximum number of tokens for the AI model.
+- `tools` (string[], optional): A list of tool IDs associated with the agent.
+- `knowledge_bases` (string[], optional): A list of knowledge base IDs associated with the agent.
+- `is_active` (boolean, optional): Indicates if the agent is active.
+- `created_at` (string, optional): The timestamp when the agent was created.
+- `updated_at` (string, optional): The timestamp when the agent was last updated.

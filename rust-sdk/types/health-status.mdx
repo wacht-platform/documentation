@@ -39,7 +39,7 @@ pub struct HealthStatus {
 ## Usage Example
 
 ```rust
-use wacht_rs::api::health::check_health;
+use wacht::api::health::check_health;
 
 let health = check_health().await?;
 
@@ -62,12 +62,12 @@ let all_healthy = health.services.iter()
 
 if !all_healthy {
     println!("\nWarning: Some services are not healthy!");
-    
+
     // Find unhealthy services
     let unhealthy_services: Vec<&ServiceHealth> = health.services.iter()
         .filter(|s| s.status != "healthy")
         .collect();
-    
+
     for service in unhealthy_services {
         println!("  - {} is {}", service.name, service.status);
     }

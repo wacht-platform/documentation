@@ -89,7 +89,7 @@ By default, the SDK fetches the public key from your deployment:
 
 ```rust
 // Fetches from https://your-app.wacht.io/.well-known/jwk
-wacht_rs::init_from_env().await?;
+wacht::init_from_env().await?;
 ```
 
 ### Manual Configuration
@@ -97,7 +97,7 @@ wacht_rs::init_from_env().await?;
 Provide the public key directly:
 
 ```rust
-use wacht_rs::{WachtConfig, init};
+use wacht::{WachtConfig, init};
 
 let config = WachtConfig::new(
     "api-key".to_string(),
@@ -215,7 +215,7 @@ AuthConfig {
 use tracing_subscriber;
 
 tracing_subscriber::fmt()
-    .with_env_filter("wacht_rs=debug")
+    .with_env_filter("wacht=debug")
     .init();
 ```
 
@@ -284,10 +284,10 @@ fn create_test_token() -> String {
         workspace_permissions: None,
         custom_claims: Default::default(),
     };
-    
+
     let header = Header::new(Algorithm::RS256);
     let key = EncodingKey::from_rsa_pem(PRIVATE_KEY.as_bytes()).unwrap();
-    
+
     encode(&header, &claims, &key).unwrap()
 }
 ```
@@ -295,7 +295,7 @@ fn create_test_token() -> String {
 ### Validate Custom Tokens
 
 ```rust
-use wacht_rs::middleware::AuthLayer;
+use wacht::middleware::AuthLayer;
 
 // Use custom public key for testing
 let auth_layer = AuthLayer::with_public_key(TEST_PUBLIC_KEY)

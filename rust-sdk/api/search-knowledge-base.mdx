@@ -38,7 +38,7 @@ Returns `Result<KnowledgeBaseSearchResult>` containing:
 ## Basic Usage
 
 ```rust
-use wacht_rs::api::knowledge_bases::*;
+use wacht::api::knowledge_bases::*;
 
 let search_options = KnowledgeBaseSearchOptions {
     query: "installation guide".to_string(),
@@ -58,7 +58,7 @@ for result in results.results {
 ## Advanced Usage
 
 ```rust
-use wacht_rs::api::knowledge_bases::*;
+use wacht::api::knowledge_bases::*;
 
 async fn find_relevant_content(
     kb_id: &str,
@@ -70,15 +70,15 @@ async fn find_relevant_content(
         limit: Some(20),
         threshold: Some(min_score),
     };
-    
+
     let results = search_knowledge_base(kb_id, options).await?;
-    
+
     let relevant: Vec<(f32, String)> = results.results
         .into_iter()
         .filter(|r| r.score >= min_score)
         .map(|r| (r.score, r.content))
         .collect();
-    
+
     println!("Found {} results with score >= {}", relevant.len(), min_score);
     Ok(relevant)
 }
@@ -94,8 +94,8 @@ match search_knowledge_base("kb_123", options).await {
             println!("No results found matching your query");
         } else {
             for result in results.results {
-                println!("- {:.1}% match: {}", 
-                    result.score * 100.0, 
+                println!("- {:.1}% match: {}",
+                    result.score * 100.0,
                     result.content.chars().take(100).collect::<String>()
                 );
             }

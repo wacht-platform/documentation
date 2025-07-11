@@ -39,7 +39,7 @@ pub struct ListWorkflowsOptions {
 ## Usage Example
 
 ```rust
-use wacht_rs::api::workflows::{fetch_workflows, ListWorkflowsOptions};
+use wacht::api::workflows::{fetch_workflows, ListWorkflowsOptions};
 
 // Fetch all workflows with default pagination
 let all_workflows = fetch_workflows(None).await?;
@@ -70,13 +70,13 @@ loop {
         per_page: Some(100),
         ..Default::default()
     };
-    
+
     let response = fetch_workflows(Some(options)).await?;
-    
+
     for workflow in &response.data {
         all_workflow_ids.push(workflow.id.clone());
     }
-    
+
     if !response.has_more {
         break;
     }

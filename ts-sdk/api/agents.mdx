@@ -1,0 +1,73 @@
+---
+title: 'Agents API'
+description: 'Manage AI Agents in Wacht'
+---
+
+## Overview
+
+The Agents API allows you to manage AI agents within the Wacht platform. You can list, retrieve, create, update, and delete AI agents.
+
+### `fetchAgents(options?: ListAgentsOptions)`
+
+Lists all AI agents.
+
+#### Parameters
+
+- `options` (optional): An object containing pagination and filtering options.
+  - `page` (number): The page number to retrieve.
+  - `per_page` (number): The number of items per page.
+  - `is_active` (boolean): Filter by active status.
+  - `search` (string): Search term for agents.
+
+#### Returns
+
+`Promise<AgentListResponse>`: A promise that resolves to a list of AI agents and pagination information.
+
+### `fetchAgent(agentId: string)`
+
+Retrieves a specific AI agent by its ID.
+
+#### Parameters
+
+- `agentId` (string): The unique identifier of the AI agent.
+
+#### Returns
+
+`Promise<AiAgent>`: A promise that resolves to the AI agent object.
+
+### `createAgent(request: CreateAiAgentRequest)`
+
+Creates a new AI agent.
+
+#### Parameters
+
+- `request` (CreateAiAgentRequest): The request body containing the details of the new AI agent.
+
+#### Returns
+
+`Promise<AiAgent>`: A promise that resolves to the newly created AI agent object.
+
+### `updateAgent(agentId: string, request: UpdateAiAgentRequest)`
+
+Updates an existing AI agent.
+
+#### Parameters
+
+- `agentId` (string): The unique identifier of the AI agent to update.
+- `request` (UpdateAiAgentRequest): The request body containing the updated details of the AI agent.
+
+#### Returns
+
+`Promise<AiAgent>`: A promise that resolves to the updated AI agent object.
+
+### `deleteAgent(agentId: string)`
+
+Deletes an AI agent by its ID.
+
+#### Parameters
+
+- `agentId` (string): The unique identifier of the AI agent to delete.
+
+#### Returns
+
+`Promise<void>`: A promise that resolves when the agent is successfully deleted.

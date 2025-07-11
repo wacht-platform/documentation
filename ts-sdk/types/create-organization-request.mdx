@@ -1,0 +1,20 @@
+---
+title: 'Create Organization Request'
+description: 'Request body for creating a new Organization'
+---
+
+This interface defines the structure of the request body used when creating a new Organization.
+
+```typescript
+export interface CreateOrganizationRequest {
+    name: string;
+    display_name?: string;
+    description?: string;
+}
+```
+
+#### Properties
+
+- `name` (string): The name of the organization.
+- `display_name` (string, optional): The display name of the organization.
+- `description` (string, optional): A description of the organization.

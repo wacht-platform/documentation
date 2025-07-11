@@ -1,0 +1,20 @@
+---
+title: 'Invite User Request'
+description: 'Request body for inviting a new User'
+---
+
+This interface defines the structure of the request body used when inviting a new User.
+
+```typescript
+export interface InviteUserRequest {
+    email: string;
+    role?: string;
+    organization_id?: string;
+}
+```
+
+#### Properties
+
+- `email` (string): The email address of the user to invite.
+- `role` (string, optional): The role to assign to the invited user.
+- `organization_id` (string, optional): The ID of the organization to invite the user to.

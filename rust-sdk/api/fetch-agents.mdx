@@ -34,7 +34,7 @@ Returns `Result<AgentListResponse>` containing:
 ## Basic Usage
 
 ```rust
-use wacht_rs::api::agents::*;
+use wacht::api::agents::*;
 
 // Fetch all agents
 let agents = fetch_agents(None).await?;
@@ -46,7 +46,7 @@ for agent in agents.data {
 ## Advanced Usage
 
 ```rust
-use wacht_rs::api::agents::*;
+use wacht::api::agents::*;
 
 // Fetch active agents with search
 let options = ListAgentsOptions {
@@ -60,7 +60,7 @@ let filtered_agents = fetch_agents(Some(options)).await?;
 println!("Found {} active agents", filtered_agents.data.len());
 
 for agent in filtered_agents.data {
-    println!("- {} (Status: {})", agent.name, 
+    println!("- {} (Status: {})", agent.name,
         if agent.is_active { "Active" } else { "Inactive" });
 }
 ```

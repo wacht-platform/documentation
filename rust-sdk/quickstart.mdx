@@ -18,7 +18,7 @@ cd my-wacht-app
 
 ```toml
 [dependencies]
-wacht-rs = "2.0.0"
+wacht = "2.0.0"
 tokio = { version = "1", features = ["full"] }
 ```
 
@@ -32,21 +32,21 @@ export WACHT_FRONTEND_HOST="https://your-app.wacht.io"
 ### 4. Initialize and use the SDK
 
 ```rust
-use wacht_rs::{init_from_env, UsersApi, HealthApi};
+use wacht::{init_from_env, UsersApi, HealthApi};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Initialize SDK from environment variables
     init_from_env().await?;
-    
+
     // Check API health
     let health = HealthApi::health_get().await?;
     println!("API Status: {:?}", health);
-    
+
     // Get current user
     let user = UsersApi::users_current_get().await?;
     println!("Current user: {} ({})", user.first_name, user.email);
-    
+
     Ok(())
 }
 ```
@@ -56,7 +56,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ### User Management
 
 ```rust
-use wacht_rs::{UsersApi, models::*};
+use wacht::{UsersApi, models::*};
 
 async fn user_examples() -> Result<(), Box<dyn std::error::Error>> {
     // List users with pagination
@@ -65,16 +65,16 @@ async fn user_examples() -> Result<(), Box<dyn std::error::Error>> {
         Some(0),   // offset
         None       // search
     ).await?;
-    
+
     for user in users.data {
         println!("User: {} - {}", user.id, user.email);
     }
-    
+
     // Get specific user
     let user_id = "52057194421551105";
     let user = UsersApi::users_user_id_get(user_id).await?;
     println!("Found user: {}", user.username);
-    
+
     // Update user
     let update = UpdateUserRequest {
         first_name: Some("Updated".to_string()),
@@ -82,7 +82,7 @@ async fn user_examples() -> Result<(), Box<dyn std::error::Error>> {
         ..Default::default()
     };
     let updated = UsersApi::users_user_id_patch(user_id, update).await?;
-    
+
     Ok(())
 }
 ```
@@ -90,12 +90,12 @@ async fn user_examples() -> Result<(), Box<dyn std::error::Error>> {
 ### Organization Management
 
 ```rust
-use wacht_rs::{OrganizationsApi, models::*};
+use wacht::{OrganizationsApi, models::*};
 
 async fn org_examples() -> Result<(), Box<dyn std::error::Error>> {
     // List organizations
     let orgs = OrganizationsApi::organizations_get(None, None).await?;
-    
+
     // Create organization
     let new_org = CreateOrganizationRequest {
         name: "My Company".to_string(),
@@ -104,7 +104,7 @@ async fn org_examples() -> Result<(), Box<dyn std::error::Error>> {
     };
     let org = OrganizationsApi::organizations_post(new_org).await?;
     println!("Created org: {}", org.id);
-    
+
     // Add member
     let member = OrganizationMemberRequest {
         user_id: "52057194421551105".to_string(),
@@ -114,7 +114,7 @@ async fn org_examples() -> Result<(), Box<dyn std::error::Error>> {
         &org.id,
         member
     ).await?;
-    
+
     Ok(())
 }
 ```
@@ -125,24 +125,24 @@ async fn org_examples() -> Result<(), Box<dyn std::error::Error>> {
 
 ```rust
 use axum::{Router, routing::get, Json};
-use wacht_rs::{init_from_env, middleware::AuthLayer};
+use wacht::{init_from_env, middleware::AuthLayer};
 use serde_json::Value;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Initialize SDK
     init_from_env().await?;
-    
+
     // Create router with auth middleware
     let app = Router::new()
         .route("/protected", get(protected_handler))
         .route("/public", get(public_handler))
         .layer(AuthLayer::new());
-    
+
     // Run server
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await?;
     axum::serve(listener, app).await?;
-    
+
     Ok(())
 }
 
@@ -161,7 +161,7 @@ async fn public_handler() -> &'static str {
 
 ```rust
 use axum::{Router, routing::get, Json, Extension};
-use wacht_rs::middleware::{RequireAuth, AuthContext};
+use wacht::middleware::{RequireAuth, AuthContext};
 use serde_json::Value;
 
 async fn user_info_handler(
@@ -184,7 +184,7 @@ let app = Router::new()
 ### Permission-Based Access
 
 ```rust
-use wacht_rs::{middleware::*, require_permission};
+use wacht::{middleware::*, require_permission};
 use axum::{Router, routing::get};
 
 // Define custom permissions
@@ -208,7 +208,7 @@ let app = Router::new()
 ## Error Handling
 
 ```rust
-use wacht_rs::{Error, UsersApi};
+use wacht::{Error, UsersApi};
 
 async fn handle_errors() {
     match UsersApi::users_user_id_get("invalid-id").await {

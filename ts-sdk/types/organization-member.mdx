@@ -1,0 +1,31 @@
+---
+title: 'Organization Member'
+description: 'Represents an Organization Member in Wacht'
+---
+
+This interface defines the structure of an Organization Member object.
+
+```typescript
+import { User } from './user';
+import { OrganizationRole } from './organization-role';
+
+export interface OrganizationMember {
+    id?: string;
+    user_id?: string;
+    organization_id?: string;
+    role_id?: string;
+    joined_at?: string;
+    user?: User;
+    role?: OrganizationRole;
+}
+```
+
+#### Properties
+
+- `id` (string, optional): The unique identifier of the organization membership.
+- `user_id` (string, optional): The ID of the user who is a member.
+- `organization_id` (string, optional): The ID of the organization the user is a member of.
+- `role_id` (string, optional): The ID of the role assigned to the member within the organization.
+- `joined_at` (string, optional): The timestamp when the user joined the organization.
+- `user` (User, optional): The user object associated with this membership.
+- `role` (OrganizationRole, optional): The organization role object associated with this membership.

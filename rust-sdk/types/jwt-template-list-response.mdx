@@ -24,7 +24,7 @@ pub struct JwtTemplateListResponse {
 ## Usage Example
 
 ```rust
-use wacht_rs::api::settings::fetch_jwt_templates;
+use wacht::api::settings::fetch_jwt_templates;
 
 let response = fetch_jwt_templates().await?;
 
@@ -35,7 +35,7 @@ for template in response.data {
     println!("  Algorithm: {}", template.algorithm);
     println!("  Lifetime: {} seconds", template.lifetime_seconds);
     println!("  Claims: {:?}", template.custom_claims);
-    
+
     if template.is_default {
         println!("  This is the default template");
     }

@@ -1,0 +1,26 @@
+---
+title: 'B2B Settings'
+description: 'B2B settings for a Wacht deployment'
+---
+
+This interface defines the B2B (Business-to-Business) settings for a Wacht deployment.
+
+```typescript
+export interface B2BSettings {
+    enabled?: boolean;
+    allow_workspace_creation?: boolean;
+    default_workspace_limit?: number;
+    require_org_for_signup?: boolean;
+    auto_assign_org_role?: string;
+    auto_assign_workspace_role?: string;
+}
+```
+
+#### Properties
+
+- `enabled` (boolean, optional): Whether B2B features are enabled.
+- `allow_workspace_creation` (boolean, optional): Whether organizations are allowed to create workspaces.
+- `default_workspace_limit` (number, optional): The default maximum number of workspaces an organization can create.
+- `require_org_for_signup` (boolean, optional): Whether new users must join an organization during signup.
+- `auto_assign_org_role` (string, optional): The ID of the organization role to automatically assign to new users.
+- `auto_assign_workspace_role` (string, optional): The ID of the workspace role to automatically assign to new users.

@@ -1,0 +1,124 @@
+---
+title: "update_execution_context"
+description: "Update an AI execution context"
+---
+
+## Overview
+
+The `update_execution_context` function updates an existing execution context's data.
+
+## Function Signature
+
+```rust
+pub async fn update_execution_context(
+    id: &str,
+    request: UpdateExecutionContextRequest
+) -> Result<AiExecutionContext>
+```
+
+## Parameters
+
+<ParamField path="id" type="&str" required>
+  The unique identifier of the execution context to update
+</ParamField>
+
+<ParamField path="request" type="UpdateExecutionContextRequest" required>
+  Update request containing:
+  - `context`: Optional updated context data (JSON)
+  - `session_id`: Optional updated session ID
+</ParamField>
+
+## Return Value
+
+Returns `Result<AiExecutionContext>` containing the updated execution context.
+
+## Basic Usage
+
+```rust
+use wacht::api::execution_context::*;
+use serde_json::json;
+
+let context_id = "ctx_123";
+let update_request = UpdateExecutionContextRequest {
+    context: Some(json!({
+        "current_step": "processing",
+        "progress": 75,
+        "results": {
+            "analyzed_documents": 10,
+            "extracted_entities": 25
+        }
+    })),
+    session_id: Some("session_456".to_string()),
+};
+
+let updated = update_execution_context(context_id, update_request).await?;
+println!("Context updated successfully");
+```
+
+## Advanced Usage
+
+```rust
+use wacht::api::execution_context::*;
+use serde_json::json;
+
+// Incrementally update context state
+async fn update_context_progress(
+    context_id: &str,
+    step: &str,
+    progress: u32
+) -> Result<()> {
+    // First fetch current context
+    let current = fetch_execution_context(context_id).await?;
+
+    // Merge with existing context data
+    let mut context_data = current.context.unwrap_or_else(|| json!({}));
+    context_data["current_step"] = json!(step);
+    context_data["progress"] = json!(progress);
+    context_data["last_update"] = json!(chrono::Utc::now().to_rfc3339());
+
+    // Update context
+    let update_request = UpdateExecutionContextRequest {
+        context: Some(context_data),
+        session_id: None, // Keep existing session
+    };
+
+    update_execution_context(context_id, update_request).await?;
+    Ok(())
+}
+
+// Use the helper function
+update_context_progress("ctx_123", "validation", 90).await?;
+```
+
+## Error Handling
+
+```rust
+match update_execution_context(context_id, request).await {
+    Ok(updated) => {
+        println!("Successfully updated context");
+        if let Some(ctx) = updated.context {
+            println!("New context data: {:?}", ctx);
+        }
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            404 => println!("Context not found: {}", message),
+            400 => println!("Invalid update data: {}", message),
+            403 => println!("Access denied: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Update failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **Update operations**: 50 requests per minute
+- **Burst limit**: 10 requests per second
+
+## Related Functions
+
+- [fetch_execution_context](fetch-execution-context) - Get context details
+- [create_execution_context](create-execution-context) - Create new context
+- [delete_execution_context](delete-execution-context) - Delete context

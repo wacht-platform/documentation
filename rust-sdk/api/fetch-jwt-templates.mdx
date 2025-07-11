@@ -25,7 +25,7 @@ Returns `Result<JwtTemplateListResponse>` containing:
 ## Basic Usage
 
 ```rust
-use wacht_rs::api::settings::*;
+use wacht::api::settings::*;
 
 let templates = fetch_jwt_templates().await?;
 println!("Found {} JWT templates", templates.data.len());

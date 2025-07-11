@@ -1,0 +1,34 @@
+---
+title: 'AI Knowledge Base'
+description: 'Represents an AI Knowledge Base in Wacht'
+---
+
+This interface defines the structure of an AI Knowledge Base object.
+
+```typescript
+export interface AiKnowledgeBase {
+    id?: string;
+    name?: string;
+    description?: string;
+    type?: 'vector' | 'graph' | 'hybrid';
+    embedding_model?: string;
+    document_count?: number;
+    total_tokens?: number;
+    is_active?: boolean;
+    created_at?: string;
+    updated_at?: string;
+}
+```
+
+#### Properties
+
+- `id` (string, optional): The unique identifier of the AI knowledge base.
+- `name` (string, optional): The name of the AI knowledge base.
+- `description` (string, optional): A description of the AI knowledge base.
+- `type` (string, optional): The type of the knowledge base ('vector', 'graph', or 'hybrid').
+- `embedding_model` (string, optional): The embedding model used for the knowledge base.
+- `document_count` (number, optional): The number of documents in the knowledge base.
+- `total_tokens` (number, optional): The total number of tokens across all documents in the knowledge base.
+- `is_active` (boolean, optional): Indicates if the knowledge base is active.
+- `created_at` (string, optional): The timestamp when the knowledge base was created.
+- `updated_at` (string, optional): The timestamp when the knowledge base was last updated.

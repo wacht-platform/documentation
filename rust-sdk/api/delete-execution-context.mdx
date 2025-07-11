@@ -1,0 +1,121 @@
+---
+title: "delete_execution_context"
+description: "Delete an AI execution context"
+---
+
+## Overview
+
+The `delete_execution_context` function permanently removes an execution context.
+
+## Function Signature
+
+```rust
+pub async fn delete_execution_context(id: &str) -> Result<()>
+```
+
+## Parameters
+
+<ParamField path="id" type="&str" required>
+  The unique identifier of the execution context to delete
+</ParamField>
+
+## Return Value
+
+Returns `Result<()>` indicating success or failure.
+
+## Basic Usage
+
+```rust
+use wacht::api::execution_context::*;
+
+let context_id = "ctx_123";
+delete_execution_context(context_id).await?;
+println!("Execution context deleted successfully");
+```
+
+## Advanced Usage
+
+```rust
+use wacht::api::execution_context::*;
+
+// Delete multiple contexts with error handling
+async fn cleanup_old_contexts(context_ids: Vec<String>) -> Result<()> {
+    let mut deleted = 0;
+    let mut errors = Vec::new();
+
+    for context_id in context_ids {
+        match delete_execution_context(&context_id).await {
+            Ok(()) => {
+                deleted += 1;
+                println!("Deleted context: {}", context_id);
+            }
+            Err(e) => {
+                errors.push((context_id, e));
+            }
+        }
+    }
+
+    println!("Successfully deleted {} contexts", deleted);
+
+    if !errors.is_empty() {
+        println!("Failed to delete {} contexts:", errors.len());
+        for (id, error) in errors {
+            println!("  {}: {}", id, error);
+        }
+    }
+
+    Ok(())
+}
+
+// Clean up contexts for a specific agent
+async fn cleanup_agent_contexts(agent_id: &str) -> Result<()> {
+    let options = ListExecutionContextsOptions {
+        agent_id: Some(agent_id.to_string()),
+        ..Default::default()
+    };
+
+    let contexts = fetch_execution_contexts(Some(options)).await?;
+    let context_ids: Vec<String> = contexts.data
+        .into_iter()
+        .filter_map(|c| c.id)
+        .collect();
+
+    cleanup_old_contexts(context_ids).await
+}
+```
+
+## Error Handling
+
+```rust
+match delete_execution_context("ctx_123").await {
+    Ok(()) => {
+        println!("Context deleted successfully");
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            404 => println!("Context not found: {}", message),
+            403 => println!("Access denied: {}", message),
+            409 => println!("Context in use: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Delete failed: {}", e),
+}
+```
+
+## Important Notes
+
+- Deletion is permanent and cannot be undone
+- Active contexts being used by running agents/workflows may not be deletable
+- Ensure proper cleanup of related resources before deletion
+
+## Rate Limits
+
+- **Delete operations**: 50 requests per minute
+- **Burst limit**: 5 requests per second
+
+## Related Functions
+
+- [fetch_execution_context](fetch-execution-context) - Get context details
+- [fetch_execution_contexts](fetch-execution-contexts) - List all contexts
+- [create_execution_context](create-execution-context) - Create new context

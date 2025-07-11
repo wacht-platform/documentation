@@ -34,7 +34,7 @@ Returns `Result<()>` indicating success or failure.
 ## Basic Usage
 
 ```rust
-use wacht_rs::api::settings::*;
+use wacht::api::settings::*;
 
 let restrictions = DeploymentRestrictions {
     allowed_domains: vec!["company.com".to_string(), "partner.com".to_string()],
@@ -52,7 +52,7 @@ println!("Access restrictions updated successfully");
 ## Advanced Usage
 
 ```rust
-use wacht_rs::api::settings::*;
+use wacht::api::settings::*;
 
 // Set up strict enterprise restrictions
 let enterprise_restrictions = DeploymentRestrictions {
@@ -62,7 +62,7 @@ let enterprise_restrictions = DeploymentRestrictions {
         "acme-corp.com".to_string(),
     ],
     blocked_domains: vec![],
-    
+
     // Restrict to specific regions
     allowed_countries: vec![
         "US".to_string(), // United States
@@ -72,7 +72,7 @@ let enterprise_restrictions = DeploymentRestrictions {
         "FR".to_string(), // France
     ],
     blocked_countries: vec![],
-    
+
     // Require full verification
     require_email_verification: true,
     require_phone_verification: true,

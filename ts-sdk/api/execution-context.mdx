@@ -1,0 +1,73 @@
+---
+title: 'Execution Context API'
+description: 'Manage AI Execution Contexts in Wacht'
+---
+
+## Overview
+
+The Execution Context API allows you to manage AI execution contexts within the Wacht platform. You can list, retrieve, create, update, and delete execution contexts.
+
+### `fetchExecutionContexts(options?: ListExecutionContextsOptions)`
+
+Lists all AI execution contexts.
+
+#### Parameters
+
+- `options` (optional): An object containing pagination and filtering options.
+  - `page` (number): The page number to retrieve.
+  - `per_page` (number): The number of items per page.
+  - `agent_id` (string): Filter by agent ID.
+  - `workflow_id` (string): Filter by workflow ID.
+
+#### Returns
+
+`Promise<ExecutionContextListResponse>`: A promise that resolves to a list of AI execution contexts and pagination information.
+
+### `fetchExecutionContext(id: string)`
+
+Retrieves a specific AI execution context by its ID.
+
+#### Parameters
+
+- `id` (string): The unique identifier of the AI execution context.
+
+#### Returns
+
+`Promise<AiExecutionContext>`: A promise that resolves to the AI execution context object.
+
+### `createExecutionContext(request: CreateAiExecutionContextRequest)`
+
+Creates a new AI execution context.
+
+#### Parameters
+
+- `request` (CreateAiExecutionContextRequest): The request body containing the details of the new AI execution context.
+
+#### Returns
+
+`Promise<AiExecutionContext>`: A promise that resolves to the newly created AI execution context object.
+
+### `updateExecutionContext(id: string, request: UpdateExecutionContextRequest)`
+
+Updates an existing AI execution context.
+
+#### Parameters
+
+- `id` (string): The unique identifier of the AI execution context to update.
+- `request` (UpdateExecutionContextRequest): The request body containing the updated details of the AI execution context.
+
+#### Returns
+
+`Promise<AiExecutionContext>`: A promise that resolves to the updated AI execution context object.
+
+### `deleteExecutionContext(id: string)`
+
+Deletes an AI execution context by its ID.
+
+#### Parameters
+
+- `id` (string): The unique identifier of the AI execution context to delete.
+
+#### Returns
+
+`Promise<void>`: A promise that resolves when the execution context is successfully deleted.

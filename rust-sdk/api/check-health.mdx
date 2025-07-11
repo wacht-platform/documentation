@@ -28,7 +28,7 @@ Returns `Result<HealthStatus>` containing:
 ## Basic Usage
 
 ```rust
-use wacht_rs::api::health::*;
+use wacht::api::health::*;
 
 let health = check_health().await?;
 println!("API Status: {}", health.status);
@@ -39,13 +39,13 @@ println!("Checked at: {}", health.timestamp);
 ## Advanced Usage
 
 ```rust
-use wacht_rs::api::health::*;
+use wacht::api::health::*;
 
 match check_health().await {
     Ok(health) => {
         println!("System Health: {}", health.status);
         println!("API Version: {}", health.version);
-        
+
         // Check individual services
         for service in health.services {
             println!("- {} : {}", service.name, service.status);
@@ -53,7 +53,7 @@ match check_health().await {
                 println!("  Message: {}", message);
             }
         }
-        
+
         // Determine if action needed
         if health.status != "healthy" {
             println!("⚠️  System is not fully healthy!");

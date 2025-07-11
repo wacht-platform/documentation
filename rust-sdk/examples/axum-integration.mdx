@@ -23,7 +23,7 @@ tower = "0.5"
 tower-http = { version = "0.6", features = ["cors", "trace"] }
 
 # Wacht SDK
-wacht-rs = "2.0"
+wacht = "2.0"
 
 # Serialization
 serde = { version = "1", features = ["derive"] }
@@ -45,7 +45,7 @@ anyhow = "1"
 # .env
 WACHT_API_KEY=wacht_sk_your_api_key
 WACHT_FRONTEND_HOST=https://your-app.wacht.io
-RUST_LOG=debug,wacht_rs=debug,tower_http=debug
+RUST_LOG=debug,wacht=debug,tower_http=debug
 SERVER_PORT=3000
 ```
 
@@ -66,7 +66,7 @@ use tower_http::{
     cors::{CorsLayer, Any},
     trace::TraceLayer,
 };
-use wacht_rs::{
+use wacht::{
     init_from_env,
     middleware::*,
     models::*,
@@ -96,13 +96,13 @@ struct AppState {
 enum AppError {
     #[error("Wacht API error: {0}")]
     Wacht(#[from] WachtError),
-    
+
     #[error("Validation error: {0}")]
     Validation(String),
-    
+
     #[error("Not found: {0}")]
     NotFound(String),
-    
+
     #[error("Internal error: {0}")]
     Internal(String),
 }
@@ -126,9 +126,9 @@ impl IntoResponse for AppError {
                 (StatusCode::INTERNAL_SERVER_ERROR, msg.clone())
             }
         };
-        
+
         error!("Request failed: {} - {}", status, message);
-        
+
         (
             status,
             Json(serde_json::json!({
@@ -175,36 +175,36 @@ struct CreateProjectRequest {
 async fn main() -> anyhow::Result<()> {
     // Load environment
     dotenv::dotenv().ok();
-    
+
     // Initialize tracing
     tracing_subscriber::registry()
         .with(tracing_subscriber::EnvFilter::from_default_env())
         .with(tracing_subscriber::fmt::layer())
         .init();
-    
+
     info!("Starting Wacht Axum application");
-    
+
     // Initialize Wacht SDK
     init_from_env().await?;
     info!("Wacht SDK initialized");
-    
+
     // Create application state
     let state = Arc::new(AppState {});
-    
+
     // Build application
     let app = create_app(state);
-    
+
     // Start server
     let port = std::env::var("SERVER_PORT")
         .unwrap_or_else(|_| "3000".to_string())
         .parse::<u16>()?;
-    
+
     let addr = format!("0.0.0.0:{}", port);
     let listener = tokio::net::TcpListener::bind(&addr).await?;
-    
+
     info!("Server listening on {}", addr);
     axum::serve(listener, app).await?;
-    
+
     Ok(())
 }
 
@@ -214,14 +214,14 @@ fn create_app(state: Arc<AppState>) -> Router {
         .route("/", get(root_handler))
         .route("/health", get(health_handler))
         .route("/login", post(login_handler));
-    
+
     // User routes (auth required)
     let user_routes = Router::new()
         .route("/profile", get(get_profile))
         .route("/profile", put(update_profile))
         .route("/organizations", get(list_organizations))
         .layer(middleware::from_fn(require_auth_middleware));
-    
+
     // Admin routes (auth + permissions required)
     let admin_routes = Router::new()
         .route("/users", get(list_users))
@@ -229,14 +229,14 @@ fn create_app(state: Arc<AppState>) -> Router {
         .route("/users/:id", delete(delete_user))
         .layer(PermissionLayer::organization("admin:access"))
         .layer(middleware::from_fn(require_auth_middleware));
-    
+
     // Project routes (workspace permissions)
     let project_routes = Router::new()
         .route("/projects", get(list_projects))
         .route("/projects", post(create_project))
         .route("/projects/:id", put(update_project))
         .layer(middleware::from_fn(require_auth_middleware));
-    
+
     // Combine all routes
     Router::new()
         .merge(public_routes)
@@ -290,7 +290,7 @@ async fn get_profile(
     Extension(auth): Extension<AuthContext>,
 ) -> Result<Json<serde_json::Value>> {
     let user = UsersApi::users_user_id_get(&auth.user_id).await?;
-    
+
     Ok(Json(serde_json::json!({
         "id": user.id,
         "email": user.email,
@@ -326,7 +326,7 @@ async fn list_users(
         params.offset,
         params.search.as_deref()
     ).await?;
-    
+
     let response: Vec<UserResponse> = users.data
         .into_iter()
         .map(|u| UserResponse {
@@ -340,7 +340,7 @@ async fn list_users(
                 .collect(),
         })
         .collect();
-    
+
     Ok(Json(response))
 }
 
@@ -356,7 +356,7 @@ async fn get_user(
             }
             e => e.into(),
         })?;
-    
+
     Ok(Json(user))
 }
 
@@ -375,7 +375,7 @@ async fn list_projects(
     // Check if user has workspace context
     let workspace_id = auth.workspace_id
         .ok_or_else(|| AppError::Validation("No workspace selected".to_string()))?;
-    
+
     // This would call your projects API
     Ok(Json(serde_json::json!({
         "workspace_id": workspace_id,
@@ -392,10 +392,10 @@ async fn create_project(
     if payload.name.is_empty() {
         return Err(AppError::Validation("Project name is required".to_string()));
     }
-    
+
     let workspace_id = auth.workspace_id
         .ok_or_else(|| AppError::Validation("No workspace selected".to_string()))?;
-    
+
     // Create project in workspace
     Ok(Json(serde_json::json!({
         "id": "proj_123",
@@ -530,10 +530,10 @@ use prometheus::{Encoder, TextEncoder, Counter, Histogram};
 
 lazy_static! {
     static ref REQUEST_COUNT: Counter = Counter::new(
-        "http_requests_total", 
+        "http_requests_total",
         "Total HTTP requests"
     ).unwrap();
-    
+
     static ref REQUEST_DURATION: Histogram = Histogram::with_opts(
         HistogramOpts::new("http_request_duration_seconds", "HTTP request duration")
     ).unwrap();
@@ -545,7 +545,7 @@ async fn metrics_handler() -> Result<String> {
     let mut buffer = vec![];
     encoder.encode(&metric_families, &mut buffer)
         .map_err(|e| AppError::Internal(e.to_string()))?;
-    
+
     String::from_utf8(buffer)
         .map_err(|e| AppError::Internal(e.to_string()))
 }

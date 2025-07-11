@@ -34,7 +34,7 @@ Returns `Result<WorkspaceListResponse>` containing:
 ## Basic Usage
 
 ```rust
-use wacht_rs::api::workspaces::*;
+use wacht::api::workspaces::*;
 
 // Fetch all workspaces
 let workspaces = fetch_workspaces(None).await?;
@@ -46,7 +46,7 @@ for workspace in workspaces.data {
 ## Advanced Usage
 
 ```rust
-use wacht_rs::api::workspaces::*;
+use wacht::api::workspaces::*;
 
 // Fetch workspaces for a specific organization
 let options = ListWorkspacesOptions {

@@ -8,25 +8,25 @@ The `AuthLayer` provides JWT token validation middleware that integrates seamles
 ## Import
 
 ```rust
-use wacht_rs::middleware::AuthLayer;
+use wacht::middleware::AuthLayer;
 ```
 
 ## Basic Usage
 
 ```rust
 use axum::{Router, routing::get};
-use wacht_rs::middleware::AuthLayer;
+use wacht::middleware::AuthLayer;
 
 #[tokio::main]
 async fn main() {
     // Initialize SDK first
-    wacht_rs::init_from_env().await.unwrap();
-    
+    wacht::init_from_env().await.unwrap();
+
     // Create router with auth middleware
     let app = Router::new()
         .route("/protected", get(protected_handler))
         .layer(AuthLayer::new());
-    
+
     // Routes under this layer require valid JWT tokens
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000")
         .await
@@ -116,7 +116,7 @@ Use the `Extension` extractor:
 
 ```rust
 use axum::{Extension, Json};
-use wacht_rs::middleware::AuthContext;
+use wacht::middleware::AuthContext;
 use serde_json::json;
 
 async fn user_info(
@@ -159,12 +159,12 @@ Returned when:
 
 ```rust
 use axum::{
-    Router, 
+    Router,
     routing::{get, post},
     Extension,
     Json,
 };
-use wacht_rs::{
+use wacht::{
     init_from_env,
     middleware::{AuthLayer, AuthContext},
 };
@@ -174,28 +174,28 @@ use serde_json::{json, Value};
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Initialize SDK
     init_from_env().await?;
-    
+
     // Public routes (no auth required)
     let public_routes = Router::new()
         .route("/health", get(health_check))
         .route("/login", post(login));
-    
+
     // Protected routes (auth required)
     let protected_routes = Router::new()
         .route("/profile", get(get_profile))
         .route("/organizations", get(list_organizations))
         .layer(AuthLayer::new());
-    
+
     // Combine routers
     let app = Router::new()
         .merge(public_routes)
         .merge(protected_routes);
-    
+
     // Start server
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await?;
     println!("Server running on http://0.0.0.0:3000");
     axum::serve(listener, app).await?;
-    
+
     Ok(())
 }
 
@@ -228,7 +228,7 @@ async fn list_organizations(
 ) -> Json<Value> {
     let orgs = auth.organization_permissions
         .unwrap_or_default();
-    
+
     Json(json!({
         "user_id": auth.user_id,
         "organizations": orgs
@@ -258,7 +258,7 @@ let app = Router::new()
     // Public routes
     .route("/", get(home))
     .route("/about", get(about))
-    
+
     // Nested protected routes
     .nest("/api", Router::new()
         .route("/users", get(list_users))
@@ -278,19 +278,19 @@ Mock the authentication in tests:
 mod tests {
     use axum::http::{Request, header};
     use tower::ServiceExt;
-    
+
     #[tokio::test]
     async fn test_protected_route() {
         let app = create_app();
-        
+
         // Test without auth
         let response = app
             .oneshot(Request::get("/protected").body(Body::empty()).unwrap())
             .await
             .unwrap();
-        
+
         assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
-        
+
         // Test with auth
         let response = app
             .oneshot(
@@ -301,7 +301,7 @@ mod tests {
             )
             .await
             .unwrap();
-        
+
         assert_eq!(response.status(), StatusCode::OK);
     }
 }
@@ -318,9 +318,9 @@ use tracing_subscriber;
 async fn main() {
     // Enable debug logging
     tracing_subscriber::fmt()
-        .with_env_filter("wacht_rs=debug")
+        .with_env_filter("wacht=debug")
         .init();
-    
+
     // Your app setup...
 }
 ```

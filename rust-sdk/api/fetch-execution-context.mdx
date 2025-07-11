@@ -1,0 +1,73 @@
+---
+title: "fetch_execution_context"
+description: "Get a specific AI execution context"
+---
+
+## Overview
+
+The `fetch_execution_context` function retrieves a specific execution context by its ID.
+
+## Function Signature
+
+```rust
+pub async fn fetch_execution_context(id: &str) -> Result<AiExecutionContext>
+```
+
+## Parameters
+
+<ParamField path="id" type="&str" required>
+  The unique identifier of the execution context to retrieve
+</ParamField>
+
+## Return Value
+
+Returns `Result<AiExecutionContext>` containing the execution context details.
+
+## Basic Usage
+
+```rust
+use wacht::api::execution_context::*;
+
+let context_id = "ctx_123";
+let context = fetch_execution_context(context_id).await?;
+
+println!("Context ID: {}", context.id.unwrap_or_default());
+println!("Agent ID: {}", context.agent_id.unwrap_or_default());
+println!("Workflow ID: {}", context.workflow_id.unwrap_or_default());
+println!("Session ID: {}", context.session_id.unwrap_or_default());
+
+if let Some(ctx_data) = context.context {
+    println!("Context data: {:?}", ctx_data);
+}
+```
+
+## Error Handling
+
+```rust
+match fetch_execution_context("ctx_123").await {
+    Ok(context) => {
+        println!("Successfully retrieved context");
+        println!("Created at: {}", context.created_at.unwrap_or_default());
+    }
+    Err(Error::Api { status, message, .. }) => {
+        match status.as_u16() {
+            404 => println!("Context not found: {}", message),
+            403 => println!("Access denied: {}", message),
+            _ => println!("API error {}: {}", status, message),
+        }
+    }
+    Err(e) => println!("Request failed: {}", e),
+}
+```
+
+## Rate Limits
+
+- **Read operations**: 100 requests per minute
+- **Burst limit**: 20 requests per second
+
+## Related Functions
+
+- [fetch_execution_contexts](fetch-execution-contexts) - List all contexts
+- [create_execution_context](create-execution-context) - Create new context
+- [update_execution_context](update-execution-context) - Update context
+- [delete_execution_context](delete-execution-context) - Delete context

@@ -26,7 +26,7 @@ Returns `Result<AiWorkflow>` containing the workflow details.
 ## Basic Usage
 
 ```rust
-use wacht_rs::api::workflows::*;
+use wacht::api::workflows::*;
 
 let workflow = fetch_workflow("52057194421551105").await?;
 println!("Workflow: {} ({})", workflow.name, workflow.id);
@@ -43,7 +43,7 @@ match fetch_workflow("52057194421551105").await {
         println!("Found workflow: {}", workflow.name);
         println!("Trigger type: {}", workflow.trigger_type);
         println!("Number of steps: {}", workflow.steps.len());
-        
+
         for (i, step) in workflow.steps.iter().enumerate() {
             println!("  Step {}: {} ({})", i + 1, step.name, step.type_);
         }

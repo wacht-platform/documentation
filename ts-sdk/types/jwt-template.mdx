@@ -1,0 +1,33 @@
+---
+title: 'JWT Template'
+description: 'Represents a JWT Template in Wacht'
+---
+
+This interface defines the structure of a JWT Template object.
+
+```typescript
+export interface JwtTemplate {
+    id?: string;
+    name?: string;
+    description?: string;
+    claims?: any;
+    /**
+     * Token time-to-live in seconds
+     */
+    ttl?: number;
+    is_default?: boolean;
+    created_at?: string;
+    updated_at?: string;
+}
+```
+
+#### Properties
+
+- `id` (string, optional): The unique identifier of the JWT template.
+- `name` (string, optional): The name of the JWT template.
+- `description` (string, optional): A description of the JWT template.
+- `claims` (any, optional): The claims to be included in the JWT.
+- `ttl` (number, optional): Token time-to-live in seconds.
+- `is_default` (boolean, optional): Indicates if this is the default JWT template.
+- `created_at` (string, optional): The timestamp when the JWT template was created.
+- `updated_at` (string, optional): The timestamp when the JWT template was last updated.

@@ -1,0 +1,237 @@
+---
+title: 'Quick Start'
+description: 'Get up and running with the Wacht TypeScript SDK in minutes'
+---
+
+This guide will help you set up the Wacht TypeScript SDK and make your first API calls.
+
+## Basic Setup
+
+### 1. Create a new TypeScript project
+
+```bash
+mkdir my-wacht-ts-app
+cd my-wacht-ts-app
+pnpm init -y
+```
+
+### 2. Add dependencies
+
+```bash
+pnpm add wacht-ts
+# For Node.js (Express-style) applications
+pnpm add wacht-middleware-node express @types/express
+# For Hono applications
+pnpm add wacht-middleware-hono hono
+```
+
+### 3. Set environment variables
+
+```bash
+export WACHT_API_KEY="your-api-key"
+export WACHT_FRONTEND_HOST="https://your-app.wacht.io"
+```
+
+### 4. Initialize and use the SDK
+
+```typescript
+import { init, health, users } from 'wacht-ts';
+
+async function main() {
+    // Initialize SDK from environment variables
+    await init.initFromEnv();
+
+    // Check API health
+    const healthStatus = await health.checkHealth();
+    console.log('API Status:', healthStatus);
+
+    // Get current user (example, assuming authentication is handled elsewhere or not required for this endpoint)
+    // Note: For actual user data, you'd typically need an authenticated session.
+    // const currentUser = await users.fetchCurrentUser(); 
+    // console.log('Current user:', currentUser);
+
+}
+
+main().catch(console.error);
+```
+
+## Making API Calls
+
+### User Management
+
+```typescript
+import { users } from 'wacht-ts';
+
+async function userExamples() {
+    // List users with pagination
+    const userList = await users.fetchUsers({
+        page: 1,
+        per_page: 10,
+        search: 'example'
+    });
+    console.log('Users:', userList.data);
+
+    // Create a new user (example, adjust fields as necessary)
+    // const newUser = await users.createUser({
+    //     email: 'test@example.com',
+    //     password: 'securepassword',
+    //     first_name: 'Test',
+    //     last_name: 'User'
+    // });
+    // console.log('New user:', newUser);
+
+    // Fetch a specific user
+    // const userId = 'some-user-id';
+    // const user = await users.fetchUserDetails(userId);
+    // console.log('Fetched user:', user);
+
+    // Update a user
+    // const updatedUser = await users.updateUser(userId, { first_name: 'Updated' });
+    // console.log('Updated user:', updatedUser);
+}
+
+userExamples().catch(console.error);
+```
+
+### Organization Management
+
+```typescript
+import { organizations } from 'wacht-ts';
+
+async function organizationExamples() {
+    // List organizations
+    const orgList = await organizations.fetchOrganizations();
+    console.log('Organizations:', orgList.data);
+
+    // Create an organization (example)
+    // const newOrg = await organizations.createOrganization({
+    //     name: 'My New Org',
+    //     display_name: 'My New Organization',
+    // });
+    // console.log('New organization:', newOrg);
+
+    // Add a member to an organization (example)
+    // const orgId = 'some-org-id';
+    // const userId = 'some-user-id';
+    // const roleId = 'some-role-id'; // e.g., 'admin', 'member'
+    // const member = await organizations.addOrganizationMember(orgId, { user_id: userId, role_id: roleId });
+    // console.log('Added member:', member);
+}
+
+organizationExamples().catch(console.error);
+```
+
+## Using Authentication Middleware
+
+### Node.js (Express-style) Example
+
+```typescript
+import express from 'express';
+import { init, AuthConfig } from 'wacht-ts';
+import { authMiddleware, requirePermissionMiddleware } from 'wacht-middleware-node';
+
+async function startNodeApp() {
+    // Initialize Wacht SDK
+    await init.initFromEnv();
+
+    const app = express();
+
+    // Configure AuthConfig (public_key will be fetched by initFromEnv)
+    const authConfig: AuthConfig = { public_key: '' }; // public_key is a placeholder, it will be populated by initFromEnv
+
+    // Apply authentication middleware globally or to specific routes
+    app.use(authMiddleware(authConfig));
+
+    app.get('/protected', (req, res) => {
+        // req.auth will contain the authenticated user's context
+        res.json({ message: 'You accessed a protected route!', user: req.auth });
+    });
+
+    // Apply permission middleware
+    app.get('/admin-only', requirePermissionMiddleware('admin:manage', 'Organization'), (req, res) => {
+        res.json({ message: 'You are an admin!', user: req.auth });
+    });
+
+    app.listen(3000, () => {
+        console.log('Node.js app listening on port 3000');
+    });
+}
+
+startNodeApp().catch(console.error);
+```
+
+### Hono Example
+
+```typescript
+import { Hono } from 'hono';
+import { init, AuthConfig } from 'wacht-ts';
+import { authMiddleware, requirePermissionMiddleware } from 'wacht-middleware-hono';
+
+async function startHonoApp() {
+    // Initialize Wacht SDK
+    await init.initFromEnv();
+
+    const app = new Hono();
+
+    // Configure AuthConfig (public_key will be fetched by initFromEnv)
+    const authConfig: AuthConfig = { public_key: '' }; // public_key is a placeholder, it will be populated by initFromEnv
+
+    // Apply authentication middleware globally or to specific routes
+    app.use('*', authMiddleware(authConfig));
+
+    app.get('/protected', (c) => {
+        // c.get('auth') will contain the authenticated user's context
+        return c.json({ message: 'You accessed a protected route!', user: c.get('auth') });
+    });
+
+    // Apply permission middleware
+    app.get('/admin-only', requirePermissionMiddleware('admin:manage', 'Organization'), (c) => {
+        return c.json({ message: 'You are an admin!', user: c.get('auth') });
+    });
+
+    console.log('Hono app listening on port 3000');
+    // Hono apps are typically served by a server like Node.js http or Bun
+    // For example, in Node.js:
+    // import { serve } from '@hono/node-server';
+    // serve({ fetch: app.fetch, port: 3000 });
+}
+
+startHonoApp().catch(console.error);
+```
+
+## Error Handling
+
+```typescript
+import { users, ApiError } from 'wacht-ts';
+
+async function handleErrorExample() {
+    try {
+        // Attempt to fetch a non-existent user
+        const nonExistentUser = await users.fetchUserDetails('non-existent-id');
+        console.log('User:', nonExistentUser);
+    } catch (error) {
+        if (error instanceof ApiError) {
+            console.error(`API Error: Status ${error.status}, Message: ${error.message}, Details:`, error.details);
+        } else {
+            console.error(`Other Error:`, error);
+        }
+    }
+}
+
+handleErrorExample().catch(console.error);
+```
+
+## Next Steps
+
+Now that you have the basics working:
+
+1. **Explore API Modules** - Check out the full API documentation
+2. **Learn Authentication** - Deep dive into JWT validation and permissions
+3. **Production Setup** - Configure for production deployments
+4. **Advanced Patterns** - Learn async patterns and best practices
+
+### Useful Resources
+
+- [Configuration Guide](configuration) - Detailed configuration options
+- [API Reference](api/users-api) - Complete API documentation
+- [Error Handling](error-handling) - Comprehensive error handling

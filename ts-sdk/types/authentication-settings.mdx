@@ -1,0 +1,35 @@
+---
+title: 'Authentication Settings'
+description: 'Authentication settings for a Wacht deployment'
+---
+
+This interface defines the authentication settings for a Wacht deployment.
+
+```typescript
+export interface AuthenticationSettings {
+    allow_signups?: boolean;
+    require_email_verification?: boolean;
+    password_min_length?: number;
+    password_require_uppercase?: boolean;
+    password_require_numbers?: boolean;
+    password_require_special?: boolean;
+    /**
+     * Session timeout in seconds
+     */
+    session_timeout?: number;
+    mfa_enabled?: boolean;
+    allowed_oauth_providers?: Array<"google" | "facebook" | "github" | "linkedin">;
+}
+```
+
+#### Properties
+
+- `allow_signups` (boolean, optional): Whether new user signups are allowed.
+- `require_email_verification` (boolean, optional): Whether email verification is required for new signups.
+- `password_min_length` (number, optional): Minimum length for user passwords.
+- `password_require_uppercase` (boolean, optional): Whether passwords must contain uppercase characters.
+- `password_require_numbers` (boolean, optional): Whether passwords must contain numbers.
+- `password_require_special` (boolean, optional): Whether passwords must contain special characters.
+- `session_timeout` (number, optional): Session timeout in seconds.
+- `mfa_enabled` (boolean, optional): Whether multi-factor authentication is enabled.
+- `allowed_oauth_providers` (string[], optional): List of allowed OAuth providers.

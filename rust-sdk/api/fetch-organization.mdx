@@ -26,7 +26,7 @@ Returns `Result<Organization>` containing the organization details.
 ## Basic Usage
 
 ```rust
-use wacht_rs::api::organizations::*;
+use wacht::api::organizations::*;
 
 let org = fetch_organization("52057194421551105").await?;
 println!("Organization: {} ({})", org.name, org.slug);

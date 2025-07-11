@@ -1,0 +1,24 @@
+---
+title: 'Generate Token Request'
+description: 'Request body for generating a JWT token'
+---
+
+This interface defines the structure of the request body used when generating a JWT token.
+
+```typescript
+export interface GenerateTokenRequest {
+    /**
+     * The session ID to generate a token for
+     */
+    session_id: number;
+    /**
+     * Name of the JWT template to use. If not provided, 'default' template will be used.
+     */
+    template?: string;
+}
+```
+
+#### Properties
+
+- `session_id` (number): The session ID to generate a token for.
+- `template` (string, optional): Name of the JWT template to use. If not provided, 'default' template will be used.

@@ -20,9 +20,10 @@ pub async fn create_execution_context(
 <ParamField path="request" type="CreateAiExecutionContextRequest" required>
   The execution context configuration including:
   - `agent_id`: ID of the AI agent to use (required)
-  - `user_id`: ID of the user initiating the context (required)
+  - `workflow_id`: ID of the workflow (optional)
+  - `user_id`: ID of the user initiating the context (optional)
   - `session_id`: Unique session identifier (optional)
-  - `metadata`: Additional context metadata (optional)
+  - `context`: Custom context data as JSON (optional)
 </ParamField>
 
 ## Return Value
@@ -32,52 +33,53 @@ Returns `Result<AiExecutionContext>` containing the created execution context de
 ## Basic Usage
 
 ```rust
-use wacht_rs::api::execution_context::*;
+use wacht::api::execution_context::*;
+use wacht::models::CreateAiExecutionContextRequest;
 
-let context_request = CreateAiExecutionContextRequest {
-    agent_id: "agent_123".to_string(),
-    user_id: "user_456".to_string(),
-    session_id: Some("session_789".to_string()),
-    metadata: Some(serde_json::json!({
-        "source": "web_app",
-        "version": "1.0.0"
-    })),
-};
+let mut context_request = CreateAiExecutionContextRequest::new("agent_123".to_string());
+context_request.session_id = Some("session_789".to_string());
+context_request.context = Some(serde_json::json!({
+    "source": "web_app",
+    "version": "1.0.0"
+}));
 
 let context = create_execution_context(context_request).await?;
-println!("Created execution context: {}", context.id);
-println!("Session: {}", context.session_id);
+println!("Created execution context: {}", context.id.unwrap_or_default());
+println!("Session: {}", context.session_id.unwrap_or_default());
 ```
 
 ## Advanced Usage
 
 ```rust
-use wacht_rs::api::execution_context::*;
+use wacht::api::execution_context::*;
+use wacht::models::CreateAiExecutionContextRequest;
 use uuid::Uuid;
 
-async fn start_ai_session(agent_id: &str, user_id: &str) -> Result<AiExecutionContext> {
+async fn start_ai_session(agent_id: &str, workflow_id: Option<&str>) -> Result<AiExecutionContext> {
     let session_id = Uuid::new_v4().to_string();
-    
-    let request = CreateAiExecutionContextRequest {
-        agent_id: agent_id.to_string(),
-        user_id: user_id.to_string(),
-        session_id: Some(session_id.clone()),
-        metadata: Some(serde_json::json!({
-            "platform": std::env::consts::OS,
-            "timestamp": chrono::Utc::now().to_rfc3339(),
-            "user_agent": "rust-sdk/1.0"
-        })),
-    };
-    
+
+    let mut request = CreateAiExecutionContextRequest::new(agent_id.to_string());
+    request.workflow_id = workflow_id.map(|w| w.to_string());
+    request.session_id = Some(session_id.clone());
+    request.context = Some(serde_json::json!({
+        "platform": std::env::consts::OS,
+        "timestamp": chrono::Utc::now().to_rfc3339(),
+        "user_agent": "rust-sdk/1.0",
+        "initial_state": "ready"
+    }));
+
     let context = create_execution_context(request).await?;
-    
+
     println!("AI session started");
-    println!("Context ID: {}", context.id);
-    println!("Agent: {}", context.agent_id);
-    println!("Session: {}", context.session_id);
-    
+    println!("Context ID: {}", context.id.unwrap_or_default());
+    println!("Agent: {}", context.agent_id.unwrap_or_default());
+    println!("Session: {}", context.session_id.unwrap_or_default());
+
     Ok(context)
 }
+
+// Create context with workflow
+let context = start_ai_session("agent_123", Some("workflow_456")).await?;
 ```
 
 ## Error Handling
@@ -86,7 +88,7 @@ async fn start_ai_session(agent_id: &str, user_id: &str) -> Result<AiExecutionCo
 match create_execution_context(request).await {
     Ok(context) => {
         println!("Successfully created execution context");
-        println!("Context ID: {}", context.id);
+        println!("Context ID: {}", context.id.unwrap_or_default());
         println!("Ready for AI operations");
     }
     Err(Error::Api { status, message, .. }) => {
@@ -115,5 +117,7 @@ match create_execution_context(request).await {
 
 ## Related Functions
 
-- [fetch_agent](fetch-agent) - Get agent details before creating context
-- [create_agent](create-agent) - Create new AI agents
+- [fetch_execution_contexts](fetch-execution-contexts) - List all contexts
+- [fetch_execution_context](fetch-execution-context) - Get specific context
+- [update_execution_context](update-execution-context) - Update context data
+- [delete_execution_context](delete-execution-context) - Delete context

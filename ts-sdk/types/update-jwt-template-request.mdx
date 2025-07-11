@@ -1,0 +1,24 @@
+---
+title: 'Update JWT Template Request'
+description: 'Request body for updating an existing JWT Template'
+---
+
+This interface defines the structure of the request body used when updating an existing JWT Template.
+
+```typescript
+export interface UpdateJwtTemplateRequest {
+    name?: string;
+    description?: string;
+    claims?: any;
+    ttl?: number;
+    is_default?: boolean;
+}
+```
+
+#### Properties
+
+- `name` (string, optional): The updated name of the JWT template.
+- `description` (string, optional): The updated description of the JWT template.
+- `claims` (any, optional): The updated claims to be included in the JWT.
+- `ttl` (number, optional): The updated time-to-live (TTL) for the JWT in seconds.
+- `is_default` (boolean, optional): The updated default status of the JWT template.

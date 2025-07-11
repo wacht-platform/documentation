@@ -1,0 +1,91 @@
+---
+title: "UpdateExecutionContextRequest"
+description: "Request type for updating execution contexts"
+---
+
+## Overview
+
+The `UpdateExecutionContextRequest` struct is used to update an existing AI execution context's data.
+
+## Definition
+
+```rust
+pub struct UpdateExecutionContextRequest {
+    pub context: Option<serde_json::Value>,
+    pub session_id: Option<String>,
+}
+```
+
+## Fields
+
+<ParamField path="context" type="Option<serde_json::Value>">
+  Updated context data as JSON. This can contain any custom data needed for the AI session.
+</ParamField>
+
+<ParamField path="session_id" type="Option<String>">
+  Updated session identifier. Used to change or refresh the session ID.
+</ParamField>
+
+## Usage Example
+
+```rust
+use wacht::api::execution_context::*;
+use serde_json::json;
+
+// Update context with new data
+let update_request = UpdateExecutionContextRequest {
+    context: Some(json!({
+        "step": "processing",
+        "progress": 50,
+        "intermediate_results": {
+            "documents_processed": 10,
+            "entities_found": 25
+        }
+    })),
+    session_id: None, // Keep existing session ID
+};
+
+let updated = update_execution_context("ctx_123", update_request).await?;
+
+// Update only session ID
+let session_update = UpdateExecutionContextRequest {
+    context: None, // Keep existing context
+    session_id: Some("new_session_456".to_string()),
+};
+
+let updated = update_execution_context("ctx_123", session_update).await?;
+```
+
+## Context Data Examples
+
+```rust
+// Tracking conversation state
+let context_data = json!({
+    "conversation_history": [
+        {"role": "user", "content": "Hello"},
+        {"role": "assistant", "content": "Hi there!"}
+    ],
+    "current_topic": "greeting",
+    "sentiment": "positive"
+});
+
+// Tracking workflow progress
+let workflow_context = json!({
+    "workflow_step": "data_validation",
+    "steps_completed": ["input_parsing", "authentication"],
+    "next_step": "processing",
+    "metadata": {
+        "start_time": "2024-01-01T10:00:00Z",
+        "estimated_completion": "2024-01-01T10:30:00Z"
+    }
+});
+```
+
+## Related Types
+
+- [AiExecutionContext](/rust-sdk/types/ai-execution-context) - The execution context model
+- [CreateAiExecutionContextRequest](/rust-sdk/types/create-ai-execution-context-request) - Create request type
+
+## See Also
+
+- [update_execution_context](/rust-sdk/api/update-execution-context) - API method that uses this type

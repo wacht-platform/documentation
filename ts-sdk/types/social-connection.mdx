@@ -1,0 +1,26 @@
+---
+title: 'Social Connection'
+description: 'Represents a Social Connection in Wacht'
+---
+
+This interface defines the structure of a Social Connection object.
+
+```typescript
+export interface SocialConnection {
+    provider?: 'google' | 'facebook' | 'github' | 'linkedin';
+    enabled?: boolean;
+    client_id?: string;
+    client_secret?: string;
+    scopes?: string[];
+    redirect_uri?: string;
+}
+```
+
+#### Properties
+
+- `provider` (string, optional): The social media provider ('google', 'facebook', 'github', or 'linkedin').
+- `enabled` (boolean, optional): Whether the social connection is enabled.
+- `client_id` (string, optional): The client ID for the social connection.
+- `client_secret` (string, optional): The client secret for the social connection.
+- `scopes` (string[], optional): A list of scopes requested for the social connection.
+- `redirect_uri` (string, optional): The redirect URI for the social connection.

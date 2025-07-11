@@ -33,7 +33,7 @@ Returns `Result<OrganizationListResponse>` containing:
 ## Basic Usage
 
 ```rust
-use wacht_rs::api::organizations::*;
+use wacht::api::organizations::*;
 
 // Fetch all organizations
 let organizations = fetch_organizations(None).await?;
@@ -45,7 +45,7 @@ for org in organizations.data {
 ## Advanced Usage
 
 ```rust
-use wacht_rs::api::organizations::*;
+use wacht::api::organizations::*;
 
 // Fetch with pagination and search
 let options = ListOrganizationsOptions {

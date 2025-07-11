@@ -1,0 +1,34 @@
+---
+title: 'Organization'
+description: 'Represents an Organization in Wacht'
+---
+
+This interface defines the structure of an Organization object.
+
+```typescript
+export interface Organization {
+    id?: string;
+    name?: string;
+    display_name?: string;
+    slug?: string;
+    description?: string;
+    logo_url?: string;
+    created_at?: string;
+    updated_at?: string;
+    member_count?: number;
+    workspace_count?: number;
+}
+```
+
+#### Properties
+
+- `id` (string, optional): The unique identifier of the organization.
+- `name` (string, optional): The name of the organization.
+- `display_name` (string, optional): The display name of the organization.
+- `slug` (string, optional): The URL-friendly slug of the organization.
+- `description` (string, optional): A description of the organization.
+- `logo_url` (string, optional): The URL of the organization's logo.
+- `created_at` (string, optional): The timestamp when the organization was created.
+- `updated_at` (string, optional): The timestamp when the organization was last updated.
+- `member_count` (number, optional): The number of members in the organization.
+- `workspace_count` (number, optional): The number of workspaces within the organization.

@@ -8,7 +8,7 @@ Request extractors provide handler-level authentication and authorization checks
 ## Import
 
 ```rust
-use wacht_rs::middleware::{
+use wacht::middleware::{
     RequireAuth,
     RequirePermission,
     OptionalAuth,
@@ -26,7 +26,7 @@ Ensures the request has valid authentication. Returns 401 if not authenticated.
 
 ```rust
 use axum::{Json, Extension};
-use wacht_rs::middleware::{RequireAuth, AuthContext};
+use wacht::middleware::{RequireAuth, AuthContext};
 use serde_json::{json, Value};
 
 async fn protected_handler(
@@ -46,7 +46,7 @@ async fn protected_handler(
 Allows both authenticated and unauthenticated requests. Useful for routes that behave differently based on authentication status.
 
 ```rust
-use wacht_rs::middleware::{OptionalAuth, AuthContext};
+use wacht::middleware::{OptionalAuth, AuthContext};
 
 async fn public_handler(auth: OptionalAuth) -> String {
     match auth.0 {
@@ -63,7 +63,7 @@ async fn public_handler(auth: OptionalAuth) -> String {
 Define custom permission requirements using the `require_permission!` macro:
 
 ```rust
-use wacht_rs::{require_permission, middleware::PermissionScope};
+use wacht::{require_permission, middleware::PermissionScope};
 
 // Define permissions at compile time
 require_permission!(CanReadUsers, "users:read", Organization);
@@ -95,7 +95,7 @@ async fn update_billing(
 For dynamic permission checks:
 
 ```rust
-use wacht_rs::middleware::{RequirePermission, Permission};
+use wacht::middleware::{RequirePermission, Permission};
 
 // Define a permission type
 struct AdminPermission;
@@ -155,7 +155,7 @@ use axum::{
     Extension,
     extract::Path,
 };
-use wacht_rs::{
+use wacht::{
     init_from_env,
     middleware::*,
     require_permission,
@@ -179,24 +179,24 @@ struct Post {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     init_from_env().await?;
-    
+
     let app = Router::new()
         // Public routes
         .route("/posts", get(list_posts_public))
         .route("/posts/:id", get(get_post_public))
-        
+
         // Authenticated routes
         .route("/posts", post(create_post))
         .route("/posts/:id", put(update_post))
         .route("/posts/:id", delete(delete_post))
         .route("/my-posts", get(list_my_posts))
-        
+
         // Apply auth middleware
         .layer(AuthLayer::new());
-    
+
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await?;
     axum::serve(listener, app).await?;
-    
+
     Ok(())
 }
 
@@ -212,7 +212,7 @@ async fn list_posts_public(auth: OptionalAuth) -> Json<Value> {
             "Public posts only".to_string()
         }
     };
-    
+
     Json(json!({ "posts": posts }))
 }
 
@@ -276,7 +276,7 @@ async fn list_my_posts(
 ### Combining Extractors
 
 ```rust
-use wacht_rs::middleware::*;
+use wacht::middleware::*;
 
 // Multiple requirements in one handler
 async fn advanced_handler(
@@ -312,13 +312,13 @@ where
     S: Send + Sync,
 {
     type Rejection = StatusCode;
-    
+
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
         // Get auth context
         let auth = parts.extensions
             .get::<AuthContext>()
             .ok_or(StatusCode::UNAUTHORIZED)?;
-        
+
         // Custom ownership logic
         if auth.user_id == "owner-id" {
             Ok(RequireOwnership(auth.user_id.clone()))
@@ -337,22 +337,22 @@ mod tests {
     use super::*;
     use axum::http::{Request, header};
     use tower::ServiceExt;
-    
+
     #[tokio::test]
     async fn test_require_auth() {
         let app = Router::new()
             .route("/protected", get(protected_handler))
             .layer(AuthLayer::new());
-        
+
         // Without auth
         let response = app
             .clone()
             .oneshot(Request::get("/protected").body(Body::empty()).unwrap())
             .await
             .unwrap();
-        
+
         assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
-        
+
         // With auth
         let response = app
             .oneshot(
@@ -363,7 +363,7 @@ mod tests {
             )
             .await
             .unwrap();
-        
+
         assert_eq!(response.status(), StatusCode::OK);
     }
 }
@@ -400,7 +400,7 @@ async fn update_profile(
     if ctx.user_id != user_id {
         return Err(StatusCode::FORBIDDEN);
     }
-    
+
     Ok("Profile updated".to_string())
 }
 ```

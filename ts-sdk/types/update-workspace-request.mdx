@@ -1,0 +1,18 @@
+---
+title: 'Update Workspace Request'
+description: 'Request body for updating an existing Workspace'
+---
+
+This interface defines the structure of the request body used when updating an existing Workspace.
+
+```typescript
+export interface UpdateWorkspaceRequest {
+    name?: string;
+    description?: string;
+}
+```
+
+#### Properties
+
+- `name` (string, optional): The updated name of the workspace.
+- `description` (string, optional): The updated description of the workspace.

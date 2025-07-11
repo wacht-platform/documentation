@@ -1,0 +1,63 @@
+---
+title: "ExecutionContextListResponse"
+description: "Response type for paginated execution context lists"
+---
+
+## Overview
+
+The `ExecutionContextListResponse` struct represents the response returned when fetching a paginated list of AI execution contexts.
+
+## Definition
+
+```rust
+pub struct ExecutionContextListResponse {
+    pub data: Vec<AiExecutionContext>,
+    pub has_more: bool,
+}
+```
+
+## Fields
+
+<ParamField path="data" type="Vec<AiExecutionContext>" required>
+  A vector containing the execution contexts for the current page.
+</ParamField>
+
+<ParamField path="has_more" type="bool" required>
+  Indicates whether there are more execution contexts available beyond the current page.
+</ParamField>
+
+## Usage Example
+
+```rust
+use wacht::api::execution_context::*;
+
+let options = ListExecutionContextsOptions {
+    page: Some(1),
+    per_page: Some(20),
+    agent_id: Some("agent_123".to_string()),
+    workflow_id: None,
+};
+
+let response = fetch_execution_contexts(Some(options)).await?;
+
+println!("Found {} execution contexts", response.data.len());
+
+if response.has_more {
+    println!("More contexts available on next page");
+}
+
+for context in response.data {
+    println!("Context: {}", context.id.unwrap_or_default());
+    println!("  Agent: {}", context.agent_id.unwrap_or_default());
+    println!("  Created: {}", context.created_at.unwrap_or_default());
+}
+```
+
+## Related Types
+
+- [AiExecutionContext](/rust-sdk/types/ai-execution-context) - The execution context model
+- [ListExecutionContextsOptions](/rust-sdk/types/list-execution-contexts-options) - Query options
+
+## See Also
+
+- [fetch_execution_contexts](/rust-sdk/api/fetch-execution-contexts) - API method that returns this type

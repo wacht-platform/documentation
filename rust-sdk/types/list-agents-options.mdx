@@ -39,7 +39,7 @@ pub struct ListAgentsOptions {
 ## Usage Example
 
 ```rust
-use wacht_rs::api::agents::{fetch_agents, ListAgentsOptions};
+use wacht::api::agents::{fetch_agents, ListAgentsOptions};
 
 // Fetch all agents with default pagination
 let all_agents = fetch_agents(None).await?;
@@ -68,14 +68,14 @@ loop {
         per_page: Some(100),
         ..Default::default()
     };
-    
+
     let response = fetch_agents(Some(options)).await?;
-    
+
     // Process agents
     for agent in &response.data {
         println!("Agent: {}", agent.name);
     }
-    
+
     if !response.has_more {
         break;
     }

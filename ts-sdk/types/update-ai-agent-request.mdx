@@ -1,0 +1,32 @@
+---
+title: 'Update AI Agent Request'
+description: 'Request body for updating an existing AI Agent'
+---
+
+This interface defines the structure of the request body used when updating an existing AI Agent.
+
+```typescript
+export interface UpdateAiAgentRequest {
+    name?: string;
+    description?: string;
+    model?: string;
+    system_prompt?: string;
+    temperature?: number;
+    max_tokens?: number;
+    tools?: string[];
+    knowledge_bases?: string[];
+    is_active?: boolean;
+}
+```
+
+#### Properties
+
+- `name` (string, optional): The updated name of the AI agent.
+- `description` (string, optional): The updated description of the AI agent.
+- `model` (string, optional): The updated AI model used by the agent.
+- `system_prompt` (string, optional): The updated system prompt for the AI agent.
+- `temperature` (number, optional): The updated temperature setting for the AI model.
+- `max_tokens` (number, optional): The updated maximum number of tokens for the AI model.
+- `tools` (string[], optional): The updated list of tool IDs associated with the agent.
+- `knowledge_bases` (string[], optional): The updated list of knowledge base IDs associated with the agent.
+- `is_active` (boolean, optional): The updated active status of the agent.

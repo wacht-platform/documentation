@@ -30,6 +30,39 @@
       }
     },
     "schemas": {
+      "GenerateTokenRequest": {
+        "type": "object",
+        "required": ["session_id"],
+        "properties": {
+          "session_id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The session ID to generate a token for",
+            "example": 1234567890
+          },
+          "template": {
+            "type": "string",
+            "description": "Name of the JWT template to use. If not provided, 'default' template will be used.",
+            "example": "custom-claims"
+          }
+        }
+      },
+      "GenerateTokenResponse": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "The generated JWT token",
+            "example": "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "expires": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Token expiration timestamp in milliseconds",
+            "example": 1734567890000
+          }
+        }
+      },
       "User": {
         "type": "object",
         "properties": {
@@ -139,9 +172,7 @@
       },
       "CreateUserRequest": {
         "type": "object",
-        "required": [
-          "email"
-        ],
+        "required": ["email"],
         "properties": {
           "email": {
             "type": "string",
@@ -178,10 +209,7 @@
       },
       "UpdatePasswordRequest": {
         "type": "object",
-        "required": [
-          "current_password",
-          "new_password"
-        ],
+        "required": ["current_password", "new_password"],
         "properties": {
           "current_password": {
             "type": "string"
@@ -194,9 +222,7 @@
       },
       "InviteUserRequest": {
         "type": "object",
-        "required": [
-          "email"
-        ],
+        "required": ["email"],
         "properties": {
           "email": {
             "type": "string",
@@ -229,11 +255,7 @@
           },
           "status": {
             "type": "string",
-            "enum": [
-              "pending",
-              "approved",
-              "rejected"
-            ]
+            "enum": ["pending", "approved", "rejected"]
           }
         }
       },
@@ -367,11 +389,7 @@
             "items": {
               "type": "string"
             },
-            "example": [
-              "workspace.manage",
-              "members.invite",
-              "members.remove"
-            ]
+            "example": ["workspace.manage", "members.invite", "members.remove"]
           },
           "is_default": {
             "type": "boolean",
@@ -403,11 +421,7 @@
             "items": {
               "type": "string"
             },
-            "example": [
-              "org.manage",
-              "billing.manage",
-              "members.manage"
-            ]
+            "example": ["org.manage", "billing.manage", "members.manage"]
           },
           "is_default": {
             "type": "boolean",
@@ -452,9 +466,7 @@
       },
       "CreateOrganizationRequest": {
         "type": "object",
-        "required": [
-          "name"
-        ],
+        "required": ["name"],
         "properties": {
           "name": {
             "type": "string"
@@ -487,9 +499,7 @@
       },
       "CreateWorkspaceRequest": {
         "type": "object",
-        "required": [
-          "name"
-        ],
+        "required": ["name"],
         "properties": {
           "name": {
             "type": "string"
@@ -512,10 +522,7 @@
       },
       "CreateRoleRequest": {
         "type": "object",
-        "required": [
-          "name",
-          "permissions"
-        ],
+        "required": ["name", "permissions"],
         "properties": {
           "name": {
             "type": "string"
@@ -550,10 +557,7 @@
       },
       "AddOrganizationMemberRequest": {
         "type": "object",
-        "required": [
-          "user_id",
-          "role_id"
-        ],
+        "required": ["user_id", "role_id"],
         "properties": {
           "user_id": {
             "type": "string",
@@ -567,9 +571,7 @@
       },
       "UpdateOrganizationMemberRequest": {
         "type": "object",
-        "required": [
-          "role_id"
-        ],
+        "required": ["role_id"],
         "properties": {
           "role_id": {
             "type": "string",
@@ -639,10 +641,7 @@
       },
       "CreateAIAgentRequest": {
         "type": "object",
-        "required": [
-          "name",
-          "model"
-        ],
+        "required": ["name", "model"],
         "properties": {
           "name": {
             "type": "string"
@@ -738,12 +737,7 @@
           },
           "trigger_type": {
             "type": "string",
-            "enum": [
-              "manual",
-              "webhook",
-              "schedule",
-              "event"
-            ],
+            "enum": ["manual", "webhook", "schedule", "event"],
             "example": "webhook"
           },
           "steps": {
@@ -759,12 +753,7 @@
                 },
                 "type": {
                   "type": "string",
-                  "enum": [
-                    "agent",
-                    "tool",
-                    "condition",
-                    "loop"
-                  ]
+                  "enum": ["agent", "tool", "condition", "loop"]
                 },
                 "config": {
                   "type": "object"
@@ -788,11 +777,7 @@
       },
       "CreateAIWorkflowRequest": {
         "type": "object",
-        "required": [
-          "name",
-          "trigger_type",
-          "steps"
-        ],
+        "required": ["name", "trigger_type", "steps"],
         "properties": {
           "name": {
             "type": "string"
@@ -802,12 +787,7 @@
           },
           "trigger_type": {
             "type": "string",
-            "enum": [
-              "manual",
-              "webhook",
-              "schedule",
-              "event"
-            ]
+            "enum": ["manual", "webhook", "schedule", "event"]
           },
           "steps": {
             "type": "array",
@@ -828,12 +808,7 @@
           },
           "trigger_type": {
             "type": "string",
-            "enum": [
-              "manual",
-              "webhook",
-              "schedule",
-              "event"
-            ]
+            "enum": ["manual", "webhook", "schedule", "event"]
           },
           "steps": {
             "type": "array",
@@ -862,11 +837,7 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "api",
-              "function",
-              "webhook"
-            ],
+            "enum": ["api", "function", "webhook"],
             "example": "api"
           },
           "config": {
@@ -878,12 +849,7 @@
               },
               "method": {
                 "type": "string",
-                "enum": [
-                  "GET",
-                  "POST",
-                  "PUT",
-                  "DELETE"
-                ]
+                "enum": ["GET", "POST", "PUT", "DELETE"]
               },
               "headers": {
                 "type": "object"
@@ -923,11 +889,7 @@
       },
       "CreateAIToolRequest": {
         "type": "object",
-        "required": [
-          "name",
-          "type",
-          "config"
-        ],
+        "required": ["name", "type", "config"],
         "properties": {
           "name": {
             "type": "string"
@@ -937,11 +899,7 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "api",
-              "function",
-              "webhook"
-            ]
+            "enum": ["api", "function", "webhook"]
           },
           "config": {
             "type": "object"
@@ -959,11 +917,7 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "api",
-              "function",
-              "webhook"
-            ]
+            "enum": ["api", "function", "webhook"]
           },
           "config": {
             "type": "object"
@@ -989,11 +943,7 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "vector",
-              "graph",
-              "hybrid"
-            ],
+            "enum": ["vector", "graph", "hybrid"],
             "example": "vector"
           },
           "embedding_model": {
@@ -1024,10 +974,7 @@
       },
       "CreateAIKnowledgeBaseRequest": {
         "type": "object",
-        "required": [
-          "name",
-          "type"
-        ],
+        "required": ["name", "type"],
         "properties": {
           "name": {
             "type": "string"
@@ -1037,11 +984,7 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "vector",
-              "graph",
-              "hybrid"
-            ]
+            "enum": ["vector", "graph", "hybrid"]
           },
           "embedding_model": {
             "type": "string"
@@ -1079,13 +1022,7 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "pdf",
-              "txt",
-              "md",
-              "docx",
-              "html"
-            ],
+            "enum": ["pdf", "txt", "md", "docx", "html"],
             "example": "pdf"
           },
           "size": {
@@ -1098,11 +1035,7 @@
           },
           "status": {
             "type": "string",
-            "enum": [
-              "processing",
-              "ready",
-              "failed"
-            ],
+            "enum": ["processing", "ready", "failed"],
             "example": "ready"
           },
           "uploaded_at": {
@@ -1180,9 +1113,7 @@
       },
       "CreateAIExecutionContextRequest": {
         "type": "object",
-        "required": [
-          "agent_id"
-        ],
+        "required": ["agent_id"],
         "properties": {
           "agent_id": {
             "type": "string",
@@ -1260,11 +1191,7 @@
       },
       "CreateJWTTemplateRequest": {
         "type": "object",
-        "required": [
-          "name",
-          "claims",
-          "ttl"
-        ],
+        "required": ["name", "claims", "ttl"],
         "properties": {
           "name": {
             "type": "string"
@@ -1349,12 +1276,7 @@
             "type": "array",
             "items": {
               "type": "string",
-              "enum": [
-                "google",
-                "facebook",
-                "github",
-                "linkedin"
-              ]
+              "enum": ["google", "facebook", "github", "linkedin"]
             }
           }
         }
@@ -1440,19 +1362,14 @@
             "items": {
               "type": "string"
             },
-            "example": [
-              "company.com",
-              "partner.com"
-            ]
+            "example": ["company.com", "partner.com"]
           },
           "blocked_email_domains": {
             "type": "array",
             "items": {
               "type": "string"
             },
-            "example": [
-              "temp-mail.com"
-            ]
+            "example": ["temp-mail.com"]
           },
           "allowed_countries": {
             "type": "array",
@@ -1460,11 +1377,7 @@
               "type": "string",
               "pattern": "^[A-Z]{2}$"
             },
-            "example": [
-              "US",
-              "CA",
-              "GB"
-            ]
+            "example": ["US", "CA", "GB"]
           },
           "blocked_countries": {
             "type": "array",
@@ -1494,12 +1407,7 @@
         "properties": {
           "provider": {
             "type": "string",
-            "enum": [
-              "google",
-              "facebook",
-              "github",
-              "linkedin"
-            ]
+            "enum": ["google", "facebook", "github", "linkedin"]
           },
           "enabled": {
             "type": "boolean"
@@ -1547,11 +1455,7 @@
             "items": {
               "type": "string"
             },
-            "example": [
-              "user.name",
-              "user.email",
-              "app_name"
-            ]
+            "example": ["user.name", "user.email", "app_name"]
           },
           "updated_at": {
             "type": "string",
@@ -1624,13 +1528,7 @@
           },
           "signup_method": {
             "type": "string",
-            "enum": [
-              "email",
-              "google",
-              "facebook",
-              "github",
-              "linkedin"
-            ]
+            "enum": ["email", "google", "facebook", "github", "linkedin"]
           },
           "organization": {
             "type": "object",
@@ -1715,43 +1613,6 @@
           }
         }
       }
-    },
-    "schemas": {
-      "GenerateTokenRequest": {
-        "type": "object",
-        "required": [
-          "session_id"
-        ],
-        "properties": {
-          "session_id": {
-            "type": "integer",
-            "format": "int64",
-            "description": "The session ID to generate a token for",
-            "example": 1234567890
-          },
-          "template": {
-            "type": "string",
-            "description": "Name of the JWT template to use. If not provided, 'default' template will be used.",
-            "example": "custom-claims"
-          }
-        }
-      },
-      "GenerateTokenResponse": {
-        "type": "object",
-        "properties": {
-          "token": {
-            "type": "string",
-            "description": "The generated JWT token",
-            "example": "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9..."
-          },
-          "expires": {
-            "type": "integer",
-            "format": "int64",
-            "description": "Token expiration timestamp in milliseconds",
-            "example": 1734567890000
-          }
-        }
-      }
     }
   },
   "tags": [
@@ -1796,16 +1657,14 @@
       "description": "Analytics and reporting endpoints"
     },
     {
-      "name": "Deployments", 
+      "name": "Deployments",
       "description": "Deployment management and token generation endpoints"
     }
   ],
   "paths": {
     "/health": {
       "get": {
-        "tags": [
-          "Health"
-        ],
+        "tags": ["Health"],
         "summary": "Health Check",
         "description": "Check the health status of the backend API",
         "security": [],
@@ -1856,9 +1715,7 @@
     },
     "/users": {
       "get": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Get Active Users",
         "description": "Retrieve a paginated list of active users",
         "parameters": [
@@ -1925,9 +1782,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Create User",
         "description": "Create a new user account",
         "requestBody": {
@@ -1962,9 +1817,7 @@
     },
     "/users/{user_id}/details": {
       "get": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Get User Details",
         "description": "Retrieve detailed information about a specific user",
         "parameters": [
@@ -2000,9 +1853,7 @@
     },
     "/users/{user_id}": {
       "patch": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Update User",
         "description": "Update user information",
         "parameters": [
@@ -2051,9 +1902,7 @@
     },
     "/users/{user_id}/password": {
       "patch": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Update User Password",
         "description": "Update a user's password",
         "parameters": [
@@ -2095,9 +1944,7 @@
     },
     "/users/{user_id}/emails": {
       "post": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Add User Email",
         "description": "Add a new email address to a user account",
         "parameters": [
@@ -2117,9 +1964,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "email"
-                ],
+                "required": ["email"],
                 "properties": {
                   "email": {
                     "type": "string",
@@ -2159,9 +2004,7 @@
     },
     "/users/{user_id}/emails/{email_id}": {
       "patch": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Update User Email",
         "description": "Update user email properties",
         "parameters": [
@@ -2225,9 +2068,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Delete User Email",
         "description": "Remove an email address from a user account",
         "parameters": [
@@ -2265,9 +2106,7 @@
     },
     "/users/{user_id}/phones": {
       "post": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Add User Phone",
         "description": "Add a new phone number to a user account",
         "parameters": [
@@ -2287,9 +2126,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "phone_number"
-                ],
+                "required": ["phone_number"],
                 "properties": {
                   "phone_number": {
                     "type": "string",
@@ -2329,9 +2166,7 @@
     },
     "/users/{user_id}/phones/{phone_id}": {
       "patch": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Update User Phone",
         "description": "Update user phone properties",
         "parameters": [
@@ -2395,9 +2230,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Delete User Phone",
         "description": "Remove a phone number from a user account",
         "parameters": [
@@ -2435,9 +2268,7 @@
     },
     "/users/{user_id}/social-connections/{connection_id}": {
       "delete": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Delete User Social Connection",
         "description": "Remove a social connection from a user account",
         "parameters": [
@@ -2475,9 +2306,7 @@
     },
     "/invited-users": {
       "get": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Get Invited Users",
         "description": "Retrieve a list of users who have been invited but not yet registered",
         "parameters": [
@@ -2550,9 +2379,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Invite User",
         "description": "Send an invitation to a new user",
         "requestBody": {
@@ -2601,9 +2428,7 @@
     },
     "/user-waitlist": {
       "get": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Get User Waitlist",
         "description": "Retrieve users on the waitlist",
         "parameters": [
@@ -2631,11 +2456,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "pending",
-                "approved",
-                "rejected"
-              ]
+              "enum": ["pending", "approved", "rejected"]
             }
           }
         ],
@@ -2673,9 +2494,7 @@
     },
     "/user-waitlist/{waitlist_user_id}/approve": {
       "post": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Approve Waitlist User",
         "description": "Approve a user from the waitlist",
         "parameters": [
@@ -2717,9 +2536,7 @@
     },
     "/": {
       "get": {
-        "tags": [
-          "Organizations"
-        ],
+        "tags": ["Organizations"],
         "summary": "Get Deployment Info",
         "description": "Get deployment information with settings",
         "responses": {
@@ -2739,11 +2556,7 @@
                     },
                     "environment": {
                       "type": "string",
-                      "enum": [
-                        "production",
-                        "staging",
-                        "development"
-                      ]
+                      "enum": ["production", "staging", "development"]
                     },
                     "settings": {
                       "type": "object",
@@ -2779,9 +2592,7 @@
     },
     "/workspaces": {
       "get": {
-        "tags": [
-          "Workspaces"
-        ],
+        "tags": ["Workspaces"],
         "summary": "List Workspaces",
         "description": "Get a list of all workspaces",
         "parameters": [
@@ -2847,9 +2658,7 @@
     },
     "/workspaces/{workspace_id}": {
       "get": {
-        "tags": [
-          "Workspaces"
-        ],
+        "tags": ["Workspaces"],
         "summary": "Get Workspace Details",
         "description": "Get detailed information about a specific workspace",
         "parameters": [
@@ -2883,9 +2692,7 @@
         }
       },
       "patch": {
-        "tags": [
-          "Workspaces"
-        ],
+        "tags": ["Workspaces"],
         "summary": "Update Workspace",
         "description": "Update workspace information",
         "parameters": [
@@ -2932,9 +2739,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Workspaces"
-        ],
+        "tags": ["Workspaces"],
         "summary": "Delete Workspace",
         "description": "Delete a workspace",
         "parameters": [
@@ -2963,9 +2768,7 @@
     },
     "/workspace-roles": {
       "get": {
-        "tags": [
-          "Workspaces"
-        ],
+        "tags": ["Workspaces"],
         "summary": "Get Deployment Workspace Roles",
         "description": "Get all available workspace roles for the deployment",
         "responses": {
@@ -2990,9 +2793,7 @@
     },
     "/organizations": {
       "get": {
-        "tags": [
-          "Organizations"
-        ],
+        "tags": ["Organizations"],
         "summary": "List Organizations",
         "description": "Get a list of all organizations",
         "parameters": [
@@ -3055,9 +2856,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Organizations"
-        ],
+        "tags": ["Organizations"],
         "summary": "Create Organization",
         "description": "Create a new organization",
         "requestBody": {
@@ -3092,9 +2891,7 @@
     },
     "/organizations/{organization_id}": {
       "get": {
-        "tags": [
-          "Organizations"
-        ],
+        "tags": ["Organizations"],
         "summary": "Get Organization Details",
         "description": "Get detailed information about a specific organization",
         "parameters": [
@@ -3128,9 +2925,7 @@
         }
       },
       "patch": {
-        "tags": [
-          "Organizations"
-        ],
+        "tags": ["Organizations"],
         "summary": "Update Organization",
         "description": "Update organization information",
         "parameters": [
@@ -3177,9 +2972,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Organizations"
-        ],
+        "tags": ["Organizations"],
         "summary": "Delete Organization",
         "description": "Delete an organization",
         "parameters": [
@@ -3208,9 +3001,7 @@
     },
     "/organizations/{organization_id}/workspaces": {
       "post": {
-        "tags": [
-          "Organizations"
-        ],
+        "tags": ["Organizations"],
         "summary": "Create Workspace for Organization",
         "description": "Create a new workspace within an organization",
         "parameters": [
@@ -3259,9 +3050,7 @@
     },
     "/workspaces/{workspace_id}/roles": {
       "post": {
-        "tags": [
-          "Workspaces"
-        ],
+        "tags": ["Workspaces"],
         "summary": "Create Workspace Role",
         "description": "Create a new role for a workspace",
         "parameters": [
@@ -3310,9 +3099,7 @@
     },
     "/workspaces/{workspace_id}/roles/{role_id}": {
       "patch": {
-        "tags": [
-          "Workspaces"
-        ],
+        "tags": ["Workspaces"],
         "summary": "Update Workspace Role",
         "description": "Update a workspace role",
         "parameters": [
@@ -3368,9 +3155,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Workspaces"
-        ],
+        "tags": ["Workspaces"],
         "summary": "Delete Workspace Role",
         "description": "Delete a workspace role",
         "parameters": [
@@ -3408,9 +3193,7 @@
     },
     "/organizations/{organization_id}/members": {
       "post": {
-        "tags": [
-          "Organizations"
-        ],
+        "tags": ["Organizations"],
         "summary": "Add Organization Member",
         "description": "Add a new member to an organization",
         "parameters": [
@@ -3459,9 +3242,7 @@
     },
     "/organizations/{organization_id}/members/{membership_id}": {
       "patch": {
-        "tags": [
-          "Organizations"
-        ],
+        "tags": ["Organizations"],
         "summary": "Update Organization Member",
         "description": "Update a member's role in an organization",
         "parameters": [
@@ -3517,9 +3298,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Organizations"
-        ],
+        "tags": ["Organizations"],
         "summary": "Remove Organization Member",
         "description": "Remove a member from an organization",
         "parameters": [
@@ -3557,9 +3336,7 @@
     },
     "/organizations/{organization_id}/roles": {
       "post": {
-        "tags": [
-          "Organizations"
-        ],
+        "tags": ["Organizations"],
         "summary": "Create Organization Role",
         "description": "Create a new role for an organization",
         "parameters": [
@@ -3608,9 +3385,7 @@
     },
     "/organizations/{organization_id}/roles/{role_id}": {
       "patch": {
-        "tags": [
-          "Organizations"
-        ],
+        "tags": ["Organizations"],
         "summary": "Update Organization Role",
         "description": "Update an organization role",
         "parameters": [
@@ -3666,9 +3441,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Organizations"
-        ],
+        "tags": ["Organizations"],
         "summary": "Delete Organization Role",
         "description": "Delete an organization role",
         "parameters": [
@@ -3706,9 +3479,7 @@
     },
     "/organization-roles": {
       "get": {
-        "tags": [
-          "Organizations"
-        ],
+        "tags": ["Organizations"],
         "summary": "Get Deployment Organization Roles",
         "description": "Get all available organization roles for the deployment",
         "responses": {
@@ -3733,9 +3504,7 @@
     },
     "/ai-agents": {
       "get": {
-        "tags": [
-          "AI Agents"
-        ],
+        "tags": ["AI Agents"],
         "summary": "List AI Agents",
         "description": "Get a list of all AI agents",
         "parameters": [
@@ -3798,9 +3567,7 @@
         }
       },
       "post": {
-        "tags": [
-          "AI Agents"
-        ],
+        "tags": ["AI Agents"],
         "summary": "Create AI Agent",
         "description": "Create a new AI agent",
         "requestBody": {
@@ -3835,9 +3602,7 @@
     },
     "/ai-agents/{agent_id}": {
       "get": {
-        "tags": [
-          "AI Agents"
-        ],
+        "tags": ["AI Agents"],
         "summary": "Get AI Agent",
         "description": "Get details of a specific AI agent",
         "parameters": [
@@ -3871,9 +3636,7 @@
         }
       },
       "patch": {
-        "tags": [
-          "AI Agents"
-        ],
+        "tags": ["AI Agents"],
         "summary": "Update AI Agent",
         "description": "Update an AI agent",
         "parameters": [
@@ -3920,9 +3683,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "AI Agents"
-        ],
+        "tags": ["AI Agents"],
         "summary": "Delete AI Agent",
         "description": "Delete an AI agent",
         "parameters": [
@@ -3951,9 +3712,7 @@
     },
     "/ai-workflows": {
       "get": {
-        "tags": [
-          "AI Workflows"
-        ],
+        "tags": ["AI Workflows"],
         "summary": "List AI Workflows",
         "description": "Get a list of all AI workflows",
         "parameters": [
@@ -3989,12 +3748,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "manual",
-                "webhook",
-                "schedule",
-                "event"
-              ]
+              "enum": ["manual", "webhook", "schedule", "event"]
             }
           }
         ],
@@ -4030,9 +3784,7 @@
         }
       },
       "post": {
-        "tags": [
-          "AI Workflows"
-        ],
+        "tags": ["AI Workflows"],
         "summary": "Create AI Workflow",
         "description": "Create a new AI workflow",
         "requestBody": {
@@ -4067,9 +3819,7 @@
     },
     "/ai-workflows/{workflow_id}": {
       "get": {
-        "tags": [
-          "AI Workflows"
-        ],
+        "tags": ["AI Workflows"],
         "summary": "Get AI Workflow",
         "description": "Get details of a specific AI workflow",
         "parameters": [
@@ -4103,9 +3853,7 @@
         }
       },
       "patch": {
-        "tags": [
-          "AI Workflows"
-        ],
+        "tags": ["AI Workflows"],
         "summary": "Update AI Workflow",
         "description": "Update an AI workflow",
         "parameters": [
@@ -4152,9 +3900,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "AI Workflows"
-        ],
+        "tags": ["AI Workflows"],
         "summary": "Delete AI Workflow",
         "description": "Delete an AI workflow",
         "parameters": [
@@ -4183,9 +3929,7 @@
     },
     "/ai-tools": {
       "get": {
-        "tags": [
-          "AI Tools"
-        ],
+        "tags": ["AI Tools"],
         "summary": "List AI Tools",
         "description": "Get a list of all AI tools",
         "parameters": [
@@ -4221,11 +3965,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "api",
-                "function",
-                "webhook"
-              ]
+              "enum": ["api", "function", "webhook"]
             }
           }
         ],
@@ -4261,9 +4001,7 @@
         }
       },
       "post": {
-        "tags": [
-          "AI Tools"
-        ],
+        "tags": ["AI Tools"],
         "summary": "Create AI Tool",
         "description": "Create a new AI tool",
         "requestBody": {
@@ -4298,9 +4036,7 @@
     },
     "/ai-tools/{tool_id}": {
       "get": {
-        "tags": [
-          "AI Tools"
-        ],
+        "tags": ["AI Tools"],
         "summary": "Get AI Tool",
         "description": "Get details of a specific AI tool",
         "parameters": [
@@ -4334,9 +4070,7 @@
         }
       },
       "patch": {
-        "tags": [
-          "AI Tools"
-        ],
+        "tags": ["AI Tools"],
         "summary": "Update AI Tool",
         "description": "Update an AI tool",
         "parameters": [
@@ -4383,9 +4117,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "AI Tools"
-        ],
+        "tags": ["AI Tools"],
         "summary": "Delete AI Tool",
         "description": "Delete an AI tool",
         "parameters": [
@@ -4414,9 +4146,7 @@
     },
     "/ai-knowledge-bases": {
       "get": {
-        "tags": [
-          "AI Knowledge Bases"
-        ],
+        "tags": ["AI Knowledge Bases"],
         "summary": "List AI Knowledge Bases",
         "description": "Get a list of all AI knowledge bases",
         "parameters": [
@@ -4452,11 +4182,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "vector",
-                "graph",
-                "hybrid"
-              ]
+              "enum": ["vector", "graph", "hybrid"]
             }
           }
         ],
@@ -4492,9 +4218,7 @@
         }
       },
       "post": {
-        "tags": [
-          "AI Knowledge Bases"
-        ],
+        "tags": ["AI Knowledge Bases"],
         "summary": "Create AI Knowledge Base",
         "description": "Create a new AI knowledge base",
         "requestBody": {
@@ -4529,9 +4253,7 @@
     },
     "/ai-knowledge-bases/{kb_id}": {
       "get": {
-        "tags": [
-          "AI Knowledge Bases"
-        ],
+        "tags": ["AI Knowledge Bases"],
         "summary": "Get AI Knowledge Base",
         "description": "Get details of a specific AI knowledge base",
         "parameters": [
@@ -4565,9 +4287,7 @@
         }
       },
       "patch": {
-        "tags": [
-          "AI Knowledge Bases"
-        ],
+        "tags": ["AI Knowledge Bases"],
         "summary": "Update AI Knowledge Base",
         "description": "Update an AI knowledge base",
         "parameters": [
@@ -4614,9 +4334,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "AI Knowledge Bases"
-        ],
+        "tags": ["AI Knowledge Bases"],
         "summary": "Delete AI Knowledge Base",
         "description": "Delete an AI knowledge base",
         "parameters": [
@@ -4645,9 +4363,7 @@
     },
     "/ai-knowledge-bases/{kb_id}/documents": {
       "get": {
-        "tags": [
-          "AI Knowledge Bases"
-        ],
+        "tags": ["AI Knowledge Bases"],
         "summary": "List Knowledge Base Documents",
         "description": "Get a list of documents in a knowledge base",
         "parameters": [
@@ -4714,9 +4430,7 @@
         }
       },
       "post": {
-        "tags": [
-          "AI Knowledge Bases"
-        ],
+        "tags": ["AI Knowledge Bases"],
         "summary": "Upload Document to Knowledge Base",
         "description": "Upload a document to a knowledge base",
         "parameters": [
@@ -4736,9 +4450,7 @@
             "multipart/form-data": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "file"
-                ],
+                "required": ["file"],
                 "properties": {
                   "file": {
                     "type": "string",
@@ -4779,9 +4491,7 @@
     },
     "/ai-knowledge-bases/{kb_id}/documents/{document_id}": {
       "delete": {
-        "tags": [
-          "AI Knowledge Bases"
-        ],
+        "tags": ["AI Knowledge Bases"],
         "summary": "Delete Knowledge Base Document",
         "description": "Delete a document from a knowledge base",
         "parameters": [
@@ -4819,9 +4529,7 @@
     },
     "/ai-knowledge-bases/search": {
       "get": {
-        "tags": [
-          "AI Knowledge Bases"
-        ],
+        "tags": ["AI Knowledge Bases"],
         "summary": "Search Knowledge Bases",
         "description": "Search across all knowledge bases",
         "parameters": [
@@ -4875,9 +4583,7 @@
     },
     "/ai-knowledge-bases/{kb_id}/search": {
       "get": {
-        "tags": [
-          "AI Knowledge Bases"
-        ],
+        "tags": ["AI Knowledge Bases"],
         "summary": "Search Specific Knowledge Base",
         "description": "Search within a specific knowledge base",
         "parameters": [
@@ -4943,9 +4649,7 @@
     },
     "/ai-execution-context": {
       "get": {
-        "tags": [
-          "AI Agents"
-        ],
+        "tags": ["AI Agents"],
         "summary": "List AI Execution Contexts",
         "description": "Get all execution contexts for the current workspace",
         "parameters": [
@@ -5013,9 +4717,7 @@
         }
       },
       "post": {
-        "tags": [
-          "AI Agents"
-        ],
+        "tags": ["AI Agents"],
         "summary": "Create AI Execution Context",
         "description": "Create an execution context for AI agent operations",
         "requestBody": {
@@ -5050,9 +4752,7 @@
     },
     "/ai-execution-context/{id}": {
       "get": {
-        "tags": [
-          "AI Agents"
-        ],
+        "tags": ["AI Agents"],
         "summary": "Get AI Execution Context",
         "description": "Retrieve a specific execution context by ID",
         "parameters": [
@@ -5086,9 +4786,7 @@
         }
       },
       "put": {
-        "tags": [
-          "AI Agents"
-        ],
+        "tags": ["AI Agents"],
         "summary": "Update AI Execution Context",
         "description": "Update an existing execution context",
         "parameters": [
@@ -5135,9 +4833,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "AI Agents"
-        ],
+        "tags": ["AI Agents"],
         "summary": "Delete AI Execution Context",
         "description": "Delete an execution context",
         "parameters": [
@@ -5166,9 +4862,7 @@
     },
     "/jwt-templates": {
       "get": {
-        "tags": [
-          "Settings"
-        ],
+        "tags": ["Settings"],
         "summary": "List JWT Templates",
         "description": "Get all JWT templates for the deployment",
         "responses": {
@@ -5191,9 +4885,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Settings"
-        ],
+        "tags": ["Settings"],
         "summary": "Create JWT Template",
         "description": "Create a new JWT template",
         "requestBody": {
@@ -5228,9 +4920,7 @@
     },
     "/jwt-templates/{id}": {
       "patch": {
-        "tags": [
-          "Settings"
-        ],
+        "tags": ["Settings"],
         "summary": "Update JWT Template",
         "description": "Update a JWT template",
         "parameters": [
@@ -5277,9 +4967,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Settings"
-        ],
+        "tags": ["Settings"],
         "summary": "Delete JWT Template",
         "description": "Delete a JWT template",
         "parameters": [
@@ -5308,9 +4996,7 @@
     },
     "/settings/auth-settings": {
       "patch": {
-        "tags": [
-          "Settings"
-        ],
+        "tags": ["Settings"],
         "summary": "Update Authentication Settings",
         "description": "Update deployment authentication settings",
         "requestBody": {
@@ -5345,9 +5031,7 @@
     },
     "/settings/display-settings": {
       "patch": {
-        "tags": [
-          "Settings"
-        ],
+        "tags": ["Settings"],
         "summary": "Update Display Settings",
         "description": "Update deployment UI/display settings",
         "requestBody": {
@@ -5382,9 +5066,7 @@
     },
     "/settings/b2b-settings": {
       "patch": {
-        "tags": [
-          "Settings"
-        ],
+        "tags": ["Settings"],
         "summary": "Update B2B Settings",
         "description": "Update deployment B2B/multi-tenancy settings",
         "requestBody": {
@@ -5419,9 +5101,7 @@
     },
     "/restrictions": {
       "patch": {
-        "tags": [
-          "Settings"
-        ],
+        "tags": ["Settings"],
         "summary": "Update Deployment Restrictions",
         "description": "Update deployment access restrictions",
         "requestBody": {
@@ -5456,9 +5136,7 @@
     },
     "/social-connections": {
       "get": {
-        "tags": [
-          "Settings"
-        ],
+        "tags": ["Settings"],
         "summary": "Get Social Connections",
         "description": "Get all configured social connections",
         "responses": {
@@ -5481,9 +5159,7 @@
         }
       },
       "put": {
-        "tags": [
-          "Settings"
-        ],
+        "tags": ["Settings"],
         "summary": "Upsert Social Connection",
         "description": "Create or update a social connection configuration",
         "requestBody": {
@@ -5518,9 +5194,7 @@
     },
     "/email-templates/{template_name}": {
       "get": {
-        "tags": [
-          "Settings"
-        ],
+        "tags": ["Settings"],
         "summary": "Get Email Template",
         "description": "Get a specific email template",
         "parameters": [
@@ -5559,9 +5233,7 @@
         }
       },
       "patch": {
-        "tags": [
-          "Settings"
-        ],
+        "tags": ["Settings"],
         "summary": "Update Email Template",
         "description": "Update an email template",
         "parameters": [
@@ -5626,9 +5298,7 @@
     },
     "/upload/{image_type}": {
       "post": {
-        "tags": [
-          "Settings"
-        ],
+        "tags": ["Settings"],
         "summary": "Upload Image",
         "description": "Upload an image (logo, avatar, etc.)",
         "parameters": [
@@ -5638,11 +5308,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "enum": [
-                "logo",
-                "avatar",
-                "banner"
-              ]
+              "enum": ["logo", "avatar", "banner"]
             }
           }
         ],
@@ -5652,9 +5318,7 @@
             "multipart/form-data": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "file"
-                ],
+                "required": ["file"],
                 "properties": {
                   "file": {
                     "type": "string",
@@ -5688,9 +5352,7 @@
     },
     "/analytics/stats": {
       "get": {
-        "tags": [
-          "Analytics"
-        ],
+        "tags": ["Analytics"],
         "summary": "Get Analytics Stats",
         "description": "Get overall analytics statistics for the deployment",
         "parameters": [
@@ -5734,9 +5396,7 @@
     },
     "/analytics/recent-signups": {
       "get": {
-        "tags": [
-          "Analytics"
-        ],
+        "tags": ["Analytics"],
         "summary": "Get Recent Signups",
         "description": "Get a list of recent user signups",
         "parameters": [
@@ -5798,15 +5458,13 @@
     },
     "/deployments/{deployment_id}/token": {
       "post": {
-        "tags": [
-          "Deployments"
-        ],
+        "tags": ["Deployments"],
         "summary": "Generate JWT Token",
         "description": "Generate a JWT token for a given session with optional custom claims using handlebars templates. The token includes standard claims (iss, sub, iat, exp, session_id) plus organization and workspace permissions if applicable. Custom claims can be added using JWT templates with handlebars syntax that has access to user, session, organization, and workspace data.",
         "parameters": [
           {
             "name": "deployment_id",
-            "in": "path", 
+            "in": "path",
             "required": true,
             "description": "The deployment ID",
             "schema": {

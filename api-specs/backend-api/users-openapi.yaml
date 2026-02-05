@@ -264,7 +264,7 @@ paths:
       description: |
         Get complete user information including all associated data.
 
-        Returns comprehensive user details including:
+        Returns user details including:
         - Basic profile information
         - All email addresses
         - All phone numbers

@@ -43,24 +43,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 ```
 
-### Pages Router Setup
-
-Wrap your pages in `_app.tsx`:
-
-```tsx
-// pages/_app.tsx
-import type { AppProps } from 'next/app'
-import { DeploymentProvider } from '@wacht/nextjs'
-
-export default function App({ Component, pageProps }: AppProps) {
-  return (
-    <DeploymentProvider publicKey={process.env.NEXT_PUBLIC_WACHT_PUBLIC_KEY!}>
-      <Component {...pageProps} />
-    </DeploymentProvider>
-  )
-}
-```
-
 ### Provider Props
 
 | Prop | Type | Required | Description |

@@ -5,11 +5,11 @@ description: 'Official Wacht SDK for Next.js applications'
 
 ## Overview
 
-The **Next.js SDK** (`@wacht/nextjs`) provides comprehensive authentication and user management for Next.js applications (App Router and Pages Router). It includes pre-built components, hooks for authentication flows, and utilities for managing users, organizations, and workspaces.
+`@wacht/nextjs` adds authentication, user management, and multi-tenancy to Next.js applications.
 
-## Key Features
+## What's Included
 
-- **App Router & Pages Router Support** - Works with both Next.js routing systems
+- **App Router Support** - Built for Next.js App Router (Next.js 14+)
 - **Server Components** - Full support for React Server Components
 - **Authentication Components** - Pre-built sign-in, sign-up, and SSO callback components
 - **Authentication Hooks** - Hooks for handling sign-in, sign-up, password reset, and more
@@ -153,24 +153,6 @@ export default async function DashboardPage() {
         <p>Welcome, {session.user.first_name}!</p>
       </SignedIn>
     </div>
-  )
-}
-```
-
-## Pages Router Setup
-
-For Pages Router, wrap your pages in `_app.tsx`:
-
-```tsx
-// pages/_app.tsx
-import type { AppProps } from 'next/app'
-import { DeploymentProvider } from '@wacht/nextjs'
-
-export default function App({ Component, pageProps }: AppProps) {
-  return (
-    <DeploymentProvider publicKey={process.env.NEXT_PUBLIC_WACHT_PUBLIC_KEY!}>
-      <Component {...pageProps} />
-    </DeploymentProvider>
   )
 }
 ```

@@ -1,0 +1,83 @@
+---
+title: 'Introduction'
+description: 'Overview of the Wacht Platform backend API and Rust SDK'
+---
+
+# Introduction to Wacht Platform
+
+Welcome to the Wacht Platform documentation. This section covers the **Backend API** and **Rust SDK** for building enterprise applications with authentication, user management, organizations, and AI tools.
+
+## What is Wacht?
+
+Wacht is a development platform that helps you build enterprise applications faster with:
+
+- **Authentication & Authorization** - Email/password, phone OTP, magic links, social OAuth, MFA
+- **Multi-Tenant Architecture** - Organizations, workspaces, roles, and permissions
+- **User Management** - Complete user CRUD with emails, phones, and social connections
+- **AI Tools** - AI agents with knowledge base integration, tools, and execution contexts
+- **Analytics** - Real-time metrics with ClickHouse
+- **Enterprise Features** - SSO, SCIM, domains, custom branding
+- **Developer Tools** - Webhooks, API keys, segments, notifications
+
+## Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      Your Application                        │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    Wacht Backend API                         │
+│  ┌─────────────┐ ┌──────────────┐ ┌─────────────────────┐  │
+│  │ Users API   │ │  B2B API     │ │      AI API         │  │
+│  │             │ │              │ │  - Agents           │  │
+│  │ - CRUD      │ │ - Orgs       │ │  - Knowledge Bases  │  │
+│  │ - Emails    │ │ - Workspaces │ │  - Tools            │  │
+│  │ - Phones    │ │ - Roles      │ │  - Execution Ctx    │  │
+│  └─────────────┘ └──────────────┘ └─────────────────────┘  │
+│  ┌─────────────┐ ┌──────────────┐ ┌─────────────────────┐  │
+│  │ Webhooks    │ │  Settings    │ │     Analytics       │  │
+│  │             │ │              │ │                     │  │
+│  │ - Apps      │ │ - JWT        │ │ - Stats             │  │
+│  │ - Endpoints │ │ - Auth       │ │ - Recent Signups    │  │
+│  │ - Events    │ │ - Email      │ │                     │  │
+│  └─────────────┘ └──────────────┘ └─────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│              Rust SDK (wacht-rs)                            │
+│   Pre-built Rust client for all backend APIs                │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Tech Stack
+
+| Component | Technology |
+|-----------|------------|
+| **Backend** | Rust with Axum framework |
+| **Database** | PostgreSQL |
+| **Analytics** | ClickHouse |
+| **Vector DB** | Qdrant (for AI knowledge bases) |
+| **SDK** | Rust (wacht-rs) |
+
+## Quick Links
+
+- [Backend API Overview](/backend-api/overview) - Complete API reference
+- [Rust SDK Guide](/rust-sdk/introduction) - SDK documentation
+- [Authentication](/backend-api/authentication/overview) - Auth flows and JWT
+- [Users API](/backend-api/users/overview) - User management
+- [Organizations API](/backend-api/organizations/overview) - Multi-tenant features
+
+## Getting Help
+
+- 📧 Email: support@wacht.dev
+- 💬 GitHub: [github.com/snipextt/wacht](https://github.com/snipextt/wacht)
+- 📝 Changelog: Check for updates and new features
+
+## Next Steps
+
+1. **[Quickstart Guide](/getting-started/quickstart)** - Get up and running in 5 minutes
+2. **[Backend API Reference](/backend-api/overview)** - Explore all API endpoints
+3. **[Rust SDK Documentation](/rust-sdk/introduction)** - Integrate the SDK into your Rust app

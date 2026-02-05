@@ -1,0 +1,170 @@
+---
+title: useInvitation
+description: Handle organization and workspace invitation acceptance.
+---
+
+# useInvitation
+
+The `useInvitation` hook handles accepting organization and workspace invitations by validating tokens and processing the invitation acceptance.
+
+## Return Value
+
+<ParamField path="acceptInvitation">
+  <Expandable title="Accept an invitation with the given token">
+    <ParamField path="token" type="string">
+      The invitation token
+    </ParamField>
+    <ParamField path="returns" type="Promise<AcceptInvitationResponse>">
+      The invitation response data
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="invitationData" type="AcceptInvitationResponse | null">
+  The invitation data after acceptance
+</ParamField>
+
+<ParamField path="loading" type="boolean">
+  Whether the invitation is being processed
+</ParamField>
+
+<ParamField path="error" type="string | null">
+  Any error that occurred during processing
+</ParamField>
+
+<ParamField path="reset">
+  <Expandable title="Reset the invitation state">
+    <ParamField path="returns" type="void">
+      No return value
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+```tsx
+import { useInvitation } from "@wacht/tanstack-router";
+
+export default function InvitationPage() {
+  const { acceptInvitation, invitationData, loading, error } = useInvitation();
+  const [token] = useState(new URLSearchParams(window.location.search).get("token") || "");
+
+  useEffect(() => {
+    if (token) {
+      acceptInvitation(token);
+    }
+  }, [token]);
+
+  if (loading) return <div>Processing invitation...</div>;
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
+  if (invitationData?.requires_signin) {
+    return <div>Please sign in first to accept this invitation.</div>;
+  }
+
+  if (invitationData?.already_member) {
+    return <div>You're already a member of this organization.</div>;
+  }
+
+  return (
+    <div>
+      <h1>Invitation Accepted!</h1>
+      <p>Welcome to {invitationData.organization?.name}!</p>
+    </div>
+  );
+}
+```
+
+## Response
+
+```typescript
+interface AcceptInvitationResponse {
+  organization?: {
+    id: string;
+    name: string;
+  };
+  workspace?: {
+    id: string;
+    name: string;
+  };
+  signin_id?: string;
+  already_member?: boolean;
+  message?: string;
+  requires_signin?: boolean;
+  invited_email?: string;
+  error_code?: string;
+}
+```
+
+## Behavior
+
+The hook processes invitations in several states:
+
+1. **Valid Invitation** - User joins the organization/workspace
+2. **Already Member** - User is already a member
+3. **Requires Sign-in** - User must sign in first
+4. **Error** - Invitation is invalid or expired
+
+## Examples
+
+### Accept Invitation
+
+```tsx
+import { useInvitation } from "@wacht/tanstack-router";
+
+function AcceptInvite({ token }: { token: string }) {
+  const { acceptInvitation, loading, invitationData } = useInvitation();
+
+  const handleAccept = async () => {
+    const result = await acceptInvitation(token);
+    if (result.organization) {
+      console.log("Joined:", result.organization.name);
+    }
+  };
+
+  return (
+    <button onClick={handleAccept} disabled={loading}>
+      Accept Invitation
+    </button>
+  );
+}
+```
+
+### With Error Handling
+
+```tsx
+import { useInvitation } from "@wacht/tanstack-router";
+
+function InvitationAccepter({ token }: { token: string }) {
+  const { acceptInvitation, loading, error, reset } = useInvitation();
+
+  const handleAccept = async () => {
+    reset();
+    await acceptInvitation(token);
+  };
+
+  if (error) {
+    return (
+      <div>
+        <p>Error: {error}</p>
+        <button onClick={() => reset()}>Try Again</button>
+      </div>
+    );
+  }
+
+  return <button onClick={handleAccept}>Accept Invitation</button>;
+}
+```
+
+### Invitation URL Format
+
+Invitation tokens are typically passed via URL parameter:
+
+```
+/accept-invite?token=invitation_token_abc123
+```
+
+## Related
+
+- [AcceptInvite](../components/accept-invite) - Accept invitation component

@@ -1,0 +1,678 @@
+---
+title: useUser
+description: Manage user profile, email addresses, phone numbers, and security settings.
+---
+
+# useUser
+
+The `useUser` hook provides methods for managing the current user's profile, email addresses, phone numbers, passwords, and two-factor authentication settings.
+
+## Return Value
+
+<ParamField path="user" type="User | null">
+  The current user object
+</ParamField>
+
+<ParamField path="loading" type="boolean">
+  Whether user data is loading
+</ParamField>
+
+<ParamField path="error" type="Error | null">
+  Any error that occurred
+</ParamField>
+
+<ParamField path="refetch">
+  <Expandable title="Refetch user data from server">
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when user data is refetched
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="updateProfile">
+  <Expandable title="Update the user's profile information">
+    <ParamField path="params" type="Partial&lt;User&gt;">
+      User fields to update (first_name, last_name, username, profile_picture_url)
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;User&gt;">
+      The updated user
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="getEmailAddresses">
+  <Expandable title="Get all email addresses">
+    <ParamField path="returns" type="Promise&lt;EmailAddress[]&gt;">
+      List of email addresses
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="getEmailAddress">
+  <Expandable title="Get a specific email address">
+    <ParamField path="id" type="string">
+      The email address ID
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;EmailAddress&gt;">
+      The email address
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="createEmailAddress">
+  <Expandable title="Add a new email address">
+    <ParamField path="email" type="string">
+      The email address to add
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;EmailAddress&gt;">
+      The created email address
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="deleteEmailAddress">
+  <Expandable title="Remove an email address">
+    <ParamField path="id" type="string">
+      The ID of the email address to remove
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the email address is removed
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="prepareEmailVerification">
+  <Expandable title="Send verification code to email">
+    <ParamField path="id" type="string">
+      The ID of the email address to verify
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the verification code is sent
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="attemptEmailVerification">
+  <Expandable title="Verify email with OTP code">
+    <ParamField path="id" type="string">
+      The ID of the email address to verify
+    </ParamField>
+    <ParamField path="otp" type="string">
+      The OTP verification code
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the email is verified
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="makeEmailPrimary">
+  <Expandable title="Set an email as primary">
+    <ParamField path="id" type="string">
+      The ID of the email address to set as primary
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the email is set as primary
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="createPhoneNumber">
+  <Expandable title="Add a phone number">
+    <ParamField path="phone_number" type="string">
+      The phone number in E.164 format
+    </ParamField>
+    <ParamField path="country_code" type="string">
+      The ISO country code (e.g., "US")
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;PhoneNumber&gt;">
+      The created phone number
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="deletePhoneNumber">
+  <Expandable title="Remove a phone number">
+    <ParamField path="id" type="string">
+      The ID of the phone number to remove
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the phone number is removed
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="preparePhoneVerification">
+  <Expandable title="Send verification code to phone">
+    <ParamField path="id" type="string">
+      The ID of the phone number to verify
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the verification code is sent
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="attemptPhoneVerification">
+  <Expandable title="Verify phone with code">
+    <ParamField path="id" type="string">
+      The ID of the phone number to verify
+    </ParamField>
+    <ParamField path="otp" type="string">
+      The OTP verification code
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the phone is verified
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="makePhonePrimary">
+  <Expandable title="Set a phone number as primary">
+    <ParamField path="id" type="string">
+      The ID of the phone number to set as primary
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the phone is set as primary
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="updatePassword">
+  <Expandable title="Change password">
+    <ParamField path="currentPassword" type="string">
+      The current password
+    </ParamField>
+    <ParamField path="newPassword" type="string">
+      The new password
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the password is updated
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="removePassword">
+  <Expandable title="Remove password (passkeys/OAuth only)">
+    <ParamField path="currentPassword" type="string">
+      The current password (required to confirm removal)
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the password is removed
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="deleteAccount">
+  <Expandable title="Delete the user account">
+    <ParamField path="password" type="string">
+      The current password (required to confirm deletion)
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the account is deleted
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="connectSocialAccount">
+  <Expandable title="Connect a social account">
+    <ParamField path="params" type="{ provider: string; redirectUri?: string }">
+      OAuth connection parameters
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Initiates the OAuth flow
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="disconnectSocialConnection">
+  <Expandable title="Disconnect a social account">
+    <ParamField path="id" type="string">
+      The ID of the social connection to remove
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the connection is removed
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="getPasskeys">
+  <Expandable title="Get all passkeys">
+    <ParamField path="returns" type="Promise&lt;UserPasskey[]&gt;">
+      List of passkeys
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="registerPasskey">
+  <Expandable title="Register a new passkey">
+    <ParamField path="name" type="string">
+      Optional name for the passkey
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;UserPasskey&gt;">
+      The registered passkey
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="deletePasskey">
+  <Expandable title="Remove a passkey">
+    <ParamField path="id" type="string">
+      The ID of the passkey to remove
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the passkey is removed
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="renamePasskey">
+  <Expandable title="Rename a passkey">
+    <ParamField path="id" type="string">
+      The ID of the passkey to rename
+    </ParamField>
+    <ParamField path="name" type="string">
+      The new name for the passkey
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the passkey is renamed
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="setupAuthenticator">
+  <Expandable title="Begin TOTP authenticator setup">
+    <ParamField path="returns" type="Promise&lt;UserAuthenticator&gt;">
+      The authenticator with QR code URI and secret
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="verifyAuthenticator">
+  <Expandable title="Complete TOTP setup with verification codes">
+    <ParamField path="id" type="string">
+      The authenticator ID
+    </ParamField>
+    <ParamField path="codes" type="string[]">
+      Array of 6-digit TOTP codes
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the authenticator is verified
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="deleteAuthenticator">
+  <Expandable title="Remove TOTP authenticator">
+    <ParamField path="id" type="string">
+      The authenticator ID
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the authenticator is removed
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="generateBackupCodes">
+  <Expandable title="Generate backup codes for 2FA">
+    <ParamField path="returns" type="Promise&lt;string[]&gt;">
+      List of backup codes
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="regenerateBackupCodes">
+  <Expandable title="Regenerate backup codes">
+    <ParamField path="returns" type="Promise&lt;string[]&gt;">
+      New list of backup codes (invalidates old ones)
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="updateProfilePicture">
+  <Expandable title="Update the user's profile picture">
+    <ParamField path="file" type="File">
+      The image file to upload
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;User&gt;">
+      The updated user
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+## Profile Management
+
+### updateProfile
+
+Update the user's profile information.
+
+<ParamField path="first_name" type="string">
+  New first name
+</ParamField>
+
+<ParamField path="last_name" type="string">
+  New last name
+</ParamField>
+
+<ParamField path="username" type="string">
+  New username
+</ParamField>
+
+<ParamField path="profile_picture_url" type="string">
+  URL to profile picture
+</ParamField>
+
+```tsx
+await updateProfile({
+  first_name: "Jane",
+  last_name: "Doe",
+  username: "janedoe",
+});
+```
+
+## Email Management
+
+### createEmailAddress
+
+Add a new email address to the user account.
+
+<ParamField path="email" type="string" required>
+  The email address to add
+</ParamField>
+
+```tsx
+await createEmailAddress("new@example.com");
+```
+
+### deleteEmailAddress
+
+Remove an email address from the user account.
+
+<ParamField path="id" type="string" required>
+  The ID of the email address to remove
+</ParamField>
+
+### prepareEmailVerification
+
+Send a verification code to the specified email address.
+
+<ParamField path="id" type="string" required>
+  The ID of the email address to verify
+</ParamField>
+
+### attemptEmailVerification
+
+Verify an email address with an OTP code.
+
+<ParamField path="id" type="string" required>
+  The ID of the email address to verify
+</ParamField>
+
+<ParamField path="otp" type="string" required>
+  The OTP verification code
+</ParamField>
+
+```tsx
+// Send verification code
+await prepareEmailVerification("email_id_123");
+
+// Submit verification code
+await attemptEmailVerification("email_id_123", "123456");
+```
+
+## Phone Management
+
+### createPhoneNumber
+
+Add a new phone number to the user account.
+
+<ParamField path="phone_number" type="string" required>
+  The phone number in E.164 format
+</ParamField>
+
+<ParamField path="country_code" type="string" required>
+  The ISO country code (e.g., "US")
+</ParamField>
+
+```tsx
+await createPhoneNumber("+1234567890", "US");
+```
+
+### deletePhoneNumber
+
+Remove a phone number from the user account.
+
+<ParamField path="id" type="string" required>
+  The ID of the phone number to remove
+</ParamField>
+
+### preparePhoneVerification
+
+Send a verification code to the specified phone number.
+
+<ParamField path="id" type="string" required>
+  The ID of the phone number to verify
+</ParamField>
+
+### attemptPhoneVerification
+
+Verify a phone number with an OTP code.
+
+<ParamField path="id" type="string" required>
+  The ID of the phone number to verify
+</ParamField>
+
+<ParamField path="otp" type="string" required>
+  The OTP verification code
+</ParamField>
+
+```tsx
+// Send verification code
+await preparePhoneVerification("phone_id_123");
+
+// Submit verification code
+await attemptPhoneVerification("phone_id_123", "123456");
+```
+
+### makePhonePrimary
+
+Set a phone number as the primary phone number for the account.
+
+<ParamField path="id" type="string" required>
+  The ID of the phone number to set as primary
+</ParamField>
+
+### makeEmailPrimary
+
+Set an email address as the primary email address for the account.
+
+<ParamField path="id" type="string" required>
+  The ID of the email address to set as primary
+</ParamField>
+
+## Password Management
+
+### updatePassword
+
+Change the user's password.
+
+<ParamField path="currentPassword" type="string" required>
+  The current password
+</ParamField>
+
+<ParamField path="newPassword" type="string" required>
+  The new password
+</ParamField>
+
+```tsx
+await updatePassword("oldPassword123", "newPassword456");
+```
+
+### removePassword
+
+Remove the user's password. After removal, the user can only sign in with passkeys or OAuth.
+
+<ParamField path="currentPassword" type="string" required>
+  The current password (required to confirm removal)
+</ParamField>
+
+```tsx
+await removePassword("currentPassword123");
+```
+
+### deleteAccount
+
+Delete the user's account permanently.
+
+<ParamField path="password" type="string" required>
+  The current password (required to confirm deletion)
+</ParamField>
+
+```tsx
+await deleteAccount("currentPassword123");
+```
+
+## Passkey Management
+
+### registerPasskey
+
+Register a new passkey for the user using WebAuthn. The name parameter is optional.
+
+```tsx
+await registerPasskey("My MacBook Pro");
+// or without a name
+await registerPasskey();
+```
+
+### deletePasskey
+
+Remove a passkey from the user account.
+
+<ParamField path="id" type="string" required>
+  The ID of the passkey to remove
+</ParamField>
+
+### renamePasskey
+
+Rename a passkey for easier identification.
+
+<ParamField path="id" type="string" required>
+  The ID of the passkey to rename
+</ParamField>
+
+<ParamField path="name" type="string" required>
+  The new name for the passkey
+</ParamField>
+
+```tsx
+await renamePasskey("passkey_id_123", "My Work Laptop");
+```
+
+### getPasskeys
+
+Get all passkeys registered to the user account.
+
+```tsx
+const passkeys = await getPasskeys();
+```
+
+## Profile Picture
+
+### updateProfilePicture
+
+Update the user's profile picture.
+
+<ParamField path="file" type="File" required>
+  The image file to upload
+</ParamField>
+
+```tsx
+await updateProfilePicture(fileInput.files[0]);
+```
+
+## Social Connections
+
+### connectSocialAccount
+
+Connect a social account (OAuth provider) to the user account.
+
+<ParamField path="provider" type="string" required>
+  The OAuth provider (e.g., "google_oauth", "github_oauth")
+</ParamField>
+
+<ParamField path="redirectUri" type="string">
+  Optional redirect URI after OAuth flow
+</ParamField>
+
+```tsx
+await connectSocialAccount({ provider: "google_oauth" });
+```
+
+### disconnectSocialConnection
+
+Disconnect a social account from the user account.
+
+<ParamField path="id" type="string" required>
+  The ID of the social connection to remove
+</ParamField>
+
+```tsx
+await disconnectSocialConnection("connection_id_123");
+```
+
+## Two-Factor Authentication
+
+### setupAuthenticator
+
+Begin TOTP authenticator setup. Returns a QR code URI and secret key.
+
+```tsx
+const authenticator = await setupAuthenticator();
+// authenticator contains: id, uri (for QR code), secret
+```
+
+### verifyAuthenticator
+
+Complete TOTP setup with verification codes.
+
+<ParamField path="id" type="string" required>
+  The authenticator ID
+</ParamField>
+
+<ParamField path="codes" type="string[]" required>
+  Array of 6-digit TOTP codes
+</ParamField>
+
+```tsx
+await verifyAuthenticator("authenticator_id", ["123456", "234567"]);
+```
+
+### deleteAuthenticator
+
+Remove TOTP authenticator from the user account.
+
+```tsx
+await deleteAuthenticator("authenticator_id");
+```
+
+### generateBackupCodes
+
+Generate backup codes for 2FA recovery.
+
+```tsx
+const codes = await generateBackupCodes();
+// Save these codes securely
+```
+
+### regenerateBackupCodes
+
+Regenerate backup codes (invalidates old ones).
+
+```tsx
+const newCodes = await regenerateBackupCodes();
+```
+
+## Related
+
+- [UserButton](../components/user-button) - User account button
+- [useSession](./use-session) - Session management

@@ -1,0 +1,65 @@
+# Analytics summary endpoint
+
+AnalyticsSummary:
+  get:
+    summary: Get analytics stats
+    description: Retrieve deployment analytics statistics
+    tags:
+      - Analytics
+    parameters:
+      - name: start_date
+        in: query
+        schema:
+          type: string
+          format: date-time
+        description: Start date for analytics period
+      - name: end_date
+        in: query
+        schema:
+          type: string
+          format: date-time
+        description: End date for analytics period
+    responses:
+      '200':
+        description: Analytics summary
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                total_users:
+                  type: integer
+                active_users:
+                  type: integer
+                new_signups:
+                  type: integer
+                total_orgs:
+                  type: integer
+                total_workspaces:
+                  type: integer
+                mfa_enabled_users:
+                  type: integer
+                social_connections:
+                  type: object
+                  additionalProperties:
+                    type: integer
+                signups_by_date:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      date:
+                        type: string
+                        format: date
+                      count:
+                        type: integer
+                signins_by_date:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      date:
+                        type: string
+                        format: date
+                      count:
+                        type: integer

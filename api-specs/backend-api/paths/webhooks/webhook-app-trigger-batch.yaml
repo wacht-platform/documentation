@@ -1,0 +1,42 @@
+# Webhook batch trigger endpoint
+
+WebhookAppTriggerBatch:
+  post:
+    summary: Batch trigger webhooks
+    description: Trigger multiple webhook events at once
+    tags:
+      - Webhooks
+    parameters:
+      - $ref: '#/components/parameters/WebhookAppName'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - events
+            properties:
+              events:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    event:
+                      type: string
+                    data:
+                      type: object
+    responses:
+      '200':
+        description: Webhooks triggered
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                delivery_ids:
+                  type: array
+                  items:
+                    type: string
+      '404':
+        $ref: '#/components/responses/NotFound'

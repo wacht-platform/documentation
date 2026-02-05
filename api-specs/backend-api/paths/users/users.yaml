@@ -1,0 +1,67 @@
+# Users list and create
+
+Users:
+  get:
+    summary: List users
+    description: Get a paginated list of users
+    tags:
+      - Users
+    parameters:
+      - $ref: '#/components/parameters/Limit'
+      - $ref: '#/components/parameters/Offset'
+      - $ref: '#/components/parameters/Search'
+    responses:
+      '200':
+        description: List of users
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/PaginatedResponse'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/User'
+
+  post:
+    summary: Create user
+    description: Create a new user
+    tags:
+      - Users
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required:
+              - first_name
+              - last_name
+            properties:
+              first_name:
+                type: string
+              last_name:
+                type: string
+              email_address:
+                type: string
+              phone_number:
+                type: string
+              username:
+                type: string
+              password:
+                type: string
+                format: password
+              profile_image:
+                type: string
+                format: binary
+    responses:
+      '200':
+        description: User created
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      '400':
+        $ref: '#/components/responses/BadRequest'

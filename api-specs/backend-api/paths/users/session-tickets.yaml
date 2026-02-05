@@ -1,0 +1,47 @@
+# Session tickets endpoint
+
+SessionTickets:
+  post:
+    summary: Create session ticket
+    description: Create a session ticket for backend authentication
+    tags:
+      - Users
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - ticket_type
+            properties:
+              ticket_type:
+                type: string
+                enum: [session, api]
+              user_id:
+                type: string
+              agent_ids:
+                type: array
+                items:
+                  type: string
+              context_group:
+                type: string
+              expires_at:
+                type: integer
+                format: int64
+                description: Unix timestamp
+    responses:
+      '200':
+        description: Session ticket created
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ticket:
+                  type: string
+                expires_at:
+                  type: integer
+                  format: int64
+      '400':
+        $ref: '#/components/responses/BadRequest'

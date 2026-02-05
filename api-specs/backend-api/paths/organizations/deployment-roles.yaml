@@ -1,0 +1,29 @@
+# Deployment organization roles endpoint
+
+DeploymentRoles:
+  get:
+    summary: Get deployment organization roles
+    description: Get all organization roles in the deployment
+    tags:
+      - Organizations
+    responses:
+      '200':
+        description: Organization roles
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/PaginatedResponse'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                          name:
+                            type: string
+                          description:
+                            type: string

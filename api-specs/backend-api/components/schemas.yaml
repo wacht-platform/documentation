@@ -1,0 +1,306 @@
+# Common Schemas for Wacht Backend API
+
+schemas:
+  # Pagination
+  PaginatedResponse:
+    type: object
+    properties:
+      data:
+        type: array
+        items: {}
+      total:
+        type: integer
+        format: int64
+
+  # User
+  User:
+    type: object
+    properties:
+      id:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      username:
+        type: string
+        nullable: true
+      email:
+        type: string
+        nullable: true
+      phone_number:
+        type: string
+        nullable: true
+      is_active:
+        type: boolean
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+
+  # UserEmail
+  UserEmail:
+    type: object
+    properties:
+      id:
+        type: string
+      email:
+        type: string
+      is_primary:
+        type: boolean
+      is_verified:
+        type: boolean
+      verified_at:
+        type: string
+        format: date-time
+        nullable: true
+
+  # UserPhone
+  UserPhone:
+    type: object
+    properties:
+      id:
+        type: string
+      phone_number:
+        type: string
+      is_primary:
+        type: boolean
+      is_verified:
+        type: boolean
+      verified_at:
+        type: string
+        format: date-time
+        nullable: true
+
+  # Organization
+  Organization:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      slug:
+        type: string
+      logo_url:
+        type: string
+        nullable: true
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+
+  # Workspace
+  Workspace:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      organization_id:
+        type: string
+      organization_name:
+        type: string
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+
+  # AIAgent
+  AIAgent:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      description:
+        type: string
+        nullable: true
+      is_active:
+        type: boolean
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+
+  # AITool
+  AITool:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      description:
+        type: string
+        nullable: true
+      is_active:
+        type: boolean
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+
+  # AIKnowledgeBase
+  AIKnowledgeBase:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      description:
+        type: string
+        nullable: true
+      documents_count:
+        type: integer
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+
+  # KnowledgeBaseDocument
+  KnowledgeBaseDocument:
+    type: object
+    properties:
+      id:
+        type: string
+      title:
+        type: string
+      file_name:
+        type: string
+      created_at:
+        type: string
+        format: date-time
+
+  # WebhookApp
+  WebhookApp:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      description:
+        type: string
+        nullable: true
+      is_active:
+        type: boolean
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+
+  # ApiAuthApp
+  ApiAuthApp:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      description:
+        type: string
+        nullable: true
+      is_active:
+        type: boolean
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+
+  # ApiKey
+  ApiKey:
+    type: object
+    properties:
+      id:
+        type: string
+      app_id:
+        type: string
+      name:
+        type: string
+      key_prefix:
+        type: string
+      key_suffix:
+        type: string
+      is_active:
+        type: boolean
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+      last_used_at:
+        type: string
+        format: date-time
+        nullable: true
+      revoked_at:
+        type: string
+        format: date-time
+        nullable: true
+
+  # Segment
+  Segment:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      description:
+        type: string
+        nullable: true
+      user_count:
+        type: integer
+      conditions:
+        type: object
+        properties:
+          operator:
+            type: string
+            enum: [AND, OR]
+          rules:
+            type: array
+            items:
+              type: object
+              properties:
+                field:
+                  type: string
+                operator:
+                  type: string
+                value:
+                  type: string
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+
+  # Error
+  Error:
+    type: object
+    properties:
+      message:
+        type: string
+      details:
+        type: object
+        additionalProperties: true

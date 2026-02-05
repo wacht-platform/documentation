@@ -1,0 +1,55 @@
+# User phone by ID endpoint
+
+UserPhoneById:
+  patch:
+    summary: Update user phone
+    description: Update a user's phone number
+    tags:
+      - Users
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+      - name: phone_id
+        in: path
+        required: true
+        schema:
+          type: string
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              phone_number:
+                type: string
+              verified:
+                type: boolean
+              is_primary:
+                type: boolean
+    responses:
+      '200':
+        description: Phone updated
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPhone'
+      '404':
+        $ref: '#/components/responses/NotFound'
+
+  delete:
+    summary: Delete user phone
+    description: Remove a phone number from a user
+    tags:
+      - Users
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+      - name: phone_id
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      '204':
+        description: Phone deleted
+      '404':
+        $ref: '#/components/responses/NotFound'

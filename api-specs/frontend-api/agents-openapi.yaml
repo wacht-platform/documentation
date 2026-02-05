@@ -1,0 +1,663 @@
+openapi: 3.0.3
+info:
+  title: Wacht Frontend API - Agents
+  description: AI agent context and execution endpoints for the Wacht Frontend API
+  version: 1.0.0
+servers:
+  - url: https://api.wacht.dev
+    description: Production server
+
+tags:
+  - name: Agent Session
+    description: Agent session management
+  - name: Agent Contexts
+    description: Agent conversation contexts
+  - name: Agent Integrations
+    description: Third-party integrations for agents
+  - name: Agent Execution
+    description: Agent execution and messaging
+
+paths:
+  /api/agent/session:
+    get:
+      tags:
+        - Agent Session
+      summary: Get agent session
+      description: Retrieve the current active agent session
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Agent session retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentSession'
+        '401':
+          description: Unauthorized - No active agent session
+
+  /api/agent/contexts:
+    get:
+      tags:
+        - Agent Contexts
+      summary: List agent contexts
+      description: Retrieve a paginated list of agent conversation contexts
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of contexts to return
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 100
+        - name: offset
+          in: query
+          description: Number of contexts to skip
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+        - name: status
+          in: query
+          description: Filter by status
+          schema:
+            type: string
+            enum: [active, archived, all]
+        - name: search
+          in: query
+          description: Search term for context titles
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Contexts retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListContextsResponse'
+        '401':
+          description: Unauthorized - No active agent session
+    post:
+      tags:
+        - Agent Contexts
+      summary: Create agent context
+      description: Create a new agent conversation context
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - title
+              properties:
+                title:
+                  type: string
+                  description: Context title
+                  example: "Customer Support Conversation"
+                system_instructions:
+                  type: string
+                  description: Optional system instructions for the agent
+                  example: "You are a helpful customer support assistant."
+      responses:
+        '200':
+          description: Context created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentContext'
+        '400':
+          description: Bad request - Missing title
+        '401':
+          description: Unauthorized - No active agent session
+
+  /api/agent/contexts/{id}:
+    get:
+      tags:
+        - Agent Contexts
+      summary: Get agent context
+      description: Retrieve a specific agent context
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ContextId'
+      responses:
+        '200':
+          description: Context retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentContext'
+        '401':
+          description: Unauthorized - No active agent session
+        '404':
+          description: Context not found
+
+  /api/agent/contexts/{id}/update:
+    post:
+      tags:
+        - Agent Contexts
+      summary: Update agent context
+      description: Update an agent context's title
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ContextId'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - title
+              properties:
+                title:
+                  type: string
+                  description: New context title
+                  example: "Updated Conversation Title"
+      responses:
+        '200':
+          description: Context updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized - No active agent session
+        '404':
+          description: Context not found
+
+  /api/agent/contexts/{id}/delete:
+    post:
+      tags:
+        - Agent Contexts
+      summary: Delete agent context
+      description: Delete an agent context and all its messages
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ContextId'
+      responses:
+        '204':
+          description: Context deleted successfully
+        '401':
+          description: Unauthorized - No active agent session
+        '404':
+          description: Context not found
+
+  /api/agent/contexts/{id}/messages:
+    get:
+      tags:
+        - Agent Contexts
+      summary: Get context messages
+      description: Retrieve all messages in a conversation context
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ContextId'
+        - name: limit
+          in: query
+          description: Maximum number of messages to return
+          schema:
+            type: integer
+            default: 50
+            minimum: 1
+            maximum: 200
+        - name: offset
+          in: query
+          description: Number of messages to skip
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+      responses:
+        '200':
+          description: Messages retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListMessagesResponse'
+        '401':
+          description: Unauthorized - No active agent session
+        '404':
+          description: Context not found
+
+  /api/agent/contexts/{context_id}/files/{filename}:
+    get:
+      tags:
+        - Agent Contexts
+      summary: Serve context file
+      description: Download a file attached to a message in the context
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: context_id
+          in: path
+          required: true
+          description: Context ID
+          schema:
+            type: string
+            format: uint64
+        - name: filename
+          in: path
+          required: true
+          description: File name
+          schema:
+            type: string
+      responses:
+        '200':
+          description: File content
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '401':
+          description: Unauthorized - No active agent session
+        '404':
+          description: Context or file not found
+
+  /api/agent/contexts/{id}/execute:
+    post:
+      tags:
+        - Agent Execution
+      summary: Execute agent
+      description: Execute the agent with a new message in the context
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ContextId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - message
+              properties:
+                message:
+                  type: string
+                  description: User message to send to the agent
+                  example: "Hello, can you help me?"
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: Optional file attachments
+      responses:
+        '200':
+          description: Agent response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentExecutionResponse'
+        '400':
+          description: Bad request - Missing message
+        '401':
+          description: Unauthorized - No active agent session
+        '404':
+          description: Context not found
+        '503':
+          description: Service unavailable - Agent integration not configured
+
+  /api/agent/integrations:
+    get:
+      tags:
+        - Agent Integrations
+      summary: Get active integrations
+      description: Retrieve all active integrations for the current agent session
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Integrations retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AgentIntegration'
+        '401':
+          description: Unauthorized - No active agent session
+
+  /api/agent/integrations/{integration_id}/remove:
+    post:
+      tags:
+        - Agent Integrations
+      summary: Remove integration
+      description: Remove an integration from the current agent session
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: integration_id
+          in: path
+          required: true
+          description: Integration ID
+          schema:
+            type: string
+            format: int64
+      responses:
+        '200':
+          description: Integration removed successfully
+        '401':
+          description: Unauthorized - No active agent session
+        '404':
+          description: Integration not found
+
+  /api/agent/integrations/{integration_id}/consent-url:
+    post:
+      tags:
+        - Agent Integrations
+      summary: Generate consent URL
+      description: Generate a URL for user to grant consent to an integration
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: integration_id
+          in: path
+          required: true
+          description: Integration ID
+          schema:
+            type: string
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - redirect_url
+              properties:
+                redirect_url:
+                  type: string
+                  format: uri
+                  description: URL to redirect to after consent
+                  example: "https://app.example.com/integrations/success"
+      responses:
+        '200':
+          description: Consent URL generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  consent_url:
+                    type: string
+                    format: uri
+                    description: URL for user to grant consent
+                    example: "https://provider.com/oauth/authorize?..."
+        '401':
+          description: Unauthorized - No active agent session
+        '404':
+          description: Integration not found
+
+components:
+  parameters:
+    ContextId:
+      name: id
+      in: path
+      required: true
+      description: Context ID
+      schema:
+        type: string
+        format: uint64
+      example: "123456789012345678"
+
+  schemas:
+    AgentSession:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+          description: Agent session ID
+          example: "123456789012345678"
+        session_id:
+          type: string
+          format: uint64
+          description: User session ID
+          example: "987654321098765432"
+        deployment_id:
+          type: string
+          format: uint64
+          description: Deployment ID
+          example: "111111111111111111"
+        context_group:
+          type: string
+          description: Context group identifier
+          example: "support-agents"
+        agent_ids:
+          type: array
+          items:
+            type: string
+            format: int64
+          description: IDs of available agents
+          example: ["12345", "67890"]
+        identifier:
+          type: string
+          description: Session identifier type
+          example: "static"
+        expires_at:
+          type: string
+          format: date-time
+          description: Session expiration time
+          example: "2024-01-16T10:30:00Z"
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+
+    AgentContext:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+          description: Context ID
+          example: "123456789012345678"
+        deployment_id:
+          type: string
+          format: uint64
+          description: Deployment ID
+          example: "111111111111111111"
+        context_group:
+          type: string
+          description: Context group identifier
+          example: "support-agents"
+        title:
+          type: string
+          description: Context title
+          example: "Customer Support Conversation"
+        system_instructions:
+          type: string
+          description: System instructions for the agent
+          example: "You are a helpful customer support assistant."
+          nullable: true
+        status:
+          type: string
+          enum: [active, archived]
+          description: Context status
+          example: "active"
+        message_count:
+          type: integer
+          description: Number of messages in context
+          example: 15
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T11:30:00Z"
+
+    ListContextsResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentContext'
+          description: List of contexts
+        has_more:
+          type: boolean
+          description: Whether there are more contexts to fetch
+          example: false
+        limit:
+          type: integer
+          description: Applied limit
+          example: 10
+          nullable: true
+        offset:
+          type: integer
+          description: Applied offset
+          example: 0
+          nullable: true
+
+    ConversationMessage:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Message ID
+          example: "msg_abc123"
+        role:
+          type: string
+          enum: [user, assistant, system]
+          description: Message role
+          example: "user"
+        content:
+          type: object
+          description: Message content (format varies by message type)
+          example: {"type": "text", "text": "Hello, how can you help?"}
+        timestamp:
+          type: string
+          format: date-time
+          description: Message timestamp
+          example: "2024-01-15T10:30:00Z"
+        metadata:
+          type: object
+          description: Optional message metadata
+          additionalProperties: true
+
+    ListMessagesResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConversationMessage'
+          description: List of messages
+        has_more:
+          type: boolean
+          description: Whether there are more messages to fetch
+          example: false
+
+    AgentExecutionResponse:
+      type: object
+      properties:
+        message:
+          $ref: '#/components/schemas/ConversationMessage'
+          description: Agent's response message
+        status:
+          type: string
+          enum: [complete, streaming, error]
+          description: Execution status
+          example: "complete"
+        tool_calls:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              arguments:
+                type: object
+          description: Tool calls made by the agent
+          example: []
+        usage:
+          type: object
+          properties:
+            prompt_tokens:
+              type: integer
+            completion_tokens:
+              type: integer
+            total_tokens:
+              type: integer
+          description: Token usage statistics
+
+    AgentIntegration:
+      type: object
+      properties:
+        id:
+          type: string
+          format: int64
+          description: Integration ID
+          example: "12345"
+        deployment_id:
+          type: string
+          format: uint64
+          description: Deployment ID
+          example: "111111111111111111"
+        agent_id:
+          type: string
+          format: int64
+          description: Agent ID
+          example: "67890"
+        provider:
+          type: string
+          description: Integration provider
+          example: "openai"
+        config:
+          type: object
+          description: Integration configuration
+          additionalProperties: true
+          example: {"model": "gpt-4", "temperature": 0.7}
+        consent_granted:
+          type: boolean
+          description: Whether user has granted consent
+          example: true
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "No active agent session"
+        code:
+          type: string
+          example: "NO_AGENT_SESSION"
+
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: session_id
+      description: Session-based authentication using cookies

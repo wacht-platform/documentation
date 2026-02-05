@@ -1,0 +1,56 @@
+# Auth settings endpoint
+
+SettingsAuth:
+  patch:
+    summary: Update auth settings
+    description: Update deployment authentication settings
+    tags:
+      - Settings
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              allowed_domains:
+                type: array
+                items:
+                  type: string
+              password_min_length:
+                type: integer
+              password_require_uppercase:
+                type: boolean
+              password_require_lowercase:
+                type: boolean
+              password_require_numbers:
+                type: boolean
+              password_require_special_chars:
+                type: boolean
+              mfa_enabled:
+                type: boolean
+              mfa_methods:
+                type: array
+                items:
+                  type: string
+                  enum: [totp, sms, email]
+              session_timeout:
+                type: integer
+              refresh_token_expiration:
+                type: integer
+    responses:
+      '200':
+        description: Auth settings updated
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                allowed_domains:
+                  type: array
+                  items:
+                    type: string
+                password_min_length:
+                  type: integer
+                mfa_enabled:
+                  type: boolean

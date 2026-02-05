@@ -1,0 +1,64 @@
+# JWT template by ID endpoint
+
+JwtTemplateById:
+  patch:
+    summary: Update JWT template
+    description: Update a JWT template
+    tags:
+      - Settings
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+              description:
+                type: string
+              issuer:
+                type: string
+              audience:
+                type: string
+              expiration:
+                type: integer
+              claims:
+                type: object
+    responses:
+      '200':
+        description: JWT template updated
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                name:
+                  type: string
+      '404':
+        $ref: '#/components/responses/NotFound'
+
+  delete:
+    summary: Delete JWT template
+    description: Delete a JWT template
+    tags:
+      - Settings
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      '204':
+        description: JWT template deleted
+      '404':
+        $ref: '#/components/responses/NotFound'

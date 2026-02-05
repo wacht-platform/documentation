@@ -1,0 +1,33 @@
+# Webhook app endpoints endpoint
+
+WebhookAppEndpoints:
+  get:
+    summary: Get webhook endpoints
+    description: Get all webhook endpoints for an app
+    tags:
+      - Webhooks
+    parameters:
+      - $ref: '#/components/parameters/WebhookAppName'
+    responses:
+      '200':
+        description: Webhook endpoints
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                endpoints:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      url:
+                        type: string
+                      event_types:
+                        type: array
+                        items:
+                          type: string
+      '404':
+        $ref: '#/components/responses/NotFound'

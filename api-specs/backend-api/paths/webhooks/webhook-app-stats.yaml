@@ -1,0 +1,26 @@
+# Webhook app stats endpoint
+
+WebhookAppStats:
+  get:
+    summary: Get webhook stats
+    description: Get statistics for a webhook app
+    tags:
+      - Webhooks
+    parameters:
+      - $ref: '#/components/parameters/WebhookAppName'
+    responses:
+      '200':
+        description: Webhook statistics
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                total_deliveries:
+                  type: integer
+                successful_deliveries:
+                  type: integer
+                failed_deliveries:
+                  type: integer
+      '404':
+        $ref: '#/components/responses/NotFound'

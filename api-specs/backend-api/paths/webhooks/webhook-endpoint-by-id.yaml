@@ -1,0 +1,60 @@
+# Webhook endpoint by ID operations
+
+WebhookEndpointById:
+  patch:
+    summary: Update webhook endpoint
+    description: Update a webhook endpoint
+    tags:
+      - Webhooks
+    parameters:
+      - name: endpoint_id
+        in: path
+        required: true
+        schema:
+          type: string
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              url:
+                type: string
+              event_types:
+                type: array
+                items:
+                  type: string
+              description:
+                type: string
+    responses:
+      '200':
+        description: Endpoint updated
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                url:
+                  type: string
+      '404':
+        $ref: '#/components/responses/NotFound'
+
+  delete:
+    summary: Delete webhook endpoint
+    description: Remove a webhook endpoint
+    tags:
+      - Webhooks
+    parameters:
+      - name: endpoint_id
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      '204':
+        description: Endpoint deleted
+      '404':
+        $ref: '#/components/responses/NotFound'

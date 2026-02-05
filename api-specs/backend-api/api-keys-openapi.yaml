@@ -1,0 +1,512 @@
+openapi: 3.0.3
+info:
+  title: Wacht Backend API - API Keys
+  description: API key management endpoints
+  version: 1.0.0
+
+servers:
+  - url: https://api.wacht.dev
+    description: Production server
+
+security:
+  - ApiKeyAuth: []
+
+tags:
+  - name: API Keys
+    description: API Keys management
+
+paths:
+
+  /api-auth/apps:
+    get:
+      summary: List API auth apps
+      description: Get all API authentication apps
+      tags:
+        - API Keys
+      parameters:
+        - name: include_inactive
+          in: query
+          schema:
+            type: boolean
+          description: Include inactive apps
+      responses:
+        '200':
+          description: List of API auth apps
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  apps:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ApiAuthApp'
+                  total:
+                    type: integer
+                    description: Total number of apps
+    post:
+      summary: Create API auth app
+      description: Create a new API authentication app
+      tags:
+        - API Keys
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateApiAuthAppRequest'
+      responses:
+        '200':
+          description: API auth app created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiAuthApp'
+        '400':
+          description: Invalid rate limits
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api-auth/apps/{app_name}:
+    get:
+      summary: Get API auth app
+      description: Retrieve a specific API auth app
+      tags:
+        - API Keys
+      parameters:
+        - $ref: '#/components/parameters/ApiAuthAppName'
+      responses:
+        '200':
+          description: API auth app found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiAuthApp'
+        '404':
+          description: API auth app not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      summary: Update API auth app
+      description: Update an API authentication app
+      tags:
+        - API Keys
+      parameters:
+        - $ref: '#/components/parameters/ApiAuthAppName'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateApiAuthAppRequest'
+      responses:
+        '200':
+          description: API auth app updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiAuthApp'
+        '404':
+          description: API auth app not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Delete API auth app
+      description: Delete an API authentication app
+      tags:
+        - API Keys
+      parameters:
+        - $ref: '#/components/parameters/ApiAuthAppName'
+      responses:
+        '204':
+          description: API auth app deleted
+        '404':
+          description: API auth app not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api-auth/apps/{app_name}/keys:
+    get:
+      summary: List API keys
+      description: Get all API keys for an app
+      tags:
+        - API Keys
+      parameters:
+        - $ref: '#/components/parameters/ApiAuthAppName'
+        - name: include_inactive
+          in: query
+          schema:
+            type: boolean
+          description: Include inactive keys
+      responses:
+        '200':
+          description: API keys
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  keys:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ApiKey'
+        '404':
+          description: API auth app not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Create API key
+      description: Generate a new API key for an app
+      tags:
+        - API Keys
+      parameters:
+        - $ref: '#/components/parameters/ApiAuthAppName'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateApiKeyRequest'
+      responses:
+        '200':
+          description: API key created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiKeyWithSecret'
+        '400':
+          description: Bad request (missing key_prefix for backend API)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: API auth app not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api-auth/keys/revoke:
+    post:
+      summary: Revoke API key
+      description: Revoke an API key by ID
+      tags:
+        - API Keys
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RevokeApiKeyRequest'
+      responses:
+        '204':
+          description: API key revoked
+        '400':
+          description: Bad request (missing key_id)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api-auth/keys/rotate:
+    post:
+      summary: Rotate API key
+      description: Rotate an API key and generate a new secret
+      tags:
+        - API Keys
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RotateApiKeyRequest'
+      responses:
+        '200':
+          description: API key rotated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiKeyWithSecret'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: 'API key authentication (format: Bearer {api_key})'
+
+  parameters:
+    ApiAuthAppName:
+      name: app_name
+      in: path
+      required: true
+      schema:
+        type: string
+      description: API Auth app name
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+
+    # =====================================================
+    # REQUEST SCHEMAS
+    # =====================================================
+
+    CreateApiAuthAppRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: App name
+          example: "My App"
+        description:
+          type: string
+          description: App description
+          example: "Production application"
+        rate_limits:
+          type: array
+          description: Rate limit rules
+          items:
+            $ref: '#/components/schemas/RateLimit'
+
+    UpdateApiAuthAppRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: New app name
+        description:
+          type: string
+          description: New app description
+        is_active:
+          type: boolean
+          description: Whether the app is active
+        rate_limits:
+          type: array
+          description: New rate limit rules
+          items:
+            $ref: '#/components/schemas/RateLimit'
+
+    CreateApiKeyRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: API key name
+          example: "Production Key"
+        key_prefix:
+          type: string
+          description: Key prefix (required for backend API, optional for console)
+          example: "wacht_prod"
+        scope_preset:
+          type: string
+          description: Permission preset
+          enum: [default, read_only, read_write, admin, custom]
+          example: "read_write"
+        permissions:
+          type: array
+          description: Custom permissions (used when scope_preset is custom)
+          items:
+            type: string
+        metadata:
+          type: object
+          description: Additional metadata
+          additionalProperties: true
+        expires_at:
+          type: string
+          format: date-time
+          description: Expiration timestamp
+          example: "2024-12-31T23:59:59Z"
+
+    RevokeApiKeyRequest:
+      type: object
+      required:
+        - key_id
+      properties:
+        key_id:
+          type: string
+          description: Key ID to revoke
+          example: "1234567890123456789"
+        reason:
+          type: string
+          description: Reason for revocation
+          example: "No longer needed"
+
+    RotateApiKeyRequest:
+      type: object
+      required:
+        - key_id
+      properties:
+        key_id:
+          type: string
+          description: Key ID to rotate
+          example: "1234567890123456789"
+
+    # =====================================================
+    # RESPONSE SCHEMAS
+    # =====================================================
+
+    ApiAuthApp:
+      type: object
+      properties:
+        id:
+          type: string
+          description: App ID
+          example: "1234567890123456789"
+        deployment_id:
+          type: string
+          description: Deployment ID
+          example: "9876543210987654321"
+        name:
+          type: string
+          description: App name
+          example: "My App"
+        description:
+          type: string
+          description: App description
+          nullable: true
+          example: "Production application"
+        is_active:
+          type: boolean
+          description: Whether the app is active
+          example: true
+        rate_limits:
+          type: array
+          description: Rate limit rules
+          items:
+            $ref: '#/components/schemas/RateLimit'
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2024-01-15T10:30:00Z"
+        deleted_at:
+          type: string
+          format: date-time
+          description: Deletion timestamp
+          nullable: true
+
+    ApiKey:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Key ID
+          example: "1234567890123456789"
+        app_id:
+          type: string
+          description: App ID
+          example: "9876543210987654321"
+        deployment_id:
+          type: string
+          description: Deployment ID
+          example: "1111111111111111111"
+        name:
+          type: string
+          description: Key name
+          example: "Production Key"
+        key_prefix:
+          type: string
+          description: Key prefix
+          example: "wacht_prod"
+        key_suffix:
+          type: string
+          description: Key suffix (last 4 characters)
+          example: "abcd"
+        permissions:
+          type: array
+          description: Granted permissions
+          items:
+            type: string
+        metadata:
+          type: object
+          description: Additional metadata
+          additionalProperties: true
+        expires_at:
+          type: string
+          format: date-time
+          description: Expiration timestamp
+          nullable: true
+        last_used_at:
+          type: string
+          format: date-time
+          description: Last used timestamp
+          nullable: true
+        is_active:
+          type: boolean
+          description: Whether the key is active
+          example: true
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2024-01-15T10:30:00Z"
+        revoked_at:
+          type: string
+          format: date-time
+          description: Revocation timestamp
+          nullable: true
+        revoked_reason:
+          type: string
+          description: Reason for revocation
+          nullable: true
+
+    ApiKeyWithSecret:
+      allOf:
+        - $ref: '#/components/schemas/ApiKey'
+        - type: object
+          properties:
+            secret:
+              type: string
+              description: Full API key (only shown on creation)
+
+    RateLimit:
+      type: object
+      properties:
+        unit:
+          type: string
+          description: Time unit
+          enum: [second, minute, hour, day]
+          example: "minute"
+        duration:
+          type: integer
+          description: Duration in the specified unit
+          example: 1
+        max_requests:
+          type: integer
+          description: Maximum requests per duration
+          example: 100
+        mode:
+          type: string
+          description: Rate limit mode
+          enum: [per_key, per_ip, per_key_and_ip]
+          example: "per_key"

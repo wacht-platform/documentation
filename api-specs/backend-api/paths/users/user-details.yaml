@@ -1,0 +1,44 @@
+# User details endpoint
+
+UserDetails:
+  get:
+    summary: Get user details
+    description: Get complete user information including organizations and workspaces
+    tags:
+      - Users
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+    responses:
+      '200':
+        description: User details
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                first_name:
+                  type: string
+                last_name:
+                  type: string
+                email:
+                  type: string
+                is_active:
+                  type: boolean
+                created_at:
+                  type: string
+                  format: date-time
+                updated_at:
+                  type: string
+                  format: date-time
+                email_addresses:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/UserEmail'
+                phone_numbers:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/UserPhone'
+      '404':
+        $ref: '#/components/responses/NotFound'

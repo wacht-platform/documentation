@@ -1,0 +1,58 @@
+# Organization role by ID endpoint
+
+OrganizationRoleById:
+  patch:
+    summary: Update organization role
+    description: Update an organization role
+    tags:
+      - Organizations
+    parameters:
+      - $ref: '#/components/parameters/OrganizationId'
+      - name: role_id
+        in: path
+        required: true
+        schema:
+          type: string
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+              description:
+                type: string
+    responses:
+      '200':
+        description: Role updated
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                name:
+                  type: string
+      '404':
+        $ref: '#/components/responses/NotFound'
+
+  delete:
+    summary: Delete organization role
+    description: Delete an organization role
+    tags:
+      - Organizations
+    parameters:
+      - $ref: '#/components/parameters/OrganizationId'
+      - name: role_id
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      '204':
+        description: Role deleted
+      '404':
+        $ref: '#/components/responses/NotFound'

@@ -1,0 +1,29 @@
+# Deployment workspace roles endpoint
+
+DeploymentRoles:
+  get:
+    summary: Get deployment workspace roles
+    description: Get all workspace roles in the deployment
+    tags:
+      - Workspaces
+    responses:
+      '200':
+        description: Workspace roles
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/PaginatedResponse'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                          name:
+                            type: string
+                          description:
+                            type: string

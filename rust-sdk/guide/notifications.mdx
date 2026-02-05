@@ -1,0 +1,218 @@
+---
+title: 'Notifications API'
+description: 'Working with notifications in the Rust SDK'
+---
+
+# Notifications API Guide
+
+
+Learn how to create and manage notifications using the Wacht Rust SDK.
+
+## Prerequisites
+
+Before using any API methods, you must initialize the SDK:
+
+```rust
+use wacht::init_from_env;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Initialize from environment variables
+    // Requires: WACHT_API_KEY and WACHT_FRONTEND_HOST
+    init_from_env().await?;
+
+    // Now you can use the API
+    Ok(())
+}
+```
+
+## Create Notification
+
+Send a notification to a specific user.
+
+### Basic Notification
+
+```rust
+use wacht::api::notifications;
+use wacht::models::CreateNotificationRequest;
+
+let notification = notifications::create(
+    CreateNotificationRequest::new(
+        "user_123".to_string(),
+        "Welcome to Wacht!".to_string(),
+        "Your account has been successfully created.".to_string()
+    )
+)
+.send()
+.await?;
+
+println!("Created notification: {}", notification.id);
+```
+
+### Notification with Action Button
+
+```rust
+use wacht::api::notifications;
+use wacht::models::CreateNotificationRequest;
+
+let notification = notifications::create(
+    CreateNotificationRequest::new(
+        "user_123".to_string(),
+        "New Feature Available".to_string(),
+        "Check out our latest features.".to_string()
+    )
+    .with_action("https://example.com/features".to_string(), Some("View Features".to_string()))
+)
+.send()
+.await?;
+```
+
+### Notification with Severity
+
+```rust
+use wacht::api::notifications;
+use wacht::models::{CreateNotificationRequest, NotificationSeverity};
+
+let notification = notifications::create(
+    CreateNotificationRequest::new(
+        "user_123".to_string(),
+        "Security Alert".to_string(),
+        "New sign-in detected from unknown device.".to_string()
+    )
+    .with_severity(NotificationSeverity::Warning)
+)
+.send()
+.await?;
+```
+
+### Notification with Metadata and Expiry
+
+```rust
+use wacht::api::notifications;
+use wacht::models::CreateNotificationRequest;
+use std::collections::HashMap;
+
+let mut metadata = HashMap::new();
+metadata.insert("category".to_string(), serde_json::json!("security"));
+metadata.insert("priority".to_string(), serde_json::json!("high"));
+
+let notification = notifications::create(
+    CreateNotificationRequest::new(
+        "user_123".to_string(),
+        "Important Update".to_string(),
+        "Please review your account settings.".to_string()
+    )
+    .with_metadata(metadata)
+    .with_expires_hours(24)
+)
+.send()
+.await?;
+```
+
+### Notification with Custom CTAs
+
+```rust
+use wacht::api::notifications;
+use wacht::models::{CreateNotificationRequest, CallToAction};
+
+let notification = notifications::create(
+    CreateNotificationRequest::new(
+        "user_123".to_string(),
+        "Complete Your Profile".to_string(),
+        "Add more details to your profile.".to_string()
+    )
+    .with_ctas(vec![
+        CallToAction {
+            label: "Complete Profile".to_string(),
+            url: "https://example.com/profile".to_string(),
+            primary: true,
+        },
+        CallToAction {
+            label: "Skip".to_string(),
+            url: "https://example.com/dashboard".to_string(),
+            primary: false,
+        },
+    ])
+)
+.send()
+.await?;
+```
+
+## CreateNotificationRequest Fields
+
+### Required Fields
+
+- `user_id` (String) - User ID to send notification to
+- `title` (String) - Notification title
+- `body` (String) - Notification message content
+
+### Optional Fields (via Builder Methods)
+
+- `action_url` (Option&lt;String&gt;) - URL for the action button
+- `action_label` (Option&lt;String&gt;) - Label for the action button
+- `ctas` (Option&lt;Vec&lt;CallToAction&gt;&gt;) - Multiple call-to-action buttons
+- `severity` (Option&lt;String&gt;) - Notification severity level
+- `metadata` (Option&lt;HashMap&lt;String, serde_json::Value&gt;&gt;) - Additional metadata
+- `expires_hours` (Option&lt;i64&gt;) - Expiry time in hours
+
+## Severity Levels
+
+Notifications support four severity levels via `NotificationSeverity`:
+
+```rust
+use wacht::models::NotificationSeverity;
+
+NotificationSeverity::Info     // General information
+NotificationSeverity::Success  // Success confirmation
+NotificationSeverity::Warning  // Warning alerts
+NotificationSeverity::Error    // Error notifications
+```
+
+## CallToAction Structure
+
+For custom CTAs, use the `CallToAction` struct:
+
+```rust
+use wacht::models::CallToAction;
+
+CallToAction {
+    label: "View Details".to_string(),
+    url: "https://example.com/details".to_string(),
+    primary: true,  // Whether this is the primary action
+}
+```
+
+## Error Handling
+
+All SDK methods return a `Result<T, Error>`:
+
+```rust
+use wacht::{Error, api::notifications};
+use wacht::models::CreateNotificationRequest;
+
+match notifications::create(
+    CreateNotificationRequest::new(
+        "invalid_user".to_string(),
+        "Test".to_string(),
+        "Test message".to_string()
+    )
+).send().await {
+    Ok(notification) => println!("Created: {}", notification.id),
+    Err(Error::Api { status, message, .. }) => {
+        eprintln!("API Error {}: {}", status, message);
+    }
+    Err(Error::Request(e)) => {
+        eprintln!("Network error: {}", e);
+    }
+    Err(e) => {
+        eprintln!("Other error: {}", e);
+    }
+}
+```
+
+## Related
+
+- [Installation](/rust-sdk/installation) - SDK setup
+- [Users Guide](/rust-sdk/guide/users) - User management
+- [Webhooks Guide](/rust-sdk/guide/webhooks) - Webhook event delivery
+- [API Reference - Backend API](/api-reference/backend-api/notifications) - Full API docs

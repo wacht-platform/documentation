@@ -1,0 +1,59 @@
+# SMTP configuration endpoint
+
+SettingsSmtp:
+  post:
+    summary: Update SMTP config
+    description: Configure SMTP settings for sending emails
+    tags:
+      - Settings
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - host
+              - port
+              - username
+              - password
+            properties:
+              host:
+                type: string
+              port:
+                type: integer
+              username:
+                type: string
+              password:
+                type: string
+              from_email:
+                type: string
+              from_name:
+                type: string
+              use_tls:
+                type: boolean
+              use_ssl:
+                type: boolean
+    responses:
+      '200':
+        description: SMTP config updated
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                host:
+                  type: string
+                port:
+                  type: integer
+                from_email:
+                  type: string
+
+  delete:
+    summary: Remove SMTP config
+    description: Remove SMTP configuration
+    tags:
+      - Settings
+    responses:
+      '204':
+        description: SMTP config removed

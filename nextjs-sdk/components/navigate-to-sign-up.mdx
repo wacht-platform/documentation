@@ -1,0 +1,48 @@
+---
+title: NavigateToSignUp
+description: Automatically navigates to the sign-up page when rendered.
+---
+
+# NavigateToSignUp
+
+Automatically navigates the user to the sign-up page when rendered. Uses the `navigateToSignUp` function from `useNavigation` and respects the `redirect_uri` query parameter if present.
+
+```tsx
+import { NavigateToSignUp } from "@wacht/nextjs";
+
+export default function RegisterPage() {
+  return <NavigateToSignUp />;
+}
+```
+
+## Protected Route
+
+```tsx
+import { SignedIn, NavigateToSignUp } from "@wacht/nextjs";
+
+export default function Onboarding() {
+  return (
+    <>
+      <SignedIn>
+        <OnboardingContent />
+      </SignedIn>
+      <NavigateToSignUp />
+    </>
+  );
+}
+```
+
+## Redirect URL
+
+After successful sign-up, the user is redirected to:
+
+1. The URL specified in `redirect_uri` query parameter (if present)
+2. The `after_signup_redirect_url` deployment setting
+3. The deployment's frontend host (fallback)
+
+The `redirect_uri` parameter allows you to control where users land after completing sign-up. For example, navigating to `/signup?redirect_uri=/onboarding` will bring users to `/onboarding` after sign-up completes.
+
+## Related
+
+- [NavigateToSignIn](./navigate-to-sign-in) - Navigate to sign-in
+- [useNavigation](../hooks/use-navigation) - Navigation utilities

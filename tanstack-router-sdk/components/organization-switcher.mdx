@@ -1,0 +1,46 @@
+---
+title: OrganizationSwitcher
+description: A dropdown component for switching between organizations and workspaces.
+---
+
+# OrganizationSwitcher
+
+Dropdown menu for switching between organizations and workspaces. Also allows creating new organizations and workspaces.
+
+```tsx
+import { OrganizationSwitcher } from "@wacht/tanstack-router";
+
+export default function Layout() {
+  return (
+    <header>
+      <OrganizationSwitcher />
+    </header>
+  );
+}
+```
+
+## Hide Personal Account
+
+```tsx
+<OrganizationSwitcher showPersonal={false} />
+```
+
+## Features
+
+- Organization and workspace lists with active indicators
+- Create organization and workspace options
+- Manage and leave organization options
+- Eligibility restriction warnings
+
+## Params
+
+<ParamField path="showPersonal" type="boolean" default="true">
+Whether to show the "Personal account" option.
+</ParamField>
+
+## Related
+
+- [CreateOrganizationForm](./create-organization-form) - Create organization form
+- [CreateWorkspaceForm](./create-workspace-form) - Create workspace form
+- [useOrganizationList](../hooks/use-organization-list) - Organization list hook
+- [useActiveOrganization](../hooks/use-active-organization) - Active organization hook

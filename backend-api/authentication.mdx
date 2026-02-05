@@ -1,0 +1,91 @@
+---
+title: 'Authentication'
+description: 'Understanding authentication for the Wacht Backend API'
+---
+
+# Backend API Authentication
+
+Overview of authentication mechanisms for the Wacht Platform Backend API.
+
+## Authentication Methods
+
+The Wacht Platform Backend API supports multiple authentication methods:
+
+| Method | Use Case | Description |
+|--------|----------|-------------|
+| **API Keys** | Server-to-server | Bearer token authentication |
+| **JWT Tokens** | User sessions | Generated after signin/signup |
+
+## API Key Authentication
+
+Use API keys for backend-to-backend communication.
+
+### Getting an API Key
+
+1. Navigate to [wacht.dev](https://wacht.dev)
+2. Go to your deployment settings
+3. Navigate to **API Keys**
+4. Click **Generate New Key**
+5. Copy the key (starts with `sk_test_` or `sk_live_`)
+
+### Using API Keys
+
+Include the API key in the Authorization header:
+
+```http
+Authorization: Bearer sk_test_your_api_key_here
+X-Deployment-ID: depo_123
+```
+
+### cURL Example
+
+```bash
+curl -X GET "https://api.wacht.dev/deployments/depo_123/users" \
+  -H "Authorization: Bearer sk_test_your_api_key_here"
+```
+
+### Security Best Practices
+
+- ✅ Store in environment variables
+- ✅ Use different keys for dev/staging/production
+- ✅ Rotate keys regularly
+- ❌ Never commit to git
+- ❌ Never expose in client-side code
+
+## JWT Token Authentication
+
+After users authenticate, they receive a JWT token for subsequent requests.
+
+### Token Structure
+
+```json
+{
+  "sub": "user_123",
+  "iat": 1640995200,
+  "exp": 1641081600,
+  "deployment_id": "depo_123",
+  "organization_id": "org_456"
+}
+```
+
+### Using JWT Tokens
+
+```http
+Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+## Error Handling
+
+### Common Authentication Errors
+
+| Error | Description | Solution |
+|-------|-------------|----------|
+| `UNAUTHORIZED` | Invalid API key | Check your API key |
+| `TOKEN_EXPIRED` | JWT token expired | Implement token refresh |
+| `MISSING_DEPLOYMENT_ID` | No deployment ID | Include X-Deployment-ID header |
+
+## Next Steps
+
+- [Backend API Overview](/backend-api/overview) - Complete API guide
+- [Getting Started](/getting-started/quickstart) - Quickstart guide
+- [Rust SDK Installation](/rust-sdk/installation) - SDK setup

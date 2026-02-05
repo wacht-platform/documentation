@@ -1,0 +1,239 @@
+---
+title: 'AI Execution Context API'
+description: 'Working with AI execution contexts in the Rust SDK'
+---
+
+# AI Execution Context API Guide
+
+
+Learn how to manage AI execution contexts using the Wacht Rust SDK. Execution contexts provide isolated environments for running AI agents with specific system instructions and configurations.
+
+## Prerequisites
+
+Before using any API methods, you must initialize the SDK:
+
+```rust
+use wacht::init_from_env;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Initialize from environment variables
+    // Requires: WACHT_API_KEY and WACHT_FRONTEND_HOST
+    init_from_env().await?;
+
+    // Now you can use the API
+    Ok(())
+}
+```
+
+## List Execution Contexts
+
+Get all execution contexts in your deployment.
+
+### Basic List
+
+```rust
+use wacht::api::ai;
+
+// Fetch all contexts (default pagination)
+let contexts = ai::fetch_execution_contexts(None)
+    .await?;
+
+for ctx in contexts.data {
+    println!("{}: {}", ctx.title, ctx.status.as_ref().unwrap_or(&"unknown".to_string()));
+}
+```
+
+### With Filters
+
+```rust
+use wacht::api::ai;
+
+// Fetch contexts with builder pattern
+let contexts = ai::list_execution_contexts()
+    .limit(50)
+    .offset(0)
+    .status("active")
+    .context_group("support")
+    .send()
+    .await?;
+
+for ctx in contexts.data {
+    println!("{} (group: {})", ctx.title, ctx.context_group.as_ref().unwrap_or(&"default".to_string()));
+}
+```
+
+## Create Execution Context
+
+Create a new execution context for AI operations.
+
+```rust
+use wacht::api::ai;
+use wacht::models::CreateAiExecutionContextRequest;
+
+let context = ai::create_execution_context(CreateAiExecutionContextRequest {
+    title: "Customer Support Context".to_string(),
+    system_instructions: Some("You are a helpful customer support assistant.".to_string()),
+    context_group: Some("support".to_string()),
+    status: Some("active".to_string()),
+})
+.await?;
+
+println!("Created context: {}", context.id);
+```
+
+## Update Execution Context
+
+Modify an existing execution context.
+
+```rust
+use wacht::api::ai;
+
+let context = ai::update_execution_context_builder("ctx_123")
+    .with_title("Updated Support Context")
+    .with_system_instructions("You are a senior customer support specialist.")
+    .with_status("active")
+    .send()
+    .await?;
+```
+
+## Execute Agent
+
+Run an AI agent within a specific execution context.
+
+```rust
+use wacht::api::ai;
+use wacht::models::ExecuteAgentRequest;
+
+let result = ai::execute_agent_builder(
+    "ctx_123",
+    ExecuteAgentRequest {
+        agent_name: "support-bot".to_string(),
+        execution_type: ExecuteAgentRequestType::NewMessage {
+            message: "Help me reset my password".to_string(),
+            files: None,
+        },
+    }
+)
+.send()
+.await?;
+
+println!("Agent response: {:?}", result.response);
+```
+
+## Builder Methods
+
+### ListExecutionContextsBuilder
+
+- `limit(i32)` - Number of results to return (max 100)
+- `offset(i32)` - Number of results to skip
+- `status(&str)` - Filter by status
+- `context_group(&str)` - Filter by context group
+
+### UpdateExecutionContextBuilder
+
+- `with_title(&str)` - Update context title
+- `with_system_instructions(&str)` - Update system instructions
+- `with_context_group(&str)` - Update context group
+- `with_status(&str)` - Update status
+
+## Request Models
+
+### CreateAiExecutionContextRequest
+
+- `title` (String) - Context title (required)
+- `system_instructions` (Option&lt;String&gt;) - System instructions for the AI
+- `context_group` (Option&lt;String&gt;) - Group identifier for the context
+- `status` (Option&lt;String&gt;) - Context status (e.g., "active", "inactive")
+
+### ExecuteAgentRequest
+
+- `agent_name` (String) - Name of the agent to execute (required)
+- `execution_type` (ExecuteAgentRequestType) - Type of execution (required)
+
+### ExecuteAgentRequestType
+
+Variants for different execution types:
+
+- `NewMessage { message: String, files: Option&lt;Vec&lt;String&gt;&gt; }` - Execute with a new message
+- `Continue { files: Option&lt;Vec&lt;String&gt;&gt; }` - Continue previous conversation
+- `Stream { message: String, files: Option&lt;Vec&lt;String&gt;&gt; }` - Stream response
+
+## Context States
+
+Execution contexts can have different states:
+
+- `active` - Context is active and ready for execution
+- `inactive` - Context is disabled
+- `archived` - Context is archived
+
+## System Instructions
+
+System instructions define the behavior and personality of the AI within the context:
+
+```rust
+CreateAiExecutionContextRequest {
+    title: "Support Agent".to_string(),
+    system_instructions: Some(
+        "You are a customer support agent for Wacht. \
+         Be polite, concise, and helpful. \
+         Always prioritize customer satisfaction.".to_string()
+    ),
+    context_group: Some("support".to_string()),
+    status: Some("active".to_string()),
+}
+```
+
+## Context Groups
+
+Context groups help organize related execution contexts:
+
+```rust
+// Create contexts for different departments
+let sales_context = ai::create_execution_context(CreateAiExecutionContextRequest {
+    title: "Sales Context".to_string(),
+    system_instructions: Some("You are a sales assistant.".to_string()),
+    context_group: Some("sales".to_string()),
+    status: Some("active".to_string()),
+}).await?;
+
+let support_context = ai::create_execution_context(CreateAiExecutionContextRequest {
+    title: "Support Context".to_string(),
+    system_instructions: Some("You are a support assistant.".to_string()),
+    context_group: Some("support".to_string()),
+    status: Some("active".to_string()),
+}).await?;
+```
+
+## Error Handling
+
+All SDK methods return a `Result<T, Error>`:
+
+```rust
+use wacht::{Error, api::ai};
+
+match ai::fetch_execution_contexts(None).await {
+    Ok(contexts) => {
+        for ctx in contexts.data {
+            println!("Context: {}", ctx.title);
+        }
+    }
+    Err(Error::Api { status, message, .. }) => {
+        eprintln!("API Error {}: {}", status, message);
+    }
+    Err(Error::Request(e)) => {
+        eprintln!("Network error: {}", e);
+    }
+    Err(e) => {
+        eprintln!("Other error: {}", e);
+    }
+}
+```
+
+## Related
+
+- [Installation](/rust-sdk/installation) - SDK setup
+- [Agents Guide](/rust-sdk/guide/agents) - AI agent management
+- [Tools Guide](/rust-sdk/guide/tools) - Tool configuration
+- [Knowledge Bases Guide](/rust-sdk/guide/knowledge-bases) - Knowledge base management
+- [API Reference - Backend API](/api-reference/backend-api/ai-execution-context) - Full API docs

@@ -1,0 +1,333 @@
+---
+title: useActiveWorkspace
+description: Access and manage the currently active workspace.
+---
+
+# useActiveWorkspace
+
+The `useActiveWorkspace` hook provides access to the currently active workspace and methods to manage it.
+
+## Return Value
+
+<ParamField path="activeWorkspace" type="Workspace | null">
+  The active workspace object
+</ParamField>
+
+<ParamField path="activeMembership" type="WorkspaceMembership | null">
+  User's membership in active workspace
+</ParamField>
+
+<ParamField path="loading" type="boolean">
+  Whether data is loading
+</ParamField>
+
+<ParamField path="error" type="Error | null">
+  Any error that occurred
+</ParamField>
+
+<ParamField path="refetch">
+  <Expandable title="Refetch the active workspace">
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the active workspace is refetched
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="updateWorkspace">
+  <Expandable title="Update the active workspace">
+    <ParamField path="params" type="Partial&lt;Workspace&gt;">
+      Workspace fields to update
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;Workspace&gt;">
+      The updated workspace
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="getMembers">
+  <Expandable title="Get workspace members">
+    <ParamField path="options" type="{ page?: number; limit?: number }">
+      Pagination options
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;{ data: WorkspaceMember[]; total: number }&gt;">
+      Paginated list of workspace members
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="getRoles">
+  <Expandable title="Get workspace roles">
+    <ParamField path="returns" type="Promise<WorkspaceRole[]>">
+      List of workspace roles
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="leave">
+  <Expandable title="Leave the active workspace">
+    <ParamField path="returns" type="Promise<void>">
+      Resolves when the user has left the workspace
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="deleteWorkspace">
+  <Expandable title="Delete the active workspace">
+    <ParamField path="returns" type="Promise<void>">
+      Resolves when the workspace is deleted
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="removeMember">
+  <Expandable title="Remove a member from the workspace">
+    <ParamField path="memberId" type="string">
+      The member ID to remove
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the member is removed
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="addMemberRole">
+  <Expandable title="Add a role to a workspace member">
+    <ParamField path="memberId" type="string">
+      The member ID
+    </ParamField>
+    <ParamField path="roleId" type="string">
+      The role ID to add
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the role is added
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="removeMemberRole">
+  <Expandable title="Remove a role from a workspace member">
+    <ParamField path="memberId" type="string">
+      The member ID
+    </ParamField>
+    <ParamField path="roleId" type="string">
+      The role ID to remove
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the role is removed
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="inviteMember">
+  <Expandable title="Invite a member to the workspace">
+
+    <ParamField path="params.email" type="string" required>
+      Email address of the user to invite
+    </ParamField>
+
+    <ParamField path="params.workspaceRoleId" type="string">
+      Optional workspace role ID to assign
+    </ParamField>
+
+    <ParamField path="returns" type="Invitation | undefined">
+      The invitation object if successful, or undefined if no active workspace
+    </ParamField>
+
+  </Expandable>
+</ParamField>
+
+## Return Types
+
+<ResponseField name="Invitation">
+  <Expandable title="Properties">
+
+  <ResponseField name="id" type="string">
+    Unique identifier for the invitation
+  </ResponseField>
+
+  <ResponseField name="email" type="string">
+    Email address of the invited user
+  </ResponseField>
+
+  <ResponseField name="workspace_id" type="string">
+    ID of the workspace this invitation belongs to
+  </ResponseField>
+
+  <ResponseField name="workspace_role" type="WorkspaceRole">
+    Initial role assigned in the workspace
+  </ResponseField>
+
+  <ResponseField name="expires_at" type="string">
+    ISO 8601 timestamp when the invitation expires
+  </ResponseField>
+
+  <ResponseField name="accepted_at" type="string | null">
+    ISO 8601 timestamp when the invitation was accepted, or null if pending
+  </ResponseField>
+
+  <ResponseField name="created_at" type="string">
+    ISO 8601 timestamp when the invitation was created
+  </ResponseField>
+
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="WorkspaceRole">
+  <Expandable title="Properties">
+
+  <ResponseField name="id" type="string">
+    Unique identifier for the role
+  </ResponseField>
+
+  <ResponseField name="name" type="string">
+    Display name of the role
+  </ResponseField>
+
+  <ResponseField name="permissions" type="string[]">
+    List of permissions granted by this role
+  </ResponseField>
+
+  </Expandable>
+</ResponseField>
+
+<ParamField path="getInvitations">
+  <Expandable title="Get workspace invitations">
+    <ParamField path="returns" type="Promise&lt;Invitation[]&gt;">
+      List of workspace invitations
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="discardInvitation">
+  <Expandable title="Discard a workspace invitation">
+    <ParamField path="invitationId" type="string">
+      The invitation ID to discard
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the invitation is discarded
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="resendInvitation">
+  <Expandable title="Resend a workspace invitation">
+    <ParamField path="invitationId" type="string">
+      The invitation ID to resend
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;Invitation&gt;">
+      The resent invitation
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+## Examples
+
+### Display Active Workspace
+
+```tsx
+import { useActiveWorkspace } from "@wacht/react-router";
+
+function WorkspaceHeader() {
+  const { activeWorkspace } = useActiveWorkspace();
+
+  return (
+    <header>
+      <h1>{activeWorkspace?.name}</h1>
+      <p>{activeWorkspace?.description}</p>
+    </header>
+  );
+}
+```
+
+### Update Workspace
+
+```tsx
+import { useActiveWorkspace } from "@wacht/react-router";
+
+function WorkspaceSettings() {
+  const { updateWorkspace } = useActiveWorkspace();
+
+  const handleUpdate = async () => {
+    await updateWorkspace({
+      name: "Updated Name",
+      description: "Updated description",
+    });
+  };
+
+  return <button onClick={handleUpdate}>Update Workspace</button>;
+}
+```
+
+### Get Members
+
+```tsx
+import { useActiveWorkspace } from "@wacht/react-router";
+
+function WorkspaceMembers() {
+  const { getMembers } = useActiveWorkspace();
+  const [members, setMembers] = useState([]);
+
+  useEffect(() => {
+    getMembers({ page: 1, limit: 10 }).then((result) => {
+      setMembers(result.data);
+    });
+  }, [getMembers]);
+
+  return (
+    <ul>
+      {members.map((member) => (
+        <li key={member.id}>{member.user?.first_name}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+### Leave Workspace
+
+```tsx
+import { useActiveWorkspace } from "@wacht/react-router";
+
+function LeaveWorkspaceButton() {
+  const { leave } = useActiveWorkspace();
+
+  return (
+    <button onClick={() => leave()}>
+      Leave Workspace
+    </button>
+  );
+}
+```
+
+### Invite Member
+
+```tsx
+import { useActiveWorkspace } from "@wacht/react-router";
+
+function InviteMember() {
+  const { inviteMember, activeWorkspace } = useActiveWorkspace();
+
+  const handleInvite = async (email: string) => {
+    const invitation = await inviteMember({
+      email,
+      workspaceRoleId: "workspace_role_id_123",
+    });
+
+    if (invitation) {
+      console.log("Invitation sent:", invitation.id);
+    }
+  };
+
+  return (
+    <button onClick={() => handleInvite("user@example.com")}>
+      Invite to {activeWorkspace?.name}
+    </button>
+  );
+}
+```
+
+## Related
+
+- [useWorkspaceList](./use-workspace-list) - Workspace list management
+- [useWorkspaceMemberships](./use-workspace-memberships) - Memberships list
+- [OrganizationSwitcher](../components/organization-switcher) - Switcher component

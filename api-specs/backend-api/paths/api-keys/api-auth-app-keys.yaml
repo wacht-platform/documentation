@@ -1,0 +1,72 @@
+# API auth app keys endpoint
+
+ApiAuthAppKeys:
+  get:
+    summary: List API keys
+    description: Get all API keys for an app
+    tags:
+      - API Keys
+    parameters:
+      - $ref: '#/components/parameters/ApiAuthAppName'
+      - name: include_inactive
+        in: query
+        schema:
+          type: boolean
+    responses:
+      '200':
+        description: API keys
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                keys:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ApiKey'
+
+  post:
+    summary: Create API key
+    description: Generate a new API key for an app
+    tags:
+      - API Keys
+    parameters:
+      - $ref: '#/components/parameters/ApiAuthAppName'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - name
+              - key_prefix
+            properties:
+              name:
+                type: string
+              key_prefix:
+                type: string
+              permissions:
+                type: array
+                items:
+                  type: string
+              expires_at:
+                type: integer
+                format: int64
+                description: Unix timestamp
+              metadata:
+                type: object
+    responses:
+      '200':
+        description: API key created
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/ApiKey'
+                - type: object
+                  properties:
+                    secret:
+                      type: string
+      '404':
+        $ref: '#/components/responses/NotFound'

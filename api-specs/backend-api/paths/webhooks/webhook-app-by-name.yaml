@@ -1,0 +1,77 @@
+# Webhook App by name operations
+
+WebhookAppByName:
+  get:
+    summary: Get webhook app by name
+    description: Retrieve a specific webhook app
+    tags:
+      - Webhooks
+    parameters:
+      - $ref: '#/components/parameters/WebhookAppName'
+    responses:
+      '200':
+        description: Webhook app found
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookApp'
+      '404':
+        $ref: '#/components/responses/NotFound'
+
+  patch:
+    summary: Update webhook app
+    description: Update a webhook app
+    tags:
+      - Webhooks
+    parameters:
+      - $ref: '#/components/parameters/WebhookAppName'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+              description:
+                type: string
+              is_active:
+                type: boolean
+              rate_limits:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    unit:
+                      type: string
+                      enum: [second, minute, hour, day]
+                    duration:
+                      type: integer
+                    max_requests:
+                      type: integer
+                    mode:
+                      type: string
+                      enum: [per_key, per_ip, per_key_and_ip]
+    responses:
+      '200':
+        description: Webhook app updated
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookApp'
+      '404':
+        $ref: '#/components/responses/NotFound'
+
+  delete:
+    summary: Delete webhook app
+    description: Delete a webhook app
+    tags:
+      - Webhooks
+    parameters:
+      - $ref: '#/components/parameters/WebhookAppName'
+    responses:
+      '204':
+        description: Webhook app deleted
+      '404':
+        $ref: '#/components/responses/NotFound'

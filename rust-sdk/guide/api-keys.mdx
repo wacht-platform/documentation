@@ -1,0 +1,368 @@
+---
+title: 'API Keys'
+description: 'Working with API keys and authentication in the Rust SDK'
+---
+
+# API Keys Guide
+
+
+Learn how to manage API authentication using the Wacht Rust SDK. API keys allow you to securely authenticate applications and services with the Wacht API.
+
+## Prerequisites
+
+Before using any API methods, you must initialize the SDK:
+
+```rust
+use wacht::init_from_env;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Initialize from environment variables
+    // Requires: WACHT_API_KEY and WACHT_FRONTEND_HOST
+    init_from_env().await?;
+
+    // Now you can use the API
+    Ok(())
+}
+```
+
+## List API Auth Apps
+
+Get all API authentication apps in your deployment.
+
+```rust
+use wacht::api::api_keys;
+
+// Get active apps only
+let apps = api_keys::list_api_auth_apps()
+    .send()
+    .await?;
+
+for app in apps {
+    println!("{} (active: {})", app.name, app.is_active);
+}
+```
+
+### Include Inactive Apps
+
+```rust
+use wacht::api::api_keys;
+
+// Get all apps including inactive ones
+let apps = api_keys::list_api_auth_apps()
+    .include_inactive(true)
+    .send()
+    .await?;
+```
+
+## Get API Auth App
+
+Retrieve a specific API auth app by name.
+
+```rust
+use wacht::api::api_keys;
+
+let app = api_keys::get_api_auth_app("my-integration")
+    .send()
+    .await?;
+
+println!("App: {} (ID: {})", app.name, app.id);
+```
+
+## Create API Auth App
+
+Create a new API authentication app with rate limiting.
+
+### Basic App Creation
+
+```rust
+use wacht::api::api_keys;
+use wacht::api::api_keys::CreateApiAuthAppRequest;
+
+let app = api_keys::create_api_auth_app(CreateApiAuthAppRequest {
+    name: "My Integration".to_string(),
+    description: Some("Integration with external service".to_string()),
+    rate_limits: None,
+})
+.send()
+.await?;
+
+println!("Created app: {}", app.id);
+```
+
+### With Rate Limiting
+
+```rust
+use wacht::api::api_keys;
+use wacht::api::api_keys::{CreateApiAuthAppRequest, RateLimit, RateLimitUnit, RateLimitMode};
+
+let app = api_keys::create_api_auth_app(CreateApiAuthAppRequest {
+    name: "My Integration".to_string(),
+    description: Some("Integration with external service".to_string()),
+    rate_limits: Some(vec![
+        RateLimit {
+            unit: RateLimitUnit::Minute,
+            duration: 1,
+            max_requests: 100,
+            mode: Some(RateLimitMode::PerKey),
+        }
+    ]),
+})
+.send()
+.await?;
+```
+
+## Update API Auth App
+
+Modify an existing API auth app configuration.
+
+```rust
+use wacht::api::api_keys;
+use wacht::api::api_keys::UpdateApiAuthAppRequest;
+
+let app = api_keys::update_api_auth_app(
+    "my-integration",
+    UpdateApiAuthAppRequest {
+        name: Some("Updated Integration Name".to_string()),
+        is_active: Some(false),
+        ..Default::default()
+    }
+)
+.send()
+.await?;
+```
+
+## Delete API Auth App
+
+Remove an API auth app entirely.
+
+```rust
+use wacht::api::api_keys;
+
+api_keys::delete_api_auth_app("my-integration")
+    .send()
+    .await?;
+```
+
+## List API Keys
+
+Get all keys for a specific app.
+
+```rust
+use wacht::api::api_keys;
+
+// Get active keys only
+let keys = api_keys::list_api_keys("my-integration")
+    .send()
+    .await?;
+
+for key in keys {
+    println!("{}: {}***{} (active: {})",
+        key.name, key.key_prefix, key.key_suffix, key.is_active
+    );
+}
+```
+
+### Include Inactive Keys
+
+```rust
+use wacht::api::api_keys;
+
+let keys = api_keys::list_api_keys("my-integration")
+    .include_inactive(true)
+    .send()
+    .await?;
+```
+
+## Create API Key
+
+Generate a new API key for an app.
+
+### Basic Key Creation
+
+```rust
+use wacht::api::api_keys;
+use wacht::api::api_keys::CreateApiKeyRequest;
+
+let key = api_keys::create_api_key(
+    "my-integration",
+    CreateApiKeyRequest {
+        name: "Production Key".to_string(),
+        key_prefix: "wacht_prod".to_string(),
+        permissions: None,
+        expires_at: None,
+        metadata: None,
+    }
+)
+.send()
+.await?;
+
+println!("API Key: {}", key.secret); // Store this securely!
+```
+
+### With Permissions and Expiration
+
+```rust
+use wacht::api::api_keys;
+use wacht::api::api_keys::CreateApiKeyRequest;
+use chrono::{Duration, Utc};
+
+let key = api_keys::create_api_key(
+    "my-integration",
+    CreateApiKeyRequest {
+        name: "Production Key".to_string(),
+        key_prefix: "wacht_prod".to_string(),
+        permissions: Some(vec![
+            "users:read".to_string(),
+            "orgs:read".to_string(),
+        ]),
+        expires_at: Some(Utc::now() + Duration::days(365)),
+        metadata: Some(serde_json::json!({"environment": "production"})),
+    }
+)
+.send()
+.await?;
+
+println!("API Key: {}", key.secret); // Store this securely!
+println!("Expires: {}", key.key.expires_at.unwrap());
+```
+
+## Revoke API Key
+
+Revoke an API key when it's no longer needed.
+
+```rust
+use wacht::api::api_keys;
+use wacht::api::api_keys::RevokeApiKeyRequest;
+
+api_keys::revoke_api_key(RevokeApiKeyRequest {
+    key_id: "key_123".to_string(),
+    reason: Some("Key no longer needed".to_string()),
+})
+.send()
+.await?;
+```
+
+## Rotate API Key
+
+Rotate an API key while maintaining the same permissions.
+
+```rust
+use wacht::api::api_keys;
+use wacht::api_keys::RotateApiKeyRequest;
+
+let new_key = api_keys::rotate_api_key(RotateApiKeyRequest {
+    key_id: "key_123".to_string(),
+})
+.send()
+.await?;
+
+println!("New key: {}", new_key.secret); // Store this securely!
+```
+
+## Rate Limiting
+
+Configure rate limits for your API auth apps to control usage.
+
+### Rate Limit Units
+
+```rust
+use wacht::api::api_keys::RateLimitUnit;
+
+RateLimitUnit::Second  // Requests per second
+RateLimitUnit::Minute  // Requests per minute
+RateLimitUnit::Hour    // Requests per hour
+RateLimitUnit::Day     // Requests per day
+```
+
+### Rate Limit Modes
+
+```rust
+use wacht::api::api_keys::RateLimitMode;
+
+RateLimitMode::PerKey        // Limit per API key
+RateLimitMode::PerIp         // Limit per IP address
+RateLimitMode::PerKeyAndIp  // Limit per key and IP combination
+```
+
+### Example Rate Limit Configuration
+
+```rust
+use wacht::api::api_keys::{RateLimit, RateLimitUnit, RateLimitMode};
+
+RateLimit {
+    unit: RateLimitUnit::Minute,
+    duration: 1,  // 1 minute
+    max_requests: 100,  // 100 requests
+    mode: Some(RateLimitMode::PerKey),
+}
+```
+
+## Builder Methods
+
+### ListApiAuthAppsBuilder
+
+- `include_inactive(bool)` - Include inactive apps in results
+
+### ListApiKeysBuilder
+
+- `include_inactive(bool)` - Include inactive keys in results
+
+## Request Models
+
+### CreateApiAuthAppRequest
+
+- `name` (String) - App name (required)
+- `description` (Option&lt;String&gt;) - App description
+- `rate_limits` (Option&lt;Vec&lt;RateLimit&gt;&gt;) - Rate limit configuration
+
+### UpdateApiAuthAppRequest
+
+- `name` (Option&lt;String&gt;) - New app name
+- `description` (Option&lt;String&gt;) - New description
+- `is_active` (Option&lt;bool&gt;) - Active status
+- `rate_limits` (Option&lt;Vec&lt;RateLimit&gt;&gt;) - New rate limits
+
+### CreateApiKeyRequest
+
+- `name` (String) - Key name (required)
+- `key_prefix` (String) - Key prefix (required)
+- `permissions` (Option&lt;Vec&lt;String&gt;&gt;) - Permission scopes
+- `expires_at` (Option&lt;DateTime&lt;Utc&gt;&gt;) - Expiration timestamp
+- `metadata` (Option&lt;Value&gt;) - Additional metadata
+
+### RevokeApiKeyRequest
+
+- `key_id` (String) - Key ID to revoke (required)
+- `reason` (Option&lt;String&gt;) - Revocation reason
+
+### RotateApiKeyRequest
+
+- `key_id` (String) - Key ID to rotate (required)
+
+## Error Handling
+
+All SDK methods return a `Result<T, Error>`:
+
+```rust
+use wacht::{Error, api::api_keys};
+
+match api_keys::get_api_auth_app("my-integration").send().await {
+    Ok(app) => println!("App: {}", app.name),
+    Err(Error::Api { status, message, .. }) => {
+        eprintln!("API Error {}: {}", status, message);
+    }
+    Err(Error::Request(e)) => {
+        eprintln!("Network error: {}", e);
+    }
+    Err(e) => {
+        eprintln!("Other error: {}", e);
+    }
+}
+```
+
+## Related
+
+- [Installation](/rust-sdk/installation) - SDK setup
+- [Settings Guide](/rust-sdk/guide/settings) - Deployment configuration
+- [API Reference - Backend API](/api-reference/backend-api/api-keys) - Full API docs

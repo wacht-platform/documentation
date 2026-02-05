@@ -1,0 +1,229 @@
+---
+title: 'Backend API Overview'
+description: 'Complete overview of the Wacht Platform Backend API endpoints and structure'
+---
+
+# Backend API Overview
+
+The Wacht Platform Backend API provides RESTful endpoints for managing users, organizations, AI tools, webhooks, and more. Built with Rust and Axum, it delivers high performance and reliability.
+
+## Base URL
+
+```
+https://api.wacht.dev
+```
+
+All API endpoints are prefixed with your deployment ID:
+
+```
+https://api.wacht.dev/deployments/{deployment_id}/...
+```
+
+## Authentication
+
+Include your API key in the request header:
+
+```http
+Authorization: Bearer sk_test_your_api_key_here
+```
+
+## API Response Format
+
+All responses follow this structure:
+
+### Success Response
+```json
+{
+  "data": { ... },
+  "has_more": false,
+  "limit": 50,
+  "offset": 0
+}
+```
+
+### Error Response
+```json
+{
+  "error": {
+    "message": "Error description",
+    "code": "ERROR_CODE",
+    "details": { }
+  }
+}
+```
+
+## Available APIs
+
+### Core APIs
+
+| API | Description | Endpoints |
+|-----|-------------|-----------|
+| **[Users API](/backend-api/users/overview)** | Manage users, emails, phones | 15+ endpoints |
+| **[Organizations API](/backend-api/organizations/overview)** | Multi-tenant organization management | 10+ endpoints |
+| **[Workspaces API](/backend-api/workspaces/overview)** | Workspace management within organizations | 8+ endpoints |
+| **[Settings API](/backend-api/settings/overview)** | Deployment configuration, JWT, email | 15+ endpoints |
+
+### AI APIs
+
+| API | Description | Endpoints |
+|-----|-------------|-----------|
+| **[AI Agents API](/backend-api/ai-agents/overview)** | Create and manage AI agents | 5+ endpoints |
+| **[AI Tools API](/backend-api/ai-tools/overview)** | REST API tools for agents | 5+ endpoints |
+| **[Knowledge Bases API](/backend-api/knowledge-bases/overview)** | Vector search document storage | 6+ endpoints |
+| **[Execution Contexts API](/backend-api/execution-contexts/overview)** | Agent conversation contexts | 4+ endpoints |
+
+### Integration APIs
+
+| API | Description | Endpoints |
+|-----|-------------|-----------|
+| **[Webhooks API](/backend-api/webhooks/overview)** | Event-driven webhooks | 20+ endpoints |
+| **[API Keys API](/backend-api/api-keys/overview)** | API key management | 9+ endpoints |
+| **[Analytics API](/backend-api/analytics/overview)** | Usage metrics and stats | 3+ endpoints |
+| **[Billing API](/backend-api/billing/overview)** | Subscription and billing | 9+ endpoints |
+| **[Enterprise SSO API](/backend-api/enterprise-sso/overview)** | SAML/SCIM integration | 9+ endpoints |
+
+### Utility APIs
+
+| API | Description | Endpoints |
+|-----|-------------|-----------|
+| **[Health API](/backend-api/other/health)** | Health check endpoint | 1 endpoint |
+| **[Projects API](/backend-api/other/projects)** | Deployment and project management | 7+ endpoints |
+| **[Segments API](/backend-api/other/segments)** | User segmentation | 6+ endpoints |
+| **[Notifications API](/backend-api/other/notifications)** | In-app notifications | 1+ endpoints |
+| **[Upload API](/backend-api/other/upload)** | Image and file uploads | 1+ endpoint |
+
+## Pagination
+
+List endpoints support pagination:
+
+```http
+GET /deployments/{deployment_id}/users?limit=50&offset=0
+```
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `limit` | integer | 50 | Number of items per page (max: 100) |
+| `offset` | integer | 0 | Number of items to skip |
+
+Response includes pagination metadata:
+```json
+{
+  "data": [...],
+  "has_more": true,
+  "limit": 50,
+  "offset": 0
+}
+```
+
+## Search
+
+Most list endpoints support search:
+
+```http
+GET /deployments/{deployment_id}/users?search=john
+```
+
+## Sorting
+
+Sort results with:
+```http
+GET /deployments/{deployment_id}/users?sort_key=created_at&sort_order=desc
+```
+
+| Parameter | Values |
+|-----------|--------|
+| `sort_key` | Field name (e.g., `created_at`, `name`) |
+| `sort_order` | `asc`, `desc` |
+
+## Rate Limiting
+
+API requests are rate limited:
+- **Free tier**: 100 requests/minute
+- **Pro tier**: 1,000 requests/minute
+- **Enterprise**: Custom limits
+
+Rate limit headers are included in responses:
+```http
+X-RateLimit-Limit: 1000
+X-RateLimit-Remaining: 995
+X-RateLimit-Reset: 1640995200
+```
+
+## Versioning
+
+The API is versioned via the URL path:
+```
+https://api.wacht.dev/v1/...
+```
+
+Current version: **v1**
+
+## Webhooks
+
+The platform sends webhook events for:
+- User creation/deletion
+- Organization changes
+- AI agent executions
+- Subscription events
+
+Learn more in the [Webhooks API documentation](/backend-api/webhooks/overview).
+
+## SDK
+
+Official Rust SDK available:
+```toml
+[dependencies]
+wacht = "0.1.0"
+```
+
+See the [Rust SDK documentation](/rust-sdk/introduction) for details.
+
+## Example Requests
+
+### cURL
+
+```bash
+curl -X GET "https://api.wacht.dev/deployments/depo_123/users" \
+  -H "Authorization: Bearer sk_test_your_key" \
+  -H "Content-Type: application/json"
+```
+
+### Rust SDK
+
+```rust
+use wacht::Client;
+
+let client = Client::from_env()?;
+let users = client.get_users().await?;
+```
+
+### HTTP
+
+```http
+GET /deployments/depo_123/users HTTP/1.1
+Host: api.wacht.dev
+Authorization: Bearer sk_test_your_key
+Content-Type: application/json
+```
+
+## Error Codes
+
+| Code | Description |
+|------|-------------|
+| `UNAUTHORIZED` | Invalid or missing API key |
+| `FORBIDDEN` | Insufficient permissions |
+| `NOT_FOUND` | Resource not found |
+| `VALIDATION_ERROR` | Invalid request parameters |
+| `RATE_LIMIT_EXCEEDED` | Too many requests |
+| `INTERNAL_ERROR` | Server error |
+
+## Next Steps
+
+- [Users API](/backend-api/users/overview) - Start with user management
+- [Organizations API](/backend-api/organizations/overview) - Build multi-tenant apps
+- [AI Agents API](/backend-api/ai-agents/overview) - Add AI capabilities
+- [Rust SDK](/rust-sdk/introduction) - Integrate with Rust applications
+
+## Changelog
+
+Stay updated with the latest changes and features.

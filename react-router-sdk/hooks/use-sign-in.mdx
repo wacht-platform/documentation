@@ -1,0 +1,147 @@
+---
+title: useSignIn
+description: Manage user authentication with multiple strategies.
+---
+
+# useSignIn
+
+The `useSignIn` hook provides methods for authenticating users with various strategies including email/password, OTP, magic links, passkeys, and OAuth.
+
+## Return Value
+
+<ParamField path="loading" type="boolean">
+  Whether a sign-in operation is in progress
+</ParamField>
+
+<ParamField path="signIn" type="object">
+  Object containing all sign-in methods
+</ParamField>
+
+<ParamField path="signinAttempt" type="SigninAttempt | null">
+  The current state of the sign-in flow
+</ParamField>
+
+<ParamField path="discardSignInAttempt">
+  <Expandable title="Discards the current sign-in attempt">
+    <ParamField path="returns" type="void">
+      No return value
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="setSignInAttempt">
+  <Expandable title="Sets the current sign-in attempt">
+    <ParamField path="attempt" type="SigninAttempt | null">
+      The sign-in attempt to set
+    </ParamField>
+    <ParamField path="returns" type="void">
+      No return value
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+## Strategies
+
+| Strategy | Description |
+|----------|-------------|
+| `email` | Email with password |
+| `username` | Username with password |
+| `email_otp` | Email OTP |
+| `phone` | Phone OTP |
+| `magic_link` | Magic link sent to email |
+| `oauth` | OAuth provider sign-in |
+| `passkey` | Passkey/WebAuthn sign-in |
+| `generic` | Generic with any parameters |
+
+## Examples
+
+<RequestExample>
+
+```tsx Email/Password Sign-in Form
+import { useSignIn } from "@wacht/react-router";
+
+function EmailPasswordForm() {
+  const { signIn, loading } = useSignIn();
+
+  const handleSubmit = async (email: string, password: string) => {
+    const emailSignIn = signIn.createStrategy("email");
+    await emailSignIn({ email, password });
+  };
+
+  return <form onSubmit={(e) => {
+    e.preventDefault();
+    handleSubmit(email, password);
+  }}>
+    {/* Form fields */}
+  </form>;
+}
+```
+
+</RequestExample>
+
+<RequestExample>
+
+```tsx Email OTP Sign-in Flow
+import { useSignIn } from "@wacht/react-router";
+
+function EmailOtpForm() {
+  const { signIn, loading, signinAttempt } = useSignIn();
+
+  const startSignIn = async (email: string) => {
+    await signIn.identify(email);
+    await signIn.prepareVerification({ strategy: "email_otp" });
+  };
+
+  const verifyCode = async (code: string) => {
+    await signIn.completeVerification(code);
+  };
+
+  return (
+    <>
+      {!signinAttempt && (
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          startSignIn(email);
+        }}>
+          {/* Email input */}
+        </form>
+      )}
+      {signinAttempt && (
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          verifyCode(code);
+        }}>
+          {/* OTP input */}
+        </form>
+      )}
+    </>
+  );
+}
+```
+
+</RequestExample>
+
+<RequestExample>
+
+```tsx SSO Sign-in Button
+import { useSignIn } from "@wacht/react-router";
+
+function SsoButton() {
+  const { signIn } = useSignIn();
+
+  const handleSso = async () => {
+    const result = await signIn.initEnterpriseSso("conn_123");
+    window.location.href = result.sso_url;
+  };
+
+  return <button onClick={handleSso}>Sign in with SSO</button>;
+}
+```
+
+</RequestExample>
+
+## Related
+
+- [useSignUp](./use-sign-up) - Sign-up management
+- [useSession](./use-session) - Session management
+- [SignInForm](../components/sign-in-form) - Pre-built sign-in form

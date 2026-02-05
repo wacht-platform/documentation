@@ -1,0 +1,85 @@
+# Invitations endpoint
+
+Invitations:
+  get:
+    summary: List invitations
+    description: Get all user invitations
+    tags:
+      - Users
+    responses:
+      '200':
+        description: List of invitations
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/PaginatedResponse'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                          first_name:
+                            type: string
+                          last_name:
+                            type: string
+                          email_address:
+                            type: string
+                          token:
+                            type: string
+                          expiry:
+                            type: string
+                            format: date-time
+                          created_at:
+                            type: string
+                            format: date-time
+
+  post:
+    summary: Invite user
+    description: Send an invitation to a new user
+    tags:
+      - Users
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - first_name
+              - last_name
+              - email_address
+            properties:
+              first_name:
+                type: string
+              last_name:
+                type: string
+              email_address:
+                type: string
+                format: email
+              expiry_days:
+                type: integer
+                default: 7
+    responses:
+      '200':
+        description: Invitation created
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                email_address:
+                  type: string
+                token:
+                  type: string
+                expiry:
+                  type: string
+                  format: date-time
+      '409':
+        $ref: '#/components/responses/Conflict'

@@ -1,0 +1,42 @@
+---
+title: UserButton
+description: A user avatar button that opens a dropdown menu with account management options.
+---
+
+# UserButton
+
+Displays a user avatar and name. When clicked, opens a dropdown menu with account management options including profile management and sign-out.
+
+```tsx
+import { UserButton } from "@wacht/tanstack-router";
+
+export default function Navbar() {
+  return (
+    <header>
+      <h1>My App</h1>
+      <UserButton />
+    </header>
+  );
+}
+```
+
+## Avatar Only
+
+```tsx
+<UserButton showName={false} />
+```
+
+## Dropdown Menu
+
+The dropdown menu includes user avatar, name, email, manage account option, and sign out. If multi-session support is enabled, it shows all signed-in accounts with options to switch between them or sign out individually.
+
+## Params
+
+<ParamField path="showName" type="boolean" default="true">
+Whether to display the user's name next to the avatar.
+</ParamField>
+
+## Related
+
+- [useSession](../hooks/use-session) - Session management
+- [useUser](../hooks/use-user) - User profile management

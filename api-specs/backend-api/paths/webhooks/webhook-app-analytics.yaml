@@ -1,0 +1,28 @@
+# Webhook app analytics endpoint
+
+WebhookAppAnalytics:
+  get:
+    summary: Get webhook analytics
+    description: Get analytics data for a webhook app
+    tags:
+      - Webhooks
+    parameters:
+      - $ref: '#/components/parameters/WebhookAppName'
+    responses:
+      '200':
+        description: Webhook analytics
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                total_deliveries:
+                  type: integer
+                success_rate:
+                  type: number
+                  format: float
+                avg_response_time:
+                  type: number
+                  format: float
+      '404':
+        $ref: '#/components/responses/NotFound'

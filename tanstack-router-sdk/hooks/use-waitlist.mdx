@@ -1,0 +1,128 @@
+---
+title: useWaitlist
+description: Handle waitlist signup flows.
+---
+
+# useWaitlist
+
+The `useWaitlist` hook provides methods for adding users to a waitlist when your deployment uses waitlist mode.
+
+## Return Value
+
+<ParamField path="loading" type="boolean">
+  Whether the join operation is in progress
+</ParamField>
+
+<ParamField path="joinWaitlist">
+  <Expandable title="Adds a user to the waitlist">
+    <ParamField path="params.first_name" type="string">
+      User's first name
+    </ParamField>
+    <ParamField path="params.last_name" type="string">
+      User's last name
+    </ParamField>
+    <ParamField path="params.email" type="string">
+      User's email address
+    </ParamField>
+    <ParamField path="returns" type="Promise<ActionResult>">
+      Result indicating success or error
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+```tsx
+import { useWaitlist } from "@wacht/tanstack-router";
+
+function WaitlistPage() {
+  const { loading, joinWaitlist } = useWaitlist();
+
+  const handleSubmit = async (firstName: string, lastName: string, email: string) => {
+    await joinWaitlist({
+      first_name: firstName,
+      last_name: lastName,
+      email,
+    });
+  };
+
+  return (
+    <form onSubmit={(e) => {
+      e.preventDefault();
+      handleSubmit(formData);
+    }}>
+      {/* Form fields */}
+    </form>
+  );
+}
+```
+
+## Examples
+
+### Basic Waitlist Form
+
+```tsx
+import { useWaitlist } from "@wacht/tanstack-router";
+
+function WaitlistForm() {
+  const { loading, joinWaitlist } = useWaitlist();
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+
+    await joinWaitlist({
+      first_name: formData.get("first_name") as string,
+      last_name: formData.get("last_name") as string,
+      email: formData.get("email") as string,
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input name="first_name" placeholder="First Name" />
+      <input name="last_name" placeholder="Last Name" />
+      <input name="email" placeholder="Email" required />
+      <button type="submit" disabled={loading}>
+        {loading ? "Joining..." : "Join Waitlist"}
+      </button>
+    </form>
+  );
+}
+```
+
+### With Success State
+
+```tsx
+import { useWaitlist } from "@wacht/tanstack-router";
+
+function WaitlistPage() {
+  const { loading, joinWaitlist } = useWaitlist();
+  const [joined, setJoined] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (firstName: string, lastName: string, email: string) => {
+    setError(null);
+    const result = await joinWaitlist({ first_name: firstName, last_name: lastName, email });
+
+    if (result.data) {
+      setJoined(true);
+    } else if (result.error) {
+      setError(result.error.message);
+    }
+  };
+
+  if (joined) {
+    return <p>You're on the waitlist! We'll notify you at signup.</p>;
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      {error && <p className="error">{error}</p>}
+      {/* Form fields */}
+    </form>
+  );
+}
+```
+
+## Related
+
+- [WaitlistForm](../components/waitlist-form) - Pre-built waitlist form

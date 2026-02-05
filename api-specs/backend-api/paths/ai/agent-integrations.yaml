@@ -1,0 +1,65 @@
+# Agent integrations endpoint
+
+AIAgentIntegrations:
+  get:
+    summary: List agent integrations
+    description: Get all integrations for an agent
+    tags:
+      - AI Integrations
+    parameters:
+      - $ref: '#/components/parameters/AgentId'
+      - $ref: '#/components/parameters/Limit'
+      - $ref: '#/components/parameters/Offset'
+    responses:
+      '200':
+        description: Agent integrations
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      agent_id:
+                        type: string
+                      integration_type:
+                        type: string
+
+  post:
+    summary: Create agent integration
+    description: Create a new integration for an agent
+    tags:
+      - AI Integrations
+    parameters:
+      - $ref: '#/components/parameters/AgentId'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - integration_type
+            properties:
+              integration_type:
+                type: string
+                enum: [teams, clickup, whatsapp]
+              config:
+                type: object
+    responses:
+      '200':
+        description: Integration created
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                agent_id:
+                  type: string

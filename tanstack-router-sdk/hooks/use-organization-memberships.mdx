@@ -1,0 +1,114 @@
+---
+title: useOrganizationMemberships
+description: Get a list of organization memberships for the current user.
+---
+
+# useOrganizationMemberships
+
+The `useOrganizationMemberships` hook fetches and provides a list of all organization memberships for the current user.
+
+## Return Value
+
+<ParamField path="organizationMemberships" type="OrganizationMembershipWithOrganization[]">
+  List of organization memberships for the current user
+</ParamField>
+
+<ParamField path="loading" type="boolean">
+  Whether the memberships are loading
+</ParamField>
+
+<ParamField path="error" type="Error | null">
+  Any error that occurred
+</ParamField>
+
+<ParamField path="refetch">
+  <Expandable title="Refetch the memberships list">
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the memberships list is refetched
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+```tsx
+import { useOrganizationMemberships } from "@wacht/tanstack-router";
+
+function OrganizationList() {
+  const { organizationMemberships, loading, refetch } = useOrganizationMemberships();
+
+  return (
+    <ul>
+      {organizationMemberships?.map((membership) => (
+        <li key={membership.id}>
+          {membership.organization.name}
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+## Data Structures
+
+<Expandable title="OrganizationMembershipWithOrganization">
+
+```typescript
+interface OrganizationMembershipWithOrganization {
+  id: string;
+  organization: Organization;
+  user_id: string;
+  roles: OrganizationRole[];
+  public_metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+  eligibility_restriction?: EligibilityRestriction;
+}
+```
+
+</Expandable>
+
+## Examples
+
+### List All Organizations
+
+```tsx
+import { useOrganizationMemberships } from "@wacht/tanstack-router";
+
+function OrgList() {
+  const { organizationMemberships, loading } = useOrganizationMemberships();
+
+  if (loading) return <div>Loading...</div>;
+
+  return (
+    <ul>
+      {organizationMemberships.map((membership) => (
+        <li key={membership.id}>
+          {membership.organization.name}
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+### Refetch After Update
+
+```tsx
+import { useOrganizationMemberships, useOrganizationList } from "@wacht/tanstack-router";
+
+function OrgManager() {
+  const { refetch } = useOrganizationMemberships();
+  const { createOrganization } = useOrganizationList();
+
+  const handleCreate = async () => {
+    await createOrganization({ name: "New Org" });
+    await refetch();
+  };
+
+  return <button onClick={handleCreate}>Create Organization</button>;
+}
+```
+
+## Related
+
+- [useOrganizationList](./use-organization-list) - Organization management
+- [useActiveOrganization](./use-active-organization) - Active organization

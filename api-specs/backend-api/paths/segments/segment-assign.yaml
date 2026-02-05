@@ -1,0 +1,42 @@
+# Segment assign endpoint
+
+SegmentAssign:
+  post:
+    summary: Assign users to segment
+    description: Add users to a segment
+    tags:
+      - Segments
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          description: Segment ID
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - user_ids
+            properties:
+              user_ids:
+                type: array
+                items:
+                  type: string
+    responses:
+      '200':
+        description: Users assigned to segment
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                assigned_count:
+                  type: integer
+                segment_id:
+                  type: string
+      '404':
+        $ref: '#/components/responses/NotFound'

@@ -1,0 +1,74 @@
+# API Auth App by name operations
+
+ApiAuthAppByName:
+  get:
+    summary: Get API auth app
+    description: Retrieve a specific API auth app
+    tags:
+      - API Keys
+    parameters:
+      - $ref: '#/components/parameters/ApiAuthAppName'
+    responses:
+      '200':
+        description: API auth app found
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiAuthApp'
+      '404':
+        $ref: '#/components/responses/NotFound'
+
+  patch:
+    summary: Update API auth app
+    description: Update an API authentication app
+    tags:
+      - API Keys
+    parameters:
+      - $ref: '#/components/parameters/ApiAuthAppName'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+              description:
+                type: string
+              is_active:
+                type: boolean
+              rate_limits:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    unit:
+                      type: string
+                      enum: [second, minute, hour, day]
+                    duration:
+                      type: integer
+                    max_requests:
+                      type: integer
+    responses:
+      '200':
+        description: API auth app updated
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiAuthApp'
+      '404':
+        $ref: '#/components/responses/NotFound'
+
+  delete:
+    summary: Delete API auth app
+    description: Delete an API authentication app
+    tags:
+      - API Keys
+    parameters:
+      - $ref: '#/components/parameters/ApiAuthAppName'
+    responses:
+      '204':
+        description: API auth app deleted
+      '404':
+        $ref: '#/components/responses/NotFound'

@@ -1,0 +1,213 @@
+---
+title: 'Analytics API'
+description: 'Working with analytics in the Rust SDK'
+---
+
+# Analytics API Guide
+
+
+Learn how to retrieve analytics and insights using the Wacht Rust SDK.
+
+## Prerequisites
+
+Before using any API methods, you must initialize the SDK:
+
+```rust
+use wacht::init_from_env;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Initialize from environment variables
+    // Requires: WACHT_API_KEY and WACHT_FRONTEND_HOST
+    init_from_env().await?;
+
+    // Now you can use the API
+    Ok(())
+}
+```
+
+## Fetch Analytics Summary
+
+Get overall statistics for your deployment with optional date filtering.
+
+### Basic Statistics
+
+```rust
+use wacht::api::analytics;
+
+// Get all-time statistics
+let stats = analytics::fetch_stats()
+    .send()
+    .await?;
+
+println!("Signups: {}", stats.signups);
+println!("Unique Sign-ins: {}", stats.unique_signins);
+println!("Organizations Created: {}", stats.organizations_created);
+println!("Workspaces Created: {}", stats.workspaces_created);
+```
+
+### With Date Range
+
+```rust
+use wacht::api::analytics;
+use chrono::{Utc, Duration};
+use wacht::api::analytics::AnalyticsStatsOptions;
+
+// Get statistics for the last 30 days
+let stats = analytics::fetch_stats()
+    .options(AnalyticsStatsOptions {
+        from: Utc::now() - Duration::days(30),
+        to: Utc::now(),
+    })
+    .send()
+    .await?;
+
+println!("Period Signups: {}", stats.signups);
+println!("Period Sign-ins: {}", stats.unique_signins);
+
+if let Some(change) = stats.signups_change {
+    println!("Signups Change: {:.1}%", change);
+}
+```
+
+## Get Recent Signups
+
+Retrieve the most recent user registrations.
+
+### Basic List
+
+```rust
+use wacht::api::analytics;
+
+// Get default number of recent signups
+let recent = analytics::fetch_recent_signups()
+    .send()
+    .await?;
+
+for signup in recent.signups {
+    println!("{}: {} ({})", signup.signed_up_at, signup.email, signup.first_name);
+}
+```
+
+### With Limit
+
+```rust
+use wacht::api::analytics;
+
+// Get last 50 recent signups
+let recent = analytics::fetch_recent_signups()
+    .limit(50)
+    .send()
+    .await?;
+
+println!("Recent signups: {}", recent.signups.len());
+```
+
+## Get Recent Sign-ins
+
+Retrieve the most recent user authentication events.
+
+### Basic List
+
+```rust
+use wacht::api::analytics;
+
+// Get default number of recent sign-ins
+let recent = analytics::fetch_recent_signins()
+    .send()
+    .await?;
+
+for signin in recent.signups {
+    println!("{}: {} via {}", signin.signed_in_at, signin.user_email, signin.method);
+}
+```
+
+### With Limit
+
+```rust
+use wacht::api::analytics;
+
+// Get last 100 recent sign-ins
+let recent = analytics::fetch_recent_signins()
+    .limit(100)
+    .send()
+    .await?;
+
+println!("Recent sign-ins: {}", recent.signups.len());
+```
+
+## Understanding the Response
+
+### AnalyticsStatsResponse Fields
+
+- `signups` (i64) - Number of new sign-ups in the period
+- `unique_signins` (i64) - Number of unique sign-ins in the period
+- `organizations_created` (i64) - Number of organizations created in the period
+- `workspaces_created` (i64) - Number of workspaces created in the period
+- `total_signups` (i64) - Total sign-ups all time
+- `signups_change` (Option&lt;f64&gt;) - Percentage change from previous period
+- `unique_signins_change` (Option&lt;f64&gt;) - Percentage change from previous period
+- `organizations_created_change` (Option&lt;f64&gt;) - Percentage change from previous period
+- `workspaces_created_change` (Option&lt;f64&gt;) - Percentage change from previous period
+
+### RecentSignup Fields
+
+- `user_id` (String) - User ID
+- `email` (String) - User email
+- `first_name` (String) - User first name
+- `last_name` (String) - User last name
+- `signed_up_at` (String) - Sign-up timestamp (ISO 8601)
+- `method` (String) - Sign-up method (e.g., "password", "oauth")
+
+### RecentSignin Fields
+
+- `user_id` (String) - User ID
+- `user_email` (String) - User email
+- `signed_in_at` (String) - Sign-in timestamp (ISO 8601)
+- `method` (String) - Sign-in method (e.g., "password", "otp", "oauth")
+- `ip_address` (String) - IP address of the sign-in
+- `user_agent` (String) - User agent string
+
+## Builder Methods
+
+### FetchStatsBuilder
+
+- `options(AnalyticsStatsOptions)` - Set date range for statistics
+
+### FetchRecentSignupsBuilder
+
+- `limit(u32)` - Number of results to return (max 100)
+
+### FetchRecentSigninsBuilder
+
+- `limit(u32)` - Number of results to return (max 100)
+
+## Error Handling
+
+All SDK methods return a `Result<T, Error>`:
+
+```rust
+use wacht::{Error, api::analytics};
+
+match analytics::fetch_stats().send().await {
+    Ok(stats) => {
+        println!("Total signups: {}", stats.signups);
+    }
+    Err(Error::Api { status, message, .. }) => {
+        eprintln!("API Error {}: {}", status, message);
+    }
+    Err(Error::Request(e)) => {
+        eprintln!("Network error: {}", e);
+    }
+    Err(e) => {
+        eprintln!("Other error: {}", e);
+    }
+}
+```
+
+## Related
+
+- [Installation](/rust-sdk/installation) - SDK setup
+- [Users Guide](/rust-sdk/guide/users) - User management
+- [Organizations Guide](/rust-sdk/guide/organizations) - Organization management
+- [API Reference - Backend API](/api-reference/backend-api/analytics) - Full API docs

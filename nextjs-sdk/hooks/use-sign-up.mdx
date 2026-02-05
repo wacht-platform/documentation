@@ -1,0 +1,132 @@
+---
+title: useSignUp
+description: Manage user registration and sign-up flows.
+---
+
+# useSignUp
+
+The `useSignUp` hook provides methods for user registration with support for email verification, phone verification, and profile completion.
+
+## Return Value
+
+<ParamField path="loading" type="boolean">
+  Whether a sign-up operation is in progress
+</ParamField>
+
+<ParamField path="signUp" type="object">
+  Object containing all sign-up methods
+</ParamField>
+
+<ParamField path="signupAttempt" type="SignupAttempt | null">
+  The current state of the sign-up flow
+</ParamField>
+
+<ParamField path="discardSignupAttempt">
+  <Expandable title="Discards the current sign-up attempt">
+    <ParamField path="returns" type="void">
+      No return value
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+## Examples
+
+<RequestExample>
+
+```tsx Email/Password Sign-up Form
+import { useSignUp } from "@wacht/nextjs";
+
+function EmailPasswordForm() {
+  const { signUp, loading } = useSignUp();
+
+  const handleSubmit = async (data: SignUpParams) => {
+    await signUp.create(data);
+  };
+
+  return <form onSubmit={handleSubmit}>
+    {/* Form fields */}
+  </form>;
+}
+```
+
+</RequestExample>
+
+<RequestExample>
+
+```tsx Email OTP Sign-up Flow
+import { useSignUp } from "@wacht/nextjs";
+
+function EmailOtpFlow() {
+  const { signUp, loading, signupAttempt } = useSignUp();
+
+  const handleSubmit = async (email: string, password: string) => {
+    await signUp.create({ email, password });
+  };
+
+  const sendOtp = async () => {
+    await signUp.prepareVerification({ strategy: "email_otp" });
+  };
+
+  const verifyOtp = async (verificationCode: string) => {
+    await signUp.completeVerification(verificationCode);
+  };
+
+  return (
+    <>
+      {!signupAttempt && (
+        <form onSubmit={() => handleSubmit(email, password)}>
+          {/* Initial form */}
+        </form>
+      )}
+      {signupAttempt && (
+        <form onSubmit={() => verifyOtp(code)}>
+          {/* OTP verification */}
+          <button type="button" onClick={sendOtp}>Resend Code</button>
+        </form>
+      )}
+    </>
+  );
+}
+```
+
+</RequestExample>
+
+<RequestExample>
+
+```tsx Sign-up with Invitation
+import { useSignUp } from "@wacht/nextjs";
+
+function InviteFlow() {
+  const { signUp } = useSignUp();
+  const [inviteToken] = useState("token_from_url");
+
+  useEffect(() => {
+    signUp.validateDeploymentInvitation(inviteToken).then((result) => {
+      if (result.valid) {
+        // Pre-fill form
+        setFormData({
+          email: result.email,
+          first_name: result.first_name,
+          last_name: result.last_name,
+        });
+      }
+    });
+  }, []);
+
+  const handleSignUp = async (data: SignUpParams) => {
+    await signUp.create({
+      ...data,
+      invite_token: inviteToken,
+    });
+  };
+
+  return <form onSubmit={handleSignUp}>{/* Form */}</form>;
+}
+```
+
+</RequestExample>
+
+## Related
+
+- [useSignIn](./use-sign-in) - Sign-in management
+- [SignUpForm](../components/sign-up-form) - Pre-built sign-up form

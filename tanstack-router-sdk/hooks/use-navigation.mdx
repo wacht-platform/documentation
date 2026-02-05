@@ -1,0 +1,102 @@
+---
+title: useNavigation
+description: Navigate between authentication pages and routes.
+---
+
+# useNavigation
+
+The `useNavigation` hook provides navigation utilities for moving between authentication pages and other routes.
+
+## Return Value
+
+<ParamField path="navigate">
+  <Expandable title="Navigate to any path">
+    <ParamField path="to" type="string">
+      The path to navigate to
+    </ParamField>
+    <ParamField path="options" type="NavigateOptions">
+      Optional navigation options
+    </ParamField>
+    <ParamField path="returns" type="void">
+      No return value
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="navigateToSignIn">
+  <Expandable title="Navigate to the sign-in page">
+    <ParamField path="redirectUri" type="string">
+      Optional URI to redirect to after sign-in
+    </ParamField>
+    <ParamField path="returns" type="void">
+      No return value
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="navigateToAccountSelection">
+  <Expandable title="Navigate to the account selection page">
+    <ParamField path="redirectUri" type="string">
+      Optional URI to redirect to after account selection
+    </ParamField>
+    <ParamField path="returns" type="void">
+      No return value
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="navigateToSignUp">
+  <Expandable title="Navigate to the sign-up page">
+    <ParamField path="redirectUri" type="string">
+      Optional URI to redirect to after sign-up
+    </ParamField>
+    <ParamField path="returns" type="void">
+      No return value
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+## Examples
+
+<RequestExample>
+
+```tsx Custom Navigation Component
+import { useNavigation } from "@wacht/tanstack-router";
+
+function CustomNav() {
+  const { navigate } = useNavigation();
+
+  return (
+    <nav>
+      <a onClick={() => navigate("/")}>Home</a>
+      <a onClick={() => navigate("/dashboard")}>Dashboard</a>
+      <a onClick={() => navigate("/settings")}>Settings</a>
+    </nav>
+  );
+}
+```
+
+</RequestExample>
+
+<RequestExample>
+
+```tsx Protected Page with Redirect
+import { useNavigation } from "@wacht/tanstack-router";
+
+function ProtectedPage() {
+  const { navigateToSignIn } = useNavigation();
+
+  if (!isAuthenticated) {
+    navigateToSignIn(window.location.pathname);
+  }
+
+  return <div>Protected content</div>;
+}
+```
+
+</RequestExample>
+
+## Related
+
+- [NavigateToSignIn](../components/navigate-to-sign-in) - Component for navigation
+- [NavigateToSignUp](../components/navigate-to-sign-up) - Component for navigation

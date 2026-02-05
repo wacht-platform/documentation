@@ -1,0 +1,60 @@
+# Organization by ID operations
+
+OrganizationById:
+  get:
+    summary: Get organization by ID
+    description: Retrieve a specific organization
+    tags:
+      - Organizations
+    parameters:
+      - $ref: '#/components/parameters/OrganizationId'
+    responses:
+      '200':
+        description: Organization found
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Organization'
+      '404':
+        $ref: '#/components/responses/NotFound'
+
+  patch:
+    summary: Update organization
+    description: Update organization information
+    tags:
+      - Organizations
+    parameters:
+      - $ref: '#/components/parameters/OrganizationId'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+              description:
+                type: string
+    responses:
+      '200':
+        description: Organization updated
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Organization'
+      '404':
+        $ref: '#/components/responses/NotFound'
+
+  delete:
+    summary: Delete organization
+    description: Permanently delete an organization
+    tags:
+      - Organizations
+    parameters:
+      - $ref: '#/components/parameters/OrganizationId'
+    responses:
+      '204':
+        description: Organization deleted
+      '404':
+        $ref: '#/components/responses/NotFound'

@@ -1,0 +1,37 @@
+# Deployment info endpoint
+
+Deployment:
+  get:
+    summary: Get deployment with settings
+    description: Retrieve deployment information with all settings
+    tags:
+      - Settings
+    responses:
+      '200':
+        description: Deployment info
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                name:
+                  type: string
+                display_name:
+                  type: string
+                branding:
+                  type: object
+                  properties:
+                    logo_url:
+                      type: string
+                    primary_color:
+                      type: string
+                    favicon_url:
+                      type: string
+                auth_settings:
+                  type: object
+                display_settings:
+                  type: object
+                restrictions:
+                  type: object

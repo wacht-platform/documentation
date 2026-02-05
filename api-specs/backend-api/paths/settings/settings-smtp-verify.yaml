@@ -1,0 +1,26 @@
+# SMTP verification endpoint
+
+SettingsSmtpVerify:
+  post:
+    summary: Verify SMTP connection
+    description: Test SMTP connection with current configuration
+    tags:
+      - Settings
+    responses:
+      '200':
+        description: SMTP connection verified
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                message:
+                  type: string
+      '400':
+        description: SMTP connection failed
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Error'

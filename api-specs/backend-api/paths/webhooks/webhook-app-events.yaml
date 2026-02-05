@@ -1,0 +1,24 @@
+# Webhook app events endpoint
+
+WebhookAppEvents:
+  get:
+    summary: Get webhook events
+    description: Get available webhook events for an app
+    tags:
+      - Webhooks
+    parameters:
+      - $ref: '#/components/parameters/WebhookAppName'
+    responses:
+      '200':
+        description: Available webhook events
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                events:
+                  type: array
+                  items:
+                    type: string
+      '404':
+        $ref: '#/components/responses/NotFound'

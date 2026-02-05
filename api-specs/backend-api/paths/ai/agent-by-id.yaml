@@ -1,0 +1,60 @@
+# AI Agent by ID operations
+
+AIAgentById:
+  get:
+    summary: Get AI agent by ID
+    description: Retrieve a specific AI agent
+    tags:
+      - AI Agents
+    parameters:
+      - $ref: '#/components/parameters/AgentId'
+    responses:
+      '200':
+        description: AI agent found
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AIAgent'
+      '404':
+        $ref: '#/components/responses/NotFound'
+
+  patch:
+    summary: Update AI agent
+    description: Update an AI agent
+    tags:
+      - AI Agents
+    parameters:
+      - $ref: '#/components/parameters/AgentId'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+              description:
+                type: string
+    responses:
+      '200':
+        description: AI agent updated
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AIAgent'
+      '404':
+        $ref: '#/components/responses/NotFound'
+
+  delete:
+    summary: Delete AI agent
+    description: Delete an AI agent
+    tags:
+      - AI Agents
+    parameters:
+      - $ref: '#/components/parameters/AgentId'
+    responses:
+      '204':
+        description: AI agent deleted
+      '404':
+        $ref: '#/components/responses/NotFound'

@@ -1,0 +1,76 @@
+---
+title: CreateWorkspaceForm
+description: A form for creating a new workspace within an organization.
+---
+
+# CreateWorkspaceForm
+
+Form for creating new workspaces with organization selection and image upload support.
+
+```tsx
+import { CreateWorkspaceForm } from "@wacht/tanstack-router";
+
+export default function NewWorkspacePage() {
+  return <CreateWorkspaceForm />;
+}
+```
+
+## With Pre-selected Organization
+
+```tsx
+import { CreateWorkspaceForm } from "@wacht/tanstack-router";
+
+export default function NewWorkspacePage() {
+  return <CreateWorkspaceForm organizationId="org_123" />;
+}
+```
+
+## With Callbacks
+
+```tsx
+import { CreateWorkspaceForm } from "@wacht/tanstack-router";
+import { useNavigate } from "react-router";
+
+export default function NewWorkspacePage() {
+  const navigate = useNavigate();
+
+  return (
+    <CreateWorkspaceForm
+      onSuccess={() => navigate("/workspaces")}
+      onCancel={() => navigate(-1)}
+    />
+  );
+}
+```
+
+## Form Fields
+
+- **Organization Selector** - Dropdown to select organization (required if not pre-selected)
+- **Workspace Logo** - Image upload (max 2MB, PNG/JPEG/GIF)
+- **Workspace Name** - Required, 2-100 characters
+- **Description** - Optional, max 500 characters
+
+The organization dropdown shows all organizations the user is a member of (with restricted ones disabled) plus a "Create new organization" option.
+
+## Params
+
+<ParamField path="organizationId" type="string">
+Pre-selected organization ID.
+</ParamField>
+
+<ParamField path="onSuccess" type="(workspace?: any) => void">
+Callback called after successful creation.
+</ParamField>
+
+<ParamField path="onCancel" type="() => void">
+Callback called when user cancels.
+</ParamField>
+
+<ParamField path="onCreateOrganization" type="() => void">
+Callback when user clicks "Create new organization".
+</ParamField>
+
+## Related
+
+- [useWorkspaceList](../hooks/use-workspace-list) - Workspace management hook
+- [CreateOrganizationForm](./create-organization-form) - Create organization form

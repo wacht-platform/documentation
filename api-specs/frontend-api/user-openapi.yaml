@@ -1,0 +1,1180 @@
+openapi: 3.0.3
+info:
+  title: Wacht Frontend API - User Profile
+  description: User profile management endpoints
+  version: 1.0.0
+servers:
+  - url: https://api.wacht.dev
+    description: Production server
+
+tags:
+  - name: User Profile
+    description: User profile and account management
+  - name: Email Addresses
+    description: Email address management
+  - name: Phone Numbers
+    description: Phone number management
+  - name: Authentication Methods
+    description: MFA authenticator and backup codes
+  - name: Passkeys
+    description: Passkey/WebAuthn management
+  - name: Sessions
+    description: User session management
+  - name: Social Connections
+    description: OAuth social connection management
+
+paths:
+  /me:
+    get:
+      tags:
+        - User Profile
+      summary: Get current user
+      description: Retrieve the currently authenticated user's profile
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+    post:
+      tags:
+        - User Profile
+      summary: Update user profile
+      description: Update the current user's profile information
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                  example: "John"
+                last_name:
+                  type: string
+                  example: "Doe"
+                username:
+                  type: string
+                  example: "johndoe"
+                primary_email_address_id:
+                  type: string
+                  format: uint64
+                  example: "123456789012345678"
+                primary_phone_number_id:
+                  type: string
+                  format: uint64
+                  example: "987654321098765432"
+                second_factor_policy:
+                  type: string
+                  enum: [none, enforced]
+                  example: "enforced"
+                remove_profile_picture:
+                  type: boolean
+                  example: false
+      responses:
+        '200':
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+
+  /me/organization-memberships:
+    get:
+      tags:
+        - User Profile
+      summary: Get user organization memberships
+      description: Retrieve all organization memberships for the current user
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Memberships retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrganizationMembershipWithDetails'
+        '401':
+          description: Unauthorized
+
+  /me/workspace-memberships:
+    get:
+      tags:
+        - User Profile
+      summary: Get user workspace memberships
+      description: Retrieve all workspace memberships for the current user
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Memberships retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WorkspaceMembershipWithDetails'
+        '401':
+          description: Unauthorized
+
+  /me/email-addresses:
+    get:
+      tags:
+        - Email Addresses
+      summary: Get user email addresses
+      description: Retrieve all email addresses associated with the user
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Email addresses retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EmailAddress'
+        '401':
+          description: Unauthorized
+    post:
+      tags:
+        - Email Addresses
+      summary: Add email address
+      description: Add a new email address to the user account
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "newemail@example.com"
+      responses:
+        '200':
+          description: Email address added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailAddress'
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '409':
+          description: Email already exists
+
+  /me/email-addresses/{id}:
+    get:
+      tags:
+        - Email Addresses
+      summary: Get email address details
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uint64
+      responses:
+        '200':
+          description: Email address details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailAddress'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Email address not found
+
+  /me/email-addresses/{id}/delete:
+    post:
+      tags:
+        - Email Addresses
+      summary: Delete email address
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uint64
+      responses:
+        '200':
+          description: Email address deleted
+        '400':
+          description: Cannot delete primary email
+        '401':
+          description: Unauthorized
+        '404':
+          description: Email address not found
+
+  /me/email-addresses/{id}/prepare-verification:
+    post:
+      tags:
+        - Email Addresses
+      summary: Send email verification code
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uint64
+      responses:
+        '200':
+          description: Verification code sent
+        '401':
+          description: Unauthorized
+        '404':
+          description: Email address not found
+
+  /me/email-addresses/{id}/attempt-verification:
+    post:
+      tags:
+        - Email Addresses
+      summary: Verify email address
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uint64
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - verification_code
+              properties:
+                verification_code:
+                  type: string
+                  example: "123456"
+      responses:
+        '200':
+          description: Email verified successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailAddress'
+        '400':
+          description: Invalid code
+        '401':
+          description: Unauthorized
+
+  /me/email-addresses/{id}/make-primary:
+    post:
+      tags:
+        - Email Addresses
+      summary: Make email primary
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uint64
+      responses:
+        '200':
+          description: Email set as primary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailAddress'
+        '400':
+          description: Email not verified
+        '401':
+          description: Unauthorized
+
+  /me/phone-numbers:
+    get:
+      tags:
+        - Phone Numbers
+      summary: Get phone numbers
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Phone numbers retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PhoneNumber'
+        '401':
+          description: Unauthorized
+    post:
+      tags:
+        - Phone Numbers
+      summary: Add phone number
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - phone_number
+                - country_code
+              properties:
+                phone_number:
+                  type: string
+                  example: "1234567890"
+                country_code:
+                  type: string
+                  example: "+1"
+      responses:
+        '200':
+          description: Phone number added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PhoneNumber'
+
+  /me/phone-numbers/{id}:
+    get:
+      tags:
+        - Phone Numbers
+      summary: Get phone number details
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uint64
+      responses:
+        '200':
+          description: Phone number details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PhoneNumber'
+
+  /me/phone-numbers/{id}/delete:
+    post:
+      tags:
+        - Phone Numbers
+      summary: Delete phone number
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uint64
+      responses:
+        '200':
+          description: Phone number deleted
+        '400':
+          description: Cannot delete primary phone
+        '401':
+          description: Unauthorized
+
+  /me/phone-numbers/{id}/prepare-verification:
+    post:
+      tags:
+        - Phone Numbers
+      summary: Send SMS verification code
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uint64
+      responses:
+        '200':
+          description: Verification code sent
+
+  /me/phone-numbers/{id}/attempt-verification:
+    post:
+      tags:
+        - Phone Numbers
+      summary: Verify phone number
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uint64
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - verification_code
+              properties:
+                verification_code:
+                  type: string
+      responses:
+        '200':
+          description: Phone number verified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PhoneNumber'
+
+  /me/phone-numbers/{id}/make-primary:
+    post:
+      tags:
+        - Phone Numbers
+      summary: Make phone primary
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uint64
+      responses:
+        '200':
+          description: Phone set as primary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PhoneNumber'
+
+  /me/profile-picture:
+    post:
+      tags:
+        - User Profile
+      summary: Upload profile picture
+      description: Upload a profile picture for the user
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Profile picture uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Bad request - Invalid file
+
+  /me/authenticator:
+    post:
+      tags:
+        - Authentication Methods
+      summary: Generate TOTP authenticator
+      description: Generate a new TOTP authenticator (Google Authenticator, etc.)
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Authenticator created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  authenticator:
+                    $ref: '#/components/schemas/Authenticator'
+                  qr_code:
+                    type: string
+                    description: Base64 encoded QR code image
+
+  /me/authenticator/attempt-verification:
+    post:
+      tags:
+        - Authentication Methods
+      summary: Verify TOTP authenticator
+      description: Verify and activate a TOTP authenticator
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - authenticator_id
+                - codes
+              properties:
+                authenticator_id:
+                  type: string
+                  format: uint64
+                codes:
+                  type: array
+                  items:
+                    type: string
+                  minItems: 2
+                  maxItems: 2
+                  description: Two consecutive TOTP codes
+      responses:
+        '200':
+          description: Authenticator verified and activated
+        '400':
+          description: Invalid codes
+
+  /me/authenticator/{id}/delete:
+    post:
+      tags:
+        - Authentication Methods
+      summary: Delete authenticator
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uint64
+      responses:
+        '200':
+          description: Authenticator deleted
+
+  /me/backup-codes:
+    post:
+      tags:
+        - Authentication Methods
+      summary: Generate backup codes
+      description: Generate new backup codes for account recovery
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Backup codes generated (shown once)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  codes:
+                    type: array
+                    items:
+                      type: string
+                    example: ["12345678", "87654321"]
+
+  /me/backup-codes/regenerate:
+    post:
+      tags:
+        - Authentication Methods
+      summary: Regenerate backup codes
+      description: Regenerate all backup codes (invalidates old ones)
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: New backup codes generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  codes:
+                    type: array
+                    items:
+                      type: string
+
+  /me/passkeys:
+    get:
+      tags:
+        - Passkeys
+      summary: Get passkeys
+      description: Retrieve all passkeys registered to the user
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Passkeys retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Passkey'
+        '401':
+          description: Unauthorized
+
+  /me/passkeys/register/begin:
+    post:
+      tags:
+        - Passkeys
+      summary: Begin passkey registration
+      description: Initialize WebAuthn/passkey registration flow
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Friendly name for the passkey
+                  example: "My iPhone"
+      responses:
+        '200':
+          description: Registration options generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  options:
+                    type: object
+                    description: WebAuthn credential creation options
+
+  /me/passkeys/register/finish:
+    post:
+      tags:
+        - Passkeys
+      summary: Finish passkey registration
+      description: Complete WebAuthn/passkey registration
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - credential
+              properties:
+                credential:
+                  type: object
+                name:
+                  type: string
+      responses:
+        '200':
+          description: Passkey registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Passkey'
+
+  /me/passkeys/{id}:
+    patch:
+      tags:
+        - Passkeys
+      summary: Rename passkey
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uint64
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  example: "Updated Name"
+      responses:
+        '200':
+          description: Passkey renamed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Passkey'
+
+  /me/passkeys/{id}/delete:
+    post:
+      tags:
+        - Passkeys
+      summary: Delete passkey
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uint64
+      responses:
+        '200':
+          description: Passkey deleted
+        '401':
+          description: Unauthorized
+
+  /me/signins:
+    get:
+      tags:
+        - Sessions
+      summary: Get user sign-ins
+      description: Retrieve all active sign-ins/sessions for the user
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Sign-ins retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SignIn'
+
+  /me/signins/{id}/signout:
+    post:
+      tags:
+        - Sessions
+      summary: Sign out from session
+      description: Sign out from a specific session/device
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uint64
+      responses:
+        '200':
+          description: Signed out successfully
+
+  /me/update-password:
+    post:
+      tags:
+        - User Profile
+      summary: Update password
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - new_password
+              properties:
+                current_password:
+                  type: string
+                  format: password
+                new_password:
+                  type: string
+                  format: password
+                  example: "NewSecurePass123!"
+      responses:
+        '200':
+          description: Password updated
+        '400':
+          description: Invalid current password
+        '401':
+          description: Unauthorized
+
+  /me/remove-password:
+    post:
+      tags:
+        - User Profile
+      summary: Remove password
+      description: Remove password from account (passwordless only)
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - current_password
+              properties:
+                current_password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Password removed
+        '400':
+          description: Must have alternative auth method
+        '401':
+          description: Unauthorized
+
+  /me/account/delete:
+    post:
+      tags:
+        - User Profile
+      summary: Delete account
+      description: Permanently delete user account
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Account deletion initiated
+        '400':
+          description: Cannot delete account
+        '401':
+          description: Unauthorized
+
+  /me/social-connections/{id}/disconnect:
+    post:
+      tags:
+        - Social Connections
+      summary: Disconnect social connection
+      description: Disconnect OAuth social provider
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Connection disconnected
+        '401':
+          description: Unauthorized
+
+  /me/init-sso-connection:
+    post:
+      tags:
+        - Social Connections
+      summary: Initiate SSO connection
+      description: Start OAuth flow for connecting social account
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - provider
+                - redirect_url
+              properties:
+                provider:
+                  type: string
+                  example: "google"
+                redirect_url:
+                  type: string
+                  format: uri
+      responses:
+        '200':
+          description: OAuth URL generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    format: uri
+
+  /me/sso-connection-callback:
+    post:
+      tags:
+        - Social Connections
+      summary: SSO connection callback
+      description: Handle OAuth callback for social connection
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - code
+                - provider
+                - state
+              properties:
+                code:
+                  type: string
+                provider:
+                  type: string
+                state:
+                  type: string
+      responses:
+        '200':
+          description: Social account connected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SocialConnection'
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+          example: "123456789012345678"
+        first_name:
+          type: string
+          example: "John"
+        last_name:
+          type: string
+          example: "Doe"
+        username:
+          type: string
+          example: "johndoe"
+        email:
+          type: string
+          format: email
+          example: "john@example.com"
+        profile_picture_url:
+          type: string
+          format: uri
+          example: "https://cdn.wacht.dev/avatars/123.jpg"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        primary_email_address_id:
+          type: string
+          format: uint64
+          nullable: true
+        primary_phone_number_id:
+          type: string
+          format: uint64
+          nullable: true
+        second_factor_policy:
+          type: string
+          enum: [none, enforced]
+        backup_codes_generated:
+          type: boolean
+        has_password:
+          type: boolean
+        has_passkeys:
+          type: boolean
+        disabled:
+          type: boolean
+
+    EmailAddress:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+        email:
+          type: string
+          format: email
+        primary:
+          type: boolean
+        verified:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    PhoneNumber:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+        phone_number:
+          type: string
+        country_code:
+          type: string
+        primary:
+          type: boolean
+        verified:
+          type: boolean
+
+    Authenticator:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+        secret:
+          type: string
+          description: TOTP secret
+        verified:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    Passkey:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+        name:
+          type: string
+          example: "My iPhone"
+        device_type:
+          type: string
+          example: "single_device"
+        created_at:
+          type: string
+          format: date-time
+        last_used_at:
+          type: string
+          format: date-time
+
+    SignIn:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+        created_at:
+          type: string
+          format: date-time
+        ip_address:
+          type: string
+        user_agent:
+          type: string
+
+    OrganizationMembershipWithDetails:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+        organization_id:
+          type: string
+          format: uint64
+        organization_name:
+          type: string
+        organization_image_url:
+          type: string
+          format: uri
+        roles:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              permissions:
+                type: array
+                items:
+                  type: string
+
+    WorkspaceMembershipWithDetails:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+        workspace_id:
+          type: string
+          format: uint64
+        workspace_name:
+          type: string
+        organization_name:
+          type: string
+        roles:
+          type: array
+          items:
+            type: object
+
+    SocialConnection:
+      type: object
+      properties:
+        id:
+          type: string
+        provider:
+          type: string
+        provider_user_id:
+          type: string
+        email:
+          type: string
+          format: email
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Invalid request"
+
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: session_id

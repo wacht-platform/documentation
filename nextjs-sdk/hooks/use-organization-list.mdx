@@ -1,0 +1,469 @@
+---
+title: useOrganizationList
+description: Manage organizations, members, invitations, domains, and enterprise connections.
+---
+
+# useOrganizationList
+
+The `useOrganizationList` hook provides methods for managing organizations the user is a member of, including creating, updating, deleting organizations, and managing members, roles, invitations, and domains.
+
+## Return Value
+
+<ParamField path="organizations" type="Organization[]">
+  List of organizations the user is a member of
+</ParamField>
+
+<ParamField path="loading" type="boolean">
+  Whether data is loading
+</ParamField>
+
+<ParamField path="error" type="Error | null">
+  Any error that occurred
+</ParamField>
+
+<ParamField path="refetch">
+  <Expandable title="Refetch the organizations list">
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the organizations list is refetched
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="leaveOrganization">
+  <Expandable title="Leave an organization">
+    <ParamField path="organization" type="Organization">
+      The organization to leave
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the organization is left
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="createOrganization">
+  <Expandable title="Create a new organization">
+    <ParamField path="params" type="{ name: string; description?: string; image?: File }">
+      Organization creation parameters
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;Organization&gt;">
+      The created organization
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="updateOrganization">
+  <Expandable title="Update an existing organization">
+    <ParamField path="organization" type="Organization">
+      The organization to update
+    </ParamField>
+    <ParamField path="params" type="Partial&lt;{ name: string; description?: string; image?: File }&gt;">
+      Organization fields to update
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;Organization&gt;">
+      The updated organization
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="deleteOrganization">
+  <Expandable title="Delete an organization">
+    <ParamField path="organization" type="Organization">
+      The organization to delete
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the organization is deleted
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="getOrganizationMembers">
+  <Expandable title="Get organization members">
+    <ParamField path="organization" type="Organization">
+      The organization
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;OrganizationMember[]&gt;">
+      List of organization members
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="removeOrganizationMember">
+  <Expandable title="Remove an organization member">
+    <ParamField path="organization" type="Organization">
+      The organization
+    </ParamField>
+    <ParamField path="member" type="OrganizationMembership">
+      The member to remove
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the member is removed
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="getOrganizationRoles">
+  <Expandable title="Get organization roles">
+    <ParamField path="organization" type="Organization">
+      The organization
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;OrganizationRole[]&gt;">
+      List of organization roles
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="addRoleToOrganizationMember">
+  <Expandable title="Add a role to an organization member">
+    <ParamField path="organization" type="Organization">
+      The organization
+    </ParamField>
+    <ParamField path="member" type="OrganizationMembership">
+      The member
+    </ParamField>
+    <ParamField path="role" type="OrganizationRole">
+      The role to add
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the role is added
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="removeRoleFromOrganizationMember">
+  <Expandable title="Remove a role from an organization member">
+    <ParamField path="organization" type="Organization">
+      The organization
+    </ParamField>
+    <ParamField path="member" type="OrganizationMembership">
+      The member
+    </ParamField>
+    <ParamField path="role" type="OrganizationRole">
+      The role to remove
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the role is removed
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="getOrganizationInvitations">
+  <Expandable title="Get organization invitations">
+    <ParamField path="organization" type="Organization">
+      The organization
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;OrganizationInvitation[]&gt;">
+      List of organization invitations
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="inviteOrganizationMember">
+  <Expandable title="Invite a user to an organization">
+    <ParamField path="organization" type="Organization">
+      The organization
+    </ParamField>
+    <ParamField path="invitation" type="OrganizationInvitationPayload">
+      The invitation details
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;OrganizationInvitation&gt;">
+      The created invitation
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="discardOrganizationInvitation">
+  <Expandable title="Discard an organization invitation">
+    <ParamField path="organization" type="Organization">
+      The organization
+    </ParamField>
+    <ParamField path="invitation" type="OrganizationInvitation">
+      The invitation to discard
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the invitation is discarded
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="resendOrganizationInvitation">
+  <Expandable title="Resend an organization invitation">
+    <ParamField path="organization" type="Organization">
+      The organization
+    </ParamField>
+    <ParamField path="invitation" type="OrganizationInvitation">
+      The invitation to resend
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;OrganizationInvitation&gt;">
+      The resent invitation
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="getOrganizationDomains">
+  <Expandable title="Get organization domains">
+    <ParamField path="organization" type="Organization">
+      The organization
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;OrganizationDomain[]&gt;">
+      List of organization domains
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="addOrganizationDomain">
+  <Expandable title="Add a domain to an organization">
+    <ParamField path="organization" type="Organization">
+      The organization
+    </ParamField>
+    <ParamField path="domain" type="string">
+      The domain to add
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;OrganizationDomain&gt;">
+      The added domain
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="verifyOrganizationDomain">
+  <Expandable title="Verify an organization domain">
+    <ParamField path="organization" type="Organization">
+      The organization
+    </ParamField>
+    <ParamField path="domain" type="OrganizationDomain">
+      The domain to verify
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;OrganizationDomain&gt;">
+      The verified domain
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="removeOrganizationDomain">
+  <Expandable title="Remove a domain from an organization">
+    <ParamField path="organization" type="Organization">
+      The organization
+    </ParamField>
+    <ParamField path="domain" type="OrganizationDomain">
+      The domain to remove
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the domain is removed
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="getEnterpriseConnections">
+  <Expandable title="Get enterprise SSO connections">
+    <ParamField path="organization" type="Organization">
+      The organization
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;EnterpriseConnection[]&gt;">
+      List of enterprise SSO connections
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="createEnterpriseConnection">
+  <Expandable title="Create an enterprise SSO connection">
+    <ParamField path="organization" type="Organization">
+      The organization
+    </ParamField>
+    <ParamField path="config" type="EnterpriseConnectionConfig">
+      The SSO connection configuration
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;EnterpriseConnection&gt;">
+      The created connection
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="updateEnterpriseConnection">
+  <Expandable title="Update an enterprise SSO connection">
+    <ParamField path="organization" type="Organization">
+      The organization
+    </ParamField>
+    <ParamField path="connection" type="EnterpriseConnection">
+      The connection to update
+    </ParamField>
+    <ParamField path="config" type="Partial&lt;EnterpriseConnectionConfig&gt;">
+      The configuration updates
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;EnterpriseConnection&gt;">
+      The updated connection
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="deleteEnterpriseConnection">
+  <Expandable title="Delete an enterprise SSO connection">
+    <ParamField path="organization" type="Organization">
+      The organization
+    </ParamField>
+    <ParamField path="connection" type="EnterpriseConnection">
+      The connection to delete
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the connection is deleted
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="testEnterpriseConnection">
+  <Expandable title="Test an enterprise SSO connection">
+    <ParamField path="organization" type="Organization">
+      The organization
+    </ParamField>
+    <ParamField path="connection" type="EnterpriseConnection">
+      The connection to test
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;TestResult&gt;">
+      Test result with success status and checks
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+## Data Structures
+
+<Expandable title="Organization">
+
+```typescript
+interface Organization {
+  id: string;
+  name: string;
+  image_url: string;
+  description: string;
+  member_count: number;
+  public_metadata: Record<string, unknown>;
+  private_metadata: Record<string, unknown>;
+  enforce_mfa: boolean;
+  enable_ip_restriction: boolean;
+  whitelisted_ips: string[];
+  auto_assigned_workspace_id: string;
+  created_at: string;
+  updated_at: string;
+  segments: Segment[];
+}
+```
+
+</Expandable>
+
+## Examples
+
+### Basic Organization List
+
+```tsx
+import { useOrganizationList } from "@wacht/nextjs";
+
+function OrganizationsPage() {
+  const { organizations, loading, createOrganization } = useOrganizationList();
+
+  const handleCreate = async () => {
+    await createOrganization({
+      name: "Acme Inc",
+      description: "My company",
+    });
+  };
+
+  return (
+    <div>
+      {organizations.map((org) => (
+        <div key={org.id}>{org.name}</div>
+      ))}
+      <button onClick={handleCreate}>Create Organization</button>
+    </div>
+  );
+}
+```
+
+### CRUD Operations
+
+#### Create Organization
+
+```tsx
+await createOrganization({
+  name: "Acme Inc",
+  description: "My company description",
+  image: file, // Optional File object
+});
+```
+
+#### Update Organization
+
+```tsx
+await updateOrganization(organization, {
+  name: "New Name",
+  description: "New description",
+  image: file,
+});
+```
+
+#### Delete Organization
+
+```tsx
+await deleteOrganization(organization);
+```
+
+#### Leave Organization
+
+```tsx
+await leaveOrganization(organization);
+```
+
+#### Invite Member
+
+```tsx
+await inviteOrganizationMember(organization, {
+  email: "user@example.com",
+  organizationRole: { id: "role_id" },
+  workspace: { id: "workspace_id" },
+  workspaceRole: { id: "workspace_role_id" },
+});
+```
+
+### Enterprise SSO
+
+#### Create SSO Connection
+
+```tsx
+await createEnterpriseConnection(organization, {
+  protocol: "saml",
+  idp_entity_id: "https://idp.example.com/entity_id",
+  idp_sso_url: "https://idp.example.com/sso",
+  idp_certificate: "-----BEGIN CERTIFICATE-----\n...",
+  jit_enabled: true,
+});
+```
+
+#### Test SSO Connection
+
+```tsx
+const result = await testEnterpriseConnectionConfig(organization, {
+  protocol: "saml",
+  idp_entity_id: "https://idp.example.com/entity_id",
+  idp_sso_url: "https://idp.example.com/sso",
+  idp_certificate: "-----BEGIN CERTIFICATE-----\n...",
+});
+
+// result.success: boolean
+// result.checks: { [key: string]: boolean }
+// result.errors?: { [key: string]: string }
+```
+
+#### SCIM Token Management
+
+```tsx
+// Generate SCIM token
+const tokenInfo = await generateSCIMToken(organization, connectionId);
+
+// Get SCIM token
+const tokenInfo = await getSCIMToken(organization, connectionId);
+
+// Revoke SCIM token
+await revokeSCIMToken(organization, connectionId);
+```
+
+## Related
+
+- [useActiveOrganization](./use-active-organization) - Active organization
+- [useOrganizationMemberships](./use-organization-memberships) - Memberships list
+- [CreateOrganizationForm](../components/create-organization-form) - Create org form

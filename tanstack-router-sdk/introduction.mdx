@@ -1,0 +1,392 @@
+---
+title: 'TanStack Router SDK'
+description: 'Official Wacht SDK for TanStack Router applications'
+---
+
+## Overview
+
+The **TanStack Router SDK** (`@wacht/tanstack-router`) provides comprehensive authentication and user management for TanStack Router applications. It includes pre-built components, hooks for authentication flows, and utilities for managing users, organizations, and workspaces.
+
+## Key Features
+
+- **TanStack Router Integration** - Built specifically for TanStack Router
+- **Type Safety** - Full TypeScript support with TanStack Router's type system
+- **Authentication Components** - Pre-built sign-in, sign-up, and SSO callback components
+- **Authentication Hooks** - Hooks for handling sign-in, sign-up, password reset, and more
+- **User Management** - Hooks and components for profile management
+- **Organization & Workspace Support** - Built-in support for multi-tenant applications
+- **Session Management** - Automatic session handling with token refresh
+- **Route Loaders** - Server-side data fetching with TanStack Router loaders
+- **Notifications** - Real-time notification support with hooks and components
+
+## Installation
+
+```bash
+pnpm add @wacht/tanstack-router @wacht/types
+```
+
+Or with npm:
+
+```bash
+npm install @wacht/tanstack-router @wacht/types
+```
+
+## Quick Start
+
+### 1. Create Environment Variables
+
+```bash
+# .env
+VITE_WACHT_PUBLIC_KEY=your_public_key_here
+```
+
+### 2. Configure the Provider
+
+```tsx
+// src/routes/__root.tsx
+import { createRouter } from '@tanstack/react-router'
+import { DeploymentProvider } from '@wacht/tanstack-router'
+
+const router = createRouter()
+
+export const Route = router.wrap(({ children }) => {
+  return (
+    <DeploymentProvider publicKey={import.meta.env.VITE_WACHT_PUBLIC_KEY}>
+      {children}
+    </DeploymentProvider>
+  )
+})
+```
+
+### 3. Create Authentication Routes
+
+```tsx
+// src/routes/signin.tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { SignInForm } from '@wacht/tanstack-router'
+
+export const Route = createFileRoute('/signin')({
+  component: SignIn
+})
+
+function SignIn() {
+  return (
+    <div className="auth-page">
+      <h1>Sign In</h1>
+      <SignInForm />
+    </div>
+  )
+}
+```
+
+```tsx
+// src/routes/signup.tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { SignUpForm } from '@wacht/tanstack-router'
+
+export const Route = createFileRoute('/signup')({
+  component: SignUp
+})
+
+function SignUp() {
+  return (
+    <div className="auth-page">
+      <h1>Sign Up</h1>
+      <SignUpForm />
+    </div>
+  )
+}
+```
+
+### 4: Protect Routes
+
+```tsx
+// src/routes/dashboard.tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { SignedIn, Navigate } from '@wacht/tanstack-router'
+import { useSession } from '@wacht/tanstack-router'
+
+export const Route = createFileRoute('/dashboard')({
+  component: Dashboard,
+  beforeLoad: ({ context, navigate }) => {
+    if (!context.session) {
+      throw navigate({ to: '/signin' })
+    }
+  }
+})
+
+function Dashboard() {
+  const { session } = useSession({ from: '/dashboard' })
+
+  return (
+    <div>
+      <h1>Dashboard</h1>
+      <p>Welcome, {session.user.first_name}!</p>
+    </div>
+  )
+}
+```
+
+### 5. Add User Menu
+
+```tsx
+// src/routes/__root.tsx
+import { UserButton, SignedIn } from '@wacht/tanstack-router'
+
+export const Route = router.wrap(({ children }) => {
+  return (
+    <DeploymentProvider publicKey={import.meta.env.VITE_WACHT_PUBLIC_KEY}>
+      <div className="layout">
+        <header className="navbar">
+          <h1>My App</h1>
+          <SignedIn>
+            <UserButton />
+          </SignedIn>
+        </header>
+        <main>{children}</main>
+      </div>
+    </DeploymentProvider>
+  )
+})
+```
+
+## Server-Side Data Fetching
+
+TanStack Router supports loaders for server-side data fetching:
+
+### Getting Session in Loaders
+
+```tsx
+import { createFileRoute, createServerFn } from '@tanstack/react-router'
+import { getSessionServer } from '@wacht/tanstack-router/server'
+
+export const loader = createServerFn(() => {
+  return getSessionServer()
+})
+
+export const Route = createFileRoute('/dashboard')({
+  loader: () => loader(),
+  component: Dashboard
+})
+
+function Dashboard({ loaderData }: { loaderData: Awaited<ReturnType<typeof loader>> }) {
+  const session = await loaderData
+
+  return (
+    <div>
+      <h1>Dashboard</h1>
+      <p>Hello, {session.user.first_name}!</p>
+    </div>
+  )
+}
+```
+
+### Protected Routes with Auth Check
+
+```tsx
+import { createFileRoute, createServerFn, redirect } from '@tanstack/react-router'
+import { getSessionServer } from '@wacht/tanstack-router/server'
+
+export const loader = createServerFn(async () => {
+  const session = await getSessionServer()
+
+  if (!session) {
+    throw redirect({
+      to: '/signin'
+    })
+  }
+
+  return { session }
+})
+
+export const Route = createFileRoute('/dashboard')({
+  loader: () => loader(),
+  component: Dashboard
+})
+```
+
+## Configuration
+
+### Environment Variables
+
+```bash
+# .env
+VITE_WACHT_PUBLIC_KEY=your_public_key_here
+```
+
+### UI Customization
+
+```tsx
+import { DeploymentProvider } from '@wacht/tanstack-router'
+
+export const Route = router.wrap(({ children }) => {
+  return (
+    <DeploymentProvider
+      publicKey={import.meta.env.VITE_WACHT_PUBLIC_KEY}
+      uiOverwrites={{
+        primaryColor: '#4f46e5',
+        borderRadius: '8px',
+        fontFamily: 'Inter, sans-serif'
+      }}
+    >
+      {children}
+    </DeploymentProvider>
+  )
+})
+```
+
+## Components
+
+All components are available directly from the SDK:
+
+- `SignInForm` - Sign-in form component
+- `SignUpForm` - Sign-up form component
+- `UserButton` - User profile dropdown
+- `OrganizationSwitcher` - Organization/workspace switcher
+- `ManageAccount` - Account management
+- `ManageOrganization` - Organization management
+- `CreateOrganizationForm` - Create organization
+- `CreateWorkspaceForm` - Create workspace
+- `SignedIn` / `SignedOut` - Conditional rendering
+- `SSOCallback` - OAuth callback handler
+- `WaitlistForm` - Waitlist signup
+- `MagicLinkVerification` - Magic link verification
+- `NotificationBell` - Notification bell
+- `NotificationPopover` - Notification dropdown
+- `NotificationPanel` - Full notification panel
+
+## Hooks
+
+All hooks are available directly from the SDK:
+
+- `useSignIn` - Handle sign-in
+- `useSignUp` - Handle sign-up
+- `useSession` - Access session
+- `useUser` - Manage user profile
+- `useDeployment` - Access deployment config
+- `useClient` - Access HTTP client
+- `useNavigation` - Manage redirects
+- `useForgotPassword` - Password reset
+- `useMagicLinkVerification` - Magic link auth
+- `useSSOCallback` - OAuth callbacks
+- `useWaitlist` - Waitlist signup
+- `useOrganizationList` - List organizations
+- `useActiveOrganization` - Active organization
+- `useOrganizationMemberships` - Manage memberships
+- `useWorkspaceList` - List workspaces
+- `useActiveWorkspace` - Active workspace
+- `useWorkspaceMemberships` - Workspace memberships
+- `useNotifications` - Notifications
+- `useNotificationStream` - Real-time notifications
+- `useAgentContext` - AI agent context
+- `useAgentSession` - AI agent session
+- `useInvitation` - Handle invitations
+
+## Server-Side Helpers
+
+The TanStack Router SDK includes server-side helpers:
+
+### getSessionServer
+
+Get the current session server-side:
+
+```tsx
+import { createServerFn } from '@tanstack/react-router'
+import { getSessionServer } from '@wacht/tanstack-router/server'
+
+export const loader = createServerFn(() => {
+  return getSessionServer()
+})
+```
+
+### requireAuthServer
+
+Helper to require authentication in loaders:
+
+```tsx
+import { createServerFn } from '@tanstack/react-router'
+import { requireAuthServer } from '@wacht/tanstack-router/server'
+
+export const loader = createServerFn(() => {
+  return requireAuthServer()
+})
+```
+
+## Examples
+
+### Protected Route with Loader
+
+```tsx
+import { createFileRoute, createServerFn } from '@tanstack/react-router'
+import { SignedIn } from '@wacht/tanstack-router'
+
+export const loader = createServerFn(async () => {
+  const session = await requireAuthServer()
+  return { user: session.user }
+})
+
+export const Route = createFileRoute('/profile')({
+  loader: () => loader(),
+  component: Profile
+})
+
+function Profile({ loaderData }: { loaderData: Awaited<ReturnType<typeof loader>> }) {
+  const { user } = await loaderData
+
+  return (
+    <div>
+      <h1>Profile</h1>
+      <p>{user.first_name} {user.last_name}</p>
+    </div>
+  )
+}
+```
+
+### Organization Route
+
+```tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { useOrganization } from '@wacht/tanstack-router'
+
+export const Route = createFileRoute('/orgs/$orgId')({
+  component: OrganizationPage
+})
+
+function OrganizationPage() {
+  const { organization } = useOrganization({ from: '/orgs/$orgId' })
+
+  return (
+    <div>
+      <h1>{organization.name}</h1>
+      <p>{organization.description}</p>
+    </div>
+  )
+}
+```
+
+### Action for Updating Profile
+
+```tsx
+import { createFileRoute, createServerFn } from '@tanstack/react-router'
+
+import { getUserServer } from '@wacht/tanstack-router/server'
+
+export const action = createServerFn(async ({ input }) => {
+  const user = await getUserServer()
+
+  await updateUser(user.id, input)
+
+  return { success: true }
+})
+
+export const Route = createFileRoute('/profile/edit', {
+  component: ProfileEdit,
+  action: () => action()
+})
+```
+
+## Related
+
+- [React Router SDK](/react-router-sdk/introduction) - React Router SDK documentation
+- [Next.js SDK](/nextjs-sdk/introduction) - Next.js SDK documentation
+- [API Reference](/api-reference/frontend-api) - Frontend API reference

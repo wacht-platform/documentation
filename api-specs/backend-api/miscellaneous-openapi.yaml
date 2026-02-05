@@ -1,0 +1,416 @@
+openapi: 3.0.3
+info:
+  title: Wacht Backend API - Miscellaneous
+  description: Miscellaneous endpoints including health, analytics, and notifications
+  version: 1.0.0
+
+servers:
+  - url: https://api.wacht.dev
+    description: Production server
+
+security:
+  - ApiKeyAuth: []
+
+tags:
+  - name: Health
+    description: Health check endpoints
+  - name: Analytics
+    description: Analytics and metrics
+  - name: Notifications
+    description: Notifications management
+
+paths:
+
+  # =====================================================
+  # HEALTH ENDPOINTS
+  # =====================================================
+
+  /health:
+    get:
+      summary: Health check
+      description: Check if the API is running (no authentication required)
+      tags:
+        - Health
+      security: []
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2024-01-15T10:30:00Z"
+
+  # =====================================================
+  # ANALYTICS ENDPOINTS
+  # =====================================================
+
+  /analytics/summary:
+    get:
+      summary: Get analytics stats
+      description: Retrieve deployment analytics statistics with optional date range
+      tags:
+        - Analytics
+      parameters:
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+          description: Start date for analytics period
+          example: "2024-01-01T00:00:00Z"
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+          description: End date for analytics period
+          example: "2024-01-31T23:59:59Z"
+      responses:
+        '200':
+          description: Analytics summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsStatsResponse'
+
+  /analytics/recent-signups:
+    get:
+      summary: Get recent signups
+      description: Get list of recently registered users
+      tags:
+        - Analytics
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 100
+          description: Number of results to return
+      responses:
+        '200':
+          description: Recent signups
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecentSignupsResponse'
+
+  /analytics/recent-signins:
+    get:
+      summary: Get recent signins
+      description: Get list of recent user sign-ins
+      tags:
+        - Analytics
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 100
+          description: Number of results to return
+      responses:
+        '200':
+          description: Recent signins
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  signins:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RecentSignin'
+
+  # =====================================================
+  # NOTIFICATIONS ENDPOINTS
+  # =====================================================
+
+  /notifications:
+    post:
+      summary: Create notification
+      description: Send a notification to a user
+      tags:
+        - Notifications
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateNotificationRequest'
+      responses:
+        '200':
+          description: Notification created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+        '400':
+          description: Bad request (invalid user_id format)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: 'API key authentication (format: Bearer {api_key})'
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Error message
+
+    # =====================================================
+    # HEALTH SCHEMAS
+    # =====================================================
+
+    # Health endpoints use inline schemas only
+
+    # =====================================================
+    # ANALYTICS SCHEMAS
+    # =====================================================
+
+    AnalyticsStatsResponse:
+      type: object
+      properties:
+        unique_signins:
+          type: integer
+          description: Number of unique sign-ins in the period
+          example: 1250
+        signups:
+          type: integer
+          description: Number of new sign-ups in the period
+          example: 150
+        organizations_created:
+          type: integer
+          description: Number of organizations created in the period
+          example: 25
+        workspaces_created:
+          type: integer
+          description: Number of workspaces created in the period
+          example: 45
+        total_signups:
+          type: integer
+          description: Total sign-ups all time
+          example: 5000
+        unique_signins_change:
+          type: number
+          format: float
+          description: Percentage change from previous period
+          nullable: true
+          example: 15.5
+        signups_change:
+          type: number
+          format: float
+          description: Percentage change from previous period
+          nullable: true
+          example: 8.3
+        organizations_created_change:
+          type: number
+          format: float
+          description: Percentage change from previous period
+          nullable: true
+          example: -5.2
+        workspaces_created_change:
+          type: number
+          format: float
+          description: Percentage change from previous period
+          nullable: true
+          example: 12.0
+
+    RecentSignupsResponse:
+      type: object
+      properties:
+        signups:
+          type: array
+          description: List of recent sign-ups
+          items:
+            $ref: '#/components/schemas/RecentSignup'
+
+    RecentSignin:
+      type: object
+      properties:
+        user_id:
+          type: string
+          description: User ID
+          example: "1234567890123456789"
+        user_email:
+          type: string
+          description: User email
+          example: "user@example.com"
+        signed_in_at:
+          type: string
+          format: date-time
+          description: Sign-in timestamp
+          example: "2024-01-15T10:30:00Z"
+        method:
+          type: string
+          description: Sign-in method
+          example: "password"
+        ip_address:
+          type: string
+          description: IP address
+          example: "192.168.1.1"
+        user_agent:
+          type: string
+          description: User agent string
+          example: "Mozilla/5.0..."
+
+    RecentSignup:
+      type: object
+      properties:
+        user_id:
+          type: string
+          description: User ID
+          example: "1234567890123456789"
+        email:
+          type: string
+          description: User email
+          example: "user@example.com"
+        first_name:
+          type: string
+          description: User first name
+          example: "John"
+        last_name:
+          type: string
+          description: User last name
+          example: "Doe"
+        signed_up_at:
+          type: string
+          format: date-time
+          description: Sign-up timestamp
+          example: "2024-01-15T10:30:00Z"
+        method:
+          type: string
+          description: Sign-up method
+          example: "password"
+
+    # =====================================================
+    # NOTIFICATIONS SCHEMAS
+    # =====================================================
+
+    CreateNotificationRequest:
+      type: object
+      required:
+        - user_id
+        - title
+        - body
+      properties:
+        user_id:
+          type: string
+          description: User ID to send notification to
+          example: "1234567890123456789"
+        title:
+          type: string
+          description: Notification title
+          example: "Welcome!"
+        body:
+          type: string
+          description: Notification message content
+          example: "You have successfully signed up."
+        action_url:
+          type: string
+          format: uri
+          description: Optional action URL
+          example: "https://example.com/dashboard"
+        action_label:
+          type: string
+          description: Label for action button (defaults to "View" if action_url is provided)
+          example: "View Dashboard"
+        ctas:
+          type: object
+          description: Call-to-action buttons (JSON format)
+          additionalProperties: true
+        severity:
+          type: string
+          description: Notification severity level
+          example: "info"
+          enum: [info, warning, error, success]
+        metadata:
+          type: object
+          description: Additional metadata
+          additionalProperties: true
+        expires_hours:
+          type: integer
+          description: Expiry time in hours
+          example: 24
+
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Notification ID
+          example: "1234567890123456789"
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2024-01-15T10:30:00Z"
+        deployment_id:
+          type: string
+          description: Deployment ID
+          example: "9876543210987654321"
+        user_id:
+          type: string
+          description: User ID
+          example: "1234567890123456789"
+        title:
+          type: string
+          description: Notification title
+          example: "Welcome!"
+        body:
+          type: string
+          description: Notification message
+          example: "You have successfully signed up."
+        action_url:
+          type: string
+          format: uri
+          description: Action URL
+          nullable: true
+          example: "https://example.com/dashboard"
+        read_at:
+          type: string
+          format: date-time
+          description: When notification was read
+          nullable: true
+        expires_at:
+          type: string
+          format: date-time
+          description: When notification expires
+          nullable: true
+        severity:
+          type: string
+          description: Notification severity
+          enum: [info, warning, error, success]
+          example: "info"
+        metadata:
+          type: object
+          description: Additional metadata
+          additionalProperties: true
+          nullable: true

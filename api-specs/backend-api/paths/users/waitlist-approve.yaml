@@ -1,0 +1,33 @@
+# Waitlist approve endpoint
+
+WaitlistApprove:
+  post:
+    summary: Approve waitlist user
+    description: Approve a waitlist user and create their account
+    tags:
+      - Users
+    parameters:
+      - name: waitlist_user_id
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      '200':
+        description: User approved and invitation created
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                email_address:
+                  type: string
+                token:
+                  type: string
+                expiry:
+                  type: string
+                  format: date-time
+      '404':
+        $ref: '#/components/responses/NotFound'

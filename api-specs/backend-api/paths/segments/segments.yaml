@@ -1,0 +1,71 @@
+# Segments endpoint
+
+Segments:
+  get:
+    summary: List segments
+    description: Get all user segments
+    tags:
+      - Segments
+    parameters:
+      - $ref: '#/components/parameters/Limit'
+      - $ref: '#/components/parameters/Offset'
+      - $ref: '#/components/parameters/Search'
+    responses:
+      '200':
+        description: Segments
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                segments:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Segment'
+                total:
+                  type: integer
+
+  post:
+    summary: Create segment
+    description: Create a new user segment
+    tags:
+      - Segments
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - name
+              - conditions
+            properties:
+              name:
+                type: string
+              description:
+                type: string
+              conditions:
+                type: object
+                properties:
+                  operator:
+                    type: string
+                    enum: [AND, OR]
+                  rules:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                        operator:
+                          type: string
+                          enum: [equals, contains, starts_with, ends_with, greater_than, less_than]
+                        value:
+                          type: string
+    responses:
+      '200':
+        description: Segment created
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Segment'

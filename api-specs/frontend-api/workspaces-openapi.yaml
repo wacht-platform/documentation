@@ -1,0 +1,603 @@
+openapi: 3.0.3
+info:
+  title: Wacht Frontend API - Workspaces
+  description: Workspace management endpoints for the Wacht Frontend API
+  version: 1.0.0
+servers:
+  - url: https://api.wacht.dev
+    description: Production server
+
+tags:
+  - name: Workspaces
+    description: Workspace CRUD operations
+  - name: Workspace Members
+    description: Workspace member management
+  - name: Workspace Roles
+    description: Workspace role management
+
+paths:
+  /workspaces:
+    post:
+      tags:
+        - Workspaces
+      summary: Create workspace
+      description: Create a new workspace within an organization
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - name
+                - organization_id
+              properties:
+                name:
+                  type: string
+                  description: Workspace name
+                  example: "Engineering"
+                description:
+                  type: string
+                  description: Workspace description
+                  example: "Engineering team workspace"
+                organization_id:
+                  type: string
+                  format: uint64
+                  description: Parent organization ID
+                  example: "123456789012345678"
+                image:
+                  type: string
+                  format: binary
+                  description: Workspace profile image
+      responses:
+        '200':
+          description: Workspace created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  workspace:
+                    $ref: '#/components/schemas/Workspace'
+                  membership:
+                    $ref: '#/components/schemas/WorkspaceMembership'
+        '400':
+          description: Bad request - Invalid input
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Not a member of organization or workspace limit reached
+        '404':
+          description: Organization not found
+
+  /workspaces/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Workspace ID
+        schema:
+          type: string
+          format: uint64
+
+  /workspaces/{id}/update:
+    post:
+      tags:
+        - Workspaces
+      summary: Update workspace
+      description: Update workspace details
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  description: Workspace name
+                  example: "Engineering Team"
+                description:
+                  type: string
+                  description: Workspace description
+                  example: "Updated workspace description"
+                enforce_2fa:
+                  type: boolean
+                  description: Enforce MFA setup for members
+                  example: false
+                enable_ip_restriction:
+                  type: boolean
+                  description: Enable IP restriction
+                  example: false
+                whitelisted_ips:
+                  type: array
+                  items:
+                    type: string
+                  description: Allowed IP addresses/CIDR ranges
+                  example: ["192.168.1.0/24", "10.0.0.1"]
+      responses:
+        '200':
+          description: Workspace updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Insufficient permissions
+        '404':
+          description: Workspace not found
+
+  /workspaces/{id}/delete:
+    post:
+      tags:
+        - Workspaces
+      summary: Delete workspace
+      description: Delete a workspace
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+      responses:
+        '200':
+          description: Workspace deleted successfully
+        '400':
+          description: Bad request - Cannot delete
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Insufficient permissions
+        '404':
+          description: Workspace not found
+
+  /workspaces/{id}/members:
+    get:
+      tags:
+        - Workspace Members
+      summary: Get workspace members
+      description: Retrieve all members of a workspace
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+      responses:
+        '200':
+          description: Members retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WorkspaceMemberWithDetails'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Not a member
+        '404':
+          description: Workspace not found
+
+  /workspaces/{id}/members/{memberId}/remove:
+    post:
+      tags:
+        - Workspace Members
+      summary: Remove workspace member
+      description: Remove a member from the workspace
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - name: memberId
+          in: path
+          required: true
+          description: Member ID
+          schema:
+            type: string
+            format: uint64
+      responses:
+        '200':
+          description: Member removed successfully
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Insufficient permissions
+        '404':
+          description: Member or workspace not found
+
+  /workspaces/{id}/roles:
+    get:
+      tags:
+        - Workspace Roles
+      summary: Get workspace roles
+      description: Retrieve all roles for a workspace
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+      responses:
+        '200':
+          description: Roles retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WorkspaceRole'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Not a member
+        '404':
+          description: Workspace not found
+    post:
+      tags:
+        - Workspace Roles
+      summary: Create workspace role
+      description: Create a new custom role for the workspace
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - name
+                - permissions
+              properties:
+                name:
+                  type: string
+                  description: Role name
+                  example: "Developer"
+                permissions:
+                  type: array
+                  items:
+                    type: string
+                  description: List of permissions
+                  example: ["workspace:read", "workspace:write"]
+      responses:
+        '200':
+          description: Role created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceRole'
+        '400':
+          description: Bad request - Invalid input
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Insufficient permissions
+        '404':
+          description: Workspace not found
+
+  /workspaces/{id}/roles/{roleId}/delete:
+    post:
+      tags:
+        - Workspace Roles
+      summary: Delete workspace role
+      description: Delete a custom role from the workspace
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - name: roleId
+          in: path
+          required: true
+          description: Role ID
+          schema:
+            type: string
+            format: uint64
+      responses:
+        '200':
+          description: Role deleted successfully
+        '400':
+          description: Bad request - Cannot delete default role or role in use
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Insufficient permissions
+        '404':
+          description: Role or workspace not found
+
+  /workspaces/{id}/members/{membershipId}/roles/{roleId}/add:
+    post:
+      tags:
+        - Workspace Members
+      summary: Add role to workspace member
+      description: Add a role to a workspace member
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - name: membershipId
+          in: path
+          required: true
+          description: Membership ID
+          schema:
+            type: string
+            format: uint64
+        - name: roleId
+          in: path
+          required: true
+          description: Role ID
+          schema:
+            type: string
+            format: uint64
+      responses:
+        '200':
+          description: Role added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceMembership'
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Insufficient permissions
+        '404':
+          description: Membership, role, or workspace not found
+
+  /workspaces/{id}/members/{membershipId}/roles/{roleId}/remove:
+    post:
+      tags:
+        - Workspace Members
+      summary: Remove role from workspace member
+      description: Remove a role from a workspace member
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - name: membershipId
+          in: path
+          required: true
+          description: Membership ID
+          schema:
+            type: string
+            format: uint64
+        - name: roleId
+          in: path
+          required: true
+          description: Role ID
+          schema:
+            type: string
+            format: uint64
+      responses:
+        '200':
+          description: Role removed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceMembership'
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Insufficient permissions
+        '404':
+          description: Membership, role, or workspace not found
+
+components:
+  parameters:
+    WorkspaceId:
+      name: id
+      in: path
+      required: true
+      description: Workspace ID
+      schema:
+        type: string
+        format: uint64
+      example: "123456789012345678"
+
+  schemas:
+    Workspace:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+          description: Workspace ID
+          example: "123456789012345678"
+        organization_id:
+          type: string
+          format: uint64
+          description: Parent organization ID
+          example: "999999999999999999"
+        name:
+          type: string
+          description: Workspace name
+          example: "Engineering"
+        description:
+          type: string
+          description: Workspace description
+          example: "Engineering team workspace"
+        image_url:
+          type: string
+          format: uri
+          description: Workspace logo URL
+          example: "https://cdn.wacht.dev/workspaces/123/logo.png"
+        whitelisted_ips:
+          type: array
+          items:
+            type: string
+          description: Allowed IP addresses/CIDR ranges
+          example: ["192.168.1.0/24"]
+        enable_ip_restriction:
+          type: boolean
+          description: Whether IP restriction is enabled
+          example: false
+        enforce_mfa_setup:
+          type: boolean
+          description: Whether MFA is enforced
+          example: false
+        public_metadata:
+          type: object
+          description: Public metadata
+          additionalProperties: true
+          example: {"department": "Engineering"}
+        private_metadata:
+          type: object
+          description: Private metadata (admin only)
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+
+    WorkspaceMembership:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+          description: Membership ID
+          example: "333333333333333333"
+        workspace_id:
+          type: string
+          format: uint64
+          description: Workspace ID
+          example: "123456789012345678"
+        organization_membership_id:
+          type: string
+          format: uint64
+          description: Parent organization membership ID
+          example: "777777777777777777"
+        user_id:
+          type: string
+          format: uint64
+          description: User ID
+          example: "555555555555555555"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+
+    WorkspaceMemberWithDetails:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+          example: "333333333333333333"
+        workspace_id:
+          type: string
+          format: uint64
+          example: "123456789012345678"
+        organization_membership_id:
+          type: string
+          format: uint64
+          example: "777777777777777777"
+        user_id:
+          type: string
+          format: uint64
+          example: "555555555555555555"
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkspaceRole'
+          description: Member's roles
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uint64
+            first_name:
+              type: string
+            last_name:
+              type: string
+            email:
+              type: string
+              format: email
+            username:
+              type: string
+            profile_picture_url:
+              type: string
+              format: uri
+          description: User details
+        public_metadata:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    WorkspaceRole:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+          description: Role ID
+          example: "444444444444444444"
+        workspace_id:
+          type: string
+          format: uint64
+          description: Workspace ID
+          example: "123456789012345678"
+        name:
+          type: string
+          description: Role name
+          example: "Developer"
+        permissions:
+          type: array
+          items:
+            type: string
+          description: Role permissions
+          example: ["workspace:read", "workspace:write"]
+        is_system_role:
+          type: boolean
+          description: Whether this is a system role
+          example: false
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Invalid request"
+        code:
+          type: string
+          example: "INVALID_REQUEST"
+
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: session_id
+      description: Session-based authentication using cookies

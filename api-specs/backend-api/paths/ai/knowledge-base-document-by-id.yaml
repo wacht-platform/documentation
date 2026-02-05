@@ -1,0 +1,16 @@
+# Knowledge base document by ID endpoint
+
+AIKnowledgeBaseDocumentById:
+  delete:
+    summary: Delete knowledge base document
+    description: Remove a document from a knowledge base
+    tags:
+      - AI Knowledge Bases
+    parameters:
+      - $ref: '#/components/parameters/KnowledgeBaseId'
+      - $ref: '#/components/parameters/DocumentId'
+    responses:
+      '204':
+        description: Document deleted
+      '404':
+        $ref: '#/components/responses/NotFound'

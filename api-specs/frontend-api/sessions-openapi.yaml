@@ -1,0 +1,536 @@
+openapi: 3.0.3
+info:
+  title: Wacht Frontend API - Sessions
+  description: Session management endpoints for the Wacht Frontend API
+  version: 1.0.0
+servers:
+  - url: https://api.wacht.dev
+    description: Production server
+
+tags:
+  - name: Sessions
+    description: Session and authentication management
+
+paths:
+  /session:
+    get:
+      tags:
+        - Sessions
+      summary: Get current session
+      description: Retrieve the currently authenticated session details
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Session retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '401':
+          description: Unauthorized
+
+  /session/token:
+    get:
+      tags:
+        - Sessions
+      summary: Get JWT token
+      description: Generate a JWT token for the current session with optional custom template
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: template
+          in: query
+          description: 'JWT template name (default: "default")'
+          schema:
+            type: string
+            default: "default"
+      responses:
+        '200':
+          description: Token generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: Signed JWT token
+                  expires:
+                    type: integer
+                    format: int64
+                    description: Token expiration timestamp (milliseconds)
+        '400':
+          description: Bad request - No active sign in
+        '401':
+          description: Unauthorized
+        '404':
+          description: Template not found
+
+  /session/switch-sign-in:
+    post:
+      tags:
+        - Sessions
+      summary: Switch active sign-in
+      description: Switch the active sign-in within the current session
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: sign_in_id
+          in: query
+          required: true
+          description: ID of the sign-in to activate
+          schema:
+            type: string
+            format: uint64
+      responses:
+        '200':
+          description: Sign-in switched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '400':
+          description: Bad request - Invalid sign-in ID
+        '401':
+          description: Unauthorized
+
+  /session/sign-out:
+    post:
+      tags:
+        - Sessions
+      summary: Sign out
+      description: Sign out from current session or a specific sign-in
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: sign_in_id
+          in: query
+          description: Optional sign-in ID to sign out from specific device. If omitted, signs out from all devices.
+          schema:
+            type: string
+            format: uint64
+      responses:
+        '200':
+          description: Signed out successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '400':
+          description: Bad request - Invalid sign-in ID
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal server error
+
+  /session/switch-organization:
+    post:
+      tags:
+        - Sessions
+      summary: Switch active organization
+      description: Switch the active organization context for the current session. Empty organization_id clears the selection.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: organization_id
+          in: query
+          description: Organization ID to switch to. Empty string to clear selection.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Organization switched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '400':
+          description: Bad request - No active sign in, invalid org ID, or not a member
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - MFA or IP restrictions not met
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "You must set up Multi-Factor Authentication to access this organization."
+
+  /session/switch-workspace:
+    post:
+      tags:
+        - Sessions
+      summary: Switch active workspace
+      description: Switch the active workspace context for the current session. Empty workspace_id clears the selection.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: workspace_id
+          in: query
+          description: Workspace ID to switch to. Empty string to clear selection.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Workspace switched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '400':
+          description: Bad request - No active sign in, invalid workspace ID, or not a member
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - MFA or IP restrictions not met
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "You must set up Multi-Factor Authentication to access this workspace."
+
+  /session/ticket/exchange:
+    get:
+      tags:
+        - Sessions
+      summary: Exchange session ticket
+      description: Exchange a session ticket for impersonation or agent access
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: ticket
+          in: query
+          required: true
+          description: Session ticket to exchange
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Ticket exchanged successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExchangeTicketResponse'
+        '400':
+          description: Bad request - Invalid ticket, deployment ID, or missing required fields
+        '401':
+          description: Unauthorized - Invalid or expired ticket
+        '403':
+          description: Forbidden - Cannot impersonate disabled user
+        '404':
+          description: User not found
+        '500':
+          description: Internal server error
+
+components:
+  schemas:
+    Session:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+          description: Session ID
+          example: "123456789012345678"
+        created_at:
+          type: string
+          format: date-time
+          description: Session creation timestamp
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Session last update timestamp
+          example: "2024-01-15T10:30:00Z"
+        signin_attempts:
+          type: array
+          items:
+            $ref: '#/components/schemas/SignInAttempt'
+          description: Sign-in attempts associated with this session
+        signins:
+          type: array
+          items:
+            $ref: '#/components/schemas/SignIn'
+          description: Successful sign-ins associated with this session
+        signup_attempts:
+          type: array
+          items:
+            $ref: '#/components/schemas/SignupAttempt'
+          description: Signup attempts associated with this session
+        active_signin_id:
+          type: string
+          format: uint64
+          description: ID of the active sign-in
+          example: "987654321098765432"
+        active_signin:
+          $ref: '#/components/schemas/SignIn'
+          description: Active sign-in details
+
+    SignIn:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+          description: Sign-in ID
+          example: "987654321098765432"
+        user_id:
+          type: string
+          format: uint64
+          description: User ID
+          example: "123456789012345678"
+          nullable: true
+        session_id:
+          type: string
+          format: uint64
+          description: Session ID
+          example: "123456789012345678"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        expires_at:
+          type: string
+          format: date-time
+          description: Sign-in expiration time
+          example: "2024-01-15T11:30:00Z"
+        active_organization_membership_id:
+          type: string
+          format: uint64
+          description: Active organization membership ID
+          example: "111111111111111111"
+          nullable: true
+        active_workspace_membership_id:
+          type: string
+          format: uint64
+          description: Active workspace membership ID
+          example: "222222222222222222"
+          nullable: true
+        active_organization_membership:
+          $ref: '#/components/schemas/OrganizationMembership'
+          description: Active organization membership details
+        active_workspace_membership:
+          $ref: '#/components/schemas/WorkspaceMembership'
+          description: Active workspace membership details
+
+    SignInAttempt:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+          description: Sign-in attempt ID
+          example: "555555555555555555"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        method:
+          type: string
+          description: Authentication method used
+          example: "email_otp"
+        completed:
+          type: boolean
+          description: Whether the attempt was completed
+          example: true
+        current_step:
+          type: string
+          description: Current step in the authentication flow
+          example: "verify_otp"
+          nullable: true
+
+    SignupAttempt:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+          description: Signup attempt ID
+          example: "666666666666666666"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+
+    OrganizationMembership:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+          description: Membership ID
+          example: "111111111111111111"
+        organization_id:
+          type: string
+          format: uint64
+          description: Organization ID
+          example: "777777777777777777"
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrganizationRole'
+          description: Roles assigned to this membership
+
+    OrganizationRole:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+          description: Role ID
+          example: "888888888888888888"
+        name:
+          type: string
+          description: Role name
+          example: "Admin"
+        permissions:
+          type: array
+          items:
+            type: string
+          description: Permissions granted by this role
+          example: ["organization:admin", "organization:manage"]
+
+    WorkspaceMembership:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+          description: Membership ID
+          example: "222222222222222222"
+        workspace_id:
+          type: string
+          format: uint64
+          description: Workspace ID
+          example: "999999999999999999"
+        organization_membership_id:
+          type: string
+          format: uint64
+          description: Parent organization membership ID
+          example: "111111111111111111"
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkspaceRole'
+          description: Roles assigned to this membership
+
+    WorkspaceRole:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+          description: Role ID
+          example: "101010101010101010"
+        name:
+          type: string
+          description: Role name
+          example: "Editor"
+        permissions:
+          type: array
+          items:
+            type: string
+          description: Permissions granted by this role
+          example: ["workspace:read", "workspace:write"]
+
+    ExchangeTicketResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Whether the ticket exchange was successful
+          example: true
+        message:
+          type: string
+          description: Success or error message
+          example: "Impersonation successful"
+        session_id:
+          type: string
+          description: Session ID (for agent access tickets)
+          example: "123456789012345678"
+          nullable: true
+        context_group:
+          type: string
+          description: Context group for agent access
+          example: "support-agents"
+          nullable: true
+        agents:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentInfo'
+          description: Available agents (for agent access tickets)
+        session:
+          $ref: '#/components/schemas/Session'
+          description: Updated session (for impersonation tickets)
+
+    AgentInfo:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Agent ID
+          example: "12345"
+        name:
+          type: string
+          description: Agent name
+          example: "Support Agent"
+        description:
+          type: string
+          description: Agent description
+          example: "Handles customer support queries"
+        integrations:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentIntegration'
+          description: Agent integrations
+
+    AgentIntegration:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+          description: Integration ID
+          example: "333333333333333333"
+        provider:
+          type: string
+          description: Integration provider
+          example: "openai"
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: "Invalid credentials"
+        code:
+          type: string
+          description: Error code
+          example: "INVALID_CREDENTIALS"
+
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: session_id
+      description: Session-based authentication using cookies

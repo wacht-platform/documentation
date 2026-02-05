@@ -1,0 +1,362 @@
+---
+title: 'Next.js SDK'
+description: 'Official Wacht SDK for Next.js applications'
+---
+
+## Overview
+
+The **Next.js SDK** (`@wacht/nextjs`) provides comprehensive authentication and user management for Next.js applications (App Router and Pages Router). It includes pre-built components, hooks for authentication flows, and utilities for managing users, organizations, and workspaces.
+
+## Key Features
+
+- **App Router & Pages Router Support** - Works with both Next.js routing systems
+- **Server Components** - Full support for React Server Components
+- **Authentication Components** - Pre-built sign-in, sign-up, and SSO callback components
+- **Authentication Hooks** - Hooks for handling sign-in, sign-up, password reset, and more
+- **Middleware Support** - Built-in middleware for route protection
+- **User Management** - Hooks and components for profile management
+- **Organization & Workspace Support** - Built-in support for multi-tenant applications
+- **Session Management** - Automatic session handling with token refresh
+- **Notifications** - Real-time notification support with hooks and components
+
+## Installation
+
+```bash
+pnpm add @wacht/nextjs @wacht/types
+```
+
+Or with npm:
+
+```bash
+npm install @wacht/nextjs @wacht/types
+```
+
+## Quick Start
+
+### 1. Create Environment Variables
+
+```bash
+# .env.local
+WACHT_PUBLIC_KEY=your_public_key_here
+```
+
+### 2. Configure Provider (App Router)
+
+Create a client component for the provider:
+
+```tsx
+// app/providers.tsx
+'use client'
+
+import { DeploymentProvider } from '@wacht/nextjs'
+
+export function Providers({ children }: { children: React.ReactNode }) {
+  return (
+    <DeploymentProvider publicKey={process.env.NEXT_PUBLIC_WACHT_PUBLIC_KEY!}>
+      {children}
+    </DeploymentProvider>
+  )
+}
+```
+
+Update your root layout:
+
+```tsx
+// app/layout.tsx
+import { Providers } from './providers'
+import './globals.css'
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body>
+        <Providers>{children}</Providers>
+      </body>
+    </html>
+  )
+}
+```
+
+### 3. Create Sign-In and Sign-Up Pages
+
+```tsx
+// app/signin/page.tsx
+import { SignInForm } from '@wacht/nextjs'
+
+export default function SignInPage() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="max-w-md w-full">
+        <h1 className="text-2xl font-bold mb-4">Sign In</h1>
+        <SignInForm />
+      </div>
+    </div>
+  )
+}
+```
+
+```tsx
+// app/signup/page.tsx
+import { SignUpForm } from '@wacht/nextjs'
+
+export default function SignUpPage() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="max-w-md w-full">
+        <h1 className="text-2xl font-bold mb-4">Sign Up</h1>
+        <SignUpForm />
+      </div>
+    </div>
+  )
+}
+```
+
+### 4. Protect Routes with Middleware
+
+Create middleware for route protection:
+
+```ts
+// middleware.ts
+import { createMiddlewareClient } from '@wacht/nextjs/server'
+
+export const { authMiddleware, requireAuth } = createMiddlewareClient()
+
+export default authMiddleware((req) => {
+  // Protect all routes under /dashboard
+  if (req.nextUrl.pathname.startsWith('/dashboard')) {
+    return requireAuth(req)
+  }
+
+  // Allow access to other routes
+  return {}
+})
+
+export const config = {
+  matcher: ['/dashboard/:path*']
+}
+```
+
+### 5. Use Server Components
+
+```tsx
+// app/dashboard/page.tsx
+import { SignedIn } from '@wacht/nextjs'
+import { getSession } from '@wacht/nextjs/server'
+
+export default async function DashboardPage() {
+  const session = await getSession()
+
+  return (
+    <div>
+      <h1>Dashboard</h1>
+      <SignedIn>
+        <p>Welcome, {session.user.first_name}!</p>
+      </SignedIn>
+    </div>
+  )
+}
+```
+
+## Pages Router Setup
+
+For Pages Router, wrap your pages in `_app.tsx`:
+
+```tsx
+// pages/_app.tsx
+import type { AppProps } from 'next/app'
+import { DeploymentProvider } from '@wacht/nextjs'
+
+export default function App({ Component, pageProps }: AppProps) {
+  return (
+    <DeploymentProvider publicKey={process.env.NEXT_PUBLIC_WACHT_PUBLIC_KEY!}>
+      <Component {...pageProps} />
+    </DeploymentProvider>
+  )
+}
+```
+
+## Configuration
+
+### Environment Variables
+
+```bash
+# .env.local
+NEXT_PUBLIC_WACHT_PUBLIC_KEY=your_public_key_here
+WACHT_FRONTEND_HOST=https://your-app.wacht.io
+```
+
+### UI Customization
+
+```tsx
+// app/providers.tsx
+'use client'
+
+import { DeploymentProvider } from '@wacht/nextjs'
+
+export function Providers({ children }: { children: React.ReactNode }) {
+  return (
+    <DeploymentProvider
+      publicKey={process.env.NEXT_PUBLIC_WACHT_PUBLIC_KEY!}
+      uiOverwrites={{
+        primaryColor: '#4f46e5',
+        borderRadius: '8px',
+        fontFamily: 'Inter, sans-serif'
+      }}
+    >
+      {children}
+    </DeploymentProvider>
+  )
+}
+```
+
+## Server-Side Helpers
+
+The Next.js SDK includes server-side helpers for App Router:
+
+### getSession
+
+Get the current session server-side:
+
+```tsx
+import { getSession } from '@wacht/nextjs/server'
+
+export default async function Page() {
+  const session = await getSession()
+
+  if (!session) {
+    redirect('/signin')
+  }
+
+  return <div>Welcome, {session.user.first_name}!</div>
+}
+```
+
+### requireAuth
+
+Helper to require authentication:
+
+```tsx
+import { requireAuth } from '@wacht/nextjs/server'
+
+export default async function ProtectedPage() {
+  const session = await requireAuth()
+
+  return <div>Hello, {session.user.first_name}!</div>
+}
+```
+
+## Components
+
+All components are available directly from the SDK:
+
+- `SignInForm` - Sign-in form component
+- `SignUpForm` - Sign-up form component
+- `UserButton` - User profile dropdown
+- `OrganizationSwitcher` - Organization/workspace switcher
+- `ManageAccount` - Account management
+- `ManageOrganization` - Organization management
+- `CreateOrganizationForm` - Create organization
+- `CreateWorkspaceForm` - Create workspace
+- `SignedIn` / `SignedOut` - Conditional rendering
+- `SSOCallback` - OAuth callback handler
+- `WaitlistForm` - Waitlist signup
+- `MagicLinkVerification` - Magic link verification
+- `NotificationBell` - Notification bell
+- `NotificationPopover` - Notification dropdown
+- `NotificationPanel` - Full notification panel
+
+## Hooks
+
+All hooks are available directly from the SDK:
+
+- `useSignIn` - Handle sign-in
+- `useSignUp` - Handle sign-up
+- `useSession` - Access session
+- `useUser` - Manage user profile
+- `useDeployment` - Access deployment config
+- `useClient` - Access HTTP client
+- `useNavigation` - Manage redirects
+- `useForgotPassword` - Password reset
+- `useMagicLinkVerification` - Magic link auth
+- `useSSOCallback` - OAuth callbacks
+- `useWaitlist` - Waitlist signup
+- `useOrganizationList` - List organizations
+- `useActiveOrganization` - Active organization
+- `useOrganizationMemberships` - Manage memberships
+- `useWorkspaceList` - List workspaces
+- `useActiveWorkspace` - Active workspace
+- `useWorkspaceMemberships` - Workspace memberships
+- `useNotifications` - Notifications
+- `useNotificationStream` - Real-time notifications
+- `useAgentContext` - AI agent context
+- `useAgentSession` - AI agent session
+- `useInvitation` - Handle invitations
+
+## Examples
+
+### Protected Server Component
+
+```tsx
+// app/dashboard/page.tsx
+import { SignedIn } from '@wacht/nextjs'
+import { getSession } from '@wacht/nextjs/server'
+
+export default async function Dashboard() {
+  const session = await getSession()
+
+  return (
+    <div>
+      <h1>Dashboard</h1>
+      <SignedIn>
+        <p>Welcome back, {session.user.first_name}!</p>
+      </SignedIn>
+    </div>
+  )
+}
+```
+
+### Client Component with Hooks
+
+```tsx
+// app/components/user-menu.tsx
+'use client'
+
+import { UserButton, useSession } from '@wacht/nextjs'
+
+export function UserMenu() {
+  const { session } = useSession()
+
+  return (
+    <div>
+      <p>Signed in as {session?.user.first_name}</p>
+      <UserButton />
+    </div>
+  )
+}
+```
+
+### Server Actions
+
+```tsx
+// app/actions/users.ts
+'use server'
+
+import { revalidatePath } from 'next/cache'
+import { getUserServer } from '@wacht/nextjs/server'
+
+export async function updateProfile(formData: FormData) {
+  const user = await getUserServer()
+
+  await updateUser(user.id, {
+    first_name: String(formData.get('firstName'))
+  })
+
+  revalidatePath('/profile')
+}
+```
+
+## Related
+
+- [React Router SDK](/react-router-sdk/introduction) - React Router SDK documentation
+- [TanStack Router SDK](/tanstack-router-sdk/introduction) - TanStack Router SDK documentation
+- [API Reference](/api-reference/frontend-api) - Frontend API reference

@@ -1,0 +1,24 @@
+# AI Agent details endpoint
+
+AIAgentDetails:
+  get:
+    summary: Get AI agent details
+    description: Get extended information about an AI agent
+    tags:
+      - AI Agents
+    parameters:
+      - $ref: '#/components/parameters/AgentId'
+    responses:
+      '200':
+        description: AI agent details
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/AIAgent'
+                - type: object
+                  properties:
+                    configuration:
+                      type: object
+      '404':
+        $ref: '#/components/responses/NotFound'

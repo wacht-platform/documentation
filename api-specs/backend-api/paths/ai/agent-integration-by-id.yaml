@@ -1,0 +1,62 @@
+# Agent integration by ID operations
+
+AIAgentIntegrationById:
+  get:
+    summary: Get agent integration by ID
+    description: Retrieve a specific agent integration
+    tags:
+      - AI Integrations
+    parameters:
+      - $ref: '#/components/parameters/AgentId'
+      - $ref: '#/components/parameters/IntegrationId'
+    responses:
+      '200':
+        description: Integration found
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                agent_id:
+                  type: string
+                integration_type:
+                  type: string
+
+  patch:
+    summary: Update agent integration
+    description: Update an agent integration
+    tags:
+      - AI Integrations
+    parameters:
+      - $ref: '#/components/parameters/AgentId'
+      - $ref: '#/components/parameters/IntegrationId'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              config:
+                type: object
+    responses:
+      '200':
+        description: Integration updated
+      '404':
+        $ref: '#/components/responses/NotFound'
+
+  delete:
+    summary: Delete agent integration
+    description: Remove an integration from an agent
+    tags:
+      - AI Integrations
+    parameters:
+      - $ref: '#/components/parameters/AgentId'
+      - $ref: '#/components/parameters/IntegrationId'
+    responses:
+      '204':
+        description: Integration deleted
+      '404':
+        $ref: '#/components/responses/NotFound'

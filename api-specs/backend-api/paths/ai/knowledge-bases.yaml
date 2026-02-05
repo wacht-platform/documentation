@@ -1,0 +1,55 @@
+# AI Knowledge Bases list and create
+
+AIKnowledgeBases:
+  get:
+    summary: List knowledge bases
+    description: Get all AI knowledge bases with optional filtering
+    tags:
+      - AI Knowledge Bases
+    parameters:
+      - $ref: '#/components/parameters/Limit'
+      - $ref: '#/components/parameters/Offset'
+      - name: search
+        in: query
+        schema:
+          type: string
+    responses:
+      '200':
+        description: List of knowledge bases
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/PaginatedResponse'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/AIKnowledgeBase'
+
+  post:
+    summary: Create knowledge base
+    description: Create a new AI knowledge base
+    tags:
+      - AI Knowledge Bases
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - name
+            properties:
+              name:
+                type: string
+              description:
+                type: string
+    responses:
+      '200':
+        description: Knowledge base created
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AIKnowledgeBase'

@@ -1,0 +1,286 @@
+---
+title: 'AI Tools API'
+description: 'Working with AI tools in the Rust SDK'
+---
+
+# AI Tools API Guide
+
+
+Learn how to manage AI tools using the Wacht Rust SDK.
+
+## Prerequisites
+
+Before using any API methods, you must initialize the SDK:
+
+```rust
+use wacht::init_from_env;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Initialize from environment variables
+    // Requires: WACHT_API_KEY and WACHT_FRONTEND_HOST
+    init_from_env().await?;
+
+    // Now you can use the API
+    Ok(())
+}
+```
+
+## List AI Tools
+
+Get all AI tools in your deployment.
+
+### Basic List
+
+```rust
+use wacht::api::ai;
+
+// Fetch all tools (default pagination)
+let tools = ai::list_tools()
+    .send()
+    .await?;
+
+for tool in tools.data {
+    println!("{}: {}", tool.name, tool.description.unwrap_or_default());
+}
+```
+
+### With Filters
+
+```rust
+use wacht::api::ai;
+
+// Fetch active tools with pagination
+let tools = ai::list_tools()
+    .limit(50)
+    .offset(0)
+    .is_active(true)
+    .search("weather")
+    .send()
+    .await?;
+
+for tool in tools.data {
+    println!("{} (type: {})", tool.name, tool.tool_type);
+}
+```
+
+## Get AI Tool
+
+Retrieve a specific AI tool by ID.
+
+```rust
+use wacht::api::ai;
+
+let tool = ai::fetch_tool("tool_123")
+    .send()
+    .await?;
+
+println!("Tool: {}", tool.name);
+println!("Type: {}", tool.tool_type);
+println!("Description: {:?}", tool.description);
+```
+
+## Create AI Tool
+
+Create a new AI tool with custom configuration.
+
+### API Tool Creation
+
+```rust
+use wacht::api::ai;
+use wacht::models::{CreateAiToolRequest, AiToolConfiguration, ApiToolConfiguration, HttpMethod};
+
+let tool = ai::create_tool(CreateAiToolRequest {
+    name: "weather-api".to_string(),
+    description: Some("Fetch weather information".to_string()),
+    tool_type: "api".to_string(),
+    configuration: AiToolConfiguration::Api(ApiToolConfiguration {
+        endpoint: "https://api.weather.com".to_string(),
+        method: HttpMethod::Get,
+        authorization: None,
+        request_body_schema: None,
+        url_params_schema: None,
+        timeout_seconds: Some(30),
+    }),
+})
+.send()
+.await?;
+
+println!("Created tool: {}", tool.id);
+```
+
+### Platform Function Tool
+
+```rust
+use wacht::api::ai;
+use wacht::models::{CreateAiToolRequest, AiToolConfiguration, PlatformFunctionToolConfiguration, SchemaField};
+
+let tool = ai::create_tool(CreateAiToolRequest {
+    name: "user-lookup".to_string(),
+    description: Some("Look up user information".to_string()),
+    tool_type: "platform_function".to_string(),
+    configuration: AiToolConfiguration::PlatformFunction(PlatformFunctionToolConfiguration {
+        function_name: "get_user".to_string(),
+        function_description: Some("Retrieve user details".to_string()),
+        input_schema: Some(vec![
+            SchemaField {
+                name: "user_id".to_string(),
+                field_type: "string".to_string(),
+                required: true,
+                description: Some("User ID to look up".to_string()),
+                items_type: None,
+            }
+        ]),
+        output_schema: None,
+        is_overridable: true,
+    }),
+})
+.send()
+.await?;
+```
+
+## Update AI Tool
+
+Modify an existing AI tool's configuration.
+
+```rust
+use wacht::api::ai;
+use wacht::models::UpdateAiToolRequest;
+
+let updated = ai::update_tool(
+    "tool_123",
+    UpdateAiToolRequest {
+        name: Some("weather-api-v2".to_string()),
+        description: Some("Enhanced weather tool".to_string()),
+        ..Default::default()
+    }
+)
+.send()
+.await?;
+```
+
+## Delete AI Tool
+
+Permanently delete an AI tool.
+
+```rust
+use wacht::api::ai;
+
+ai::delete_tool("tool_123")
+    .send()
+    .await?;
+```
+
+## Builder Methods
+
+### ListToolsBuilder
+
+- `limit(i32)` - Number of results to return (max 100)
+- `offset(i32)` - Number of results to skip
+- `search(&str)` - Search tools by name or description
+- `is_active(bool)` - Filter by active status
+
+## Request Models
+
+### CreateAiToolRequest
+
+- `name` (String) - Tool name (required)
+- `tool_type` (String) - Type of tool (required, e.g., "function", "retrieval")
+- `configuration` (AiToolConfiguration) - Tool configuration (required)
+
+### UpdateAiToolRequest
+
+All fields are optional - only include what you want to change:
+
+- `name` (Option&lt;String&gt;)
+- `description` (Option&lt;String&gt;)
+- `configuration` (Option&lt;serde_json::Value&gt;)
+
+### AiToolConfiguration
+
+- `description` (Option&lt;String&gt;) - Tool description
+- `parameters` (Option&lt;serde_json::Value&gt;) - Function parameters schema
+- `endpoint` (Option&lt;String&gt;) - API endpoint URL
+- `method` (Option&lt;String&gt;) - HTTP method
+- `headers` (Option&lt;serde_json::Value&gt;) - HTTP headers
+
+## Tool Types
+
+Common tool types include:
+
+- `function` - Function calling tools with JSON schemas
+- `retrieval` - Knowledge retrieval tools
+- `code_interpreter` - Code execution tools
+- `custom` - Custom tool implementations
+
+## Configuration Examples
+
+### Function Calling Tool
+
+```rust
+AiToolConfiguration {
+    description: Some("Get current weather".to_string()),
+    parameters: Some(serde_json::json!({
+        "type": "object",
+        "properties": {
+            "location": {
+                "type": "string",
+                "description": "City and state, e.g. San Francisco, CA"
+            },
+            "unit": {
+                "type": "string",
+                "enum": ["celsius", "fahrenheit"],
+                "description": "Temperature unit"
+            }
+        },
+        "required": ["location"]
+    })),
+    endpoint: None,
+    method: None,
+    headers: None,
+}
+```
+
+### API Integration Tool
+
+```rust
+AiToolConfiguration {
+    description: Some("Fetch user data".to_string()),
+    endpoint: Some("https://api.example.com/users/{id}".to_string()),
+    method: Some("GET".to_string()),
+    headers: Some(serde_json::json!({
+        "Authorization": "Bearer {api_key}",
+        "Accept": "application/json"
+    })),
+    parameters: None,
+}
+```
+
+## Error Handling
+
+All SDK methods return a `Result<T, Error>`:
+
+```rust
+use wacht::{Error, api::ai};
+
+match ai::fetch_tool("invalid_id").send().await {
+    Ok(tool) => println!("Tool: {}", tool.name),
+    Err(Error::Api { status, message, .. }) => {
+        eprintln!("API Error {}: {}", status, message);
+    }
+    Err(Error::Request(e)) => {
+        eprintln!("Network error: {}", e);
+    }
+    Err(e) => {
+        eprintln!("Other error: {}", e);
+    }
+}
+```
+
+## Related
+
+- [Installation](/rust-sdk/installation) - SDK setup
+- [Agents Guide](/rust-sdk/guide/agents) - AI agent management
+- [Knowledge Bases Guide](/rust-sdk/guide/knowledge-bases) - Knowledge base management
+- [Execution Context Guide](/rust-sdk/guide/execution-context) - Agent execution
+- [API Reference - Backend API](/api-reference/backend-api/ai-tools) - Full API docs

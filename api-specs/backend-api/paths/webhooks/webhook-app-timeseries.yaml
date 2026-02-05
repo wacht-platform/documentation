@@ -1,0 +1,34 @@
+# Webhook app timeseries endpoint
+
+WebhookAppTimeseries:
+  get:
+    summary: Get webhook timeseries
+    description: Get time-series data for webhook analytics
+    tags:
+      - Webhooks
+    parameters:
+      - $ref: '#/components/parameters/WebhookAppName'
+    responses:
+      '200':
+        description: Time-series data
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      timestamp:
+                        type: string
+                        format: date-time
+                      count:
+                        type: integer
+                      success_count:
+                        type: integer
+                      failure_count:
+                        type: integer
+      '404':
+        $ref: '#/components/responses/NotFound'

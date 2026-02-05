@@ -1,0 +1,86 @@
+# Notifications endpoint
+
+Notifications:
+  post:
+    summary: Create notification
+    description: Send a notification to users
+    tags:
+      - Notifications
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - recipients
+              - title
+              - message
+            properties:
+              recipients:
+                type: object
+                description: Define who should receive the notification
+                properties:
+                  type:
+                    type: string
+                    enum: [all, segment, users, org, workspace]
+                  segment_id:
+                    type: string
+                  user_ids:
+                    type: array
+                    items:
+                      type: string
+                  organization_id:
+                    type: string
+                  workspace_id:
+                    type: string
+              title:
+                type: string
+                description: Notification title
+              message:
+                type: string
+                description: Notification message content
+              type:
+                type: string
+                enum: [info, warning, error, success]
+                default: info
+              channels:
+                type: array
+                items:
+                  type: string
+                  enum: [email, in_app, push, sms]
+                description: Delivery channels
+              priority:
+                type: string
+                enum: [low, normal, high, urgent]
+                default: normal
+              data:
+                type: object
+                description: Additional metadata
+              expires_at:
+                type: integer
+                format: int64
+                description: Unix timestamp when notification expires
+    responses:
+      '200':
+        description: Notification created
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                notification_id:
+                  type: string
+                recipient_count:
+                  type: integer
+                status:
+                  type: string
+                  enum: [queued, sent, failed]
+      '400':
+        description: Bad request
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Error'
+            example:
+              message: "Invalid request data"

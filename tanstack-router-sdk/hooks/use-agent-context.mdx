@@ -1,0 +1,348 @@
+---
+title: useAgentContext
+description: Manage real-time AI agent chat with SSE streaming.
+---
+
+# useAgentContext
+
+The `useAgentContext` hook manages real-time AI agent chat sessions using Server-Sent Events (SSE) for streaming responses.
+
+## Return Value
+
+<ParamField path="messages" type="ConversationMessage[]">
+  List of conversation messages
+</ParamField>
+
+<ParamField path="quickQuestions" type="string[]">
+  Suggested quick questions the user can ask
+</ParamField>
+
+<ParamField path="pendingMessage" type="string | null">
+  The message currently being generated
+</ParamField>
+
+<ParamField path="pendingImages" type="ImageData[] | null">
+  Images currently being processed
+</ParamField>
+
+<ParamField path="pendingFiles" type="File[] | null">
+  Files currently being processed
+</ParamField>
+
+<ParamField path="connectionState" type="ConnectionState">
+  The current connection state
+</ParamField>
+
+<ParamField path="isConnected" type="boolean">
+  Whether the SSE connection is active
+</ParamField>
+
+<ParamField path="isExecuting" type="boolean">
+  Whether the agent is currently executing
+</ParamField>
+
+<ParamField path="executionStatus" type="FrontendStatus">
+  The current execution status
+</ParamField>
+
+<ParamField path="isWaitingForInput" type="boolean">
+  Whether the agent is waiting for user input
+</ParamField>
+
+<ParamField path="hasMoreMessages" type="boolean">
+  Whether there are more messages to load
+</ParamField>
+
+<ParamField path="isLoadingMore" type="boolean">
+  Whether more messages are being loaded
+</ParamField>
+
+<ParamField path="sendMessage">
+  <Expandable title="Send a message to the agent">
+    <ParamField path="message" type="string">
+      The message content to send
+    </ParamField>
+    <ParamField path="attachments" type="MessageAttachment[]">
+      Optional file attachments
+    </ParamField>
+    <ParamField path="files" type="File[]">
+      Optional file uploads
+    </ParamField>
+    <ParamField path="returns" type="Promise<void>">
+      Resolves when the message is sent
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="submitUserInput">
+  <Expandable title="Submit user input when requested">
+    <ParamField path="input" type="string">
+      The user input value
+    </ParamField>
+    <ParamField path="returns" type="Promise<void>">
+      Resolves when the input is submitted
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="clearMessages">
+  <Expandable title="Clear all messages">
+    <ParamField path="returns" type="void">
+      No return value
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="loadMoreMessages">
+  <Expandable title="Load more messages from history">
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when more messages are loaded
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="cancelExecution">
+  <Expandable title="Cancel the current execution">
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the execution is cancelled
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="connect">
+  <Expandable title="Manually connect the SSE stream">
+    <ParamField path="returns" type="void">
+      No return value
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="disconnect">
+  <Expandable title="Manually disconnect the SSE stream">
+    <ParamField path="returns" type="void">
+      No return value
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+```tsx
+import { useAgentContext } from "@wacht/tanstack-router";
+
+function AgentChat({ contextId, agentName }: { contextId: string; agentName: string }) {
+  const {
+    messages,
+    pendingMessage,
+    isConnected,
+    isExecuting,
+    sendMessage,
+  } = useAgentContext({
+    contextId,
+    agentName,
+  });
+
+  return (
+    <div>
+      <ConnectionStatus connected={isConnected} />
+      <MessageList messages={messages} />
+      <PendingMessage message={pendingMessage} />
+      <InputForm onSend={sendMessage} />
+    </div>
+  );
+}
+```
+
+## Parameters
+
+<ParamField path="contextId" type="string" required>
+  The context ID for the agent conversation
+</ParamField>
+
+<ParamField path="agentName" type="string" required>
+  The name of the agent
+</ParamField>
+
+<ParamField path="platformAdapter" type="object">
+  Platform adapter for platform events and functions
+</ParamField>
+
+<ParamField path="onUserInputRequest">
+  <Expandable title="Callback for user input requests">
+    <ParamField path="request" type="UserInputRequestContent">
+      The user input request containing the question and input type
+    </ParamField>
+    <ParamField path="response">
+      <Expandable title="Function to call with the user's response">
+        <ParamField path="value" type="string">
+          The user's response value
+        </ParamField>
+        <ParamField path="returns" type="void">
+          No return value
+        </ParamField>
+      </Expandable>
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+## Data Structures
+
+<Expandable title="ConversationMessage">
+
+```typescript
+interface ConversationMessage {
+  id: string;
+  role: "user" | "assistant" | "system";
+  content: ConversationContent;
+  timestamp: string;
+  metadata?: {
+    message_type: MessageType;
+  };
+}
+```
+
+</Expandable>
+
+<Expandable title="ImageData">
+
+```typescript
+interface ImageData {
+  mime_type: string;
+  url?: string;
+  data?: string;
+  size_bytes?: number;
+}
+```
+
+</Expandable>
+
+<Expandable title="UserInputRequestContent">
+
+```typescript
+interface UserInputRequestContent {
+  type: "user_input_request";
+  question: string;
+  context: string;
+  input_type: "text" | "number" | "select" | "multiselect" | "boolean" | "date";
+  options?: string[];
+  default_value?: string;
+  placeholder?: string;
+}
+```
+
+</Expandable>
+
+## Examples
+
+### Basic Chat Interface
+
+```tsx
+import { useAgentContext } from "@wacht/tanstack-router";
+
+function ChatInterface() {
+  const { messages, sendMessage, isConnected } = useAgentContext({
+    contextId: "ctx_123",
+    agentName: "assistant",
+  });
+
+  return (
+    <div>
+      {!isConnected && <p>Connecting...</p>}
+      <MessageList messages={messages} />
+      <Input
+        placeholder="Type a message..."
+        onSend={(msg) => sendMessage(msg)}
+      />
+    </div>
+  );
+}
+```
+
+### With File Upload
+
+```tsx
+import { useAgentContext } from "@wacht/tanstack-router";
+
+function FileUploadChat() {
+  const { sendMessage, pendingFiles } = useAgentContext({
+    contextId: "ctx_123",
+    agentName: "assistant",
+  });
+
+  const handleSend = async (message: string, files: FileList) => {
+    await sendMessage(message, [], Array.from(files));
+  };
+
+  return (
+    <div>
+      <input type="file" onChange={(e) => handleSend("Hi", e.target.files)} />
+      {pendingFiles && <p>Uploading {pendingFiles.length} files...</p>}
+    </div>
+  );
+}
+```
+
+### Cancel Execution
+
+```tsx
+import { useAgentContext } from "@wacht/tanstack-router";
+
+function ChatWithCancel() {
+  const { isExecuting, cancelExecution } = useAgentContext({
+    contextId: "ctx_123",
+    agentName: "assistant",
+  });
+
+  return (
+    <div>
+      {isExecuting && (
+        <button onClick={() => cancelExecution()}>
+          Cancel
+        </button>
+      )}
+    </div>
+  );
+}
+```
+
+### Load More Messages
+
+```tsx
+import { useAgentContext } from "@wacht/tanstack-router";
+
+function InfiniteScrollChat() {
+  const { messages, hasMoreMessages, isLoadingMore, loadMoreMessages } = useAgentContext({
+    contextId: "ctx_123",
+    agentName: "assistant",
+  });
+
+  return (
+    <div>
+      <MessageList messages={messages} />
+      {hasMoreMessages && (
+        <button onClick={loadMoreMessages} disabled={isLoadingMore}>
+          Load More
+        </button>
+      )}
+    </div>
+  );
+}
+```
+
+## SSE Connection
+
+The hook establishes an SSE connection to:
+
+```
+https://{backend_host}/realtime/agent/stream?context_id={contextId}
+```
+
+Features:
+
+- Automatic reconnection with exponential backoff
+- Platform event and user input request support
+- Ping/pong for connection health
+- Session-based authentication
+
+## Related
+
+- [useAgentSession](./use-agent-session) - Agent session management
+- [useAgentIntegrations](./use-agent-integrations) - Agent integrations

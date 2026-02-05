@@ -1,0 +1,203 @@
+---
+title: useSession
+description: Access and manage the current user session.
+---
+
+# useSession
+
+The `useSession` hook provides access to the current user session and methods for session management including switching organizations/workspaces and signing out.
+
+## Return Value
+
+<ParamField path="session" type="Session | null">
+  The current session object
+</ParamField>
+
+<ParamField path="loading" type="boolean">
+  Whether session data is loading
+</ParamField>
+
+<ParamField path="error" type="Error | null">
+  Any error that occurred
+</ParamField>
+
+<ParamField path="refetch">
+  <Expandable title="Refetch session data from server">
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when session data is refetched
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="switchSignIn">
+  <Expandable title="Switch to a different sign-in (multi-session)">
+    <ParamField path="signinId" type="string">
+      The sign-in ID to switch to
+    </ParamField>
+    <ParamField path="returns" type="Promise<void>">
+      Resolves when the sign-in is switched
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="signOut">
+  <Expandable title="Sign out (all or specific session)">
+    <ParamField path="options" type="{ signInId?: string; all?: boolean }">
+      Optional sign-in ID or sign out from all sessions
+    </ParamField>
+    <ParamField path="returns" type="Promise<void>">
+      Resolves when signed out
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="getToken">
+  <Expandable title="Get a session token (optionally for a specific token template)">
+    <ParamField path="tokenTemplate" type="string">
+      Optional token template name
+    </ParamField>
+    <ParamField path="returns" type="Promise<string>">
+      The session token
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="switchOrganization">
+  <Expandable title="Switch active organization">
+    <ParamField path="organizationId" type="string">
+      The organization ID to switch to
+    </ParamField>
+    <ParamField path="returns" type="Promise<void>">
+      Resolves when the organization is switched
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="switchWorkspace">
+  <Expandable title="Switch active workspace">
+    <ParamField path="workspaceId" type="string">
+      The workspace ID to switch to
+    </ParamField>
+    <ParamField path="returns" type="Promise<void>">
+      Resolves when the workspace is switched
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="exchangeTicket">
+  <Expandable title="Exchange an impersonation ticket">
+    <ParamField path="ticket" type="string">
+      The ticket token to exchange
+    </ParamField>
+    <ParamField path="returns" type="Promise<Session>">
+      The session after ticket exchange
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+## Session Object
+
+```typescript
+interface Session {
+  signins: SigninAttempt[];
+  active_signin: {
+    id: string;
+    user: {
+      id: string;
+      first_name: string;
+      last_name: string;
+      username?: string;
+      primary_email_address: EmailAddress;
+      profile_picture_url?: string;
+      has_passkeys: boolean;
+    };
+    active_organization_membership_id?: string;
+    active_workspace_membership_id?: string;
+  };
+}
+```
+
+## Examples
+
+<RequestExample>
+
+```tsx Get Session Data
+import { useSession } from "@wacht/tanstack-router";
+
+function UserInfo() {
+  const { session } = useSession();
+  const user = session?.active_signin?.user;
+
+  return (
+    <div>
+      <p>Name: {user?.first_name} {user?.last_name}</p>
+      <p>Email: {user?.primary_email_address?.email}</p>
+    </div>
+  );
+}
+```
+
+</RequestExample>
+
+<RequestExample>
+
+```tsx Sign Out
+import { useSession } from "@wacht/tanstack-router";
+
+function SignOutButton() {
+  const { signOut } = useSession();
+
+  return (
+    <button onClick={() => signOut()}>
+      Sign Out
+    </button>
+  );
+}
+```
+
+</RequestExample>
+
+<RequestExample>
+
+```tsx Switch Organization
+import { useSession } from "@wacht/tanstack-router";
+
+function OrgSwitcher() {
+  const { session, switchOrganization } = useSession();
+
+  const handleSwitch = async (orgId: string) => {
+    await switchOrganization(orgId);
+  };
+
+  return <button onClick={() => handleSwitch("org_123")}>
+    Switch Organization
+  </button>;
+}
+```
+
+</RequestExample>
+
+<RequestExample>
+
+```tsx Get Bearer Token for API Requests
+import { useSession } from "@wacht/tanstack-router";
+
+async function fetchWithAuth(url: string) {
+  const { getToken } = useSession();
+  const token = await getToken();
+
+  return fetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+```
+
+</RequestExample>
+
+## Related
+
+- [useSignIn](./use-sign-in) - Sign-in management
+- [useSignUp](./use-sign-up) - Sign-up management
+- [useUser](./use-user) - User profile management

@@ -1,0 +1,42 @@
+---
+title: SignInForm
+description: A complete sign-in form with email/password, OTP, magic link, passkey, and social authentication support.
+---
+
+# SignInForm
+
+Complete sign-in interface supporting email/password, email OTP, phone OTP, magic links, passkeys, social OAuth, SSO, two-factor authentication, forgot password, and profile completion.
+
+```tsx
+import { SignInForm } from "@wacht/react-router";
+
+export default function SignInPage() {
+  return <SignInForm />;
+}
+```
+
+The form adapts based on your deployment's authentication settings:
+
+1. **Identification Phase** - User enters email/username/phone
+2. **Strategy Detection** - System detects available authentication methods
+3. **Authentication Phase** - User completes authentication (password, OTP, etc.)
+4. **Verification Phase** - Email/phone verification if required
+5. **Second Factor** - 2FA if enabled
+6. **Profile Completion** - Additional profile info if required
+7. **Redirect** - User is redirected to the appropriate page
+
+## Redirect Handling
+
+After successful sign-in, the user is redirected based on:
+
+1. The `redirect_uri` query parameter (if present)
+2. The `after_signin_redirect_url` deployment setting
+3. The deployment's frontend host (fallback)
+
+For example, `/signin?redirect_uri=/dashboard` will bring users to `/dashboard` after sign-in completes.
+
+## Related
+
+- [SignUpForm](./sign-up-form) - Sign-up form component
+- [useSignIn](../hooks/use-sign-in) - Hook for custom sign-in flows
+- [useNavigation](../hooks/use-navigation) - Navigation utilities

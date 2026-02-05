@@ -1,0 +1,60 @@
+# Workspace by ID operations
+
+WorkspaceById:
+  get:
+    summary: Get workspace by ID
+    description: Retrieve a specific workspace
+    tags:
+      - Workspaces
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+    responses:
+      '200':
+        description: Workspace found
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Workspace'
+      '404':
+        $ref: '#/components/responses/NotFound'
+
+  patch:
+    summary: Update workspace
+    description: Update workspace information
+    tags:
+      - Workspaces
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+              description:
+                type: string
+    responses:
+      '200':
+        description: Workspace updated
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Workspace'
+      '404':
+        $ref: '#/components/responses/NotFound'
+
+  delete:
+    summary: Delete workspace
+    description: Permanently delete a workspace
+    tags:
+      - Workspaces
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+    responses:
+      '204':
+        description: Workspace deleted
+      '404':
+        $ref: '#/components/responses/NotFound'

@@ -1,0 +1,162 @@
+---
+title: useAgentIntegrations
+description: Manage third-party integrations for AI agents.
+---
+
+# useAgentIntegrations
+
+The `useAgentIntegrations` hook manages third-party integrations (like Google Drive, Slack, etc.) for AI agents, including OAuth consent URL generation and integration removal.
+
+## Parameters
+
+<ParamField path="agentName" type="string | null">
+  The name of the agent to fetch integrations for
+</ParamField>
+
+## Return Value
+
+<ParamField path="integrations" type="AgentIntegration[]">
+  List of available integrations for the agent
+</ParamField>
+
+<ParamField path="loading" type="boolean">
+  Whether integrations are loading
+</ParamField>
+
+<ParamField path="error" type="Error | null">
+  Any error that occurred
+</ParamField>
+
+<ParamField path="generateConsentURL">
+  <Expandable title="Generate an OAuth consent URL for connecting an integration">
+    <ParamField path="integrationId" type="string">
+      The integration ID to generate a consent URL for
+    </ParamField>
+    <ParamField path="returns" type="Promise<ConsentURLResponse>">
+      The consent URL response containing the URL and state
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="removeIntegration">
+  <Expandable title="Disconnect and remove an integration">
+    <ParamField path="integrationId" type="string">
+      The integration ID to remove
+    </ParamField>
+    <ParamField path="returns" type="Promise<void>">
+      Resolves when the integration is removed
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="refetch">
+  <Expandable title="Refetch the integrations list">
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the integrations list is refetched
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+## Data Structures
+
+<Expandable title="AgentIntegration">
+
+```typescript
+interface AgentIntegration {
+  id: string;                    // Unique identifier for the integration
+  name: string;                  // Display name of the integration
+  integration_type: string;      // Type of integration (e.g., "google_drive", "slack")
+  agent_id: string;              // ID of the associated agent
+  is_active: boolean;            // Whether the integration is currently connected
+  connection_metadata?: Record<string, any>;  // Additional connection details
+}
+```
+
+</Expandable>
+
+<Expandable title="ConsentURLResponse">
+
+```typescript
+interface ConsentURLResponse {
+  consent_url: string;  // URL to redirect user to for OAuth consent
+  state: string;        // OAuth state parameter for security
+  expires_in: number;   // Number of seconds until the consent URL expires
+}
+```
+
+</Expandable>
+
+## Examples
+
+### List Integrations
+
+```tsx
+import { useAgentIntegrations } from "@wacht/nextjs";
+
+function IntegrationsList({ agentName }: { agentName: string }) {
+  const { integrations, loading } = useAgentIntegrations(agentName);
+
+  if (loading) return <div>Loading...</div>;
+
+  return (
+    <ul>
+      {integrations.map((integration) => (
+        <li key={integration.id}>
+          {integration.name}
+          {integration.is_active && " ✓"}
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+### Connect Integration
+
+```tsx
+import { useAgentIntegrations } from "@wacht/nextjs";
+
+function ConnectIntegration({ agentName }: { agentName: string }) {
+  const { generateConsentURL } = useAgentIntegrations(agentName);
+  const [integratingId, setIntegratingId] = useState<string | null>(null);
+
+  const handleConnect = async (integrationId: string) => {
+    setIntegratingId(integrationId);
+    const result = await generateConsentURL(integrationId);
+    // Redirect user to consent page
+    window.location.href = result.consent_url;
+  };
+
+  return (
+    <button onClick={() => handleConnect("google_drive")} disabled={integratingId !== null}>
+      Connect Google Drive
+    </button>
+  );
+}
+```
+
+### Disconnect Integration
+
+```tsx
+import { useAgentIntegrations } from "@wacht/nextjs";
+
+function IntegrationItem({ integration, agentName }: { integration: AgentIntegration; agentName: string }) {
+  const { removeIntegration } = useAgentIntegrations(agentName);
+
+  return (
+    <li>
+      {integration.name}
+      {integration.is_active && (
+        <button onClick={() => removeIntegration(integration.id)}>
+          Disconnect
+        </button>
+      )}
+    </li>
+  );
+}
+```
+
+## Related
+
+- [useAgentContext](./use-agent-context) - Agent chat context
+- [useAgentSession](./use-agent-session) - Agent session management

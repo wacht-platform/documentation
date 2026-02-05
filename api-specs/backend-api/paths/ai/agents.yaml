@@ -1,0 +1,59 @@
+# AI Agents list and create
+
+AIAgents:
+  get:
+    summary: List AI agents
+    description: Get all AI agents with optional filtering
+    tags:
+      - AI Agents
+    parameters:
+      - $ref: '#/components/parameters/Limit'
+      - $ref: '#/components/parameters/Offset'
+      - name: is_active
+        in: query
+        schema:
+          type: boolean
+      - name: search
+        in: query
+        schema:
+          type: string
+    responses:
+      '200':
+        description: List of AI agents
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/PaginatedResponse'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/AIAgent'
+
+  post:
+    summary: Create AI agent
+    description: Create a new AI agent
+    tags:
+      - AI Agents
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - name
+            properties:
+              name:
+                type: string
+              description:
+                type: string
+    responses:
+      '200':
+        description: AI agent created
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AIAgent'

@@ -1,0 +1,1063 @@
+openapi: 3.0.3
+info:
+  title: Wacht Backend API - Workspaces
+  description: |
+    Complete API for managing workspaces, members, and roles.
+
+    ## Authentication
+
+    All requests require API key authentication using the `Authorization` header:
+
+    ```
+    Authorization: Bearer {your_api_key}
+    ```
+
+    ## Pagination
+
+    List endpoints return paginated responses with the following structure:
+
+    ```json
+    {
+      "data": [...],
+      "has_more": true,
+      "limit": 10,
+      "offset": 0
+    }
+    ```
+
+    - `data`: Array of results
+    - `has_more`: Whether there are more results available
+    - `limit`: Number of items per page (only included if explicitly set)
+    - `offset`: Number of items skipped (only included if explicitly set)
+  version: 1.0.0
+
+servers:
+  - url: https://api.wacht.dev
+    description: Production server
+
+security:
+  - ApiKeyAuth: []
+
+tags:
+  - name: Workspaces
+    description: Workspace management
+  - name: Workspace Members
+    description: Workspace member management
+  - name: Workspace Roles
+    description: Workspace role management
+
+paths:
+  /workspaces:
+    get:
+      summary: List workspaces
+      description: |
+        Get a paginated list of workspaces in your deployment.
+      operationId: listWorkspaces
+      tags:
+        - Workspaces
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Number of items to return per page
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          description: Number of items to skip
+        - name: sort_key
+          in: query
+          schema:
+            type: string
+            default: created_at
+          description: Field to sort by
+        - name: sort_order
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          description: Sort order (ascending or descending)
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search query to filter results
+      responses:
+        '200':
+          description: List of workspaces retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WorkspaceWithOrganizationName'
+                  has_more:
+                    type: boolean
+                    description: Whether there are more results available
+                  limit:
+                    type: integer
+                    description: Number of items per page
+                    nullable: true
+                  offset:
+                    type: integer
+                    description: Number of items skipped
+                    nullable: true
+                required:
+                  - data
+                  - has_more
+              examples:
+                success:
+                  summary: Paginated workspaces
+                  value:
+                    data:
+                      - id: "4444444444"
+                        created_at: "2024-01-15T10:30:00Z"
+                        updated_at: "2024-01-20T15:45:00Z"
+                        name: "Engineering"
+                        description: "Engineering team workspace"
+                        image_url: "https://cdn.wacht.dev/workspaces/engineering.png"
+                        member_count: 10
+                        organization_name: "Acme Corp"
+                    has_more: true
+                    limit: 10
+                    offset: 0
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /workspaces/{workspace_id}:
+    get:
+      summary: Get workspace details
+      description: |
+        Get complete workspace information.
+      operationId: getWorkspaceDetails
+      tags:
+        - Workspaces
+      parameters:
+        - name: workspace_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Workspace ID (integer as string)
+          example: "4444444444"
+      responses:
+        '200':
+          description: Workspace details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceDetails'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    patch:
+      summary: Update workspace
+      description: |
+        Update workspace information.
+
+        This endpoint accepts `multipart/form-data` to support image uploads.
+      operationId: updateWorkspace
+      tags:
+        - Workspaces
+      parameters:
+        - name: workspace_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Workspace ID (integer as string)
+          example: "4444444444"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Workspace name
+                description:
+                  type: string
+                  description: Workspace description
+                image_url:
+                  type: string
+                  format: uri
+                  description: Workspace image URL
+                public_metadata:
+                  type: string
+                  description: Public metadata as JSON string
+                  example: '{"department": "engineering"}'
+                private_metadata:
+                  type: string
+                  description: Private metadata as JSON string
+                  example: '{"internal_id": "12345"}'
+                remove_image:
+                  type: string
+                  description: Set to "true" to remove the current image
+                  enum: ["true", "false"]
+                image:
+                  type: string
+                  format: binary
+                  description: Workspace image file (JPEG, PNG, GIF, WEBP, or ICO)
+            encoding:
+              image:
+                contentType: image/jpeg, image/png, image/gif, image/webp, image/x-icon, image/vnd.microsoft.icon
+      responses:
+        '200':
+          description: Workspace updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      summary: Delete workspace
+      description: |
+        Permanently delete a workspace.
+
+        **Warning**: This action cannot be undone. All workspace data including:
+        - Members
+        - Roles
+        - Associated resources
+
+        will be permanently deleted.
+      operationId: deleteWorkspace
+      tags:
+        - Workspaces
+      parameters:
+        - name: workspace_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Workspace ID (integer as string)
+          example: "4444444444"
+      responses:
+        '204':
+          description: Workspace deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /workspaces/roles:
+    get:
+      summary: Get deployment workspace roles
+      description: |
+        Get all workspace roles in the deployment.
+
+        Returns both deployment-level roles and workspace-specific roles.
+      operationId: getDeploymentWorkspaceRoles
+      tags:
+        - Workspace Roles
+      responses:
+        '200':
+          description: Workspace roles retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DeploymentWorkspaceRole'
+                  has_more:
+                    type: boolean
+                  limit:
+                    type: integer
+                    nullable: true
+                  offset:
+                    type: integer
+                    nullable: true
+                required:
+                  - data
+                  - has_more
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /workspaces/{workspace_id}/roles:
+    post:
+      summary: Create workspace role
+      description: |
+        Create a new custom role for a workspace.
+      operationId: createWorkspaceRole
+      tags:
+        - Workspace Roles
+      parameters:
+        - name: workspace_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Workspace ID (integer as string)
+          example: "4444444444"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - permissions
+              properties:
+                name:
+                  type: string
+                  description: Role name
+                  example: "Developer"
+                permissions:
+                  type: array
+                  items:
+                    type: string
+                  description: List of permissions
+                  example: ["read:projects", "write:projects", "deploy:production"]
+      responses:
+        '200':
+          description: Role created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceRole'
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /workspaces/{workspace_id}/roles/{role_id}:
+    patch:
+      summary: Update workspace role
+      description: |
+        Update a workspace role name or permissions.
+      operationId: updateWorkspaceRole
+      tags:
+        - Workspace Roles
+      parameters:
+        - name: workspace_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Workspace ID (integer as string)
+          example: "4444444444"
+        - name: role_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Role ID (integer as string)
+          example: "5555555555"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Role name
+                  example: "Senior Developer"
+                permissions:
+                  type: array
+                  items:
+                    type: string
+                  description: List of permissions
+                  example: ["read:projects", "write:projects", "deploy:production", "deploy:staging"]
+      responses:
+        '200':
+          description: Role updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceRole'
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      summary: Delete workspace role
+      description: |
+        Delete a workspace role.
+
+        **Warning**: This will revoke all permissions granted through this role.
+      operationId: deleteWorkspaceRole
+      tags:
+        - Workspace Roles
+      parameters:
+        - name: workspace_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Workspace ID (integer as string)
+          example: "4444444444"
+        - name: role_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Role ID (integer as string)
+          example: "5555555555"
+      responses:
+        '204':
+          description: Role deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /workspaces/{workspace_id}/members:
+    get:
+      summary: List workspace members
+      description: |
+        Get all members of a workspace with pagination.
+      operationId: listWorkspaceMembers
+      tags:
+        - Workspace Members
+      parameters:
+        - name: workspace_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Workspace ID (integer as string)
+          example: "4444444444"
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Number of items to return per page
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          description: Number of items to skip
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search query to filter results
+        - name: sort_key
+          in: query
+          schema:
+            type: string
+          description: Field to sort by
+        - name: sort_order
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+          description: Sort order (ascending or descending)
+      responses:
+        '200':
+          description: Workspace members retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WorkspaceMemberDetails'
+                  has_more:
+                    type: boolean
+                  limit:
+                    type: integer
+                    nullable: true
+                  offset:
+                    type: integer
+                    nullable: true
+                required:
+                  - data
+                  - has_more
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      summary: Add workspace member
+      description: |
+        Add a user to a workspace with specific roles.
+      operationId: addWorkspaceMember
+      tags:
+        - Workspace Members
+      parameters:
+        - name: workspace_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Workspace ID (integer as string)
+          example: "4444444444"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - user_id
+                - role_ids
+              properties:
+                user_id:
+                  type: string
+                  description: User ID (integer as string)
+                  example: "9876543210"
+                role_ids:
+                  type: array
+                  items:
+                    type: string
+                  description: Role IDs to assign (array of integers as strings)
+                  example: ["5555555555", "6666666666"]
+      responses:
+        '200':
+          description: Member added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceMemberDetails'
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /workspaces/{workspace_id}/members/{membership_id}:
+    patch:
+      summary: Update workspace member
+      description: |
+        Update workspace member roles or metadata.
+      operationId: updateWorkspaceMember
+      tags:
+        - Workspace Members
+      parameters:
+        - name: workspace_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Workspace ID (integer as string)
+          example: "4444444444"
+        - name: membership_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Membership ID (integer as string)
+          example: "7777777777"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role_ids:
+                  type: array
+                  items:
+                    type: string
+                  description: Role IDs to assign (array of integers as strings)
+                  example: ["5555555555", "6666666666"]
+                public_metadata:
+                  type: object
+                  description: Public metadata (custom fields)
+                  example: {}
+      responses:
+        '200':
+          description: Member updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                example: {}
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      summary: Remove workspace member
+      description: |
+        Remove a member from a workspace.
+
+        **Warning**: This will remove all access granted through workspace roles.
+      operationId: removeWorkspaceMember
+      tags:
+        - Workspace Members
+      parameters:
+        - name: workspace_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Workspace ID (integer as string)
+          example: "4444444444"
+        - name: membership_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Membership ID (integer as string)
+          example: "7777777777"
+      responses:
+        '204':
+          description: Member removed successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: API Key
+      description: API key authentication (Bearer token)
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Error message
+      required:
+        - message
+
+    Workspace:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Workspace ID (integer serialized as string)
+          example: "4444444444"
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2024-01-20T15:45:00Z"
+        name:
+          type: string
+          description: Workspace name
+          example: "Engineering"
+        description:
+          type: string
+          description: Workspace description
+          example: "Engineering team workspace"
+        image_url:
+          type: string
+          description: Workspace image URL
+          example: "https://cdn.wacht.dev/workspaces/engineering.png"
+        member_count:
+          type: integer
+          description: Number of members in the workspace
+          example: 10
+        public_metadata:
+          type: object
+          description: Public metadata (custom fields)
+          example: {}
+        private_metadata:
+          type: object
+          description: Private metadata (custom fields, only accessible via backend API)
+          example: {}
+      required:
+        - id
+        - created_at
+        - updated_at
+        - name
+        - description
+        - image_url
+        - member_count
+        - public_metadata
+        - private_metadata
+
+    WorkspaceWithOrganizationName:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Workspace ID (integer serialized as string)
+          example: "4444444444"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-01-20T15:45:00Z"
+        name:
+          type: string
+          description: Workspace name
+          example: "Engineering"
+        description:
+          type: string
+          description: Workspace description
+          example: "Engineering team workspace"
+        image_url:
+          type: string
+          description: Workspace image URL
+          example: "https://cdn.wacht.dev/workspaces/engineering.png"
+        member_count:
+          type: integer
+          description: Number of members in the workspace
+          example: 10
+        organization_name:
+          type: string
+          description: Parent organization name
+          example: "Acme Corp"
+      required:
+        - id
+        - created_at
+        - updated_at
+        - name
+        - description
+        - image_url
+        - member_count
+        - organization_name
+
+    WorkspaceDetails:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Workspace ID (integer serialized as string)
+          example: "4444444444"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-01-20T15:45:00Z"
+        name:
+          type: string
+          description: Workspace name
+          example: "Engineering"
+        description:
+          type: string
+          description: Workspace description
+          example: "Engineering team workspace"
+        image_url:
+          type: string
+          description: Workspace image URL
+          example: "https://cdn.wacht.dev/workspaces/engineering.png"
+        member_count:
+          type: integer
+          description: Number of members in the workspace
+          example: 10
+        public_metadata:
+          type: object
+          description: Public metadata (custom fields)
+          example: {}
+        private_metadata:
+          type: object
+          description: Private metadata (custom fields, only accessible via backend API)
+          example: {}
+        organization_id:
+          type: string
+          description: Organization ID (integer serialized as string)
+          example: "1234567890"
+        organization_name:
+          type: string
+          description: Parent organization name
+          example: "Acme Corp"
+        roles:
+          type: array
+          description: Roles defined in this workspace
+          items:
+            $ref: '#/components/schemas/WorkspaceRole'
+        segments:
+          type: array
+          description: Segments associated with this workspace
+          items:
+            type: object
+          example: []
+      required:
+        - id
+        - created_at
+        - updated_at
+        - name
+        - description
+        - image_url
+        - member_count
+        - public_metadata
+        - private_metadata
+        - organization_id
+        - organization_name
+        - roles
+        - segments
+
+    WorkspaceMemberDetails:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Membership ID (integer serialized as string)
+          example: "7777777777"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-01-20T15:45:00Z"
+        workspace_id:
+          type: string
+          description: Workspace ID (integer serialized as string)
+          example: "4444444444"
+        user_id:
+          type: string
+          description: User ID (integer serialized as string)
+          example: "9876543210"
+        roles:
+          type: array
+          description: Roles assigned to the member
+          items:
+            $ref: '#/components/schemas/WorkspaceRole'
+        public_metadata:
+          type: object
+          description: Public metadata (custom fields)
+          example: {}
+        first_name:
+          type: string
+          description: User's first name
+          example: John
+        last_name:
+          type: string
+          description: User's last name
+          example: Doe
+        username:
+          type: string
+          description: User's username
+          nullable: true
+          example: johndoe
+        primary_email_address:
+          type: string
+          format: email
+          description: User's primary email address
+          nullable: true
+          example: john.doe@example.com
+        primary_phone_number:
+          type: string
+          description: User's primary phone number with country code
+          nullable: true
+          example: "+1234567890"
+        user_created_at:
+          type: string
+          format: date-time
+          description: User account creation timestamp
+          example: "2024-01-10T10:00:00Z"
+      required:
+        - id
+        - created_at
+        - updated_at
+        - workspace_id
+        - user_id
+        - roles
+        - public_metadata
+        - first_name
+        - last_name
+        - username
+        - primary_email_address
+        - primary_phone_number
+        - user_created_at
+
+    WorkspaceRole:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Role ID (integer serialized as string)
+          example: "5555555555"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-01-20T15:45:00Z"
+        name:
+          type: string
+          description: Role name
+          example: "Developer"
+        permissions:
+          type: array
+          description: List of permissions granted by this role
+          items:
+            type: string
+          example: ["read:projects", "write:projects", "deploy:production"]
+        is_deployment_level:
+          type: boolean
+          description: Whether this is a deployment-level role
+          example: false
+      required:
+        - id
+        - created_at
+        - updated_at
+        - name
+        - permissions
+        - is_deployment_level
+
+    DeploymentWorkspaceRole:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Role ID (integer serialized as string)
+          example: "5555555555"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-01-20T15:45:00Z"
+        name:
+          type: string
+          description: Role name
+          example: "Admin"
+        permissions:
+          type: array
+          description: List of permissions granted by this role
+          items:
+            type: string
+          example: ["workspace:admin"]
+        deployment_id:
+          type: string
+          description: Deployment ID (integer serialized as string)
+          example: "1234567890"
+        workspace_id:
+          type: string
+          description: Workspace ID if this is a workspace-specific role (integer serialized as string)
+          nullable: true
+          example: "4444444444"
+        organization_id:
+          type: string
+          description: Organization ID if this is an organization-level role (integer serialized as string)
+          nullable: true
+          example: "1234567890"
+      required:
+        - id
+        - created_at
+        - updated_at
+        - name
+        - permissions
+        - deployment_id
+
+  responses:
+    Unauthorized:
+      description: Authentication failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: "Invalid or missing API key"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: "Workspace not found"
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: "An unexpected error occurred"

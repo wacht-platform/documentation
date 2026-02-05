@@ -1,0 +1,244 @@
+---
+title: 'Quick Start'
+description: 'Get up and running with the Next.js SDK in 5 minutes'
+---
+
+This quick start guide will help you set up authentication in your Next.js App Router application.
+
+## Step 1: Install the SDK
+
+```bash
+pnpm add @wacht/nextjs @wacht/types
+```
+
+## Step 2: Set Environment Variables
+
+Create a `.env.local` file:
+
+```bash
+NEXT_PUBLIC_WACHT_PUBLIC_KEY=your_public_key_here
+```
+
+## Step 3: Create Provider Component
+
+```tsx
+// app/providers.tsx
+'use client'
+
+import { DeploymentProvider } from '@wacht/nextjs'
+
+export function Providers({ children }: { children: React.ReactNode }) {
+  return (
+    <DeploymentProvider publicKey={process.env.NEXT_PUBLIC_WACHT_PUBLIC_KEY!}>
+      {children}
+    </DeploymentProvider>
+  )
+}
+```
+
+## Step 4: Update Root Layout
+
+```tsx
+// app/layout.tsx
+import { Providers } from './providers'
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="en">
+      <body>
+        <Providers>{children}</Providers>
+      </body>
+    </html>
+  )
+}
+```
+
+## Step 5: Create Auth Pages
+
+```tsx
+// app/signin/page.tsx
+import { SignInForm } from '@wacht/nextjs'
+
+export default function SignInPage() {
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="w-full max-w-md space-y-8">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold">Sign In</h1>
+          <p className="text-muted-foreground">Welcome back</p>
+        </div>
+        <SignInForm />
+      </div>
+    </div>
+  )
+}
+```
+
+```tsx
+// app/signup/page.tsx
+import { SignUpForm } from '@wacht/nextjs'
+
+export default function SignUpPage() {
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="w-full max-w-md space-y-8">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold">Sign Up</h1>
+          <p className="text-muted-foreground">Create your account</p>
+        </div>
+        <SignUpForm />
+      </div>
+    </div>
+  )
+}
+```
+
+## Step 6: Create SSO Callback Route
+
+```tsx
+// app/auth/callback/route.tsx
+import { SSOCallback } from '@wacht/nextjs'
+
+export default function AuthCallbackPage() {
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="text-center">
+        <SSOCallback />
+        <p>Completing authentication...</p>
+      </div>
+    </div>
+  )
+}
+```
+
+## Step 7: Protect Routes with Middleware
+
+```ts
+// middleware.ts
+import { createMiddlewareClient } from '@wacht/nextjs/server'
+
+export const { authMiddleware, requireAuth } = createMiddlewareClient()
+
+export default authMiddleware((req) => {
+  // Protect dashboard routes
+  if (req.nextUrl.pathname.startsWith('/dashboard')) {
+    return requireAuth(req)
+  }
+
+  return {}
+})
+
+export const config = {
+  matcher: ['/dashboard/:path*']
+}
+```
+
+## Step 8: Create Protected Page
+
+```tsx
+// app/dashboard/page.tsx
+import { SignedIn } from '@wacht/nextjs'
+import { getSession } from '@wacht/nextjs/server'
+
+export default async function DashboardPage() {
+  const session = await getSession()
+
+  return (
+    <div className="p-8">
+      <h1 className="text-2xl font-bold">Dashboard</h1>
+      <SignedIn>
+        <p>Welcome, {session.user.first_name}!</p>
+      </SignedIn>
+    </div>
+  )
+}
+```
+
+## Complete Example
+
+Here's a complete working example:
+
+```tsx
+// app/layout.tsx
+import { Providers } from './providers'
+import './globals.css'
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="en">
+      <body>
+        <Providers>{children}</Providers>
+      </body>
+    </html>
+  )
+}
+```
+
+```tsx
+// app/providers.tsx
+'use client'
+
+import { DeploymentProvider } from '@wacht/nextjs'
+
+export function Providers({ children }: { children: React.ReactNode }) {
+  return (
+    <DeploymentProvider publicKey={process.env.NEXT_PUBLIC_WACHT_PUBLIC_KEY!}>
+      {children}
+    </DeploymentProvider>
+  )
+}
+```
+
+```tsx
+// app/page.tsx
+import Link from 'next/link'
+import { SignInForm, SignedIn, SignedOut } from '@wacht/nextjs'
+import { UserButton } from '@wacht/nextjs'
+
+export default function HomePage() {
+  return (
+    <div className="min-h-screen">
+      <header className="border-b p-4 flex justify-between">
+        <h1 className="text-xl font-bold">My App</h1>
+        <SignedIn>
+          <UserButton />
+        </SignedIn>
+        <SignedOut>
+          <div className="flex gap-4">
+            <Link href="/signin">Sign In</Link>
+            <Link href="/signup">Sign Up</Link>
+          </div>
+        </SignedOut>
+      </header>
+
+      <main className="p-8">
+        <SignedIn>
+          <div>
+            <h2>Welcome back!</h2>
+            <Link href="/dashboard">Go to Dashboard</Link>
+          </div>
+        </SignedIn>
+        <SignedOut>
+          <div className="max-w-md">
+            <SignInForm />
+          </div>
+        </SignedOut>
+      </main>
+    </div>
+  )
+}
+```
+
+## Next Steps
+
+- [Setup Guide](setup) - Detailed configuration options
+- [Components](components) - Available components
+- [Hooks](hooks) - Available hooks

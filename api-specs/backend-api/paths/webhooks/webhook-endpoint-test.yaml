@@ -1,0 +1,40 @@
+# Webhook endpoint test endpoint
+
+WebhookEndpointTest:
+  post:
+    summary: Test webhook endpoint
+    description: Send a test event to a webhook endpoint
+    tags:
+      - Webhooks
+    parameters:
+      - $ref: '#/components/parameters/WebhookAppName'
+      - name: endpoint_id
+        in: path
+        required: true
+        schema:
+          type: string
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              event:
+                type: string
+              data:
+                type: object
+    responses:
+      '200':
+        description: Test sent
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                response:
+                  type: object
+      '404':
+        $ref: '#/components/responses/NotFound'

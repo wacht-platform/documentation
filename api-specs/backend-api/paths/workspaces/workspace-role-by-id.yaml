@@ -1,0 +1,58 @@
+# Workspace role by ID endpoint
+
+WorkspaceRoleById:
+  patch:
+    summary: Update workspace role
+    description: Update a workspace role
+    tags:
+      - Workspaces
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - name: role_id
+        in: path
+        required: true
+        schema:
+          type: string
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+              description:
+                type: string
+    responses:
+      '200':
+        description: Role updated
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                name:
+                  type: string
+      '404':
+        $ref: '#/components/responses/NotFound'
+
+  delete:
+    summary: Delete workspace role
+    description: Delete a workspace role
+    tags:
+      - Workspaces
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - name: role_id
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      '204':
+        description: Role deleted
+      '404':
+        $ref: '#/components/responses/NotFound'

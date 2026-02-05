@@ -1,0 +1,369 @@
+---
+title: 'Setup & Configuration'
+description: 'Detailed setup and configuration for React Router SDK'
+---
+
+## Provider Setup
+
+The `DeploymentProvider` component wraps your application and provides authentication context to all child components.
+
+### Basic Setup
+
+```tsx
+// app/routes/root.tsx
+import { Outlet } from 'react-router'
+import { DeploymentProvider } from '@wacht/react-router'
+
+export async function loader() {
+  return {
+    publicKey: process.env.WACHT_PUBLIC_KEY
+  }
+}
+
+export default function Root({ loaderData }: Route.ComponentProps) {
+  return (
+    <html>
+      <body>
+        <DeploymentProvider publicKey={loaderData.publicKey}>
+          <Outlet />
+        </DeploymentProvider>
+      </body>
+    </html>
+  )
+}
+```
+
+### Provider Props
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `publicKey` | `string` | Yes | Your Wacht deployment public key |
+| `uiOverwrites` | `DeploymentUISettings` | No | Custom UI settings |
+
+### UI Customization
+
+Customize the appearance of Wacht components:
+
+```tsx
+import { DeploymentProvider } from '@wacht/react-router'
+
+export default function Root({ loaderData }: Route.ComponentProps) {
+  return (
+    <DeploymentProvider
+      publicKey={loaderData.publicKey}
+      uiOverwrites={{
+        primaryColor: '#4f46e5',
+        borderRadius: '8px',
+        fontFamily: 'Inter, sans-serif',
+        buttonColor: '#ffffff',
+        buttonTextColor: '#4f46e5'
+      }}
+    >
+      <Outlet />
+    </DeploymentProvider>
+  )
+}
+```
+
+### DeploymentUISettings
+
+```typescript
+interface DeploymentUISettings {
+  primaryColor?: string          // Primary brand color (default: #4f46e5)
+  borderRadius?: string          // Border radius for components (default: 8px)
+  fontFamily?: string            // Font family (default: system-ui)
+  buttonColor?: string           // Button background color
+  buttonTextColor?: string       // Button text color
+  inputBackgroundColor?: string   // Input background color
+  inputBorderColor?: string       // Input border color
+  errorColor?: string            // Error message color
+  successColor?: string          // Success message color
+}
+```
+
+## Environment Configuration
+
+### Required Environment Variables
+
+```bash
+# .env
+WACHT_PUBLIC_KEY=your_public_key_here
+```
+
+### Optional Environment Variables
+
+```bash
+# Override the backend URL (for development)
+WACHT_FRONTEND_HOST=https://your-app.wacht.io
+```
+
+## Routing Configuration
+
+### Auth Routes
+
+Create dedicated routes for authentication:
+
+```tsx
+// app/routes/signin.tsx
+import { SignInForm } from '@wacht/react-router'
+
+export default function SignIn() {
+  return <SignInForm />
+}
+```
+
+```tsx
+// app/routes/signup.tsx
+import { SignUpForm } from '@wacht/react-router'
+
+export default function SignUp() {
+  return <SignUpForm />
+}
+```
+
+### SSO Callback Route
+
+Required for OAuth authentication:
+
+```tsx
+// app/routes/auth.callback.tsx
+import { SSOCallback } from '@wacht/react-router'
+
+export default function AuthCallback() {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      <SSOCallback />
+    </div>
+  )
+}
+```
+
+### Magic Link Verification Route
+
+For magic link authentication:
+
+```tsx
+// app/routes/verify-magic-link.tsx
+import { MagicLinkVerification } from '@wacht/react-router'
+
+export default function VerifyMagicLink() {
+  return <MagicLinkVerification />
+}
+```
+
+## Route Protection
+
+### Using Conditional Components
+
+```tsx
+import { SignedIn, SignedOut, NavigateToSignIn } from '@wacht/react-router'
+
+export default function ProtectedPage() {
+  return (
+    <>
+      <SignedOut>
+        <NavigateToSignIn />
+      </SignedOut>
+      <SignedIn>
+        <ProtectedContent />
+      </SignedIn>
+    </>
+  )
+}
+```
+
+### Using Loader Protection
+
+Protect routes at the loader level:
+
+```tsx
+// app/routes/dashboard.tsx
+import { useSession } from '@wacht/react-router'
+import { redirect } from 'react-router'
+
+export async function loader() {
+  const session = await getSession()
+
+  if (!session) {
+    return redirect('/signin')
+  }
+
+  return { user: session.user }
+}
+
+export default function Dashboard({ loaderData }: Route.ComponentProps) {
+  return (
+    <div>
+      <h1>Welcome, {loaderData.user.first_name}!</h1>
+    </div>
+  )
+}
+```
+
+## Navigation Configuration
+
+### Custom Redirect URLs
+
+Control where users are redirected after authentication:
+
+```tsx
+import { useNavigation } from '@wacht/react-router'
+
+export default function CustomSignin() {
+  const { setAfterSignInUrl } = useNavigation()
+
+  const handleSignIn = () => {
+    setAfterSignInUrl('/onboarding')
+  }
+
+  return (
+    <div>
+      <button onClick={handleSignIn}>
+        Sign In
+      </button>
+    </div>
+  )
+}
+```
+
+### Post-Authentication Redirects
+
+```tsx
+import { useNavigation } from '@wacht/react-router'
+
+export default function SignUpWithRedirect() {
+  const { setAfterSignUpUrl } = useNavigation()
+
+  return (
+    <div>
+      <SignUpForm />
+      <button onClick={() => setAfterSignUpUrl('/welcome')}>
+        Redirect to welcome after sign up
+      </button>
+    </div>
+  )
+}
+```
+
+## Error Handling
+
+### Error Boundaries
+
+Wrap your app in an error boundary to catch authentication errors:
+
+```tsx
+// app/routes/root.tsx
+import { isRouteErrorResponse, useRouteError } from 'react-router'
+
+export function ErrorBoundary() {
+  const error = useRouteError()
+
+  if (isRouteErrorResponse(error)) {
+    return (
+      <div>
+        <h1>{error.status}</h1>
+        <p>{error.data.message}</p>
+      </div>
+    )
+  }
+
+  return <div>Something went wrong</div>
+}
+```
+
+### Error Callbacks
+
+Components accept error callbacks:
+
+```tsx
+import { SSOCallback } from '@wacht/react-router'
+
+export default function AuthCallback() {
+  return (
+    <SSOCallback
+      onError={(error) => {
+        console.error('Auth error:', error)
+        // Handle error (e.g., redirect to sign-in with error message)
+      }}
+    />
+  )
+}
+```
+
+## Multi-Tenant Setup
+
+### Organization Context
+
+Enable organization-aware routing:
+
+```tsx
+import { useActiveOrganization } from '@wacht/react-router'
+
+export default function OrgDashboard() {
+  const { organization } = useActiveOrganization()
+
+  return (
+    <div>
+      <h1>{organization.name}</h1>
+      {/* Organization-specific content */}
+    </div>
+  )
+}
+```
+
+### Workspace Context
+
+Enable workspace-aware routing:
+
+```tsx
+import { useActiveWorkspace } from '@wacht/react-router'
+
+export default function WorkspaceSettings() {
+  const { workspace } = useActiveWorkspace()
+
+  return (
+    <div>
+      <h1>{workspace.name}</h1>
+      {/* Workspace-specific content */}
+    </div>
+  )
+}
+```
+
+## Production Considerations
+
+### Deployment Checklist
+
+- [ ] Set `WACHT_PUBLIC_KEY` environment variable
+- [ ] Configure allowed redirect URLs in Wacht dashboard
+- [ ] Set up OAuth providers if using social sign-in
+- [ ] Configure email delivery for email verification
+- [ ] Test SSO callback route locally
+- [ ] Enable HTTPS in production
+
+### Performance Optimization
+
+```tsx
+// Use route loaders for data fetching
+export async function loader() {
+  const session = await getSession()
+
+  if (!session) {
+    return redirect('/signin')
+  }
+
+  // Fetch initial data in parallel
+  const [user, organizations] = await Promise.all([
+    fetchUser(session.user.id),
+    fetchOrganizations()
+  ])
+
+  return { user, organizations }
+}
+```
+
+## Related
+
+- [Installation](installation) - Installation guide
+- [Quick Start](quickstart) - Quick start guide
+- [Components](components) - Component reference

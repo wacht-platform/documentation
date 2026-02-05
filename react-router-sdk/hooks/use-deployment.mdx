@@ -1,0 +1,160 @@
+---
+title: useDeployment
+description: Access deployment configuration and settings.
+---
+
+# useDeployment
+
+The `useDeployment` hook provides access to the deployment configuration including authentication settings, B2B settings, UI settings, and more.
+
+## Return Value
+
+<ParamField path="deployment" type="Deployment">
+  The deployment configuration object
+</ParamField>
+
+<ParamField path="loading" type="boolean">
+  Whether the deployment data is loading
+</ParamField>
+
+```tsx
+import { useDeployment } from "@wacht/react-router";
+
+function AppSettings() {
+  const { deployment, loading } = useDeployment();
+
+  if (loading) return <div>Loading...</div>;
+
+  return (
+    <div>
+      <h1>{deployment.ui_settings.app_name}</h1>
+      <p>Mode: {deployment.mode}</p>
+    </div>
+  );
+}
+```
+
+## Deployment Object
+
+```typescript
+interface Deployment {
+  id: number;
+  mode: "production" | "staging";
+  frontend_host: string;
+  backend_host: string;
+
+  auth_settings: AuthSettings;
+  b2b_settings: B2BSettings;
+  restrictions: Restrictions;
+  social_connections: SocialConnection[];
+  ui_settings: UISettings;
+}
+```
+
+## Configuration Sections
+
+### Auth Settings
+
+```typescript
+interface AuthSettings {
+  first_name: FieldSetting;
+  last_name: FieldSetting;
+  username: FieldSetting;
+  email_address: FieldSetting;
+  phone_number: FieldSetting;
+  password: FieldSetting;
+  multi_session_support?: {
+    enabled: boolean;
+  };
+  passkey?: {
+    enabled: boolean;
+    prompt_registration_on_auth: boolean;
+    prompt_registration_on_auth?: boolean;
+  };
+}
+```
+
+### B2B Settings
+
+```typescript
+interface B2BSettings {
+  organizations_enabled: boolean;
+  workspaces_enabled: boolean;
+  allow_users_to_create_orgs: boolean;
+}
+```
+
+### Restrictions
+
+```typescript
+interface Restrictions {
+  sign_up_mode: "open" | "restricted" | "waitlist";
+}
+```
+
+### UI Settings
+
+```typescript
+interface UISettings {
+  app_name: string;
+  support_page_url?: string;
+  after_signin_redirect_url?: string;
+  after_signup_redirect_url?: string;
+  sign_in_page_url?: string;
+  sign_up_page_url?: string;
+  waitlist_page_url?: string;
+}
+```
+
+## Examples
+
+### Check Feature Flags
+
+```tsx
+import { useDeployment } from "@wacht/react-router";
+
+function FeatureFlags() {
+  const { deployment } = useDeployment();
+  const { organizations_enabled, workspaces_enabled } = deployment.b2b_settings;
+
+  return (
+    <div>
+      <p>Organizations: {organizations_enabled ? "Enabled" : "Disabled"}</p>
+      <p>Workspaces: {workspaces_enabled ? "Enabled" : "Disabled"}</p>
+    </div>
+  );
+}
+```
+
+### Conditional Rendering Based on Settings
+
+```tsx
+import { useDeployment } from "@wacht/react-router";
+
+function ConditionalComponent() {
+  const { deployment } = useDeployment();
+
+  // Only show if username is enabled
+  if (!deployment.auth_settings.username.enabled) {
+    return null;
+  }
+
+  return <UsernameInput />;
+}
+```
+
+### App Name
+
+```tsx
+import { useDeployment } from "@wacht/react-router";
+
+function Header() {
+  const { deployment } = useDeployment();
+
+  return <h1>{deployment.ui_settings.app_name}</h1>;
+}
+```
+
+## Related
+
+- [useClient](./use-client) - HTTP client for API requests

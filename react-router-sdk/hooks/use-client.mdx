@@ -1,0 +1,169 @@
+---
+title: useClient
+description: Access the configured HTTP client for making API requests.
+---
+
+# useClient
+
+The `useClient` hook provides access to the configured HTTP client for making authenticated API requests to the Wacht backend.
+
+## Return Value
+
+<ParamField path="client">
+  <Expandable title="The HTTP client function for making authenticated requests">
+    <ParamField path="url" type="string">
+      The API endpoint URL
+    </ParamField>
+    <ParamField path="options" type="RequestInit">
+      Optional request options (method, headers, body, etc.)
+    </ParamField>
+    <ParamField path="returns" type="Promise<Response>">
+      The fetch Response object
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="loading" type="boolean">
+  Whether the client is being initialized
+</ParamField>
+
+```tsx
+import { useClient } from "@wacht/react-router";
+
+function DataFetcher() {
+  const { client, loading } = useClient();
+
+  const fetchData = async () => {
+    const response = await client("/api/user/profile", {
+      method: "GET",
+    });
+    return response.json();
+  };
+
+  if (loading) return <div>Loading...</div>;
+
+  return <button onClick={fetchData}>Fetch Data</button>;
+}
+```
+
+## Behavior
+
+The client automatically:
+
+- Includes authentication credentials (cookies) in production mode
+- Handles development mode session tokens
+- Adds proper headers for API requests
+- Respects the deployment's mode (production vs staging)
+
+## Client Options
+
+The client accepts standard `RequestInit` options:
+
+```tsx
+await client("/api/resource", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify(data),
+});
+```
+
+## Examples
+
+### GET Request
+
+```tsx
+import { useClient } from "@wacht/react-router";
+
+function UserProfile() {
+  const { client } = useClient();
+
+  const [profile, setProfile] = useState(null);
+
+  useEffect(() => {
+    client("/me/profile")
+      .then((res) => res.json())
+      .then((data) => setProfile(data));
+  }, [client]);
+
+  return <div>{/* Render profile */}</div>;
+}
+```
+
+### POST Request
+
+```tsx
+import { useClient } from "@wacht/react-router";
+
+function CreateItem() {
+  const { client } = useClient();
+
+  const create = async (name: string) => {
+    const form = new FormData();
+    form.append("name", name);
+
+    await client("/items", {
+      method: "POST",
+      body: form,
+    });
+  };
+
+  return <button onClick={() => create("Item 1")}>Create Item</button>;
+}
+```
+
+### With FormData
+
+```tsx
+import { useClient } from "@wacht/react-router";
+
+function UploadFile() {
+  const { client } = useClient();
+
+  const upload = async (file: File) => {
+    const form = new FormData();
+    form.append("file", file);
+
+    await client("/upload", {
+      method: "POST",
+      body: form,
+    });
+  };
+
+  return (
+    <input type="file" onChange={(e) => upload(e.target.files[0])} />
+  );
+}
+```
+
+### Error Handling
+
+```tsx
+import { useClient } from "@wacht/react-router";
+
+function ApiCall() {
+  const { client } = useClient();
+
+  const callApi = async () => {
+    try {
+      const response = await client("/api/data");
+
+      if (response.ok) {
+        const data = await response.json();
+        return data;
+      } else {
+        throw new Error(`API error: ${response.status}`);
+      }
+    } catch (error) {
+      console.error("API call failed:", error);
+    }
+  };
+
+  return <button onClick={callApi}>Call API</button>;
+}
+```
+
+## Related
+
+- [useDeployment](./use-deployment) - Deployment configuration

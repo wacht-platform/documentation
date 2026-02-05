@@ -1,0 +1,466 @@
+---
+title: 'Webhooks API'
+description: 'Working with webhooks in the Rust SDK'
+---
+
+# Webhooks API Guide
+
+
+Learn how to manage webhooks using the Wacht Rust SDK.
+
+## Prerequisites
+
+Before using any API methods, you must initialize the SDK:
+
+```rust
+use wacht::init_from_env;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Initialize from environment variables
+    // Requires: WACHT_API_KEY and WACHT_FRONTEND_HOST
+    init_from_env().await?;
+
+    // Now you can use the API
+    Ok(())
+}
+```
+
+## Webhook Apps
+
+Webhook apps are containers for your webhook endpoints and event subscriptions.
+
+### List Webhook Apps
+
+Get all webhook apps in your deployment.
+
+```rust
+use wacht::api::webhooks;
+
+let apps = webhooks::list_webhook_apps()
+    .send()
+    .await?;
+
+for app in apps.data {
+    println!("{} (active: {})", app.name, app.is_active);
+}
+```
+
+### Get Webhook App
+
+Retrieve a specific webhook app by name.
+
+```rust
+use wacht::api::webhooks;
+
+let app = webhooks::get_webhook_app("my-app")
+    .send()
+    .await?;
+
+println!("App: {}", app.name);
+println!("Signing Secret: {}", app.signing_secret);
+```
+
+### Create Webhook App
+
+Create a new webhook app with event definitions.
+
+```rust
+use wacht::api::webhooks;
+
+let app = webhooks::create_webhook_app("my-app")
+    .description("My application webhooks")
+    .is_active(true)
+    .add_event("user.created".to_string())
+    .add_event("user.updated".to_string())
+    .send()
+    .await?;
+
+println!("Created webhook app: {}", app.name);
+```
+
+### Update Webhook App
+
+Modify an existing webhook app.
+
+```rust
+use wacht::api::webhooks;
+
+let app = webhooks::update_webhook_app("my-app")
+    .description(Some("Updated description".to_string()))
+    .is_active(Some(false))
+    .send()
+    .await?;
+```
+
+### Delete Webhook App
+
+Remove a webhook app.
+
+```rust
+use wacht::api::webhooks;
+
+webhooks::delete_webhook_app("my-app")
+    .send()
+    .await?;
+```
+
+### Rotate Webhook Secret
+
+Rotate the signing secret for a webhook app.
+
+```rust
+use wacht::api::webhooks;
+
+let app = webhooks::rotate_webhook_secret("my-app")
+    .send()
+    .await?;
+
+println!("New signing secret: {}", app.signing_secret);
+```
+
+### Get Webhook Events
+
+Get all events defined for a webhook app.
+
+```rust
+use wacht::api::webhooks;
+
+let events = webhooks::get_webhook_events("my-app")
+    .send()
+    .await?;
+
+for event in events {
+    println!("Event: {}", event);
+}
+```
+
+## Webhook Endpoints
+
+Endpoints are URLs where webhook events are delivered.
+
+### List Webhook Endpoints
+
+Get all endpoints for a webhook app.
+
+```rust
+use wacht::api::webhooks;
+
+let endpoints = webhooks::list_webhook_endpoints("my-app")
+    .limit(50)
+    .send()
+    .await?;
+
+for endpoint in endpoints.data {
+    println!("{}: {}", endpoint.id, endpoint.url);
+}
+```
+
+### Create Webhook Endpoint
+
+Create a new endpoint for a webhook app.
+
+```rust
+use wacht::api::webhooks;
+use wacht::api::webhooks::EventSubscription;
+
+let endpoint = webhooks::create_webhook_endpoint("my-app", "https://example.com/webhook")
+    .description(Some("Production endpoint".to_string()))
+    .subscriptions(vec![
+        EventSubscription {
+            event_name: "user.created".to_string(),
+            filter_rules: None,
+        }
+    ])
+    .max_retries(3)
+    .timeout_seconds(30)
+    .send()
+    .await?;
+
+println!("Created endpoint: {}", endpoint.id);
+```
+
+### Update Webhook Endpoint
+
+Modify an existing endpoint.
+
+```rust
+use wacht::api::webhooks;
+
+let endpoint = webhooks::update_webhook_endpoint("endpoint_id")
+    .url(Some("https://example.com/new-webhook".to_string()))
+    .is_active(Some(false))
+    .send()
+    .await?;
+```
+
+### Delete Webhook Endpoint
+
+Remove a webhook endpoint.
+
+```rust
+use wacht::api::webhooks;
+
+webhooks::delete_webhook_endpoint("endpoint_id")
+    .send()
+    .await?;
+```
+
+### Reactivate Webhook Endpoint
+
+Reactivate an auto-disabled endpoint.
+
+```rust
+use wacht::api::webhooks;
+
+let endpoint = webhooks::reactivate_webhook_endpoint("endpoint_id")
+    .send()
+    .await?;
+```
+
+### Test Webhook Endpoint
+
+Test a webhook endpoint with a sample event.
+
+```rust
+use wacht::api::webhooks;
+
+let result = webhooks::test_webhook_endpoint("my-app", "endpoint_id", "user.created")
+    .send()
+    .await?;
+
+println!("Success: {}", result.success);
+println!("Status Code: {}", result.status_code);
+println!("Response Time: {}ms", result.response_time_ms);
+```
+
+## Triggering Events
+
+### Trigger Webhook Event
+
+Manually trigger a webhook event for testing or integrations.
+
+```rust
+use wacht::api::webhooks;
+
+let result = webhooks::trigger_webhook_event(
+    "my-app",
+    "user.created",
+    serde_json::json!({
+        "user_id": "user_123",
+        "email": "user@example.com",
+        "first_name": "John",
+        "last_name": "Doe"
+    })
+)
+.send()
+.await?;
+
+println!("Delivered: {}", result.delivered_count);
+println!("Filtered: {}", result.filtered_count);
+println!("Delivery IDs: {:?}", result.delivery_ids);
+```
+
+### Trigger Event with Filter Context
+
+```rust
+use wacht::api::webhooks;
+
+let result = webhooks::trigger_webhook_event(
+    "my-app",
+    "user.created",
+    serde_json::json!({"user_id": "user_123"})
+)
+.filter_context(serde_json::json!({"environment": "production"}))
+.send()
+.await?;
+```
+
+## Webhook Deliveries
+
+Monitor and manage webhook delivery history.
+
+### List Webhook Deliveries
+
+Get webhook delivery history for an app.
+
+```rust
+use wacht::api::webhooks;
+
+let deliveries = webhooks::list_webhook_deliveries("my-app")
+    .limit(50)
+    .event_name(Some("user.created".to_string()))
+    .status(Some("success".to_string()))
+    .send()
+    .await?;
+
+for delivery in deliveries.data {
+    println!("{} - {} (status: {})",
+        delivery.delivery_id, delivery.event_name, delivery.status);
+}
+```
+
+### Get Webhook Delivery Details
+
+Retrieve full details including payload for a specific delivery.
+
+```rust
+use wacht::api::webhooks;
+
+let details = webhooks::get_webhook_delivery_details("delivery_id")
+    .send()
+    .await?;
+
+println!("Event: {}", details.event_name);
+println!("Payload: {:?}", details.payload);
+println!("Status: {}", details.status);
+```
+
+### Replay Webhook Deliveries
+
+Replay failed or filtered webhook deliveries.
+
+```rust
+use wacht::api::webhooks;
+
+let result = webhooks::replay_webhook_deliveries("my-app")
+    .endpoint_id(Some("endpoint_id".to_string()))
+    .event_name(Some("user.created".to_string()))
+    .status(Some("failed".to_string()))
+    .send()
+    .await?;
+
+println!("Replayed {} deliveries", result.delivery_ids.len());
+```
+
+## Webhook Analytics
+
+### Get Webhook Stats
+
+Get statistics for a webhook app.
+
+```rust
+use wacht::api::webhooks;
+
+let stats = webhooks::get_webhook_stats("my-app")
+    .send()
+    .await?;
+
+println!("Total Events: {}", stats.total_events);
+println!("Success Rate: {:.2}%", stats.success_rate * 100.0);
+println!("Avg Response Time: {:.2}ms", stats.avg_response_time_ms.unwrap_or(0.0));
+```
+
+### Get Webhook Timeseries
+
+Get time-series data for webhook metrics.
+
+```rust
+use wacht::api::webhooks;
+
+let timeseries = webhooks::get_webhook_timeseries("my-app", "1h")
+    .start_date(Some("2024-01-01".to_string()))
+    .end_date(Some("2024-01-31".to_string()))
+    .send()
+    .await?;
+
+for data_point in timeseries {
+    println!("{}: {} events", data_point.timestamp, data_point.count);
+}
+```
+
+### Get Webhook Analytics
+
+Get detailed analytics for webhook performance.
+
+```rust
+use wacht::api::webhooks;
+
+let analytics = webhooks::get_webhook_analytics("my-app")
+    .endpoint_id(Some(123))
+    .start_date(Some("2024-01-01".to_string()))
+    .send()
+    .await?;
+```
+
+## Builder Methods
+
+### ListWebhookAppsBuilder
+No additional methods beyond `send()`
+
+### CreateWebhookAppBuilder
+- `description(&str)` - Set app description
+- `is_active(bool)` - Set active status
+- `events(Vec<WebhookEventDefinition>)` - Set all events
+- `add_event(WebhookEventDefinition)` - Add a single event
+
+### UpdateWebhookAppBuilder
+- `description(Option<String>)` - Update description
+- `is_active(Option<bool>)` - Update active status
+
+### ListWebhookEndpointsBuilder
+- `limit(i32)` - Set maximum results
+- `offset(i32)` - Set offset for pagination
+- `include_inactive(bool)` - Include inactive endpoints
+
+### CreateWebhookEndpointBuilder
+- `description(Option<String>)` - Set description
+- `headers(Option<Value>)` - Set HTTP headers
+- `subscriptions(Vec<EventSubscription>)` - Set event subscriptions
+- `max_retries(i32)` - Set maximum retry attempts
+- `timeout_seconds(i32)` - Set request timeout
+
+### TriggerWebhookEventBuilder
+- `filter_context(Value)` - Set filter context for event
+
+### ListWebhookDeliveriesBuilder
+- `endpoint_id(Option<String>)` - Filter by endpoint
+- `event_name(Option<String>)` - Filter by event name
+- `status(Option<String>)` - Filter by status
+- `limit(i32)` - Set maximum results
+- `offset(i32)` - Set offset for pagination
+- `since(Option<String>)` - Filter by start date
+- `until(Option<String>)` - Filter by end date
+
+### ReplayWebhookDeliveriesBuilder
+- `endpoint_id(Option<String>)` - Filter by endpoint
+- `event_name(Option<String>)` - Filter by event name
+- `status(Option<String>)` - Filter by status
+
+### GetWebhookTimeseriesBuilder
+- `endpoint_id(Option<i64>)` - Filter by endpoint
+- `start_date(Option<String>)` - Set start date
+- `end_date(Option<String>)` - Set end date
+
+### GetWebhookAnalyticsBuilder
+- `endpoint_id(Option<i64>)` - Filter by endpoint
+- `start_date(Option<String>)` - Set start date
+- `end_date(Option<String>)` - Set end date
+
+## Error Handling
+
+All SDK methods return a `Result<T, Error>`:
+
+```rust
+use wacht::{Error, api::webhooks};
+
+match webhooks::get_webhook_app("my-app").send().await {
+    Ok(app) => println!("App: {}", app.name),
+    Err(Error::Api { status, message, .. }) => {
+        eprintln!("API Error {}: {}", status, message);
+    }
+    Err(Error::Request(e)) => {
+        eprintln!("Network error: {}", e);
+    }
+    Err(e) => {
+        eprintln!("Other error: {}", e);
+    }
+}
+```
+
+## Related
+
+- [Installation](/rust-sdk/installation) - SDK setup
+- [Users Guide](/rust-sdk/guide/users) - User management events
+- [Organizations Guide](/rust-sdk/guide/organizations) - Organization events
+- [API Reference - Backend API](/api-reference/backend-api/webhooks) - Full API docs

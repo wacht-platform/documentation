@@ -1,0 +1,60 @@
+# AI Tool by ID operations
+
+AIToolById:
+  get:
+    summary: Get AI tool by ID
+    description: Retrieve a specific AI tool
+    tags:
+      - AI Tools
+    parameters:
+      - $ref: '#/components/parameters/ToolId'
+    responses:
+      '200':
+        description: AI tool found
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AITool'
+      '404':
+        $ref: '#/components/responses/NotFound'
+
+  patch:
+    summary: Update AI tool
+    description: Update an AI tool
+    tags:
+      - AI Tools
+    parameters:
+      - $ref: '#/components/parameters/ToolId'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+              description:
+                type: string
+    responses:
+      '200':
+        description: AI tool updated
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AITool'
+      '404':
+        $ref: '#/components/responses/NotFound'
+
+  delete:
+    summary: Delete AI tool
+    description: Delete an AI tool
+    tags:
+      - AI Tools
+    parameters:
+      - $ref: '#/components/parameters/ToolId'
+    responses:
+      '204':
+        description: AI tool deleted
+      '404':
+        $ref: '#/components/responses/NotFound'

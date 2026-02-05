@@ -1,0 +1,53 @@
+---
+title: DeploymentInitializing
+description: Renders children only while the deployment configuration is loading.
+---
+
+# DeploymentInitializing
+
+Renders its children only while the deployment configuration is loading. Returns `null` once loaded.
+
+```tsx
+import { DeploymentInitializing } from "@wacht/react-router";
+
+export default function App() {
+  return (
+    <DeploymentInitializing>
+      <LoadingSpinner />
+    </DeploymentInitializing>
+  );
+}
+```
+
+## Loading Screen
+
+```tsx
+import { DeploymentInitializing, DeploymentInitialized } from "@wacht/react-router";
+
+export default function Root() {
+  return (
+    <>
+      <DeploymentInitializing>
+        <div className="loading-screen">
+          <Spinner />
+          <p>Loading...</p>
+        </div>
+      </DeploymentInitializing>
+      <DeploymentInitialized>
+        <App />
+      </DeploymentInitialized>
+    </>
+  );
+}
+```
+
+## Params
+
+<ParamField path="children" type="ReactNode">
+Content to render during loading.
+</ParamField>
+
+## Related
+
+- [DeploymentInitialized](./deployment-initialized) - Loaded state component
+- [useDeployment](../hooks/use-deployment) - Deployment hook

@@ -1,0 +1,57 @@
+# Upload endpoint
+
+Upload:
+  post:
+    summary: Upload image
+    description: Upload an image file (logo, favicon, etc.)
+    tags:
+      - Utility
+    parameters:
+      - name: image_type
+        in: path
+        required: true
+        schema:
+          type: string
+          enum: [logo, favicon, banner, avatar]
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required:
+              - file
+            properties:
+              file:
+                type: string
+                format: binary
+    responses:
+      '200':
+        description: Image uploaded
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  format: uri
+                filename:
+                  type: string
+                size:
+                  type: integer
+                  description: File size in bytes
+                content_type:
+                  type: string
+      '400':
+        description: Invalid file type or size
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Error'
+      '413':
+        description: File too large
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Error'

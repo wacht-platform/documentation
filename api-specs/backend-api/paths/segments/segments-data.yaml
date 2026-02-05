@@ -1,0 +1,52 @@
+# Segments data endpoint
+
+SegmentsData:
+  post:
+    summary: Get segment data
+    description: Get users matching segment criteria
+    tags:
+      - Segments
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - conditions
+            properties:
+              conditions:
+                type: object
+                properties:
+                  operator:
+                    type: string
+                    enum: [AND, OR]
+                  rules:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                        operator:
+                          type: string
+                        value:
+                          type: string
+              limit:
+                type: integer
+              offset:
+                type: integer
+    responses:
+      '200':
+        description: Users matching segment
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                users:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/User'
+                total:
+                  type: integer

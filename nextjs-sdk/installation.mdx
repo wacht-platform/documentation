@@ -1,0 +1,76 @@
+---
+title: 'Installation'
+description: 'Install and set up the Next.js SDK'
+---
+
+## Requirements
+
+Before installing the Next.js SDK, ensure you have:
+
+- **Next.js 14+** - The SDK requires Next.js 14 or later (App Router)
+- **React 18+** - The SDK requires React 18 or later
+- **Node.js 18+** - Node.js 18 or later
+- **pnpm 8+** (recommended) - Or npm 9+
+- **Wacht Deployment** - A Wacht deployment with a public key
+
+## Installation
+
+Install the Next.js SDK and its dependencies:
+
+```bash
+pnpm add @wacht/nextjs @wacht/types
+```
+
+Or with npm:
+
+```bash
+npm install @wacht/nextjs @wacht/types
+```
+
+## Environment Variables
+
+Add your Wacht public key to your environment variables:
+
+```bash
+# .env.local
+NEXT_PUBLIC_WACHT_PUBLIC_KEY=your_public_key_here
+```
+
+You can find your public key in your Wacht deployment settings.
+
+## TypeScript Configuration
+
+The SDK includes TypeScript definitions. No additional configuration is needed.
+
+## Peer Dependencies
+
+The SDK has these peer dependencies:
+
+```json
+{
+  "peerDependencies": {
+    "@wacht/types": "*",
+    "next": "^14.0.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  }
+}
+```
+
+## Verification
+
+Verify the installation:
+
+```tsx
+import { DeploymentProvider } from '@wacht/nextjs'
+
+// This should work without errors
+console.log(DeploymentProvider)
+```
+
+## Next Steps
+
+- [Quick Start](quickstart) - Get started with a basic setup
+- [Setup Guide](setup) - Detailed configuration guide
+- [Components Reference](components) - Available components
+- [Hooks Reference](hooks) - Available hooks

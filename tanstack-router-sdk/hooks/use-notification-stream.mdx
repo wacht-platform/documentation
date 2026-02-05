@@ -1,0 +1,243 @@
+---
+title: useNotificationStream
+description: Connect to the real-time notification stream via WebSocket.
+---
+
+# useNotificationStream
+
+The `useNotificationStream` hook connects to the real-time notification stream via WebSocket for live notification updates.
+
+## Return Value
+
+<ParamField path="isConnected" type="boolean">
+  Whether the WebSocket connection is active
+</ParamField>
+
+<ParamField path="connectionError" type="string | null">
+  Any connection error that occurred
+</ParamField>
+
+<ParamField path="disconnect">
+  <Expandable title="Manually disconnect the WebSocket">
+    <ParamField path="returns" type="void">
+      No return value
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="reconnect">
+  <Expandable title="Manually reconnect the WebSocket">
+    <ParamField path="returns" type="void">
+      No return value
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+```tsx
+import { useNotificationStream } from "@wacht/tanstack-router";
+
+function App() {
+  const { isConnected, connectionError } = useNotificationStream({
+    enabled: true,
+    onNotification: (notification) => {
+      console.log("New notification:", notification);
+    },
+    onError: (error) => {
+      console.error("Stream error:", error);
+    },
+  });
+
+  return (
+    <div>
+      <p>Stream: {isConnected ? "Connected" : "Disconnected"}</p>
+      {connectionError && <p>Error: {connectionError}</p>}
+    </div>
+  );
+}
+```
+
+## Options
+
+<ParamField path="enabled" type="boolean">
+  Whether to enable the stream
+</ParamField>
+
+<ParamField path="channels" type="string[]">
+  Channels to subscribe to
+</ParamField>
+
+<ParamField path="organizationIds" type="number[]">
+  Organization IDs to filter notifications
+</ParamField>
+
+<ParamField path="workspaceIds" type="number[]">
+  Workspace IDs to filter notifications
+</ParamField>
+
+<ParamField path="onNotification">
+  <Expandable title="Callback when a new notification is received">
+    <ParamField path="notification" type="NotificationMessage">
+      The notification message
+    </ParamField>
+    <ParamField path="returns" type="void">
+      No return value
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="onError">
+  <Expandable title="Callback when a connection error occurs">
+    <ParamField path="error" type="string">
+      The error message
+    </ParamField>
+    <ParamField path="returns" type="void">
+      No return value
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="reconnectDelay" type="number">
+  Delay in milliseconds before reconnecting
+</ParamField>
+
+<ParamField path="maxReconnectAttempts" type="number">
+  Maximum number of reconnection attempts
+</ParamField>
+
+## Notification Message
+
+```typescript
+interface NotificationMessage {
+  id: number;
+  user_id: number;
+  deployment_id: number;
+  title: string;
+  body: string;
+  severity: string;
+  ctas?: { label: string; payload: any }[];
+  created_at: string;
+}
+```
+
+## Examples
+
+### Basic Stream Connection
+
+```tsx
+import { useNotificationStream } from "@wacht/tanstack-router";
+
+function NotificationIndicator() {
+  const { isConnected } = useNotificationStream({
+    enabled: true,
+  });
+
+  return (
+    <div>
+      <span
+        style={{
+          width: 10,
+          height: 10,
+          borderRadius: "50%",
+          background: isConnected ? "green" : "red",
+        }}
+      />
+    </div>
+  );
+}
+```
+
+### With Channel Subscription
+
+```tsx
+import { useNotificationStream } from "@wacht/tanstack-router";
+
+function ChannelSubscriber() {
+  useNotificationStream({
+    enabled: true,
+    channels: ["updates", "alerts"],
+  });
+
+  return <div>Subscribed to updates and alerts</div>;
+}
+```
+
+### With Organization Filtering
+
+```tsx
+import { useNotificationStream } from "@wacht/tanstack-router";
+
+function OrgNotifications({ orgId }: { orgId: number }) {
+  useNotificationStream({
+    enabled: true,
+    organizationIds: [orgId],
+  });
+
+  return <div>Listening for organization notifications</div>;
+}
+```
+
+### With Error Handling
+
+```tsx
+import { useNotificationStream } from "@wacht/tanstack-router";
+
+function NotificationsWithRetry() {
+  const { isConnected, connectionError, reconnect } = useNotificationStream({
+    enabled: true,
+    reconnectDelay: 2000,
+    maxReconnectAttempts: 10,
+    onError: (error) => {
+      toast.error(`Connection error: ${error}`);
+    },
+  });
+
+  return (
+    <div>
+      <p>Status: {isConnected ? "Connected" : "Disconnected"}</p>
+      {!isConnected && (
+        <button onClick={() => reconnect()}>Reconnect</button>
+      )}
+      {connectionError && <p>Error: {connectionError}</p>}
+    </div>
+  );
+}
+```
+
+### Disconnect on Unmount
+
+```tsx
+import { useNotificationStream } from "@wacht/tanstack-router";
+
+function ConditionalStream({ enabled }: { enabled: boolean }) {
+  const { isConnected, disconnect } = useNotificationStream({
+    enabled,
+  });
+
+  useEffect(() => {
+    return () => {
+      disconnect();
+    };
+  }, [disconnect]);
+
+  return <div>{/* Content */}</div>;
+}
+```
+
+## WebSocket Connection
+
+The hook establishes a WebSocket connection to:
+
+```
+wss://{backend_host}/realtime/notifications
+```
+
+The connection includes:
+
+- Automatic reconnection with exponential backoff
+- Ping/pong for keep-alive
+- Session-based authentication
+- Channel and organization filtering
+
+## Related
+
+- [useNotifications](./use-notifications) - Notifications list management

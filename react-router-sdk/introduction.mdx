@@ -1,0 +1,526 @@
+---
+title: 'React Router SDK'
+description: 'Official Wacht SDK for React Router v7 applications'
+---
+
+## Overview
+
+The **React Router SDK** (`@wacht/react-router`) provides comprehensive authentication and user management for React Router v7 applications. It includes pre-built components, hooks for authentication flows, and utilities for managing users, organizations, and workspaces.
+
+## Key Features
+
+- **Authentication Components** - Pre-built sign-in, sign-up, and SSO callback components
+- **Authentication Hooks** - Hooks for handling sign-in, sign-up, password reset, and more
+- **User Management** - Hooks and components for profile management
+- **Organization & Workspace Support** - Built-in support for multi-tenant applications
+- **Session Management** - Automatic session handling with token refresh
+- **Notifications** - Real-time notification support with hooks and components
+
+## Installation
+
+```bash
+pnpm add @wacht/react-router @wacht/types
+```
+
+Or with npm:
+
+```bash
+npm install @wacht/react-router @wacht/types
+```
+
+## Quick Start
+
+### 1. Wrap Your Application
+
+Wrap your application with the `DeploymentProvider` in your root route:
+
+```tsx
+import { DeploymentProvider } from '@wacht/react-router'
+
+export function loader() {
+  return {
+    publicKey: process.env.WACHT_PUBLIC_KEY
+  }
+}
+
+export default function Root({ loaderData }) {
+  return (
+    <DeploymentProvider publicKey={loaderData.publicKey}>
+      <Outlet />
+    </DeploymentProvider>
+  )
+}
+```
+
+### 2. Create Sign-In and Sign-Up Routes
+
+```tsx
+// routes/signin.tsx
+import { SignInForm } from '@wacht/react-router'
+
+export default function SignIn() {
+  return (
+    <div className="auth-page">
+      <h1>Sign In</h1>
+      <SignInForm />
+    </div>
+  )
+}
+
+// routes/signup.tsx
+import { SignUpForm } from '@wacht/react-router'
+
+export default function SignUp() {
+  return (
+    <div className="auth-page">
+      <h1>Sign Up</h1>
+      <SignUpForm />
+    </div>
+  )
+}
+```
+
+### 3. Protect Routes
+
+```tsx
+// routes/dashboard.tsx
+import { SignedIn } from '@wacht/react-router'
+import { useSession } from '@wacht/react-router'
+
+export default function Dashboard() {
+  return (
+    <SignedIn>
+      <DashboardContent />
+    </SignedIn>
+  )
+}
+
+function DashboardContent() {
+  const { session } = useSession()
+
+  return (
+    <div>
+      <h1>Welcome, {session.user.first_name}!</h1>
+    </div>
+  )
+}
+```
+
+### 4. Add User Menu
+
+```tsx
+// routes/root.tsx
+import { UserButton } from '@wacht/react-router'
+import { SignedIn } from '@wacht/react-router'
+
+export default function Layout() {
+  return (
+    <html>
+      <body>
+        <nav>
+          <h1>My App</h1>
+          <SignedIn>
+            <UserButton />
+          </SignedIn>
+        </nav>
+        <Outlet />
+      </body>
+    </html>
+  )
+}
+```
+
+## Configuration
+
+### Environment Variables
+
+Set these environment variables in your React Router app:
+
+```bash
+# .env
+WACHT_PUBLIC_KEY=your_public_key_here
+```
+
+### UI Customization
+
+You can customize the UI by passing `uiOverwrites` to the provider:
+
+```tsx
+import { DeploymentProvider } from '@wacht/react-router'
+
+export default function Root({ loaderData }) {
+  return (
+    <DeploymentProvider
+      publicKey={loaderData.publicKey}
+      uiOverwrites={{
+        primaryColor: '#4f46e5',
+        borderRadius: '8px',
+        fontFamily: 'Inter, sans-serif'
+      }}
+    >
+      <Outlet />
+    </DeploymentProvider>
+  )
+}
+```
+
+## Components
+
+### SignInForm
+
+Complete sign-in form with email/password, OTP, magic link, and social authentication.
+
+```tsx
+import { SignInForm } from '@wacht/react-router'
+
+function LoginPage() {
+  return <SignInForm />
+}
+```
+
+### SignUpForm
+
+Complete sign-up form with validation and social authentication.
+
+```tsx
+import { SignUpForm } from '@wacht/react-router'
+
+function RegisterPage() {
+  return <SignUpForm />
+}
+```
+
+### UserButton
+
+User profile dropdown with account management and sign-out.
+
+```tsx
+import { UserButton } from '@wacht/react-router'
+
+function Navbar() {
+  return (
+    <nav>
+      <UserButton />
+    </nav>
+  )
+}
+```
+
+### OrganizationSwitcher
+
+Organization and workspace switcher for multi-tenant apps.
+
+```tsx
+import { OrganizationSwitcher } from '@wacht/react-router'
+
+function Sidebar() {
+  return (
+    <aside>
+      <OrganizationSwitcher />
+    </aside>
+  )
+}
+```
+
+### SignedIn / SignedOut
+
+Conditional rendering based on authentication state.
+
+```tsx
+import { SignedIn, SignedOut } from '@wacht/react-router'
+
+function ProtectedPage() {
+  return (
+    <>
+      <SignedOut>
+        <p>Please sign in to continue</p>
+      </SignedOut>
+      <SignedIn>
+        <p>Welcome back!</p>
+      </SignedIn>
+    </>
+  )
+}
+```
+
+## Hooks
+
+### useSignIn
+
+Handle user authentication with multiple strategies.
+
+```tsx
+import { useSignIn, SignInStrategy } from '@wacht/react-router'
+
+function CustomSignIn() {
+  const { signIn, loading, errors } = useSignIn()
+
+  const handleEmailSignIn = async (email: string, password: string) => {
+    const emailSignIn = signIn.createStrategy(SignInStrategy.Email)
+    const result = await emailSignIn({ email, password })
+
+    if (result.data) {
+      console.log('Sign in successful')
+    }
+  }
+
+  return <div>{/* Custom sign-in UI */}</div>
+}
+```
+
+### useSignUp
+
+Handle user registration.
+
+```tsx
+import { useSignUp } from '@wacht/react-router'
+
+function CustomSignUp() {
+  const { signUp, loading, errors } = useSignUp()
+
+  const handleSignUp = async (userData) => {
+    const result = await signUp.create(userData)
+
+    if (result.data) {
+      console.log('Sign up successful')
+    }
+  }
+
+  return <div>{/* Custom sign-up UI */}</div>
+}
+```
+
+### useSession
+
+Access and manage user sessions.
+
+```tsx
+import { useSession } from '@wacht/react-router'
+
+function UserProfile() {
+  const { session, loading, signOut } = useSession()
+
+  if (loading) return <div>Loading...</div>
+
+  return (
+    <div>
+      <h1>{session.user.first_name} {session.user.last_name}</h1>
+      <button onClick={() => signOut()}>Sign Out</button>
+    </div>
+  )
+}
+```
+
+### useUser
+
+Manage user profile and settings.
+
+```tsx
+import { useUser } from '@wacht/react-router'
+
+function ProfileSettings() {
+  const { user, updateProfile, updatePassword } = useUser()
+
+  const handleUpdate = async () => {
+    await updateProfile({
+      first_name: 'John',
+      last_name: 'Doe'
+    })
+  }
+
+  return <div>{/* Profile settings UI */}</div>
+}
+```
+
+### useOrganization
+
+Manage organizations and memberships.
+
+```tsx
+import { useOrganization } from '@wacht/react-router'
+
+function OrganizationPage() {
+  const { organization, members, loading } = useOrganization()
+
+  if (loading) return <div>Loading...</div>
+
+  return (
+    <div>
+      <h1>{organization.name}</h1>
+      <p>{members.length} members</p>
+    </div>
+  )
+}
+```
+
+### useWorkspace
+
+Manage workspaces within organizations.
+
+```tsx
+import { useWorkspace } from '@wacht/react-router'
+
+function WorkspaceSettings() {
+  const { workspace, updateWorkspace } = useWorkspace()
+
+  return (
+    <div>
+      <h1>{workspace.name}</h1>
+      <button onClick={() => updateWorkspace({ name: 'New Name' })}>
+        Update Name
+      </button>
+    </div>
+  )
+}
+```
+
+### useNavigation
+
+Navigate between authentication pages and routes.
+
+```tsx
+import { useNavigation } from '@wacht/react-router'
+
+function CustomRedirects() {
+  const { navigate, navigateToSignIn, navigateToSignUp } = useNavigation()
+
+  return (
+    <div>
+      <button onClick={() => navigate('/dashboard')}>
+        Go to Dashboard
+      </button>
+      <button onClick={() => navigateToSignIn()}>
+        Go to Sign In
+      </button>
+    </div>
+  )
+}
+```
+
+## API Reference
+
+### Components
+
+| Component | Description |
+|-----------|-------------|
+| `SignInForm` | Complete sign-in form component |
+| `SignUpForm` | Complete sign-up form component |
+| `UserButton` | User profile dropdown |
+| `OrganizationSwitcher` | Organization/workspace switcher |
+| `ManageAccount` | Account management component |
+| `ManageOrganization` | Organization management component |
+| `CreateOrganizationForm` | Create organization form |
+| `CreateWorkspaceForm` | Create workspace form |
+| `SignedIn` | Render children only when signed in |
+| `SignedOut` | Render children only when signed out |
+| `SSOCallback` | OAuth/SSO callback handler |
+| `WaitlistForm` | Waitlist signup form |
+| `MagicLinkVerification` | Magic link verification handler |
+| `NotificationBell` | Notification bell icon |
+| `NotificationPopover` | Notification popover |
+| `NotificationPanel` | Full notification panel |
+
+### Hooks
+
+| Hook | Description |
+|------|-------------|
+| `useSignIn` | Handle user sign-in |
+| `useSignUp` | Handle user sign-up |
+| `useSession` | Access and manage session |
+| `useUser` | Manage user profile |
+| `useDeployment` | Access deployment settings |
+| `useClient` | Access configured HTTP client |
+| `useNavigation` | Manage navigation redirects |
+| `useForgotPassword` | Handle password reset |
+| `useMagicLinkVerification` | Handle magic link authentication |
+| `useSSOCallback` | Handle OAuth callbacks |
+| `useWaitlist` | Handle waitlist signup |
+| `useOrganizationList` | List user's organizations |
+| `useActiveOrganization` | Access active organization |
+| `useOrganizationMemberships` | Manage organization memberships |
+| `useWorkspaceList` | List workspaces |
+| `useActiveWorkspace` | Access active workspace |
+| `useWorkspaceMemberships` | Manage workspace memberships |
+| `useNotifications` | Access notifications |
+| `useNotificationStream` | Real-time notification stream |
+| `useAgentContext` | Access AI agent context |
+| `useAgentSession` | Access AI agent session |
+| `useInvitation` | Handle organization invitations |
+
+## Examples
+
+### Complete Authentication Flow
+
+```tsx
+// routes/auth.tsx
+import { Outlet } from 'react-router'
+import { SignedIn, SignedOut, useSession } from '@wacht/react-router'
+
+export default function AuthLayout() {
+  return (
+    <div>
+      <SignedOut>
+        <div className="auth-cta">
+          <p>Sign in to access your account</p>
+        </div>
+      </SignedOut>
+      <SignedIn>
+        <UserGreeting />
+      </SignedIn>
+      <Outlet />
+    </div>
+  )
+}
+
+function UserGreeting() {
+  const { session } = useSession()
+  return <p>Hello, {session.user.first_name}!</p>
+}
+```
+
+### Protected Routes
+
+```tsx
+// routes/protected.tsx
+import { SignedIn, NavigateToSignIn } from '@wacht/react-router'
+
+export default function Protected() {
+  return (
+    <SignedIn>
+      <ProtectedContent />
+    </SignedIn>
+  )
+}
+
+function ProtectedContent() {
+  return <div>This is protected content</div>
+}
+```
+
+### Organization Management
+
+```tsx
+// routes/orgs.$orgId.tsx
+import { useOrganization, useOrganizationList } from '@wacht/react-router'
+import { useParams } from 'react-router'
+
+export default function OrganizationPage() {
+  const { orgId } = useParams()
+  const { organization, loading } = useOrganization(orgId)
+
+  if (loading) return <div>Loading...</div>
+
+  return (
+    <div>
+      <h1>{organization.name}</h1>
+      <p>{organization.description}</p>
+    </div>
+  )
+}
+```
+
+## Related
+
+- [Next.js SDK](/nextjs-sdk/introduction) - Next.js SDK documentation
+- [TanStack Router SDK](/tanstack-router-sdk/introduction) - TanStack Router SDK documentation
+- [API Reference](/api-reference/frontend-api) - Frontend API reference

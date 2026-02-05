@@ -1,0 +1,49 @@
+# Workspace member by ID endpoint
+
+WorkspaceMemberById:
+  patch:
+    summary: Update workspace member
+    description: Update workspace member roles
+    tags:
+      - Workspaces
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - name: membership_id
+        in: path
+        required: true
+        schema:
+          type: string
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              role_ids:
+                type: array
+                items:
+                  type: string
+    responses:
+      '200':
+        description: Member updated
+      '404':
+        $ref: '#/components/responses/NotFound'
+
+  delete:
+    summary: Remove workspace member
+    description: Remove a member from a workspace
+    tags:
+      - Workspaces
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - name: membership_id
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      '204':
+        description: Member removed
+      '404':
+        $ref: '#/components/responses/NotFound'

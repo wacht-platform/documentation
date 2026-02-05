@@ -1,0 +1,40 @@
+# Execute agent in context endpoint
+
+AIExecutionContextExecute:
+  post:
+    summary: Execute agent in context
+    description: Run an AI agent within a specific execution context
+    tags:
+      - AI Execution Contexts
+    parameters:
+      - $ref: '#/components/parameters/ExecutionContextId'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - agent_name
+              - message
+            properties:
+              agent_name:
+                type: string
+              message:
+                type: string
+              files:
+                type: array
+                items:
+                  type: string
+    responses:
+      '200':
+        description: Agent executed
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                response:
+                  type: string
+      '404':
+        $ref: '#/components/responses/NotFound'

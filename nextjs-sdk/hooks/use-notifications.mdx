@@ -1,0 +1,273 @@
+---
+title: useNotifications
+description: Access and manage user notifications with support for pagination and bulk operations.
+---
+
+# useNotifications
+
+The `useNotifications` hook provides access to user notifications with support for pagination, marking as read/unread, starring, and archiving.
+
+## Return Value
+
+<ParamField path="loading" type="boolean">
+  Whether notifications are loading
+</ParamField>
+
+<ParamField path="notifications" type="Notification[]">
+  List of notifications
+</ParamField>
+
+<ParamField path="hasMore" type="boolean">
+  Whether there are more notifications to load
+</ParamField>
+
+<ParamField path="error" type="Error | null">
+  Any error that occurred
+</ParamField>
+
+<ParamField path="refetch">
+  <Expandable title="Refetch the notifications list">
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the notifications list is refetched
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="loadMore">
+  <Expandable title="Load more notifications">
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when more notifications are loaded
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="markAsRead">
+  <Expandable title="Mark a notification as read">
+    <ParamField path="notificationId" type="string">
+      The ID of the notification to mark as read
+    </ParamField>
+    <ParamField path="returns" type="Promise<void>">
+      Resolves when the notification is marked as read
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="markAsUnread">
+  <Expandable title="Mark a notification as unread">
+    <ParamField path="notificationId" type="string">
+      The ID of the notification to mark as unread
+    </ParamField>
+    <ParamField path="returns" type="Promise<void>">
+      Resolves when the notification is marked as unread
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="markAllAsRead">
+  <Expandable title="Mark all notifications as read">
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when all notifications are marked as read
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="archiveAllRead">
+  <Expandable title="Archive all read notifications">
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when all read notifications are archived
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="archiveNotification">
+  <Expandable title="Archive a notification">
+    <ParamField path="notificationId" type="string">
+      The ID of the notification to archive
+    </ParamField>
+    <ParamField path="returns" type="Promise<void>">
+      Resolves when the notification is archived
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="starNotification">
+  <Expandable title="Star a notification">
+    <ParamField path="notificationId" type="string">
+      The ID of the notification to star
+    </ParamField>
+    <ParamField path="returns" type="Promise<void>">
+      Resolves when the notification is starred
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+```tsx
+import { useNotifications } from "@wacht/nextjs";
+
+function NotificationsPage() {
+  const { notifications, loading, markAsRead, markAllAsRead, loadMore } = useNotifications();
+
+  return (
+    <div>
+      <h1>Notifications</h1>
+      <button onClick={() => markAllAsRead()}>Mark All Read</button>
+      <ul>
+        {notifications.map((notif) => (
+          <li key={notif.id}>
+            <span>{notif.title}</span>
+            <button onClick={() => markAsRead(notif.id)}>
+              Mark Read
+            </button>
+          </li>
+        ))}
+      </ul>
+      <button onClick={() => loadMore()} disabled={!hasMore}>
+        Load More
+      </button>
+    </div>
+  );
+}
+```
+
+## Options
+
+<ParamField path="limit" type="number">
+  Maximum number of notifications to fetch
+</ParamField>
+
+<ParamField path="scope" type="string">
+  Filter notifications by scope
+</ParamField>
+
+<ParamField path="is_read" type="boolean">
+  Filter by read status
+</ParamField>
+
+<ParamField path="is_archived" type="boolean">
+  Filter by archived status
+</ParamField>
+
+<ParamField path="is_starred" type="boolean">
+  Filter by starred status
+</ParamField>
+
+<ParamField path="severity" type="string">
+  Filter by severity level
+</ParamField>
+
+<ParamField path="onNotification">
+  <Expandable title="Callback when a new notification is received">
+    <ParamField path="notification" type="NotificationMessage">
+      The notification message
+    </ParamField>
+    <ParamField path="returns" type="void">
+      No return value
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+## Data Structures
+
+<Expandable title="Notification">
+
+```typescript
+interface Notification {
+  id: string;
+  deployment_id: string;
+  user_id: string;
+  organization_id?: string;
+  workspace_id?: string;
+  title: string;
+  body: string;
+  ctas?: { label: string; payload: any }[];
+  severity: "info" | "success" | "warning" | "error";
+  is_read: boolean;
+  read_at?: string;
+  is_archived: boolean;
+  archived_at?: string;
+  is_starred: boolean;
+  metadata?: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+  expires_at?: string;
+}
+```
+
+</Expandable>
+
+## Examples
+
+### Basic Notifications List
+
+```tsx
+import { useNotifications } from "@wacht/nextjs";
+
+function NotificationsList() {
+  const { notifications, loading, markAsRead } = useNotifications();
+
+  if (loading) return <div>Loading...</div>;
+
+  return (
+    <ul>
+      {notifications.map((notif) => (
+        <li key={notif.id} onClick={() => markAsRead(notif.id)}>
+          {notif.title}: {notif.body}
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+### With Options
+
+```tsx
+import { useNotifications } from "@wacht/nextjs";
+
+function UnreadOnly() {
+  const { notifications } = useNotifications({
+    limit: 20,
+    is_read: false,
+  });
+
+  return <div>{/* Render notifications */}</div>;
+}
+```
+
+### Mark All as Read
+
+```tsx
+import { useNotifications } from "@wacht/nextjs";
+
+function MarkAllButton() {
+  const { markAllAsRead } = useNotifications();
+
+  return (
+    <button onClick={() => markAllAsRead()}>
+      Mark All as Read
+    </button>
+  );
+}
+```
+
+### With Real-time Updates
+
+```tsx
+import { useNotifications } from "@wacht/nextjs";
+
+function NotificationBell() {
+  const { notifications, onNotification } = useNotifications({
+    onNotification: (notification) => {
+      toast.info(`New: ${notification.title}`);
+    },
+  });
+
+  return (
+    <Bell count={notifications.length} />
+  );
+}
+```
+
+## Related
+
+- [useNotificationStream](./use-notification-stream) - Real-time notification stream

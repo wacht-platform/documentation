@@ -1,0 +1,41 @@
+# Webhook endpoints operations
+
+WebhookEndpoints:
+  post:
+    summary: Create webhook endpoint
+    description: Create a new webhook endpoint
+    tags:
+      - Webhooks
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - app_name
+              - url
+              - event_types
+            properties:
+              app_name:
+                type: string
+              url:
+                type: string
+              event_types:
+                type: array
+                items:
+                  type: string
+              description:
+                type: string
+    responses:
+      '200':
+        description: Endpoint created
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                url:
+                  type: string

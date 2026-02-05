@@ -1,0 +1,53 @@
+---
+title: SSOCallback
+description: Handles OAuth/SSO callbacks from external identity providers.
+---
+
+# SSOCallback
+
+Handles OAuth and SSO callbacks from external identity providers like Google, GitHub, and enterprise SAML providers.
+
+Create a route for the OAuth callback that matches your redirect URI configured in the Wacht dashboard:
+
+```tsx
+import { SSOCallback } from "@wacht/nextjs";
+
+export default function SSOCallbackPage() {
+  return <SSOCallback />;
+}
+```
+
+## Behavior
+
+1. Reads OAuth callback parameters from the URL (`code`, `state`, `error`)
+2. Validates the OAuth state parameter
+3. Calls the appropriate backend endpoint to complete the flow
+4. Handles errors (access denied, invalid state, etc.) with an error message banner
+5. Redirects to the appropriate page after completion
+
+The state parameter supports:
+- **sign_in** - Standard sign-in flow
+- **connect_social** - Connecting a social account to an existing user
+
+## Query Parameters
+
+<ParamField path="code" type="string">
+OAuth authorization code.
+</ParamField>
+
+<ParamField path="state" type="string">
+OAuth state parameter (base64 encoded).
+</ParamField>
+
+<ParamField path="error" type="string">
+OAuth error code.
+</ParamField>
+
+<ParamField path="error_description" type="string">
+OAuth error description.
+</ParamField>
+
+## Related
+
+- [useSSOCallback](../hooks/use-sso-callback) - SSO callback hook
+- [SignInForm](./sign-in-form) - Sign-in form with social login

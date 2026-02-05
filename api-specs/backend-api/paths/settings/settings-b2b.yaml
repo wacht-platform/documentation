@@ -1,0 +1,56 @@
+# B2B settings endpoint
+
+SettingsB2B:
+  patch:
+    summary: Update deployment B2B settings
+    description: Update deployment B2B/SaaS settings
+    tags:
+      - Settings
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              enable_organizations:
+                type: boolean
+              enable_workspaces:
+                type: boolean
+              allow_org_creation:
+                type: boolean
+              allow_workspace_creation:
+                type: boolean
+              default_org_role:
+                type: string
+              default_workspace_role:
+                type: string
+              max_members_per_org:
+                type: integer
+                nullable: true
+              max_workspaces_per_org:
+                type: integer
+                nullable: true
+              enable_sso:
+                type: boolean
+              sso_providers:
+                type: array
+                items:
+                  type: string
+                  enum: [saml, oidc]
+    responses:
+      '200':
+        description: B2B settings updated
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enable_organizations:
+                  type: boolean
+                enable_workspaces:
+                  type: boolean
+                allow_org_creation:
+                  type: boolean
+                max_members_per_org:
+                  type: integer

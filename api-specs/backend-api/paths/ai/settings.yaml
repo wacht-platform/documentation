@@ -1,0 +1,55 @@
+# AI Settings endpoint
+
+AISettings:
+  get:
+    summary: Get AI settings
+    description: Get deployment AI settings
+    tags:
+      - AI Settings
+    responses:
+      '200':
+        description: AI settings
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enabled_models:
+                  type: array
+                  items:
+                    type: string
+                default_model:
+                  type: string
+
+  put:
+    summary: Update AI settings
+    description: Update deployment AI settings
+    tags:
+      - AI Settings
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              enabled_models:
+                type: array
+                items:
+                  type: string
+              default_model:
+                type: string
+    responses:
+      '200':
+        description: AI settings updated
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enabled_models:
+                  type: array
+                  items:
+                    type: string
+                default_model:
+                  type: string

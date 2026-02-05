@@ -1,0 +1,50 @@
+---
+title: SignedIn
+description: Conditionally render children only when the user is signed in.
+---
+
+# SignedIn
+
+Conditionally renders its children only when a user is authenticated. Returns `null` during loading or if no active session exists.
+
+```tsx
+import { SignedIn } from "@wacht/nextjs";
+
+export default function Dashboard() {
+  return (
+    <SignedIn>
+      <h1>Welcome!</h1>
+      <p>This content is only visible to signed-in users.</p>
+    </SignedIn>
+  );
+}
+```
+
+## Protected Route
+
+```tsx
+import { SignedIn, NavigateToSignIn } from "@wacht/nextjs";
+
+export default function ProtectedPage() {
+  return (
+    <>
+      <SignedIn>
+        <ProtectedContent />
+      </SignedIn>
+      <NavigateToSignIn />
+    </>
+  );
+}
+```
+
+## Params
+
+<ParamField path="children" type="ReactNode">
+Content to render when signed in.
+</ParamField>
+
+## Related
+
+- [SignedOut](./signed-out) - Render when user is signed out
+- [useSession](../hooks/use-session) - Access session data
+- [NavigateToSignIn](./navigate-to-sign-in) - Auto-navigate to sign-in

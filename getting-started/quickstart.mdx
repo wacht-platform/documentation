@@ -1,0 +1,205 @@
+---
+title: 'Quickstart'
+description: 'Get started with Wacht Platform in 5 minutes'
+---
+
+# Quickstart
+
+Get up and running with Wacht Platform backend API and Rust SDK in minutes.
+
+## Prerequisites
+
+Before you begin, ensure you have:
+
+- Rust 1.70+ installed
+- PostgreSQL 14+ running
+- A Wacht deployment (sign up at [wacht.dev](https://wacht.dev))
+
+## Step 1: Get Your API Credentials
+
+1. Sign up at [wacht.dev/signup](https://wacht.dev/signup)
+2. Create a new deployment
+3. Navigate to **Settings → API Keys**
+4. Generate a new API key
+
+Save your credentials:
+```bash
+export WACHT_BASE_URL="https://api.wacht.dev"
+export WACHT_API_KEY="sk_test_your_api_key_here"
+```
+
+## Step 2: Install the Rust SDK
+
+Add to your `Cargo.toml`:
+
+```toml
+[dependencies]
+wacht = "0.1.0"
+tokio = { version = "1", features = ["full"] }
+```
+
+## Step 3: Initialize the Client
+
+```rust
+use wacht::Client;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Initialize the client
+    let client = Client::new(
+        std::env::var("WACHT_BASE_URL")?,
+        std::env::var("WACHT_API_KEY")?,
+    );
+
+    // Test the connection
+    let health = client.check_health().await?;
+    println!("Wacht API Status: {}", health.status);
+
+    Ok(())
+}
+```
+
+## Step 4: Create a User
+
+```rust
+use wacht::types::CreateUserRequest;
+
+let request = CreateUserRequest {
+    email_address: Some("user@example.com".to_string()),
+    password: Some("secure_password_123".to_string()),
+    first_name: "John".to_string(),
+    last_name: "Doe".to_string(),
+    ..Default::default()
+};
+
+let user = client.create_user(&request).await?;
+println!("Created user: {} ({})", user.first_name, user.id);
+```
+
+## Step 5: Create an Organization
+
+```rust
+use wacht::types::CreateOrganizationRequest;
+
+let org_request = CreateOrganizationRequest {
+    name: "Acme Corp".to_string(),
+    description: Some("A sample organization".to_string()),
+    ..Default::default()
+};
+
+let org = client.create_organization(&org_request).await?;
+println!("Created organization: {}", org.name);
+```
+
+## Step 6: Add a Member to Organization
+
+```rust
+use wacht::types::AddOrganizationMemberRequest;
+
+let member_request = AddOrganizationMemberRequest {
+    user_id: user.id.clone(),
+    role_ids: vec![org.roles[0].id.clone()],
+};
+
+let member = client
+    .add_organization_member(org.id.clone(), &member_request)
+    .await?;
+
+println!("Added member: {}", member.user.first_name);
+```
+
+## Complete Example
+
+Here's a complete working example:
+
+```rust
+use wacht::{Client, types::{CreateUserRequest, CreateOrganizationRequest, AddOrganizationMemberRequest}};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // 1. Initialize client
+    let client = Client::from_env()?;
+
+    // 2. Create a user
+    let user = client.create_user(&CreateUserRequest {
+        email_address: Some("alice@example.com".to_string()),
+        password: Some("secure_pass_123".to_string()),
+        first_name: "Alice".to_string(),
+        last_name: "Smith".to_string(),
+        ..Default::default()
+    }).await?;
+
+    println!("✅ Created user: {} ({})", user.first_name, user.id);
+
+    // 3. Create an organization
+    let org = client.create_organization(&CreateOrganizationRequest {
+        name: "Tech Startup Inc".to_string(),
+        description: Some("My awesome company".to_string()),
+        ..Default::default()
+    }).await?;
+
+    println!("✅ Created organization: {}", org.name);
+
+    // 4. Add user to organization
+    let roles = client.get_organization_roles(org.id.clone()).await?;
+    let member = client.add_organization_member(
+        org.id.clone(),
+        &AddOrganizationMemberRequest {
+            user_id: user.id.clone(),
+            role_ids: vec![roles.data[0].id.clone()],
+        }
+    ).await?;
+
+    println!("✅ Added {} to organization as {}",
+        member.user.first_name,
+        member.roles[0].name
+    );
+
+    Ok(())
+}
+```
+
+## What's Next?
+
+- Explore [Backend API Reference](/backend-api/overview) for all available endpoints
+- Learn about [Authentication](/backend-api/authentication/overview) and JWT handling
+- Check [Rust SDK Documentation](/rust-sdk/introduction) for advanced usage
+- Build with [AI Agents](/backend-api/ai-agents/overview) and knowledge bases
+
+## Common Operations
+
+| Task | SDK Method | API Endpoint |
+|------|------------|--------------|
+| List users | `client.get_users()` | `GET /users` |
+| Get user details | `client.get_user(id)` | `GET /users/{id}/details` |
+| Create organization | `client.create_organization()` | `POST /organizations` |
+| List webhooks | `client.list_webhook_apps()` | `GET /webhooks/apps` |
+| Create agent | `client.create_agent()` | `POST /ai/agents` |
+
+## Troubleshooting
+
+### Connection Issues
+
+```rust
+// Check API health
+let health = client.check_health().await?;
+if !healthy {
+    return Err("API is unhealthy".into());
+}
+```
+
+### Authentication Errors
+
+```rust
+// Ensure your API key is valid and has the required permissions
+// Check deployment settings in the Wacht dashboard
+```
+
+### Database Connection
+
+The backend API manages all database connections. You don't need to configure anything.
+
+## Need Help?
+
+- 📧 Email: support@wacht.dev
+- 💬 GitHub Issues: [github.com/snipextt/wacht/issues](https://github.com/snipextt/wacht/issues)

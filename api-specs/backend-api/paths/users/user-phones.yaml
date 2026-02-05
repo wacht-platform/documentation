@@ -1,0 +1,41 @@
+# User phones endpoint
+
+UserPhones:
+  post:
+    summary: Add phone to user
+    description: Add a new phone number to a user
+    tags:
+      - Users
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - phone_number
+              - country_code
+            properties:
+              phone_number:
+                type: string
+              country_code:
+                type: string
+              verified:
+                type: boolean
+                default: false
+              is_primary:
+                type: boolean
+                default: false
+    responses:
+      '200':
+        description: Phone added
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPhone'
+      '404':
+        $ref: '#/components/responses/NotFound'
+      '409':
+        $ref: '#/components/responses/Conflict'

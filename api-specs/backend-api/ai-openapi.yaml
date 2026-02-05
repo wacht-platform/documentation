@@ -1,0 +1,1664 @@
+openapi: 3.0.3
+info:
+  title: Wacht Backend API - AI Tools
+  description: AI agents, tools, knowledge bases, integrations, execution contexts, and settings endpoints
+  version: 1.0.0
+
+servers:
+  - url: https://api.wacht.dev
+    description: Production server
+
+security:
+  - ApiKeyAuth: []
+
+tags:
+  - name: AI Agents
+    description: AI Agents management
+  - name: AI Tools
+    description: AI Tools management
+  - name: AI Knowledge Bases
+    description: AI Knowledge Bases management
+  - name: Agent Integrations
+    description: Agent Integrations management
+  - name: AI Settings
+    description: AI Settings management
+  - name: AI Execution Contexts
+    description: AI Execution Contexts management
+
+paths:
+  /ai/agents:
+    get:
+      summary: List AI agents
+      description: Get all AI agents with optional pagination and search
+      tags:
+        - AI Agents
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search term to filter agents by name or description
+      responses:
+        '200':
+          description: List of AI agents
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/AiAgentWithDetails'
+              examples:
+                success:
+                  value:
+                    data:
+                      - id: "1234567890123456789"
+                        created_at: "2024-01-15T10:30:00Z"
+                        updated_at: "2024-01-15T10:30:00Z"
+                        deployment_id: "9876543210987654321"
+                        name: "Customer Support Agent"
+                        description: "Handles customer inquiries"
+                        configuration: {}
+                        tools_count: 5
+                        knowledge_bases_count: 2
+                    has_more: false
+                    limit: 50
+                    offset: 0
+    post:
+      summary: Create AI agent
+      description: Create a new AI agent
+      tags:
+        - AI Agents
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  description: Agent name
+                  example: "Customer Support Agent"
+                description:
+                  type: string
+                  description: Agent description
+                  example: "Handles customer inquiries"
+                configuration:
+                  type: object
+                  description: Agent configuration (LLM settings, etc.)
+                  additionalProperties: true
+                  default: {}
+      responses:
+        '200':
+          description: AI agent created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiAgent'
+              examples:
+                success:
+                  value:
+                    id: "1234567890123456789"
+                    created_at: "2024-01-15T10:30:00Z"
+                    updated_at: "2024-01-15T10:30:00Z"
+                    deployment_id: "9876543210987654321"
+                    name: "Customer Support Agent"
+                    description: "Handles customer inquiries"
+                    configuration: {}
+
+  /ai/agents/{agent_id}:
+    get:
+      summary: Get AI agent by ID
+      description: Retrieve a specific AI agent with details
+      tags:
+        - AI Agents
+      parameters:
+        - $ref: '#/components/parameters/AgentId'
+      responses:
+        '200':
+          description: AI agent found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiAgentWithDetails'
+              examples:
+                success:
+                  value:
+                    id: "1234567890123456789"
+                    created_at: "2024-01-15T10:30:00Z"
+                    updated_at: "2024-01-15T10:30:00Z"
+                    deployment_id: "9876543210987654321"
+                    name: "Customer Support Agent"
+                    description: "Handles customer inquiries"
+                    configuration: {}
+                    tools_count: 5
+                    knowledge_bases_count: 2
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      summary: Update AI agent
+      description: Update an AI agent
+      tags:
+        - AI Agents
+      parameters:
+        - $ref: '#/components/parameters/AgentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Updated Agent Name"
+                description:
+                  type: string
+                  nullable: true
+                  example: "Updated description"
+                configuration:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '200':
+          description: AI agent updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiAgent'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete AI agent
+      description: Delete an AI agent
+      tags:
+        - AI Agents
+      parameters:
+        - $ref: '#/components/parameters/AgentId'
+      responses:
+        '200':
+          description: AI agent deleted (empty response)
+          content:
+            application/json:
+              schema: {}
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /ai/agents/{agent_id}/details:
+    get:
+      summary: Get AI agent full details
+      description: Get extended information including integrations, tools, and knowledge bases
+      tags:
+        - AI Agents
+      parameters:
+        - $ref: '#/components/parameters/AgentId'
+      responses:
+        '200':
+          description: AI agent full details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentDetailsResponse'
+              examples:
+                success:
+                  value:
+                    id: "1234567890123456789"
+                    created_at: "2024-01-15T10:30:00Z"
+                    updated_at: "2024-01-15T10:30:00Z"
+                    deployment_id: "9876543210987654321"
+                    name: "Customer Support Agent"
+                    description: "Handles customer inquiries"
+                    configuration: {}
+                    tools_count: 5
+                    knowledge_bases_count: 2
+                    integrations:
+                      - id: "1111111111111111111"
+                        created_at: "2024-01-15T10:30:00Z"
+                        updated_at: "2024-01-15T10:30:00Z"
+                        deployment_id: "9876543210987654321"
+                        agent_id: "1234567890123456789"
+                        integration_type: "slack"
+                        name: "Slack Integration"
+                        config: {}
+                    tools: []
+                    knowledge_bases: []
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /ai/agents/{agent_id}/integrations:
+    get:
+      summary: List agent integrations
+      description: Get all integrations for an agent with webhook URLs
+      tags:
+        - Agent Integrations
+      parameters:
+        - $ref: '#/components/parameters/AgentId'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          description: List of agent integrations
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/AgentIntegrationWithUrl'
+    post:
+      summary: Create agent integration
+      description: Create a new integration for an agent
+      tags:
+        - Agent Integrations
+      parameters:
+        - $ref: '#/components/parameters/AgentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - integration_type
+                - name
+              properties:
+                integration_type:
+                  type: string
+                  enum: [teams, slack, whatsapp, discord, clickup]
+                  description: Type of integration
+                  example: "slack"
+                name:
+                  type: string
+                  description: Integration name
+                  example: "My Slack Integration"
+                config:
+                  type: object
+                  description: Integration configuration
+                  additionalProperties: true
+                  example:
+                    webhook_url: "https://hooks.slack.com/services/..."
+      responses:
+        '200':
+          description: Integration created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentIntegration'
+
+  /ai/agents/{agent_id}/integrations/{integration_id}:
+    get:
+      summary: Get agent integration by ID
+      description: Retrieve a specific agent integration
+      tags:
+        - Agent Integrations
+      parameters:
+        - $ref: '#/components/parameters/AgentId'
+        - $ref: '#/components/parameters/IntegrationId'
+      responses:
+        '200':
+          description: Integration found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentIntegration'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      summary: Update agent integration
+      description: Update an agent integration
+      tags:
+        - Agent Integrations
+      parameters:
+        - $ref: '#/components/parameters/AgentId'
+        - $ref: '#/components/parameters/IntegrationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Updated Integration Name"
+                config:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '200':
+          description: Integration updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentIntegration'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete agent integration
+      description: Remove an integration from an agent
+      tags:
+        - Agent Integrations
+      parameters:
+        - $ref: '#/components/parameters/AgentId'
+        - $ref: '#/components/parameters/IntegrationId'
+      responses:
+        '200':
+          description: Integration deleted (empty response)
+          content:
+            application/json:
+              schema: {}
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /ai/tools:
+    get:
+      summary: List AI tools
+      description: Get all AI tools with optional pagination and search
+      tags:
+        - AI Tools
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search term to filter tools by name or description
+      responses:
+        '200':
+          description: List of AI tools
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/AiToolWithDetails'
+    post:
+      summary: Create AI tool
+      description: Create a new AI tool
+      tags:
+        - AI Tools
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - tool_type
+                - configuration
+              properties:
+                name:
+                  type: string
+                  description: Tool name
+                  example: "Get User Info"
+                description:
+                  type: string
+                  description: Tool description
+                  example: "Retrieves user information from the database"
+                tool_type:
+                  type: string
+                  enum: [api, platform_event, platform_function, internal, use_external_service]
+                  description: Type of AI tool
+                  example: "api"
+                configuration:
+                  $ref: '#/components/schemas/AiToolConfiguration'
+      responses:
+        '200':
+          description: AI tool created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiTool'
+
+  /ai/tools/{tool_id}:
+    get:
+      summary: Get AI tool by ID
+      description: Retrieve a specific AI tool
+      tags:
+        - AI Tools
+      parameters:
+        - $ref: '#/components/parameters/ToolId'
+      responses:
+        '200':
+          description: AI tool found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiToolWithDetails'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      summary: Update AI tool
+      description: Update an AI tool
+      tags:
+        - AI Tools
+      parameters:
+        - $ref: '#/components/parameters/ToolId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                  nullable: true
+                tool_type:
+                  type: string
+                  enum: [api, platform_event, platform_function, internal, use_external_service]
+                configuration:
+                  $ref: '#/components/schemas/AiToolConfiguration'
+      responses:
+        '200':
+          description: AI tool updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiTool'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete AI tool
+      description: Delete an AI tool
+      tags:
+        - AI Tools
+      parameters:
+        - $ref: '#/components/parameters/ToolId'
+      responses:
+        '200':
+          description: AI tool deleted (empty response)
+          content:
+            application/json:
+              schema: {}
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /ai/knowledge-bases:
+    get:
+      summary: List AI knowledge bases
+      description: Get all AI knowledge bases with optional pagination and search
+      tags:
+        - AI Knowledge Bases
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search term to filter knowledge bases
+      responses:
+        '200':
+          description: List of knowledge bases
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KnowledgeBaseResponse'
+              examples:
+                success:
+                  value:
+                    data:
+                      - id: "1234567890123456789"
+                        created_at: "2024-01-15T10:30:00Z"
+                        updated_at: "2024-01-15T10:30:00Z"
+                        deployment_id: "9876543210987654321"
+                        name: "Product Documentation"
+                        description: "Knowledge base for product docs"
+                        configuration: {}
+                        documents_count: 15
+                        total_size: 5242880
+                    has_more: false
+    post:
+      summary: Create AI knowledge base
+      description: Create a new AI knowledge base
+      tags:
+        - AI Knowledge Bases
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  description: Knowledge base name
+                  example: "Product Documentation"
+                description:
+                  type: string
+                  description: Knowledge base description
+                  example: "Contains all product documentation"
+                configuration:
+                  type: object
+                  description: Knowledge base configuration
+                  additionalProperties: true
+                  default: {}
+      responses:
+        '200':
+          description: Knowledge base created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiKnowledgeBase'
+
+  /ai/knowledge-bases/{kb_id}:
+    get:
+      summary: Get knowledge base by ID
+      description: Retrieve a specific knowledge base with details
+      tags:
+        - AI Knowledge Bases
+      parameters:
+        - $ref: '#/components/parameters/KnowledgeBaseId'
+      responses:
+        '200':
+          description: Knowledge base found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiKnowledgeBaseWithDetails'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      summary: Update knowledge base
+      description: Update a knowledge base
+      tags:
+        - AI Knowledge Bases
+      parameters:
+        - $ref: '#/components/parameters/KnowledgeBaseId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                  nullable: true
+                configuration:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '200':
+          description: Knowledge base updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiKnowledgeBase'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete knowledge base
+      description: Delete a knowledge base
+      tags:
+        - AI Knowledge Bases
+      parameters:
+        - $ref: '#/components/parameters/KnowledgeBaseId'
+      responses:
+        '200':
+          description: Knowledge base deleted (empty response)
+          content:
+            application/json:
+              schema: {}
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /ai/knowledge-bases/{kb_id}/documents:
+    get:
+      summary: List knowledge base documents
+      description: Get all documents in a knowledge base
+      tags:
+        - AI Knowledge Bases
+      parameters:
+        - $ref: '#/components/parameters/KnowledgeBaseId'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Documents list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/AiKnowledgeBaseDocument'
+    post:
+      summary: Upload document to knowledge base
+      description: Upload a document to a knowledge base (max 25MB)
+      tags:
+        - AI Knowledge Bases
+      parameters:
+        - $ref: '#/components/parameters/KnowledgeBaseId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Document file to upload
+                title:
+                  type: string
+                  description: Document title (defaults to filename without extension)
+                  example: "Product Manual"
+                description:
+                  type: string
+                  description: Optional document description
+                  example: "Complete product manual for users"
+      responses:
+        '200':
+          description: Document uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiKnowledgeBaseDocument'
+        '400':
+          description: Bad request (missing file, empty content)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Knowledge base not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Payload too large (max 25MB)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /ai/knowledge-bases/{kb_id}/documents/{document_id}:
+    delete:
+      summary: Delete knowledge base document
+      description: Remove a document from a knowledge base
+      tags:
+        - AI Knowledge Bases
+      parameters:
+        - $ref: '#/components/parameters/KnowledgeBaseId'
+        - $ref: '#/components/parameters/DocumentId'
+      responses:
+        '200':
+          description: Document deleted (empty response)
+          content:
+            application/json:
+              schema: {}
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /ai/settings:
+    get:
+      summary: Get AI settings
+      description: Get deployment AI settings (API keys are masked)
+      tags:
+        - AI Settings
+      responses:
+        '200':
+          description: AI settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeploymentAiSettingsResponse'
+              examples:
+                success:
+                  value:
+                    gemini_api_key_set: true
+                    openai_api_key_set: false
+                    anthropic_api_key_set: true
+    put:
+      summary: Update AI settings
+      description: Update deployment AI settings
+      tags:
+        - AI Settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                gemini_api_key:
+                  type: string
+                  description: Gemini API key
+                openai_api_key:
+                  type: string
+                  description: OpenAI API key
+                anthropic_api_key:
+                  type: string
+                  description: Anthropic API key
+      responses:
+        '200':
+          description: AI settings updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeploymentAiSettingsResponse'
+
+  /ai/execution-contexts:
+    get:
+      summary: List execution contexts
+      description: Get all execution contexts with optional filtering
+      tags:
+        - AI Execution Contexts
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [idle, running, waiting_for_input, interrupted, completed, failed]
+          description: Filter by execution context status
+        - name: context_group
+          in: query
+          schema:
+            type: string
+          description: Filter by context group
+      responses:
+        '200':
+          description: List of execution contexts
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/AgentExecutionContext'
+    post:
+      summary: Create execution context
+      description: Create a new execution context for AI operations
+      tags:
+        - AI Execution Contexts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: Context title
+                  example: "Customer Support Session"
+                system_instructions:
+                  type: string
+                  description: System instructions for the agent
+                  example: "You are a helpful customer support agent..."
+                context_group:
+                  type: string
+                  description: Optional group identifier for organizing contexts
+                  example: "support-tier-1"
+      responses:
+        '200':
+          description: Execution context created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentExecutionContext'
+
+  /ai/execution-contexts/{context_id}:
+    patch:
+      summary: Update execution context
+      description: Update an execution context
+      tags:
+        - AI Execution Contexts
+      parameters:
+        - $ref: '#/components/parameters/ExecutionContextId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                system_instructions:
+                  type: string
+                context_group:
+                  type: string
+                status:
+                  type: string
+                  enum: [idle, running, waiting_for_input, interrupted, completed, failed]
+      responses:
+        '200':
+          description: Execution context updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentExecutionContext'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /ai/execution-contexts/{context_id}/execute:
+    post:
+      summary: Execute agent in context
+      description: Run an AI agent within a specific execution context
+      tags:
+        - AI Execution Contexts
+      parameters:
+        - $ref: '#/components/parameters/ExecutionContextId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/ExecuteAgentNewMessage'
+                - $ref: '#/components/schemas/ExecuteAgentUserInputResponse'
+                - $ref: '#/components/schemas/ExecuteAgentPlatformFunctionResult'
+              discriminator:
+                propertyName: type
+      responses:
+        '200':
+          description: Agent execution queued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExecuteAgentResponse'
+              examples:
+                success:
+                  value:
+                    status: "queued"
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: 'API key authentication (format: Bearer {api_key})'
+
+  parameters:
+    AgentId:
+      name: agent_id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: AI Agent ID
+      example: "1234567890123456789"
+
+    ToolId:
+      name: tool_id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: AI Tool ID
+      example: "1234567890123456789"
+
+    KnowledgeBaseId:
+      name: kb_id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Knowledge Base ID
+      example: "1234567890123456789"
+
+    DocumentId:
+      name: document_id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Document ID
+      example: "1234567890123456789"
+
+    IntegrationId:
+      name: integration_id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Integration ID
+      example: "1234567890123456789"
+
+    ExecutionContextId:
+      name: context_id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Execution Context ID
+      example: "1234567890123456789"
+
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 50
+      description: Number of items to return
+
+    Offset:
+      name: offset
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+      description: Number of items to skip
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: "Resource not found"
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Error message
+
+    PaginatedResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: {}
+          description: Array of items
+        has_more:
+          type: boolean
+          description: Whether there are more items
+        limit:
+          type: integer
+          description: Number of items returned per page
+          nullable: true
+        offset:
+          type: integer
+          description: Number of items skipped
+          nullable: true
+
+    # AI Agent Schemas
+    AiAgent:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Agent ID
+          example: "1234567890123456789"
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2024-01-15T10:30:00Z"
+        deployment_id:
+          type: string
+          description: Deployment ID
+          example: "9876543210987654321"
+        name:
+          type: string
+          description: Agent name
+          example: "Customer Support Agent"
+        description:
+          type: string
+          description: Agent description
+          nullable: true
+          example: "Handles customer inquiries"
+        configuration:
+          type: object
+          description: Agent configuration
+          additionalProperties: true
+
+    AiAgentWithDetails:
+      allOf:
+        - $ref: '#/components/schemas/AiAgent'
+        - type: object
+          properties:
+            tools_count:
+              type: integer
+              description: Number of tools associated with the agent
+              example: 5
+            knowledge_bases_count:
+              type: integer
+              description: Number of knowledge bases associated with the agent
+              example: 2
+
+    AgentDetailsResponse:
+      allOf:
+        - $ref: '#/components/schemas/AiAgent'
+        - type: object
+          properties:
+            tools_count:
+              type: integer
+              example: 5
+            knowledge_bases_count:
+              type: integer
+              example: 2
+            integrations:
+              type: array
+              description: Agent integrations with webhook URLs
+              items:
+                $ref: '#/components/schemas/AgentIntegrationWithUrl'
+            tools:
+              type: array
+              description: Tools associated with the agent
+              items:
+                type: object
+                additionalProperties: true
+            knowledge_bases:
+              type: array
+              description: Knowledge bases associated with the agent
+              items:
+                type: object
+                additionalProperties: true
+
+    # AI Tool Schemas
+    AiTool:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "1234567890123456789"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        name:
+          type: string
+          example: "Get User Info"
+        description:
+          type: string
+          nullable: true
+          example: "Retrieves user information"
+        tool_type:
+          $ref: '#/components/schemas/AiToolType'
+        deployment_id:
+          type: string
+          example: "9876543210987654321"
+        configuration:
+          $ref: '#/components/schemas/AiToolConfiguration'
+
+    AiToolWithDetails:
+      $ref: '#/components/schemas/AiTool'
+
+    AiToolType:
+      type: string
+      enum: [api, platform_event, platform_function, internal, use_external_service]
+      description: Type of AI tool
+
+    AiToolConfiguration:
+      oneOf:
+        - $ref: '#/components/schemas/ApiToolConfiguration'
+        - $ref: '#/components/schemas/PlatformEventToolConfiguration'
+        - $ref: '#/components/schemas/PlatformFunctionToolConfiguration'
+        - $ref: '#/components/schemas/InternalToolConfiguration'
+        - $ref: '#/components/schemas/UseExternalServiceToolConfiguration'
+      discriminator:
+        propertyName: type
+
+    ApiToolConfiguration:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          enum: [api]
+        endpoint:
+          type: string
+          description: API endpoint URL
+          example: "https://api.example.com/users"
+        method:
+          type: string
+          enum: [GET, POST, PUT, DELETE, PATCH]
+          description: HTTP method
+          example: "GET"
+        authorization:
+          $ref: '#/components/schemas/AuthorizationConfiguration'
+        request_body_schema:
+          type: array
+          description: Request body schema fields
+          items:
+            $ref: '#/components/schemas/SchemaField'
+        url_params_schema:
+          type: array
+          description: URL parameters schema fields
+          items:
+            $ref: '#/components/schemas/SchemaField'
+        timeout_seconds:
+          type: integer
+          description: Request timeout in seconds
+          example: 30
+
+    PlatformEventToolConfiguration:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          enum: [platform_event]
+        event_label:
+          type: string
+          description: Event label
+          example: "user.created"
+        event_data:
+          type: object
+          description: Additional event data
+          additionalProperties: true
+
+    PlatformFunctionToolConfiguration:
+      type: object
+      required:
+        - type
+        - function_name
+      properties:
+        type:
+          type: string
+          enum: [platform_function]
+        function_name:
+          type: string
+          description: Function name
+          example: "get_user_profile"
+        function_description:
+          type: string
+          description: Function description
+          example: "Retrieves user profile information"
+        input_schema:
+          type: array
+          description: Input schema fields
+          items:
+            $ref: '#/components/schemas/SchemaField'
+        output_schema:
+          type: array
+          description: Output schema fields
+          items:
+            $ref: '#/components/schemas/SchemaField'
+        is_overridable:
+          type: boolean
+          description: Whether the function can be overridden
+          example: true
+
+    InternalToolConfiguration:
+      type: object
+      required:
+        - type
+        - tool_type
+      properties:
+        type:
+          type: string
+          enum: [internal]
+        tool_type:
+          type: string
+          enum: [read_file, write_file, list_directory, search_files, execute_command, save_memory, execute_python]
+          description: Internal tool type
+        input_schema:
+          type: array
+          description: Input schema fields
+          items:
+            $ref: '#/components/schemas/SchemaField'
+
+    UseExternalServiceToolConfiguration:
+      type: object
+      required:
+        - type
+        - service_type
+      properties:
+        type:
+          type: string
+          enum: [use_external_service]
+        service_type:
+          type: string
+          enum:
+            - teams_list_users
+            - teams_search_users
+            - teams_send_dm
+            - teams_send_context_message
+            - teams_list_messages
+            - teams_get_meeting_recording
+            - teams_transcribe_meeting
+            - teams_save_attachment
+            - teams_describe_image
+            - teams_transcribe_audio
+            - teams_list_contexts
+            - trigger_context
+            - clickup_create_task
+            - clickup_create_list
+            - clickup_update_task
+            - clickup_add_comment
+            - clickup_get_task
+            - clickup_get_space_lists
+            - clickup_get_spaces
+            - clickup_get_teams
+            - clickup_get_current_user
+            - clickup_get_tasks
+            - clickup_search_tasks
+            - clickup_task_add_attachment
+          description: External service type
+        input_schema:
+          type: array
+          description: Input schema fields
+          items:
+            $ref: '#/components/schemas/SchemaField'
+
+    AuthorizationConfiguration:
+      type: object
+      properties:
+        authorize_as_user:
+          type: boolean
+          description: Whether to authorize as the user
+          example: true
+        jwt_template_id:
+          type: integer
+          description: JWT template ID for authorization
+          example: 123
+        custom_headers:
+          type: array
+          description: Custom headers for authorization
+          items:
+            $ref: '#/components/schemas/SchemaField'
+
+    SchemaField:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Field name
+          example: "user_id"
+        field_type:
+          type: string
+          description: Field data type
+          example: "string"
+        required:
+          type: boolean
+          description: Whether the field is required
+          example: true
+        description:
+          type: string
+          description: Field description
+          example: "User ID"
+        items_type:
+          type: string
+          description: Type of array items
+          example: "string"
+
+    # Agent Integration Schemas
+    AgentIntegration:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "1234567890123456789"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        deployment_id:
+          type: string
+          example: "9876543210987654321"
+        agent_id:
+          type: string
+          example: "1234567890123456789"
+        integration_type:
+          $ref: '#/components/schemas/IntegrationType'
+        name:
+          type: string
+          example: "My Slack Integration"
+        config:
+          type: object
+          description: Integration configuration
+          additionalProperties: true
+
+    AgentIntegrationWithUrl:
+      allOf:
+        - $ref: '#/components/schemas/AgentIntegration'
+        - type: object
+          properties:
+            webhook_url:
+              type: string
+              description: Webhook URL (only for Teams and WhatsApp integrations)
+              nullable: true
+              example: "https://agentlink.wacht.services/service/teams/1234567890123456789/message"
+
+    IntegrationType:
+      type: string
+      enum: [teams, slack, whatsapp, discord, clickup]
+      description: Type of integration
+
+    # AI Knowledge Base Schemas
+    AiKnowledgeBase:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "1234567890123456789"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        deployment_id:
+          type: string
+          example: "9876543210987654321"
+        name:
+          type: string
+          example: "Product Documentation"
+        description:
+          type: string
+          nullable: true
+          example: "Knowledge base for product docs"
+        configuration:
+          type: object
+          description: Knowledge base configuration
+          additionalProperties: true
+
+    AiKnowledgeBaseWithDetails:
+      allOf:
+        - $ref: '#/components/schemas/AiKnowledgeBase'
+        - type: object
+          properties:
+            documents_count:
+              type: integer
+              description: Number of documents in the knowledge base
+              example: 15
+            total_size:
+              type: integer
+              description: Total size of all documents in bytes
+              example: 5242880
+
+    KnowledgeBaseResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          description: Array of knowledge bases with details
+          items:
+            $ref: '#/components/schemas/AiKnowledgeBaseWithDetails'
+        has_more:
+          type: boolean
+          description: Whether there are more items
+
+    AiKnowledgeBaseDocument:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "1234567890123456789"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        title:
+          type: string
+          description: Document title
+          example: "Product Manual"
+        description:
+          type: string
+          nullable: true
+          description: Document description
+          example: "Complete product manual for users"
+        file_name:
+          type: string
+          description: Original file name
+          example: "product_manual.pdf"
+        file_size:
+          type: integer
+          description: File size in bytes
+          example: 1048576
+        file_type:
+          type: string
+          description: MIME type of the file
+          example: "application/pdf"
+        file_url:
+          type: string
+          description: S3 URL of the uploaded file
+          example: "https://s3.amazonaws.com/bucket/path/to/file.pdf"
+        knowledge_base_id:
+          type: string
+          description: Knowledge base ID
+          example: "9876543210987654321"
+        processing_metadata:
+          type: object
+          description: Processing metadata
+          additionalProperties: true
+          nullable: true
+
+    # AI Settings Schemas
+    DeploymentAiSettingsResponse:
+      type: object
+      properties:
+        gemini_api_key_set:
+          type: boolean
+          description: Whether Gemini API key is set
+          example: true
+        openai_api_key_set:
+          type: boolean
+          description: Whether OpenAI API key is set
+          example: false
+        anthropic_api_key_set:
+          type: boolean
+          description: Whether Anthropic API key is set
+          example: true
+
+    # AI Execution Context Schemas
+    AgentExecutionContext:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "1234567890123456789"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        deployment_id:
+          type: string
+          example: "9876543210987654321"
+        title:
+          type: string
+          description: Context title
+          example: "Customer Support Session"
+        system_instructions:
+          type: string
+          nullable: true
+          description: System instructions for the agent
+          example: "You are a helpful customer support agent..."
+        context_group:
+          type: string
+          nullable: true
+          description: Optional group identifier
+          example: "support-tier-1"
+        last_activity_at:
+          type: string
+          format: date-time
+          description: Timestamp of last activity
+          example: "2024-01-15T11:30:00Z"
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Timestamp when context was completed
+          example: "2024-01-15T12:00:00Z"
+        execution_state:
+          type: object
+          nullable: true
+          description: Current execution state
+          additionalProperties: true
+        status:
+          $ref: '#/components/schemas/ExecutionContextStatus'
+        source:
+          type: string
+          nullable: true
+          description: Source of the context
+          example: "web"
+        external_context_id:
+          type: string
+          nullable: true
+          description: External context ID
+          example: "ext-123"
+        external_resource_metadata:
+          type: object
+          nullable: true
+          description: External resource metadata
+          additionalProperties: true
+
+    ExecutionContextStatus:
+      type: string
+      enum: [idle, running, waiting_for_input, interrupted, completed, failed]
+      description: Execution context status
+
+    ExecuteAgentResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          description: Execution status
+          example: "queued"
+
+    ExecuteAgentNewMessage:
+      type: object
+      required:
+        - type
+        - agent_name
+        - message
+      properties:
+        type:
+          type: string
+          enum: [new_message]
+        agent_name:
+          type: string
+          description: Name of the agent to execute
+          example: "customer-support-agent"
+        message:
+          type: string
+          description: User message to send
+          example: "I need help with my account"
+        files:
+          type: array
+          description: Optional file attachments
+          items:
+            type: object
+            additionalProperties: true
+
+    ExecuteAgentUserInputResponse:
+      type: object
+      required:
+        - type
+        - agent_name
+        - message
+      properties:
+        type:
+          type: string
+          enum: [user_input_response]
+        agent_name:
+          type: string
+          description: Name of the agent
+          example: "customer-support-agent"
+        message:
+          type: string
+          description: User input response
+          example: "Yes, please proceed"
+
+    ExecuteAgentPlatformFunctionResult:
+      type: object
+      required:
+        - type
+        - agent_name
+        - execution_id
+        - result
+      properties:
+        type:
+          type: string
+          enum: [platform_function_result]
+        agent_name:
+          type: string
+          description: Name of the agent
+          example: "customer-support-agent"
+        execution_id:
+          type: string
+          description: Platform function execution ID
+          example: "exec-123"
+        result:
+          type: object
+          description: Function execution result
+          additionalProperties: true

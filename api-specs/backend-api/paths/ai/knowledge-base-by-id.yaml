@@ -1,0 +1,60 @@
+# Knowledge Base by ID operations
+
+AIKnowledgeBaseById:
+  get:
+    summary: Get knowledge base by ID
+    description: Retrieve a specific knowledge base
+    tags:
+      - AI Knowledge Bases
+    parameters:
+      - $ref: '#/components/parameters/KnowledgeBaseId'
+    responses:
+      '200':
+        description: Knowledge base found
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AIKnowledgeBase'
+      '404':
+        $ref: '#/components/responses/NotFound'
+
+  patch:
+    summary: Update knowledge base
+    description: Update a knowledge base
+    tags:
+      - AI Knowledge Bases
+    parameters:
+      - $ref: '#/components/parameters/KnowledgeBaseId'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+              description:
+                type: string
+    responses:
+      '200':
+        description: Knowledge base updated
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AIKnowledgeBase'
+      '404':
+        $ref: '#/components/responses/NotFound'
+
+  delete:
+    summary: Delete knowledge base
+    description: Delete a knowledge base
+    tags:
+      - AI Knowledge Bases
+    parameters:
+      - $ref: '#/components/parameters/KnowledgeBaseId'
+    responses:
+      '204':
+        description: Knowledge base deleted
+      '404':
+        $ref: '#/components/responses/NotFound'

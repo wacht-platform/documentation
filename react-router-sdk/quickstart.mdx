@@ -1,0 +1,232 @@
+---
+title: 'Quick Start'
+description: 'Get up and running with the React Router SDK in 5 minutes'
+---
+
+This quick start guide will help you set up authentication in your React Router v7 application.
+
+## Step 1: Install the SDK
+
+```bash
+pnpm add @wacht/react-router @wacht/types
+```
+
+## Step 2: Set Environment Variables
+
+Create a `.env` file in your project root:
+
+```bash
+WACHT_PUBLIC_KEY=your_public_key_here
+```
+
+## Step 3: Configure the Provider
+
+Update your root route to wrap your application with the `DeploymentProvider`:
+
+```tsx
+// app/routes/root.tsx
+import { Outlet } from 'react-router'
+import { DeploymentProvider } from '@wacht/react-router'
+
+export async function loader() {
+  return {
+    publicKey: process.env.WACHT_PUBLIC_KEY
+  }
+}
+
+export default function Root({ loaderData }: Route.ComponentProps) {
+  return (
+    <html>
+      <body>
+        <DeploymentProvider publicKey={loaderData.publicKey}>
+          <Outlet />
+        </DeploymentProvider>
+      </body>
+    </html>
+  )
+}
+```
+
+## Step 4: Create Authentication Routes
+
+Create sign-in and sign-up routes:
+
+```tsx
+// app/routes/signin.tsx
+import { SignInForm } from '@wacht/react-router'
+
+export default function SignIn() {
+  return (
+    <div style={{ maxWidth: '400px', margin: '2rem auto' }}>
+      <h1>Sign In</h1>
+      <SignInForm />
+    </div>
+  )
+}
+```
+
+```tsx
+// app/routes/signup.tsx
+import { SignUpForm } from '@wacht/react-router'
+
+export default function SignUp() {
+  return (
+    <div style={{ maxWidth: '400px', margin: '2rem auto' }}>
+      <h1>Sign Up</h1>
+      <SignUpForm />
+    </div>
+  )
+}
+```
+
+## Step 5: Protect Your Routes
+
+Use the `SignedIn` component to protect routes:
+
+```tsx
+// app/routes/dashboard.tsx
+import { SignedIn, SignedOut, NavigateToSignIn } from '@wacht/react-router'
+
+export default function Dashboard() {
+  return (
+    <>
+      <SignedOut>
+        <NavigateToSignIn />
+      </SignedOut>
+      <SignedIn>
+        <DashboardContent />
+      </SignedIn>
+    </>
+  )
+}
+
+function DashboardContent() {
+  const { session } = useSession()
+
+  return (
+    <div>
+      <h1>Dashboard</h1>
+      <p>Welcome, {session.user.first_name}!</p>
+    </div>
+  )
+}
+```
+
+## Step 6: Add User Menu
+
+Add a user menu to your layout:
+
+```tsx
+// app/routes/root.tsx
+import { Outlet } from 'react-router'
+import { UserButton, SignedIn } from '@wacht/react-router'
+
+export default function Root({ loaderData }: Route.ComponentProps) {
+  return (
+    <html>
+      <body>
+        <nav style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem' }}>
+          <h1>My App</h1>
+          <SignedIn>
+            <UserButton />
+          </SignedIn>
+        </nav>
+        <DeploymentProvider publicKey={loaderData.publicKey}>
+          <Outlet />
+        </DeploymentProvider>
+      </body>
+    </html>
+  )
+}
+```
+
+## Complete Example
+
+Here's a complete minimal example:
+
+```tsx
+// app/routes/root.tsx
+import { Outlet } from 'react-router'
+import { DeploymentProvider, UserButton, SignedIn } from '@wacht/react-router'
+
+export async function loader() {
+  return {
+    publicKey: process.env.WACHT_PUBLIC_KEY
+  }
+}
+
+export default function Root({ loaderData }: Route.ComponentProps) {
+  return (
+    <html>
+      <body>
+        <nav>
+          <a href="/">Home</a>
+          <a href="/dashboard">Dashboard</a>
+          <SignedIn>
+            <UserButton />
+          </SignedIn>
+        </nav>
+        <DeploymentProvider publicKey={loaderData.publicKey}>
+          <Outlet />
+        </DeploymentProvider>
+      </body>
+    </html>
+  )
+}
+```
+
+```tsx
+// app/routes/_index.tsx
+import { SignedIn, SignedOut } from '@wacht/react-router'
+
+export default function Home() {
+  return (
+    <div>
+      <h1>Welcome</h1>
+      <SignedOut>
+        <a href="/signin">Sign In</a>
+        <a href="/signup">Sign Up</a>
+      </SignedOut>
+      <SignedIn>
+        <a href="/dashboard">Go to Dashboard</a>
+      </SignedIn>
+    </div>
+  )
+}
+```
+
+```tsx
+// app/routes/dashboard.tsx
+import { SignedIn, SignedOut, NavigateToSignIn, useSession } from '@wacht/react-router'
+
+export default function Dashboard() {
+  return (
+    <>
+      <SignedOut>
+        <NavigateToSignIn />
+      </SignedOut>
+      <SignedIn>
+        <DashboardContent />
+      </SignedIn>
+    </>
+  )
+}
+
+function DashboardContent() {
+  const { session } = useSession()
+
+  return (
+    <div>
+      <h1>Dashboard</h1>
+      <p>Welcome, {session.user.first_name}!</p>
+      <p>Email: {session.user.primary_email_address?.email_address}</p>
+    </div>
+  )
+}
+```
+
+## Next Steps
+
+- [Setup Guide](setup) - Detailed configuration options
+- [Components](components) - Available components
+- [Hooks](hooks) - Available hooks

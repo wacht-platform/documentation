@@ -1,0 +1,57 @@
+# Knowledge base documents endpoint
+
+AIKnowledgeBaseDocuments:
+  get:
+    summary: List knowledge base documents
+    description: Get all documents in a knowledge base
+    tags:
+      - AI Knowledge Bases
+    parameters:
+      - $ref: '#/components/parameters/KnowledgeBaseId'
+    responses:
+      '200':
+        description: Documents list
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/PaginatedResponse'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/KnowledgeBaseDocument'
+
+  post:
+    summary: Upload document to knowledge base
+    description: Upload a document to a knowledge base (max 25MB)
+    tags:
+      - AI Knowledge Bases
+    parameters:
+      - $ref: '#/components/parameters/KnowledgeBaseId'
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required:
+              - file
+            properties:
+              file:
+                type: string
+                format: binary
+    responses:
+      '200':
+        description: Document uploaded
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KnowledgeBaseDocument'
+      '413':
+        description: Payload too large (max 25MB)
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Error'

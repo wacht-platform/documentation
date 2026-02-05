@@ -1,0 +1,42 @@
+---
+title: RequireActiveTenancy
+description: Ensures a valid organization/workspace is selected before rendering children.
+---
+
+# RequireActiveTenancy
+
+Ensures that a valid organization and workspace (if enabled) are selected before rendering its children. If no valid tenancy exists, shows an organization/workspace selector dialog.
+
+```tsx
+import { RequireActiveTenancy } from "@wacht/tanstack-router";
+
+export default function App() {
+  return (
+    <RequireActiveTenancy>
+      <YourProtectedApp />
+    </RequireActiveTenancy>
+  );
+}
+```
+
+## Validation
+
+Returns `null` while loading. Checks for:
+
+- Active organization selected (if organizations enabled)
+- Active workspace selected (if workspaces enabled)
+- No eligibility restrictions on current memberships
+
+When validation fails, shows a dialog with organization selector, workspace selector (if applicable), and create options.
+
+## Params
+
+<ParamField path="children" type="ReactNode">
+Content to render when tenancy is valid.
+</ParamField>
+
+## Related
+
+- [OrganizationSwitcher](./organization-switcher) - Organization switcher
+- [useActiveOrganization](../hooks/use-active-organization) - Active organization hook
+- [useActiveWorkspace](../hooks/use-active-workspace) - Active workspace hook

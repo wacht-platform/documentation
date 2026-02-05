@@ -1,0 +1,74 @@
+openapi: 3.0.3
+info:
+  title: Wacht Frontend API - Waitlist
+  description: Waitlist signup endpoint
+  version: 1.0.0
+servers:
+  - url: https://api.wacht.dev
+    description: Production server
+
+tags:
+  - name: Waitlist
+    description: Waitlist management
+
+paths:
+  /waitlist/join:
+    post:
+      tags:
+        - Waitlist
+      summary: Join waitlist
+      description: Add an email to the deployment waitlist
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                first_name:
+                  type: string
+                  description: First name
+                  example: "John"
+                last_name:
+                  type: string
+                  description: Last name
+                  example: "Doe"
+                email:
+                  type: string
+                  format: email
+                  description: Email to add to waitlist
+                  example: "user@example.com"
+      responses:
+        '200':
+          description: Successfully added to waitlist
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "You have been added to the waitlist"
+        '400':
+          description: Bad request - Invalid email or already on waitlist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Invalid email address"
+        code:
+          type: string
+          example: "INVALID_EMAIL"

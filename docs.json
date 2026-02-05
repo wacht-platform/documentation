@@ -1,557 +1,383 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "maple",
-  "name": "Wacht API Documentation",
-  "search": { "prompt": "Search docs" },
+  "theme": "aspen",
+  "name": "Wacht Platform Documentation",
+  "search": {
+    "prompt": "Search docs"
+  },
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#4f46e5",
+    "light": "#ffffff",
+    "dark": "#4f46e5"
+  },
+  "fonts": {
+    "family": "Inter"
+  },
+  "background": {
+    "decoration": "windows",
+    "color": {
+      "light": "#ffffff",
+      "dark": "#0a0a0a"
+    }
   },
   "favicon": "/logo.png",
   "navigation": {
     "tabs": [
       {
         "tab": "Documentation",
+        "anchors": [
+          {
+            "anchor": "Getting Started",
+            "icon": "book",
+            "groups": [
+              {
+                "group": "Overview",
+                "pages": [
+                  "getting-started/introduction",
+                  "getting-started/quickstart"
+                ]
+              }
+            ]
+          }
+        ],
         "dropdowns": [
           {
-            "dropdown": "React",
+            "dropdown": "React Router SDK",
             "icon": "react",
-            "anchors": [
+            "groups": [
               {
-                "anchor": "Overview",
-                "icon": "house",
-                "groups": [
-                  {
-                    "group": "Getting Started",
-                    "pages": ["introduction", "installation", "quickstart"]
-                  },
-                  {
-                    "group": "Adapters",
-                    "pages": [
-                      "adapters-overview",
-                      "sdk-nextjs",
-                      "sdk-react-router"
-                    ]
-                  }
-                ]
-              },
-              {
-                "anchor": "Components",
-                "icon": "cube",
-                "groups": [
-                  {
-                    "group": "Auth Components",
-                    "pages": [
-                      "components/component-signin-form",
-                      "components/component-signup-form",
-                      "components/component-sso-callback"
-                    ]
-                  },
-                  {
-                    "group": "Control Components",
-                    "pages": [
-                      "components/component-signed-in",
-                      "components/component-signed-out"
-                    ]
-                  },
-                  {
-                    "group": "User Components",
-                    "pages": [
-                      "components/component-user-button",
-                      "components/component-manage-account"
-                    ]
-                  },
-                  {
-                    "group": "Organization Components",
-                    "pages": [
-                      "components/component-organization-switcher",
-                      "components/component-organization-list",
-                      "components/component-create-organization-form",
-                      "components/component-manage-organization",
-                      "components/component-create-workspace-form"
-                    ]
-                  }
-                ]
-              },
-              {
-                "anchor": "Hooks",
-                "icon": "webhook",
-                "groups": [
-                  {
-                    "group": "Authentication Hooks",
-                    "pages": [
-                      "hooks/hook-use-session",
-                      "hooks/hook-use-signin",
-                      "hooks/hook-use-signup",
-                      "hooks/hook-use-forgot-password",
-                      "hooks/hook-use-profile-completion",
-                      "hooks/hook-use-magic-link",
-                      "hooks/hook-use-sso-callback",
-                      "hooks/hook-use-verification"
-                    ]
-                  },
-                  {
-                    "group": "User Hooks",
-                    "pages": ["hooks/hook-use-user"]
-                  },
-                  {
-                    "group": "Organization Hooks",
-                    "pages": [
-                      "hooks/hook-use-organization-list",
-                      "hooks/hook-use-active-organization",
-                      "hooks/hook-use-organization-memberships"
-                    ]
-                  },
-                  {
-                    "group": "Workspace Hooks",
-                    "pages": [
-                      "hooks/hook-use-workspace-list",
-                      "hooks/hook-use-active-workspace",
-                      "hooks/hook-use-workspace-memberships"
-                    ]
-                  },
-                  {
-                    "group": "Utility Hooks",
-                    "pages": [
-                      "hooks/hook-use-client",
-                      "hooks/hook-use-deployment",
-                      "hooks/hook-use-waitlist",
-                      "hooks/hook-use-navigation"
-                    ]
-                  }
-                ]
-              },
-              {
-                "anchor": "Guides",
-                "icon": "compass",
+                "group": "Getting Started",
                 "pages": [
-                  "guides/guide-signin-flow",
-                  "guides/guide-signup-flow"
+                  "react-router-sdk/introduction",
+                  "react-router-sdk/installation",
+                  "react-router-sdk/quickstart",
+                  "react-router-sdk/setup"
+                ]
+              },
+              {
+                "group": "Authentication Components",
+                "pages": [
+                  "react-router-sdk/components/sign-in-form",
+                  "react-router-sdk/components/sign-up-form",
+                  "react-router-sdk/components/signed-in",
+                  "react-router-sdk/components/signed-out",
+                  "react-router-sdk/components/navigate-to-sign-in",
+                  "react-router-sdk/components/navigate-to-sign-up",
+                  "react-router-sdk/components/sso-callback",
+                  "react-router-sdk/components/waitlist-form"
+                ]
+              },
+              {
+                "group": "Authentication Hooks",
+                "pages": [
+                  "react-router-sdk/hooks/use-sign-in",
+                  "react-router-sdk/hooks/use-sign-up",
+                  "react-router-sdk/hooks/use-session",
+                  "react-router-sdk/hooks/use-navigation",
+                  "react-router-sdk/hooks/use-forgot-password",
+                  "react-router-sdk/hooks/use-waitlist",
+                  "react-router-sdk/hooks/use-sso-callback"
+                ]
+              },
+              {
+                "group": "Multi-Tenancy Components",
+                "pages": [
+                  "react-router-sdk/components/organization-switcher",
+                  "react-router-sdk/components/create-organization-form",
+                  "react-router-sdk/components/create-workspace-form",
+                  "react-router-sdk/components/require-active-tenancy"
+                ]
+              },
+              {
+                "group": "Multi-Tenancy Hooks",
+                "pages": [
+                  "react-router-sdk/hooks/use-organization-list",
+                  "react-router-sdk/hooks/use-active-organization",
+                  "react-router-sdk/hooks/use-organization-memberships",
+                  "react-router-sdk/hooks/use-workspace-list",
+                  "react-router-sdk/hooks/use-active-workspace",
+                  "react-router-sdk/hooks/use-workspace-memberships",
+                  "react-router-sdk/hooks/use-invitation"
+                ]
+              },
+              {
+                "group": "Agent Hooks",
+                "pages": [
+                  "react-router-sdk/hooks/use-agent-context",
+                  "react-router-sdk/hooks/use-agent-session",
+                  "react-router-sdk/hooks/use-agent-integrations"
+                ]
+              },
+              {
+                "group": "User Components",
+                "pages": [
+                  "react-router-sdk/components/user-button"
+                ]
+              },
+              {
+                "group": "User Hooks",
+                "pages": [
+                  "react-router-sdk/hooks/use-user"
+                ]
+              },
+              {
+                "group": "Other Components",
+                "pages": [
+                  "react-router-sdk/components/deployment-initialized",
+                  "react-router-sdk/components/deployment-initializing"
+                ]
+              },
+              {
+                "group": "Other Hooks",
+                "pages": [
+                  "react-router-sdk/hooks/use-client",
+                  "react-router-sdk/hooks/use-deployment",
+                  "react-router-sdk/hooks/use-notifications",
+                  "react-router-sdk/hooks/use-notification-stream"
                 ]
               }
             ]
           },
           {
-            "dropdown": "Rust",
+            "dropdown": "Next.js SDK",
+            "icon": "/images/nextjs-icon.svg",
+            "groups": [
+              {
+                "group": "Getting Started",
+                "pages": [
+                  "nextjs-sdk/introduction",
+                  "nextjs-sdk/installation",
+                  "nextjs-sdk/quickstart",
+                  "nextjs-sdk/setup"
+                ]
+              },
+              {
+                "group": "Authentication Components",
+                "pages": [
+                  "nextjs-sdk/components/sign-in-form",
+                  "nextjs-sdk/components/sign-up-form",
+                  "nextjs-sdk/components/signed-in",
+                  "nextjs-sdk/components/signed-out",
+                  "nextjs-sdk/components/navigate-to-sign-in",
+                  "nextjs-sdk/components/navigate-to-sign-up",
+                  "nextjs-sdk/components/sso-callback",
+                  "nextjs-sdk/components/waitlist-form"
+                ]
+              },
+              {
+                "group": "Authentication Hooks",
+                "pages": [
+                  "nextjs-sdk/hooks/use-sign-in",
+                  "nextjs-sdk/hooks/use-sign-up",
+                  "nextjs-sdk/hooks/use-session",
+                  "nextjs-sdk/hooks/use-navigation",
+                  "nextjs-sdk/hooks/use-forgot-password",
+                  "nextjs-sdk/hooks/use-waitlist",
+                  "nextjs-sdk/hooks/use-sso-callback"
+                ]
+              },
+              {
+                "group": "Multi-Tenancy Components",
+                "pages": [
+                  "nextjs-sdk/components/organization-switcher",
+                  "nextjs-sdk/components/create-organization-form",
+                  "nextjs-sdk/components/create-workspace-form",
+                  "nextjs-sdk/components/require-active-tenancy"
+                ]
+              },
+              {
+                "group": "Multi-Tenancy Hooks",
+                "pages": [
+                  "nextjs-sdk/hooks/use-organization-list",
+                  "nextjs-sdk/hooks/use-active-organization",
+                  "nextjs-sdk/hooks/use-organization-memberships",
+                  "nextjs-sdk/hooks/use-workspace-list",
+                  "nextjs-sdk/hooks/use-active-workspace",
+                  "nextjs-sdk/hooks/use-workspace-memberships",
+                  "nextjs-sdk/hooks/use-invitation"
+                ]
+              },
+              {
+                "group": "Agent Hooks",
+                "pages": [
+                  "nextjs-sdk/hooks/use-agent-context",
+                  "nextjs-sdk/hooks/use-agent-session",
+                  "nextjs-sdk/hooks/use-agent-integrations"
+                ]
+              },
+              {
+                "group": "User Components",
+                "pages": [
+                  "nextjs-sdk/components/user-button"
+                ]
+              },
+              {
+                "group": "User Hooks",
+                "pages": [
+                  "nextjs-sdk/hooks/use-user"
+                ]
+              },
+              {
+                "group": "Other Components",
+                "pages": [
+                  "nextjs-sdk/components/deployment-initialized",
+                  "nextjs-sdk/components/deployment-initializing"
+                ]
+              },
+              {
+                "group": "Other Hooks",
+                "pages": [
+                  "nextjs-sdk/hooks/use-client",
+                  "nextjs-sdk/hooks/use-deployment",
+                  "nextjs-sdk/hooks/use-notifications",
+                  "nextjs-sdk/hooks/use-notification-stream"
+                ]
+              }
+            ]
+          },
+          {
+            "dropdown": "TanStack Router SDK",
+            "icon": "/images/tanstack-icon.svg",
+            "groups": [
+              {
+                "group": "Getting Started",
+                "pages": [
+                  "tanstack-router-sdk/introduction",
+                  "tanstack-router-sdk/installation",
+                  "tanstack-router-sdk/quickstart",
+                  "tanstack-router-sdk/setup"
+                ]
+              },
+              {
+                "group": "Authentication Components",
+                "pages": [
+                  "tanstack-router-sdk/components/sign-in-form",
+                  "tanstack-router-sdk/components/sign-up-form",
+                  "tanstack-router-sdk/components/signed-in",
+                  "tanstack-router-sdk/components/signed-out",
+                  "tanstack-router-sdk/components/navigate-to-sign-in",
+                  "tanstack-router-sdk/components/navigate-to-sign-up",
+                  "tanstack-router-sdk/components/sso-callback",
+                  "tanstack-router-sdk/components/waitlist-form"
+                ]
+              },
+              {
+                "group": "Authentication Hooks",
+                "pages": [
+                  "tanstack-router-sdk/hooks/use-sign-in",
+                  "tanstack-router-sdk/hooks/use-sign-up",
+                  "tanstack-router-sdk/hooks/use-session",
+                  "tanstack-router-sdk/hooks/use-navigation",
+                  "tanstack-router-sdk/hooks/use-forgot-password",
+                  "tanstack-router-sdk/hooks/use-waitlist",
+                  "tanstack-router-sdk/hooks/use-sso-callback"
+                ]
+              },
+              {
+                "group": "Multi-Tenancy Components",
+                "pages": [
+                  "tanstack-router-sdk/components/organization-switcher",
+                  "tanstack-router-sdk/components/create-organization-form",
+                  "tanstack-router-sdk/components/create-workspace-form",
+                  "tanstack-router-sdk/components/require-active-tenancy"
+                ]
+              },
+              {
+                "group": "Multi-Tenancy Hooks",
+                "pages": [
+                  "tanstack-router-sdk/hooks/use-organization-list",
+                  "tanstack-router-sdk/hooks/use-active-organization",
+                  "tanstack-router-sdk/hooks/use-organization-memberships",
+                  "tanstack-router-sdk/hooks/use-workspace-list",
+                  "tanstack-router-sdk/hooks/use-active-workspace",
+                  "tanstack-router-sdk/hooks/use-workspace-memberships",
+                  "tanstack-router-sdk/hooks/use-invitation"
+                ]
+              },
+              {
+                "group": "Agent Hooks",
+                "pages": [
+                  "tanstack-router-sdk/hooks/use-agent-context",
+                  "tanstack-router-sdk/hooks/use-agent-session",
+                  "tanstack-router-sdk/hooks/use-agent-integrations"
+                ]
+              },
+              {
+                "group": "User Components",
+                "pages": [
+                  "tanstack-router-sdk/components/user-button"
+                ]
+              },
+              {
+                "group": "User Hooks",
+                "pages": [
+                  "tanstack-router-sdk/hooks/use-user"
+                ]
+              },
+              {
+                "group": "Other Components",
+                "pages": [
+                  "tanstack-router-sdk/components/deployment-initialized",
+                  "tanstack-router-sdk/components/deployment-initializing"
+                ]
+              },
+              {
+                "group": "Other Hooks",
+                "pages": [
+                  "tanstack-router-sdk/hooks/use-client",
+                  "tanstack-router-sdk/hooks/use-deployment",
+                  "tanstack-router-sdk/hooks/use-notifications",
+                  "tanstack-router-sdk/hooks/use-notification-stream"
+                ]
+              }
+            ]
+          },
+          {
+            "dropdown": "Rust SDK",
             "icon": "rust",
-            "anchors": [
+            "groups": [
               {
-                "anchor": "Authentication",
-                "icon": "shield",
-                "groups": [
-                  {
-                    "group": "Configuration",
-                    "pages": [
-                      "rust-sdk/configuration",
-                      "rust-sdk/environment-variables"
-                    ]
-                  },
-                  {
-                    "group": "Middleware",
-                    "pages": [
-                      "rust-sdk/middleware/auth-layer",
-                      "rust-sdk/middleware/permission-layer",
-                      "rust-sdk/middleware/extractors"
-                    ]
-                  },
-                  {
-                    "group": "JWT",
-                    "pages": [
-                      "rust-sdk/auth/jwt-validation",
-                      "rust-sdk/auth/token-claims"
-                    ]
-                  }
-                ]
-              },
-
-              {
-                "anchor": "API Modules",
-                "icon": "code",
-                "groups": [
-                  {
-                    "group": "Users API",
-                    "pages": [
-                      "rust-sdk/api/fetch-users",
-                      "rust-sdk/api/create-user",
-                      "rust-sdk/api/fetch-user-details",
-                      "rust-sdk/api/update-user",
-                      "rust-sdk/api/update-password",
-                      "rust-sdk/api/add-email",
-                      "rust-sdk/api/invite-user"
-                    ]
-                  },
-                  {
-                    "group": "Organizations API",
-                    "pages": [
-                      "rust-sdk/api/fetch-organizations",
-                      "rust-sdk/api/create-organization",
-                      "rust-sdk/api/fetch-organization",
-                      "rust-sdk/api/update-organization",
-                      "rust-sdk/api/delete-organization",
-                      "rust-sdk/api/add-organization-member",
-                      "rust-sdk/api/update-organization-member",
-                      "rust-sdk/api/remove-organization-member",
-                      "rust-sdk/api/fetch-organization-roles",
-                      "rust-sdk/api/create-organization-role",
-                      "rust-sdk/api/update-organization-role",
-                      "rust-sdk/api/delete-organization-role"
-                    ]
-                  },
-                  {
-                    "group": "Workspaces API",
-                    "pages": [
-                      "rust-sdk/api/fetch-workspaces",
-                      "rust-sdk/api/fetch-workspace",
-                      "rust-sdk/api/create-workspace-in-organization",
-                      "rust-sdk/api/update-workspace",
-                      "rust-sdk/api/delete-workspace"
-                    ]
-                  },
-                  {
-                    "group": "Agents API",
-                    "pages": ["ts-sdk/api/agents"]
-                  },
-                  {
-                    "group": "Workflows API",
-                    "pages": [
-                      "rust-sdk/api/fetch-workflows",
-                      "rust-sdk/api/fetch-workflow",
-                      "rust-sdk/api/create-workflow",
-                      "rust-sdk/api/update-workflow",
-                      "rust-sdk/api/delete-workflow"
-                    ]
-                  },
-                  {
-                    "group": "Knowledge Bases API",
-                    "pages": [
-                      "rust-sdk/api/fetch-knowledge-bases",
-                      "rust-sdk/api/create-knowledge-base",
-                      "rust-sdk/api/fetch-knowledge-base",
-                      "rust-sdk/api/update-knowledge-base",
-                      "rust-sdk/api/delete-knowledge-base",
-                      "rust-sdk/api/fetch-documents",
-                      "rust-sdk/api/upload-document",
-                      "rust-sdk/api/delete-document",
-                      "rust-sdk/api/search-global",
-                      "rust-sdk/api/search-knowledge-base"
-                    ]
-                  },
-                  {
-                    "group": "Tools API",
-                    "pages": [
-                      "rust-sdk/api/fetch-tools",
-                      "rust-sdk/api/fetch-tool",
-                      "rust-sdk/api/create-tool",
-                      "rust-sdk/api/update-tool",
-                      "rust-sdk/api/delete-tool"
-                    ]
-                  },
-                  {
-                    "group": "Analytics API",
-                    "pages": ["ts-sdk/api/analytics"]
-                  },
-                  {
-                    "group": "Settings API",
-                    "pages": [
-                      "rust-sdk/api/fetch-deployment-settings",
-                      "rust-sdk/api/update-authentication-settings",
-                      "rust-sdk/api/update-display-settings",
-                      "rust-sdk/api/update-b2b-settings",
-                      "rust-sdk/api/update-deployment-restrictions",
-                      "rust-sdk/api/fetch-jwt-templates",
-                      "rust-sdk/api/upload-image"
-                    ]
-                  },
-                  {
-                    "group": "Health API",
-                    "pages": ["rust-sdk/api/check-health", "rust-sdk/api/ping"]
-                  },
-                  {
-                    "group": "Execution Context API",
-                    "pages": [
-                      "rust-sdk/api/fetch-execution-contexts",
-                      "rust-sdk/api/fetch-execution-context",
-                      "rust-sdk/api/create-execution-context",
-                      "rust-sdk/api/update-execution-context",
-                      "rust-sdk/api/delete-execution-context"
-                    ]
-                  }
-                ]
-              },
-              {
-                "anchor": "Advanced",
-                "icon": "gear",
+                "group": "Getting Started",
                 "pages": [
-                  "rust-sdk/error-handling",
-                  "rust-sdk/async-patterns",
-                  "rust-sdk/testing"
+                  "rust-sdk/introduction",
+                  "rust-sdk/installation",
+                  "rust-sdk/configuration",
+                  "rust-sdk/quickstart"
                 ]
               },
               {
-                "anchor": "API Types",
-                "icon": "database",
-                "groups": [
-                  {
-                    "group": "Users Types",
-                    "pages": [
-                      "rust-sdk/types/user-list-response",
-                      "rust-sdk/types/user-details-response",
-                      "rust-sdk/types/list-users-options",
-                      "rust-sdk/types/user-invitation",
-                      "rust-sdk/types/invitation-list-response",
-                      "rust-sdk/types/waitlist-response"
-                    ]
-                  },
-                  {
-                    "group": "Organizations Types",
-                    "pages": [
-                      "rust-sdk/types/organization-list-response",
-                      "rust-sdk/types/organization-role-list-response",
-                      "rust-sdk/types/list-organizations-options"
-                    ]
-                  },
-                  {
-                    "group": "Workspaces Types",
-                    "pages": [
-                      "rust-sdk/types/workspace-list-response",
-                      "rust-sdk/types/workspace-role-list-response",
-                      "rust-sdk/types/list-workspaces-options"
-                    ]
-                  },
-                  {
-                    "group": "Agents Types",
-                    "pages": [
-                      "rust-sdk/types/agent-list-response",
-                      "rust-sdk/types/list-agents-options"
-                    ]
-                  },
-                  {
-                    "group": "Workflows Types",
-                    "pages": [
-                      "rust-sdk/types/workflow-list-response",
-                      "rust-sdk/types/list-workflows-options"
-                    ]
-                  },
-                  {
-                    "group": "Knowledge Bases Types",
-                    "pages": [
-                      "rust-sdk/types/knowledge-base-list-response",
-                      "rust-sdk/types/document-list-response",
-                      "rust-sdk/types/list-knowledge-bases-options",
-                      "rust-sdk/types/knowledge-base-search-options"
-                    ]
-                  },
-                  {
-                    "group": "Tools Types",
-                    "pages": [
-                      "rust-sdk/types/tool-list-response",
-                      "rust-sdk/types/list-tools-options"
-                    ]
-                  },
-                  {
-                    "group": "Analytics Types",
-                    "pages": [
-                      "rust-sdk/types/recent-signups-response",
-                      "rust-sdk/types/analytics-stats-options"
-                    ]
-                  },
-                  {
-                    "group": "Settings Types",
-                    "pages": [
-                      "rust-sdk/types/deployment-settings-response",
-                      "rust-sdk/types/jwt-template-list-response",
-                      "rust-sdk/types/image-upload-response"
-                    ]
-                  },
-                  {
-                    "group": "Health Types",
-                    "pages": [
-                      "rust-sdk/types/health-status",
-                      "rust-sdk/types/service-health"
-                    ]
-                  },
-                  {
-                    "group": "Execution Context Types",
-                    "pages": [
-                      "rust-sdk/types/execution-context-list-response",
-                      "rust-sdk/types/list-execution-contexts-options",
-                      "rust-sdk/types/update-execution-context-request"
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "dropdown": "Typescript Server",
-            "icon": "typescript",
-            "anchors": [
+                "group": "Users",
+                "pages": []
+              },
               {
-                "anchor": "Overview",
-                "icon": "house",
-                "groups": [
-                  {
-                    "group": "Getting Started",
-                    "pages": [
-                      "ts-sdk/introduction",
-                      "ts-sdk/installation",
-                      "ts-sdk/quickstart"
-                    ]
-                  }
+                "group": "Organizations & Workspaces",
+                "pages": [
+                  "rust-sdk/guide/organizations",
+                  "rust-sdk/guide/workspaces"
                 ]
               },
               {
-                "anchor": "Authentication",
-                "icon": "shield",
-                "groups": [
-                  {
-                    "group": "JWT",
-                    "pages": [
-                      "ts-sdk/auth/jwt-validation",
-                      "ts-sdk/auth/token-claims"
-                    ]
-                  },
-                  {
-                    "group": "Middleware",
-                    "pages": [
-                      "ts-sdk/middleware/node",
-                      "ts-sdk/middleware/hono"
-                    ]
-                  }
+                "group": "AI Features",
+                "pages": [
+                  "rust-sdk/guide/agents",
+                  "rust-sdk/guide/knowledge-bases",
+                  "rust-sdk/guide/tools",
+                  "rust-sdk/guide/execution-context"
                 ]
               },
               {
-                "anchor": "API Modules",
-                "icon": "code",
-                "groups": [
-                  {
-                    "group": "Agents API",
-                    "pages": ["ts-sdk/api/agents"]
-                  },
-                  {
-                    "group": "Analytics API",
-                    "pages": ["ts-sdk/api/analytics"]
-                  },
-                  {
-                    "group": "Deployments API",
-                    "pages": ["ts-sdk/api/deployments"]
-                  },
-                  {
-                    "group": "Execution Context API",
-                    "pages": ["ts-sdk/api/execution-context"]
-                  },
-                  {
-                    "group": "Health API",
-                    "pages": ["ts-sdk/api/health"]
-                  },
-                  {
-                    "group": "Knowledge Bases API",
-                    "pages": ["ts-sdk/api/knowledge-bases"]
-                  },
-                  {
-                    "group": "Organizations API",
-                    "pages": ["ts-sdk/api/organizations"]
-                  },
-                  {
-                    "group": "Settings API",
-                    "pages": ["ts-sdk/api/settings"]
-                  },
-                  {
-                    "group": "Tools API",
-                    "pages": ["ts-sdk/api/tools"]
-                  },
-                  {
-                    "group": "Users API",
-                    "pages": ["ts-sdk/api/users"]
-                  },
-                  {
-                    "group": "Workflows API",
-                    "pages": ["ts-sdk/api/workflows"]
-                  },
-                  {
-                    "group": "Workspaces API",
-                    "pages": ["ts-sdk/api/workspaces"]
-                  }
+                "group": "Integrations",
+                "pages": [
+                  "rust-sdk/guide/webhooks",
+                  "rust-sdk/guide/api-keys"
                 ]
               },
               {
-                "anchor": "API Types",
-                "icon": "database",
-                "groups": [
-                  {
-                    "group": "Common Types",
-                    "pages": [
-                      "ts-sdk/types/add-organization-member-request",
-                      "ts-sdk/types/ai-agent",
-                      "ts-sdk/types/ai-execution-context",
-                      "ts-sdk/types/ai-knowledge-base",
-                      "ts-sdk/types/ai-tool-config-parameters-inner",
-                      "ts-sdk/types/ai-tool-config",
-                      "ts-sdk/types/ai-tool",
-                      "ts-sdk/types/ai-workflow-steps-inner",
-                      "ts-sdk/types/ai-workflow",
-                      "ts-sdk/types/analytics-stats",
-                      "ts-sdk/types/authentication-settings",
-                      "ts-sdk/types/b2-b-settings",
-                      "ts-sdk/types/create-ai-agent-request",
-                      "ts-sdk/types/create-ai-execution-context-request",
-                      "ts-sdk/types/create-ai-knowledge-base-request",
-                      "ts-sdk/types/create-ai-tool-request",
-                      "ts-sdk/types/create-ai-workflow-request",
-                      "ts-sdk/types/create-jwt-template-request",
-                      "ts-sdk/types/create-organization-request",
-                      "ts-sdk/types/create-role-request",
-                      "ts-sdk/types/create-user-request",
-                      "ts-sdk/types/create-workspace-request",
-                      "ts-sdk/types/deployment-restrictions",
-                      "ts-sdk/types/display-settings",
-                      "ts-sdk/types/email-template",
-                      "ts-sdk/types/generate-token-request",
-                      "ts-sdk/types/generate-token-response",
-                      "ts-sdk/types/image-upload-response",
-                      "ts-sdk/types/invite-user-request",
-                      "ts-sdk/types/jwt-template",
-                      "ts-sdk/types/knowledge-base-document",
-                      "ts-sdk/types/knowledge-base-search-result-results-inner",
-                      "ts-sdk/types/knowledge-base-search-result",
-                      "ts-sdk/types/organization-member",
-                      "ts-sdk/types/organization-role",
-                      "ts-sdk/types/organization",
-                      "ts-sdk/types/recent-signup-organization",
-                      "ts-sdk/types/recent-signup",
-                      "ts-sdk/types/social-connection",
-                      "ts-sdk/types/update-ai-agent-request",
-                      "ts-sdk/types/update-ai-knowledge-base-request",
-                      "ts-sdk/types/update-ai-tool-request",
-                      "ts-sdk/types/update-ai-workflow-request",
-                      "ts-sdk/types/update-execution-context-request",
-                      "ts-sdk/types/update-jwt-template-request",
-                      "ts-sdk/types/update-organization-member-request",
-                      "ts-sdk/types/update-organization-request",
-                      "ts-sdk/types/update-password-request",
-                      "ts-sdk/types/update-role-request",
-                      "ts-sdk/types/update-user-request",
-                      "ts-sdk/types/update-workspace-request",
-                      "ts-sdk/types/user-email",
-                      "ts-sdk/types/user-phone",
-                      "ts-sdk/types/user",
-                      "ts-sdk/types/waitlist-user",
-                      "ts-sdk/types/workspace-role",
-                      "ts-sdk/types/workspace"
-                    ]
-                  },
-                  {
-                    "group": "Authentication",
-                    "icon": "shield",
-                    "pages": [
-                      "ts-sdk/auth/jwt-validation",
-                      "ts-sdk/auth/token-claims",
-
-                      "ts-sdk/middleware/node",
-                      "ts-sdk/middleware/hono"
-                    ]
-                  }
+                "group": "Configuration & Analytics",
+                "pages": [
+                  "rust-sdk/guide/settings",
+                  "rust-sdk/guide/analytics",
+                  "rust-sdk/guide/notifications"
                 ]
               }
             ]
@@ -560,34 +386,109 @@
       },
       {
         "tab": "API Reference",
+        "anchors": [
+          {
+            "anchor": "Getting Started",
+            "icon": "book",
+            "groups": [
+              {
+                "group": "Overview",
+                "pages": [
+                  "getting-started/introduction",
+                  "getting-started/quickstart"
+                ]
+              }
+            ]
+          }
+        ],
         "dropdowns": [
           {
-            "dropdown": "Frontend API",
-            "icon": "code",
-            "openapi": "api-specs/frontend-api.json"
+            "dropdown": "Backend API",
+            "icon": "server",
+            "groups": [
+              {
+                "group": "User Profiles",
+                "openapi": "api-specs/backend-api/users-openapi.yaml"
+              },
+              {
+                "group": "Organization Management",
+                "openapi": "api-specs/backend-api/organizations-openapi.yaml"
+              },
+              {
+                "group": "Workspace Management",
+                "openapi": "api-specs/backend-api/workspaces-openapi.yaml"
+              },
+              {
+                "group": "AI Tools",
+                "openapi": "api-specs/backend-api/ai-openapi.yaml"
+              },
+              {
+                "group": "Webhook Management",
+                "openapi": "api-specs/backend-api/webhooks-openapi.yaml"
+              },
+              {
+                "group": "API Authentication",
+                "openapi": "api-specs/backend-api/api-keys-openapi.yaml"
+              },
+              {
+                "group": "Configuration",
+                "openapi": "api-specs/backend-api/settings-openapi.yaml"
+              },
+              {
+                "group": "User Segments",
+                "openapi": "api-specs/backend-api/segments-openapi.yaml"
+              },
+              {
+                "group": "Miscellaneous",
+                "openapi": "api-specs/backend-api/miscellaneous-openapi.yaml"
+              }
+            ]
           },
           {
-            "dropdown": "Backend API",
-            "icon": "database",
-            "openapi": "api-specs/backend-api.json"
+            "dropdown": "Frontend API",
+            "icon": "globe",
+            "groups": [
+              {
+                "group": "Authentication",
+                "openapi": "api-specs/frontend-api/frontend-api-openapi.yaml"
+              },
+              {
+                "group": "User Profile",
+                "openapi": "api-specs/frontend-api/user-openapi.yaml"
+              },
+              {
+                "group": "Sessions",
+                "openapi": "api-specs/frontend-api/sessions-openapi.yaml"
+              },
+              {
+                "group": "Organizations",
+                "openapi": "api-specs/frontend-api/organizations-openapi.yaml"
+              },
+              {
+                "group": "Workspaces",
+                "openapi": "api-specs/frontend-api/workspaces-openapi.yaml"
+              },
+              {
+                "group": "Agents",
+                "openapi": "api-specs/frontend-api/agents-openapi.yaml"
+              },
+              {
+                "group": "Notifications",
+                "openapi": "api-specs/frontend-api/notifications-openapi.yaml"
+              },
+              {
+                "group": "Deployment",
+                "openapi": "api-specs/frontend-api/deployment-openapi.yaml"
+              },
+              {
+                "group": "Waitlist",
+                "openapi": "api-specs/frontend-api/waitlist-openapi.yaml"
+              }
+            ]
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "GitHub",
-          "href": "https://github.com/snipextt/wacht",
-          "icon": "github"
-        },
-        {
-          "anchor": "Support",
-          "href": "mailto:support@wacht.dev",
-          "icon": "envelope"
-        }
-      ]
-    }
+    ]
   },
   "logo": {
     "light": "/logo.png",

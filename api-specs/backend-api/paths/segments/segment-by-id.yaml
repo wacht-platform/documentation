@@ -1,0 +1,68 @@
+# Segment by ID endpoint
+
+SegmentById:
+  patch:
+    summary: Update segment
+    description: Update a user segment
+    tags:
+      - Segments
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+              description:
+                type: string
+              conditions:
+                type: object
+                properties:
+                  operator:
+                    type: string
+                    enum: [AND, OR]
+                  rules:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                        operator:
+                          type: string
+                        value:
+                          type: string
+    responses:
+      '200':
+        description: Segment updated
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Segment'
+      '404':
+        $ref: '#/components/responses/NotFound'
+
+  delete:
+    summary: Delete segment
+    description: Delete a user segment
+    tags:
+      - Segments
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      '204':
+        description: Segment deleted
+      '404':
+        $ref: '#/components/responses/NotFound'

@@ -1,0 +1,156 @@
+---
+title: useSSOCallback
+description: Handle OAuth and SSO callbacks from external identity providers.
+---
+
+# useSSOCallback
+
+The `useSSOCallback` hook handles OAuth and SSO callbacks from external identity providers like Google, GitHub, and enterprise SAML providers.
+
+## Return Value
+
+<ParamField path="loading" type="boolean">
+  Whether the callback is being processed
+</ParamField>
+
+<ParamField path="error" type="Error | null">
+  Any error that occurred during processing
+</ParamField>
+
+<ParamField path="session" type="Session | null">
+  The session after successful sign-in
+</ParamField>
+
+<ParamField path="redirectUri" type="string | null">
+  The URI to redirect to after processing
+</ParamField>
+
+<ParamField path="processed" type="boolean">
+  Whether the callback has been processed
+</ParamField>
+
+<ParamField path="signinAttempt" type="SigninAttempt | null">
+  The current sign-in attempt state
+</ParamField>
+
+```tsx
+import { useSSOCallback } from "@wacht/nextjs";
+
+export default function SSOCallbackPage() {
+  const { loading, processed, session, redirectUri, error } = useSSOCallback();
+
+  if (loading) {
+    return <div>Processing sign-in...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  }
+
+  if (processed && redirectUri) {
+    return <div>Redirecting...</div>;
+  }
+
+  return <div>Sign-in complete!</div>;
+}
+```
+
+## Behavior
+
+The hook:
+
+1. Automatically reads OAuth parameters from the URL (`code`, `state`, `error`)
+2. Validates the OAuth state parameter
+3. Determines the callback type (sign-in or social connect)
+4. Calls the appropriate backend endpoint
+5. Handles errors appropriately
+
+## Error Handling
+
+If the callback includes an error parameter, it will be available in the `error` return value.
+
+## OAuth State
+
+The state parameter encodes:
+
+- **sign_in** - Standard sign-in flow
+- **connect_social** - Connecting a social account
+
+## Examples
+
+### SSO Callback Page
+
+```tsx
+import { useSSOCallback } from "@wacht/nextjs";
+import { useEffect } from "react";
+
+export default function SSOCallbackPage() {
+  const { loading, processed, redirectUri, error } = useSSOCallback();
+
+  useEffect(() => {
+    if (processed && redirectUri) {
+      window.location.href = redirectUri;
+    }
+  }, [processed, redirectUri]);
+
+  if (loading) return <div>Processing...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+
+  return <div>Sign-in successful! Redirecting...</div>;
+}
+```
+
+### With Error Display
+
+```tsx
+import { useSSOCallback } from "@wacht/nextjs";
+
+export default function SSOCallbackPage() {
+  const { loading, error, processed } = useSSOCallback();
+
+  if (loading) {
+    return <Spinner />;
+  }
+
+  if (error) {
+    return (
+      <div>
+        <h1>Authentication Error</h1>
+        <p>{error.message}</p>
+        <a href="/signin">Try Again</a>
+      </div>
+    );
+  }
+
+  if (processed) {
+    return <div>Sign-in complete!</div>;
+  }
+
+  return <div>Unexpected state</div>;
+}
+```
+
+## URL Parameters
+
+The hook reads these parameters from the URL:
+
+<ParamField path="code" type="string">
+  OAuth authorization code
+</ParamField>
+
+<ParamField path="state" type="string">
+  Base64-encoded OAuth state with action and signature
+</ParamField>
+
+<ParamField path="error" type="string">
+  OAuth error code
+</ParamField>
+
+<ParamField path="error_description" type="string">
+  OAuth error description
+</ParamField>
+
+## Related
+
+- [SSOCallback](../components/sso-callback) - SSO callback component
+- [useSignIn](./use-sign-in) - Sign-in with SSO support

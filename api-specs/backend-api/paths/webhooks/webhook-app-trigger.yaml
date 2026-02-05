@@ -1,0 +1,40 @@
+# Webhook trigger endpoint
+
+WebhookAppTrigger:
+  post:
+    summary: Trigger webhook event
+    description: Manually trigger a webhook event for testing
+    tags:
+      - Webhooks
+    parameters:
+      - $ref: '#/components/parameters/WebhookAppName'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - event
+              - data
+            properties:
+              event:
+                type: string
+              data:
+                type: object
+              endpoint_id:
+                type: string
+    responses:
+      '200':
+        description: Webhook triggered
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                delivery_ids:
+                  type: array
+                  items:
+                    type: string
+      '404':
+        $ref: '#/components/responses/NotFound'

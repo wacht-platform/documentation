@@ -1,0 +1,30 @@
+# Waitlist endpoint
+
+Waitlist:
+  get:
+    summary: Get waitlist
+    description: Get all users on the waitlist
+    tags:
+      - Users
+    responses:
+      '200':
+        description: Waitlist users
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/PaginatedResponse'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                          email:
+                            type: string
+                          created_at:
+                            type: string
+                            format: date-time

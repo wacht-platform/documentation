@@ -1,0 +1,39 @@
+# User emails endpoint
+
+UserEmails:
+  post:
+    summary: Add email to user
+    description: Add a new email address to a user
+    tags:
+      - Users
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - email
+            properties:
+              email:
+                type: string
+                format: email
+              verified:
+                type: boolean
+                default: false
+              is_primary:
+                type: boolean
+                default: false
+    responses:
+      '200':
+        description: Email added
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserEmail'
+      '404':
+        $ref: '#/components/responses/NotFound'
+      '409':
+        $ref: '#/components/responses/Conflict'

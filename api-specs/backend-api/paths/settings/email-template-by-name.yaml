@@ -1,0 +1,83 @@
+# Email template by name endpoint
+
+EmailTemplateByName:
+  get:
+    summary: Get email template
+    description: Retrieve email template by name
+    tags:
+      - Settings
+    parameters:
+      - name: template_name
+        in: path
+        required: true
+        schema:
+          type: string
+          enum: [welcome, password_reset, email_verification, invitation, mfa_enabled, mfa_disabled]
+    responses:
+      '200':
+        description: Email template
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                subject:
+                  type: string
+                html_body:
+                  type: string
+                text_body:
+                  type: string
+                variables:
+                  type: array
+                  items:
+                    type: string
+                enabled:
+                  type: boolean
+      '404':
+        $ref: '#/components/responses/NotFound'
+
+  patch:
+    summary: Update email template
+    description: Update email template content
+    tags:
+      - Settings
+    parameters:
+      - name: template_name
+        in: path
+        required: true
+        schema:
+          type: string
+          enum: [welcome, password_reset, email_verification, invitation, mfa_enabled, mfa_disabled]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              subject:
+                type: string
+              html_body:
+                type: string
+              text_body:
+                type: string
+              enabled:
+                type: boolean
+    responses:
+      '200':
+        description: Email template updated
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                subject:
+                  type: string
+                enabled:
+                  type: boolean
+      '404':
+        $ref: '#/components/responses/NotFound'

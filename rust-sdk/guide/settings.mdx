@@ -1,0 +1,370 @@
+---
+title: 'Settings API'
+description: 'Working with deployment settings in the Rust SDK'
+---
+
+# Settings API Guide
+
+
+Learn how to manage deployment settings using the Wacht Rust SDK. This includes authentication settings, display customization, email configuration, and more.
+
+## Prerequisites
+
+Before using any API methods, you must initialize the SDK:
+
+```rust
+use wacht::init_from_env;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Initialize from environment variables
+    // Requires: WACHT_API_KEY and WACHT_FRONTEND_HOST
+    init_from_env().await?;
+
+    // Now you can use the API
+    Ok(())
+}
+```
+
+## Fetch Deployment Settings
+
+Get the current configuration for your deployment.
+
+```rust
+use wacht::api::settings;
+
+let settings = settings::fetch_deployment_settings()
+    .send()
+    .await?;
+
+println!("Mode: {}", settings.mode);
+println!("Maintenance Mode: {}", settings.maintenance_mode);
+println!("Frontend Host: {}", settings.frontend_host);
+```
+
+## Update Authentication Settings
+
+Configure authentication methods and security settings.
+
+```rust
+use wacht::api::settings;
+use wacht::models::AuthenticationSettings;
+
+settings::update_authentication_settings(AuthenticationSettings {
+    enabled_methods: vec!["email_password".to_string(), "otp".to_string()],
+    password_min_length: Some(8),
+    require_mfa: Some(false),
+    ..Default::default()
+})
+.send()
+.await?;
+```
+
+## Update Display Settings
+
+Customize the appearance of your authentication pages.
+
+```rust
+use wacht::api::settings;
+use wacht::models::DisplaySettings;
+
+settings::update_display_settings(DisplaySettings {
+    theme: Some("light".to_string()),
+    primary_color: Some("#16A34A".to_string()),
+    logo_url: Some("https://example.com/logo.png".to_string()),
+    ..Default::default()
+})
+.send()
+.await?;
+```
+
+## Update B2B Settings
+
+Configure organization and workspace features.
+
+```rust
+use wacht::api::settings;
+use wacht::models::B2BSettings;
+
+settings::update_b2b_settings(B2BSettings {
+    enabled: true,
+    allow_organizations: true,
+    allow_workspaces: true,
+    ..Default::default()
+})
+.send()
+.await?;
+```
+
+## Update Deployment Restrictions
+
+⚠️ **DO NOT USE** - The SDK model `DeploymentRestrictions` does not match the backend API. The SDK needs to be regenerated before this feature will work correctly.
+
+Actual backend API fields:
+- `allowlist_enabled` (boolean)
+- `blocklist_enabled` (boolean)
+- `country_restrictions` (CountryRestrictions object)
+- `sign_up_mode` (string)
+
+The SDK model incorrectly uses: `allowed_email_domains`, `blocked_email_domains`, `ip_whitelist`, `ip_blacklist` which do not exist in the backend API.
+
+```rust
+// TODO: This will not work until SDK is fixed
+// use wacht::api::settings;
+// use wacht::models::DeploymentRestrictions;
+//
+// settings::update_deployment_restrictions(DeploymentRestrictions {
+//     // Fields below do not match backend API
+// })
+// .send()
+// .await?;
+```
+
+## JWT Templates
+
+### List JWT Templates
+
+Get all JWT templates in your deployment.
+
+```rust
+use wacht::api::settings;
+
+let templates = settings::fetch_jwt_templates()
+    .send()
+    .await?;
+
+for template in templates.data {
+    println!("{}: {}", template.name, template.description.unwrap_or_default());
+}
+```
+
+### Create JWT Template
+
+Create a new JWT template for token customization.
+
+```rust
+use wacht::api::settings;
+use wacht::models::CreateJwtTemplateRequest;
+
+let template = settings::create_jwt_template(CreateJwtTemplateRequest {
+    name: "custom-token".to_string(),
+    description: Some("Custom JWT for integration".to_string()),
+    lifetime_minutes: 60,
+    ..Default::default()
+})
+.send()
+.await?;
+```
+
+### Update JWT Template
+
+Modify an existing JWT template.
+
+```rust
+use wacht::api::settings;
+use wacht::models::UpdateJwtTemplateRequest;
+
+let template = settings::update_jwt_template(
+    "template_id",
+    UpdateJwtTemplateRequest {
+        name: Some("updated-token".to_string()),
+        lifetime_minutes: Some(120),
+        ..Default::default()
+    }
+)
+.send()
+.await?;
+```
+
+### Delete JWT Template
+
+Remove a JWT template.
+
+```rust
+use wacht::api::settings;
+
+settings::delete_jwt_template("template_id")
+    .send()
+    .await?;
+```
+
+## SMTP Configuration
+
+### Update SMTP Settings
+
+Configure custom email delivery.
+
+```rust
+use wacht::api::settings;
+use wacht::models::SmtpConfigRequest;
+
+let config = settings::update_smtp_config(SmtpConfigRequest {
+    host: "smtp.example.com".to_string(),
+    port: 587,
+    username: "user@example.com".to_string(),
+    password: "secret".to_string(),
+    from_email: "noreply@wacht.dev".to_string(),
+    from_name: Some("Wacht".to_string()),
+})
+.send()
+.await?;
+```
+
+### Verify SMTP Connection
+
+Test your SMTP configuration before saving.
+
+```rust
+use wacht::api::settings;
+use wacht::models::SmtpConfigRequest;
+
+let result = settings::verify_smtp_connection(SmtpConfigRequest {
+    host: "smtp.example.com".to_string(),
+    port: 587,
+    username: "user@example.com".to_string(),
+    password: "secret".to_string(),
+    from_email: "noreply@wacht.dev".to_string(),
+    from_name: Some("Wacht".to_string()),
+})
+.send()
+.await?;
+
+println!("SMTP connection: {}", result.success);
+```
+
+### Remove SMTP Configuration
+
+Revert to using the default email service.
+
+```rust
+use wacht::api::settings;
+
+settings::remove_smtp_config()
+    .send()
+    .await?;
+```
+
+## Email Templates
+
+### Fetch Email Template
+
+Get the current configuration for an email template.
+
+```rust
+use wacht::api::settings;
+
+let template = settings::fetch_email_template("email_verification")
+    .send()
+    .await?;
+
+println!("Subject: {}", template.subject);
+```
+
+### Update Email Template
+
+Customize an email template content.
+
+```rust
+use wacht::api::settings;
+use wacht::models::EmailTemplate;
+
+settings::update_email_template("email_verification", EmailTemplate {
+    subject: "Verify your email".to_string(),
+    body_html: Some("<h1>Welcome!</h1>".to_string()),
+    body_text: Some("Welcome to Wacht!".to_string()),
+    ..Default::default()
+})
+.send()
+.await?;
+```
+
+## Social Connections
+
+### List Social Connections
+
+Get all configured social login providers.
+
+```rust
+use wacht::api::settings;
+
+let connections = settings::fetch_social_connections()
+    .send()
+    .await?;
+
+for conn in connections.data {
+    println!("{}: {}", conn.provider, conn.display_name.unwrap_or_default());
+}
+```
+
+### Configure Social Connection
+
+Add or update a social login provider.
+
+```rust
+use wacht::api::settings;
+use wacht::models::SocialConnection;
+
+let connection = settings::upsert_social_connection(SocialConnection {
+    provider: "google".to_string(),
+    display_name: Some("Google".to_string()),
+    enabled: true,
+    client_id: "your-google-client-id".to_string(),
+    client_secret: "your-google-client-secret".to_string(),
+    ..Default::default()
+})
+.send()
+.await?;
+```
+
+## Upload Images
+
+Upload logos, icons, and other images for your deployment.
+
+```rust
+use wacht::api::settings;
+use std::fs;
+
+let image_data = fs::read("logo.png")?;
+
+let result = settings::upload_image("logo", image_data, "logo.png".to_string())
+    .send()
+    .await?;
+
+println!("Image URL: {}", result.url);
+```
+
+### Supported Image Types
+
+- `logo` - Organization or application logo
+- `favicon` - Website favicon
+- `user-profile` - Default user profile image
+- `org-profile` - Default organization profile image
+- `workspace-profile` - Default workspace profile image
+
+## Error Handling
+
+All SDK methods return a `Result<T, Error>`:
+
+```rust
+use wacht::{Error, api::settings};
+
+match settings::fetch_deployment_settings().send().await {
+    Ok(settings) => println!("Mode: {}", settings.mode),
+    Err(Error::Api { status, message, .. }) => {
+        eprintln!("API Error {}: {}", status, message);
+    }
+    Err(Error::Request(e)) => {
+        eprintln!("Network error: {}", e);
+    }
+    Err(e) => {
+        eprintln!("Other error: {}", e);
+    }
+}
+```
+
+## Related
+
+- [Installation](/rust-sdk/installation) - SDK setup
+- [API Keys Guide](/rust-sdk/guide/api-keys) - API authentication management
+- [Users Guide](/rust-sdk/guide/users) - User management
+- [API Reference - Backend API](/api-reference/backend-api/settings) - Full API docs

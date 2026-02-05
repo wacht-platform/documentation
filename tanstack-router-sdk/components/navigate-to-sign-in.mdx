@@ -1,0 +1,49 @@
+---
+title: NavigateToSignIn
+description: Automatically navigates to the sign-in page when rendered.
+---
+
+# NavigateToSignIn
+
+Automatically navigates the user to the sign-in page when rendered. Uses the `navigateToSignIn` function from `useNavigation` and respects the `redirect_uri` query parameter if present.
+
+```tsx
+import { NavigateToSignIn } from "@wacht/tanstack-router";
+
+export default function ProtectedPage() {
+  return <NavigateToSignIn />;
+}
+```
+
+## Protected Route
+
+```tsx
+import { SignedIn, NavigateToSignIn } from "@wacht/tanstack-router";
+
+export default function Dashboard() {
+  return (
+    <>
+      <SignedIn>
+        <DashboardContent />
+      </SignedIn>
+      <NavigateToSignIn />
+    </>
+  );
+}
+```
+
+## Redirect URL
+
+After successful sign-in, the user is redirected to:
+
+1. The URL specified in `redirect_uri` query parameter (if present)
+2. The `after_signin_redirect_url` deployment setting
+3. The deployment's frontend host (fallback)
+
+The `redirect_uri` parameter allows you to control where users land after completing sign-in. For example, navigating to `/signin?redirect_uri=/dashboard` will bring users to `/dashboard` after sign-in completes.
+
+## Related
+
+- [NavigateToSignUp](./navigate-to-sign-up) - Navigate to sign-up
+- [useNavigation](../hooks/use-navigation) - Navigation utilities
+- [SignedIn](./signed-in) - Conditional rendering

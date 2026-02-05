@@ -1,0 +1,73 @@
+---
+title: CreateOrganizationForm
+description: A form for creating a new organization with name, description, and image upload.
+---
+
+# CreateOrganizationForm
+
+Form for creating new organizations with image upload and validation.
+
+```tsx
+import { CreateOrganizationForm } from "@wacht/react-router";
+
+export default function NewOrgPage() {
+  return <CreateOrganizationForm />;
+}
+```
+
+## With Callbacks
+
+```tsx
+import { CreateOrganizationForm } from "@wacht/react-router";
+import { useNavigate } from "react-router";
+
+export default function NewOrgPage() {
+  const navigate = useNavigate();
+
+  return (
+    <CreateOrganizationForm
+      onSuccess={() => navigate("/dashboard")}
+      onCancel={() => navigate(-1)}
+    />
+  );
+}
+```
+
+## In a Dialog
+
+```tsx
+import { CreateOrganizationForm } from "@wacht/react-router";
+import { Dialog } from "@wacht/react-router";
+
+export default function NewOrgDialog({ open, onClose }) {
+  return (
+    <Dialog isOpen={open} onClose={onClose}>
+      <CreateOrganizationForm
+        onSuccess={onClose}
+        onCancel={onClose}
+      />
+    </Dialog>
+  );
+}
+```
+
+## Form Fields
+
+- **Organization Logo** - Image upload (max 2MB, PNG/JPEG/GIF)
+- **Organization Name** - Required, 2-100 characters
+- **Description** - Optional, max 500 characters
+
+## Params
+
+<ParamField path="onSuccess" type="(organization?: any) => void">
+Callback called after successful creation.
+</ParamField>
+
+<ParamField path="onCancel" type="() => void">
+Callback called when user cancels.
+</ParamField>
+
+## Related
+
+- [useOrganizationList](../hooks/use-organization-list) - Organization management hook
+- [ManageOrganization](./manage-organization) - Organization management dialog

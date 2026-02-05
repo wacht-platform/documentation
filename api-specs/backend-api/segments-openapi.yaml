@@ -1,0 +1,418 @@
+openapi: 3.0.3
+info:
+  title: Wacht Backend API - Segments
+  description: User segment management
+  version: 1.0.0
+
+servers:
+  - url: https://api.wacht.dev
+    description: Production server
+
+security:
+  - ApiKeyAuth: []
+
+tags:
+  - name: Segments
+    description: Segments management
+
+paths:
+
+  /segments:
+    get:
+      summary: List segments
+      description: Get all segments for a deployment
+      tags:
+        - Segments
+      parameters:
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          description: Number of items to skip
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Number of items to return
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search query
+        - name: sort_key
+          in: query
+          schema:
+            type: string
+          description: Field to sort by
+        - name: sort_order
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+          description: Sort order
+      responses:
+        '200':
+          description: Segments
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSegments'
+    post:
+      summary: Create segment
+      description: Create a new segment
+      tags:
+        - Segments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSegmentRequest'
+      responses:
+        '200':
+          description: Segment created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Segment'
+        '400':
+          description: Invalid segment type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /segments/{id}:
+    patch:
+      summary: Update segment
+      description: Update a segment
+      tags:
+        - Segments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Segment ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSegmentRequest'
+      responses:
+        '200':
+          description: Segment updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Segment'
+    delete:
+      summary: Delete segment
+      description: Delete a segment
+      tags:
+        - Segments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Segment ID
+      responses:
+        '200':
+          description: Segment deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+  /segments/{id}/assign:
+    post:
+      summary: Assign entity to segment
+      description: Assign an entity (user, organization, or workspace) to a segment
+      tags:
+        - Segments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Segment ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignEntityRequest'
+      responses:
+        '200':
+          description: Entity assigned to segment
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+  /segments/{id}/remove:
+    post:
+      summary: Remove entity from segment
+      description: Remove an entity from a segment
+      tags:
+        - Segments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Segment ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignEntityRequest'
+      responses:
+        '200':
+          description: Entity removed from segment
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+  /segments/data:
+    post:
+      summary: Get segment data
+      description: Get entities matching segment criteria
+      tags:
+        - Segments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetSegmentDataRequest'
+      responses:
+        '200':
+          description: Entities matching segment criteria
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAnalyzedEntities'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: 'API key authentication (format: Bearer {api_key})'
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+
+    # =====================================================
+    # REQUEST SCHEMAS
+    # =====================================================
+
+    CreateSegmentRequest:
+      type: object
+      required:
+        - name
+        - type
+      properties:
+        name:
+          type: string
+          description: Segment name
+          example: "Premium Users"
+        type:
+          type: string
+          description: Entity type for this segment
+          enum: [user, organization, workspace]
+          example: "user"
+
+    UpdateSegmentRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: New segment name
+          example: "VIP Users"
+
+    AssignEntityRequest:
+      type: object
+      required:
+        - entity_id
+      properties:
+        entity_id:
+          type: string
+          description: Entity ID to assign/remove
+          example: "1234567890123456789"
+
+    GetSegmentDataRequest:
+      type: object
+      required:
+        - target_type
+      properties:
+        target_type:
+          type: string
+          description: Type of entities to query
+          enum: [user, organization, workspace]
+          example: "user"
+        filters:
+          $ref: '#/components/schemas/SegmentDataFilters'
+
+    SegmentDataFilters:
+      type: object
+      properties:
+        segment_id:
+          type: string
+          description: Filter by segment ID
+        user:
+          $ref: '#/components/schemas/UserFilter'
+        organization:
+          $ref: '#/components/schemas/OrganizationFilter'
+        workspace:
+          $ref: '#/components/schemas/WorkspaceFilter'
+
+    UserFilter:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Filter by user name
+        email:
+          type: string
+          description: Filter by email
+        phone:
+          type: string
+          description: Filter by phone
+
+    OrganizationFilter:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Filter by organization name
+
+    WorkspaceFilter:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Filter by workspace name
+
+    # =====================================================
+    # RESPONSE SCHEMAS
+    # =====================================================
+
+    Segment:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Segment ID
+          example: "1234567890123456789"
+        deployment_id:
+          type: string
+          description: Deployment ID
+          example: "9876543210987654321"
+        name:
+          type: string
+          description: Segment name
+          example: "Premium Users"
+        type:
+          type: string
+          description: Entity type
+          enum: [user, organization, workspace]
+          example: "user"
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2024-01-15T10:30:00Z"
+        deleted_at:
+          type: string
+          format: date-time
+          description: Deletion timestamp
+          nullable: true
+
+    AnalyzedEntity:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Entity ID
+          example: "1234567890123456789"
+        name:
+          type: string
+          description: Entity name
+          nullable: true
+          example: "John Doe"
+        first_name:
+          type: string
+          description: First name
+          nullable: true
+          example: "John"
+        last_name:
+          type: string
+          description: Last name
+          nullable: true
+          example: "Doe"
+
+    PaginatedSegments:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Segment'
+        has_more:
+          type: boolean
+          description: Whether there are more results
+        limit:
+          type: integer
+          description: Page size
+          nullable: true
+        offset:
+          type: integer
+          description: Number of items skipped
+          nullable: true
+
+    PaginatedAnalyzedEntities:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AnalyzedEntity'
+        has_more:
+          type: boolean
+          description: Whether there are more results
+        limit:
+          type: integer
+          description: Page size
+          nullable: true
+        offset:
+          type: integer
+          description: Number of items skipped
+          nullable: true

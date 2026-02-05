@@ -1,0 +1,50 @@
+---
+title: DeploymentInitialized
+description: Renders children only after the deployment configuration has loaded.
+---
+
+# DeploymentInitialized
+
+Renders its children only after the deployment configuration has been successfully loaded. Returns `null` during loading to prevent flash of unstyled content.
+
+```tsx
+import { DeploymentInitialized } from "@wacht/nextjs";
+
+export default function App() {
+  return (
+    <DeploymentInitialized>
+      <YourAppContent />
+    </DeploymentInitialized>
+  );
+}
+```
+
+## Prevent FOUC
+
+```tsx
+import { DeploymentInitialized, DeploymentInitializing } from "@wacht/nextjs";
+
+export default function Root() {
+  return (
+    <>
+      <DeploymentInitializing>
+        <LoadingScreen />
+      </DeploymentInitializing>
+      <DeploymentInitialized>
+        <App />
+      </DeploymentInitialized>
+    </>
+  );
+}
+```
+
+## Params
+
+<ParamField path="children" type="ReactNode">
+Content to render after deployment loads.
+</ParamField>
+
+## Related
+
+- [DeploymentInitializing](./deployment-initializing) - Loading state component
+- [useDeployment](../hooks/use-deployment) - Deployment hook

@@ -1,0 +1,310 @@
+openapi: 3.0.3
+info:
+  title: Wacht Frontend API - Deployment
+  description: Deployment configuration and public metadata endpoints
+  version: 1.0.0
+servers:
+  - url: https://api.wacht.dev
+    description: Production server
+
+tags:
+  - name: Deployment
+    description: Deployment configuration
+  - name: Public Metadata
+    description: Public deployment metadata (no authentication required)
+
+paths:
+  /deployment:
+    get:
+      tags:
+        - Deployment
+      summary: Get deployment configuration
+      description: Retrieve the current deployment's configuration and settings
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Deployment configuration retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Deployment'
+        '401':
+          description: Unauthorized
+
+  /deployment/invitations/validate:
+    get:
+      tags:
+        - Deployment
+      summary: Validate invitation
+      description: Validate an organization or workspace invitation token
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: token
+          in: query
+          required: true
+          description: Invitation token
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Invitation validated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                    example: true
+                  type:
+                    type: string
+                    enum: [organization, workspace]
+                    example: "organization"
+                  organization:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                  workspace:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                    nullable: true
+                  inviter:
+                    type: object
+                    properties:
+                      first_name:
+                        type: string
+                      last_name:
+                        type: string
+                      email:
+                        type: string
+        '400':
+          description: Invalid or expired token
+        '401':
+          description: Unauthorized
+
+  /.well-known/meta:
+    get:
+      tags:
+        - Public Metadata
+      summary: Get deployment metadata
+      description: Retrieve public deployment metadata (no authentication required)
+      responses:
+        '200':
+          description: Metadata retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicMetadata'
+
+  /.well-known/jwk:
+    get:
+      tags:
+        - Public Metadata
+      summary: Get JWT public keys
+      description: Retrieve the deployment's public JWT keys for token verification
+      responses:
+        '200':
+          description: JWT keys retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  keys:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        kty:
+                          type: string
+                          example: "EC"
+                        kid:
+                          type: string
+                          example: "key-123"
+                        crv:
+                          type: string
+                          example: "P-256"
+                        x:
+                          type: string
+                          description: Public key X coordinate
+                        y:
+                          type: string
+                          description: Public key Y coordinate
+                        alg:
+                          type: string
+                          example: "ES256"
+
+components:
+  schemas:
+    Deployment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+          description: Deployment ID
+          example: "999999999999999999"
+        name:
+          type: string
+          description: Deployment name
+          example: "Production"
+        backend_host:
+          type: string
+          description: Backend API host
+          example: "api.wacht.dev"
+        enabled:
+          type: boolean
+          description: Whether deployment is enabled
+          example: true
+        b2b_settings:
+          $ref: '#/components/schemas/B2BSettings'
+        ui_settings:
+          $ref: '#/components/schemas/UISettings'
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+
+    B2BSettings:
+      type: object
+      properties:
+        organizations_enabled:
+          type: boolean
+          description: Whether organizations feature is enabled
+          example: true
+        workspaces_enabled:
+          type: boolean
+          description: Whether workspaces feature is enabled
+          example: true
+        limit_org_creation_per_user:
+          type: boolean
+          description: Limit organization creation per user
+          example: false
+        max_orgs_per_user:
+          type: integer
+          description: Maximum organizations per user
+          example: 10
+        limit_workspace_creation_per_org:
+          type: boolean
+          description: Limit workspace creation per organization
+          example: true
+        workspaces_per_org_count:
+          type: integer
+          description: Maximum workspaces per organization
+          example: 5
+        default_org_creator_role_id:
+          type: string
+          format: uint64
+          description: Default role for organization creators
+          example: "111111111111111111"
+        enforce_mfa_per_org_enabled:
+          type: boolean
+          description: Enable MFA enforcement per organization
+          example: false
+        ip_allowlist_per_org_enabled:
+          type: boolean
+          description: Enable IP allowlist per organization
+          example: false
+        enforce_mfa_per_workspace_enabled:
+          type: boolean
+          description: Enable MFA enforcement per workspace
+          example: false
+        ip_allowlist_per_workspace_enabled:
+          type: boolean
+          description: Enable IP allowlist per workspace
+          example: false
+
+    UISettings:
+      type: object
+      properties:
+        default_organization_profile_image_url:
+          type: string
+          format: uri
+          description: Default organization avatar
+          example: "https://cdn.wacht.dev/default-org.png"
+        default_workspace_profile_image_url:
+          type: string
+          format: uri
+          description: Default workspace avatar
+          example: "https://cdn.wacht.dev/default-ws.png"
+        theme:
+          type: string
+          description: UI theme
+          example: "light"
+        primary_color:
+          type: string
+          description: Primary brand color
+          example: "#4f46e5"
+        logo_url:
+          type: string
+          format: uri
+          description: Custom logo URL
+          nullable: true
+
+    PublicMetadata:
+      type: object
+      properties:
+        deployment_id:
+          type: string
+          format: uint64
+          description: Deployment ID
+          example: "999999999999999999"
+        backend_host:
+          type: string
+          description: Backend API host
+          example: "api.wacht.dev"
+        issuer:
+          type: string
+          description: JWT issuer
+          example: "https://api.wacht.dev"
+        organizations_enabled:
+          type: boolean
+          description: Whether organizations feature is enabled
+          example: true
+        workspaces_enabled:
+          type: boolean
+          description: Whether workspaces feature is enabled
+          example: true
+        theme:
+          type: string
+          description: UI theme
+          example: "light"
+        primary_color:
+          type: string
+          description: Primary brand color
+          example: "#4f46e5"
+        logo_url:
+          type: string
+          format: uri
+          description: Logo URL
+          nullable: true
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Unauthorized"
+        code:
+          type: string
+          example: "UNAUTHORIZED"
+
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: session_id
+      description: Session-based authentication using cookies

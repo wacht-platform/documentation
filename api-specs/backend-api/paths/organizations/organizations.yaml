@@ -1,0 +1,54 @@
+# Organizations list and create
+
+Organizations:
+  get:
+    summary: List organizations
+    description: Get a paginated list of organizations
+    tags:
+      - Organizations
+    parameters:
+      - $ref: '#/components/parameters/Limit'
+      - $ref: '#/components/parameters/Offset'
+      - $ref: '#/components/parameters/Search'
+    responses:
+      '200':
+        description: List of organizations
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/PaginatedResponse'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Organization'
+
+  post:
+    summary: Create organization
+    description: Create a new organization
+    tags:
+      - Organizations
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - name
+            properties:
+              name:
+                type: string
+              description:
+                type: string
+    responses:
+      '200':
+        description: Organization created
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Organization'
+      '409':
+        $ref: '#/components/responses/Conflict'

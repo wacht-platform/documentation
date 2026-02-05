@@ -1,0 +1,484 @@
+---
+title: 'Setup & Configuration'
+description: 'Detailed setup and configuration for Next.js SDK'
+---
+
+## Provider Setup
+
+The `DeploymentProvider` component wraps your application and provides authentication context to all child components.
+
+### App Router Setup
+
+Create a client component for the provider:
+
+```tsx
+// app/providers.tsx
+'use client'
+
+import { DeploymentProvider } from '@wacht/nextjs'
+
+export function Providers({ children }: { children: React.ReactNode }) {
+  return (
+    <DeploymentProvider publicKey={process.env.NEXT_PUBLIC_WACHT_PUBLIC_KEY!}>
+      {children}
+    </DeploymentProvider>
+  )
+}
+```
+
+Update your root layout:
+
+```tsx
+// app/layout.tsx
+import { Providers } from './providers'
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body>
+        <Providers>{children}</Providers>
+      </body>
+    </html>
+  )
+}
+```
+
+### Pages Router Setup
+
+Wrap your pages in `_app.tsx`:
+
+```tsx
+// pages/_app.tsx
+import type { AppProps } from 'next/app'
+import { DeploymentProvider } from '@wacht/nextjs'
+
+export default function App({ Component, pageProps }: AppProps) {
+  return (
+    <DeploymentProvider publicKey={process.env.NEXT_PUBLIC_WACHT_PUBLIC_KEY!}>
+      <Component {...pageProps} />
+    </DeploymentProvider>
+  )
+}
+```
+
+### Provider Props
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `publicKey` | `string` | Yes | Your Wacht deployment public key |
+| `uiOverwrites` | `DeploymentUISettings` | No | Custom UI settings |
+
+### UI Customization
+
+Customize the appearance of Wacht components:
+
+```tsx
+// app/providers.tsx
+'use client'
+
+import { DeploymentProvider } from '@wacht/nextjs'
+
+export function Providers({ children }: { children: React.ReactNode }) {
+  return (
+    <DeploymentProvider
+      publicKey={process.env.NEXT_PUBLIC_WACHT_PUBLIC_KEY!}
+      uiOverwrites={{
+        primaryColor: '#4f46e5',
+        borderRadius: '8px',
+        fontFamily: 'Inter, sans-serif',
+        buttonColor: '#ffffff',
+        buttonTextColor: '#4f46e5'
+      }}
+    >
+      {children}
+    </DeploymentProvider>
+  )
+}
+```
+
+### DeploymentUISettings
+
+```typescript
+interface DeploymentUISettings {
+  primaryColor?: string          // Primary brand color (default: #4f46e5)
+  borderRadius?: string          // Border radius for components (default: 8px)
+  fontFamily?: string            // Font family (default: system-ui)
+  buttonColor?: string           // Button background color
+  buttonTextColor?: string       // Button text color
+  inputBackgroundColor?: string   // Input background color
+  inputBorderColor?: string       // Input border color
+  errorColor?: string            // Error message color
+  successColor?: string          // Success message color
+}
+```
+
+## Environment Configuration
+
+### Required Environment Variables
+
+```bash
+# .env.local
+NEXT_PUBLIC_WACHT_PUBLIC_KEY=your_public_key_here
+```
+
+### Optional Environment Variables
+
+```bash
+# Override the backend URL (for development)
+WACHT_FRONTEND_HOST=https://your-app.wacht.io
+```
+
+## Routing Configuration
+
+### Auth Routes
+
+Create dedicated routes for authentication:
+
+```tsx
+// app/signin/page.tsx
+import { SignInForm } from '@wacht/nextjs'
+
+export default function SignInPage() {
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="w-full max-w-md">
+        <h1 className="text-2xl font-bold mb-4">Sign In</h1>
+        <SignInForm />
+      </div>
+    </div>
+  )
+}
+```
+
+```tsx
+// app/signup/page.tsx
+import { SignUpForm } from '@wacht/nextjs'
+
+export default function SignUpPage() {
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="w-full max-w-md">
+        <h1 className="text-2xl font-bold mb-4">Sign Up</h1>
+        <SignUpForm />
+      </div>
+    </div>
+  )
+}
+```
+
+### SSO Callback Route
+
+Required for OAuth authentication:
+
+```tsx
+// app/auth/callback/route.tsx
+import { SSOCallback } from '@wacht/nextjs'
+
+export default function AuthCallbackPage() {
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="text-center">
+        <SSOCallback />
+        <p>Completing authentication...</p>
+      </div>
+    </div>
+  )
+}
+```
+
+### Magic Link Verification Route
+
+For magic link authentication:
+
+```tsx
+// app/auth/verify-magic-link/page.tsx
+import { MagicLinkVerification } from '@wacht/nextjs'
+
+export default function VerifyMagicLinkPage() {
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <MagicLinkVerification />
+    </div>
+  )
+}
+```
+
+## Route Protection
+
+### Using Middleware
+
+Create middleware for route protection:
+
+```ts
+// middleware.ts
+import { createMiddlewareClient } from '@wacht/nextjs/server'
+
+export const { authMiddleware, requireAuth } = createMiddlewareClient()
+
+export default authMiddleware((req) => {
+  // Protect all routes under /dashboard
+  if (req.nextUrl.pathname.startsWith('/dashboard')) {
+    return requireAuth(req)
+  }
+
+  // Protect all routes under /settings
+  if (req.nextUrl.pathname.startsWith('/settings')) {
+    return requireAuth(req)
+  }
+
+  // Allow access to other routes
+  return {}
+})
+
+export const config = {
+  matcher: ['/dashboard/:path*', '/settings/:path*']
+}
+```
+
+### Using Server Components
+
+```tsx
+// app/dashboard/page.tsx
+import { redirect } from 'next/navigation'
+import { getSession } from '@wacht/nextjs/server'
+
+export default async function DashboardPage() {
+  const session = await getSession()
+
+  if (!session) {
+    redirect('/signin')
+  }
+
+  return (
+    <div>
+      <h1>Dashboard</h1>
+      <p>Welcome, {session.user.first_name}!</p>
+    </div>
+  )
+}
+```
+
+### Using Conditional Components
+
+```tsx
+// app/page.tsx
+import { SignedIn, SignedOut } from '@wacht/nextjs'
+import Link from 'next/link'
+
+export default function HomePage() {
+  return (
+    <div>
+      <SignedOut>
+        <div className="flex gap-4">
+          <Link href="/signin">Sign In</Link>
+          <Link href="/signup">Sign Up</Link>
+        </div>
+      </SignedOut>
+      <SignedIn>
+        <Link href="/dashboard">Go to Dashboard</Link>
+      </SignedIn>
+    </div>
+  )
+}
+```
+
+## Navigation Configuration
+
+### Custom Redirect URLs
+
+Control where users are redirected after authentication:
+
+```tsx
+'use client'
+
+import { useNavigation } from '@wacht/nextjs'
+import { useState } from 'react'
+
+export default function CustomSignin() {
+  const { setAfterSignInUrl } = useNavigation()
+  const [redirectUrl, setRedirectUrl] = useState('/dashboard')
+
+  const handleSignIn = () => {
+    setAfterSignInUrl(redirectUrl)
+  }
+
+  return (
+    <div>
+      <input
+        value={redirectUrl}
+        onChange={(e) => setRedirectUrl(e.target.value)}
+        placeholder="Redirect URL"
+      />
+      <button onClick={handleSignIn}>Sign In</button>
+    </div>
+  )
+}
+```
+
+### Post-Authentication Redirects
+
+```tsx
+'use client'
+
+import { SignUpForm, useNavigation } from '@wacht/nextjs'
+
+export default function SignUpWithRedirect() {
+  const { setAfterSignUpUrl } = useNavigation()
+
+  return (
+    <div>
+      <SignUpForm />
+      <button onClick={() => setAfterSignUpUrl('/onboarding')}>
+        Go to onboarding after sign up
+      </button>
+    </div>
+  )
+}
+```
+
+## Error Handling
+
+### Error Pages
+
+Create error pages for authentication errors:
+
+```tsx
+// app/error.tsx
+'use client'
+
+import { useEffect } from 'react'
+
+export default function Error({
+  error,
+  reset
+}: {
+  error: Error & { digest?: string }
+  reset: () => void
+}) {
+  useEffect(() => {
+    console.error('Auth error:', error)
+  }, [error])
+
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="text-center">
+        <h2>Something went wrong!</h2>
+        <button onClick={() => reset()}>Try again</button>
+      </div>
+    </div>
+  )
+}
+```
+
+### Error Callbacks
+
+Components accept error callbacks:
+
+```tsx
+'use client'
+
+import { SSOCallback } from '@wacht/nextjs'
+
+export default function AuthCallbackPage() {
+  return (
+    <SSOCallback
+      onError={(error) => {
+        console.error('Auth error:', error)
+        // Handle error (e.g., redirect to sign-in with error message)
+      }}
+    />
+  )
+}
+```
+
+## Multi-Tenant Setup
+
+### Organization Context
+
+Enable organization-aware routing:
+
+```tsx
+'use client'
+
+import { useActiveOrganization } from '@wacht/nextjs'
+
+export default function OrgDashboard() {
+  const { organization, loading } = useActiveOrganization()
+
+  if (loading) return <div>Loading...</div>
+
+  return (
+    <div>
+      <h1>{organization.name}</h1>
+      <p>{organization.description}</p>
+    </div>
+  )
+}
+```
+
+### Workspace Context
+
+Enable workspace-aware routing:
+
+```tsx
+'use client'
+
+import { useActiveWorkspace } from '@wacht/nextjs'
+
+export default function WorkspaceSettings() {
+  const { workspace, loading } = useActiveWorkspace()
+
+  if (loading) return <div>Loading...</div>
+
+  return (
+    <div>
+      <h1>{workspace.name}</h1>
+      <p>{workspace.description}</p>
+    </div>
+  )
+}
+```
+
+## Production Considerations
+
+### Deployment Checklist
+
+- [ ] Set `NEXT_PUBLIC_WACHT_PUBLIC_KEY` environment variable
+- [ ] Configure allowed redirect URLs in Wacht dashboard
+- [ ] Set up OAuth providers if using social sign-in
+- [ ] Configure email delivery for email verification
+- [ ] Test SSO callback route locally
+- [ ] Enable HTTPS in production
+- [ ] Update middleware matcher for production routes
+
+### Performance Optimization
+
+```tsx
+// Use server components for initial data fetching
+import { getSession } from '@wacht/nextjs/server'
+import { SignedOut } from '@wacht/nextjs'
+import Link from 'next/link'
+
+export default async function DashboardPage() {
+  const session = await getSession()
+
+  return (
+    <div>
+      <h1>Dashboard</h1>
+      {session ? (
+        <p>Welcome, {session.user.first_name}!</p>
+      ) : (
+        <SignedOut>
+          <Link href="/signin">Sign In</Link>
+        </SignedOut>
+      )}
+    </div>
+  )
+}
+```
+
+## Related
+
+- [Installation](installation) - Installation guide
+- [Quick Start](quickstart) - Quick start guide
+- [Components](components) - Component reference

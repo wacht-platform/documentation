@@ -1,0 +1,40 @@
+# Webhook app deliveries endpoint
+
+WebhookAppDeliveries:
+  get:
+    summary: Get webhook deliveries
+    description: Get webhook delivery history for an app
+    tags:
+      - Webhooks
+    parameters:
+      - $ref: '#/components/parameters/WebhookAppName'
+      - $ref: '#/components/parameters/Limit'
+      - $ref: '#/components/parameters/Offset'
+    responses:
+      '200':
+        description: Webhook deliveries
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                deliveries:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      endpoint_id:
+                        type: string
+                      event_type:
+                        type: string
+                      status:
+                        type: string
+                      url:
+                        type: string
+                      created_at:
+                        type: string
+                        format: date-time
+      '404':
+        $ref: '#/components/responses/NotFound'

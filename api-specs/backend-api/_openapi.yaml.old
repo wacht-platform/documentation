@@ -1,0 +1,946 @@
+openapi: 3.0.3
+info:
+  title: Wacht Backend API
+  description: Backend API for the Wacht platform
+  version: 1.0.0
+  contact:
+    name: Wacht Support
+    email: support@wacht.dev
+  license:
+    name: PROPRIETARY
+
+servers:
+  - url: https://api.wacht.dev
+    description: Production server
+  - url: https://staging-api.wacht.dev
+    description: Staging server
+
+security:
+  - ApiKeyAuth: []
+
+tags:
+  - name: Health
+    description: Health check endpoints
+  - name: Users
+    description: User management
+  - name: Organizations
+    description: Organization management
+  - name: Workspaces
+    description: Workspace management
+  - name: AI Agents
+    description: AI agent management
+  - name: AI Tools
+    description: AI tool management
+  - name: AI Knowledge Bases
+    description: Knowledge base management
+  - name: AI Execution Contexts
+    description: AI execution contexts
+  - name: AI Integrations
+    description: Agent integrations
+  - name: AI Settings
+    description: AI settings
+  - name: Webhooks
+    description: Webhook management
+  - name: API Keys
+    description: API key management
+  - name: Settings
+    description: Deployment settings
+  - name: Segments
+    description: User segments
+  - name: Analytics
+    description: Analytics and metrics
+  - name: Notifications
+    description: Notifications
+  - name: Utility
+    description: Utility endpoints
+
+paths:
+  # Health
+  /health:
+    get:
+      summary: Health check
+      description: Check if the API is running
+      tags:
+        - Health
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+
+  # Users
+  /users:
+    get:
+      summary: List users
+      description: Get a paginated list of users
+      tags:
+        - Users
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - $ref: '#/components/parameters/Search'
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/User'
+    post:
+      summary: Create user
+      description: Create a new user
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - first_name
+                - last_name
+              properties:
+                first_name:
+                  type: string
+                last_name:
+                  type: string
+                email_address:
+                  type: string
+                phone_number:
+                  type: string
+                username:
+                  type: string
+                password:
+                  type: string
+                  format: password
+                profile_image:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /users/{user_id}:
+    get:
+      summary: Get user by ID
+      description: Retrieve a specific user
+      tags:
+        - Users
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '200':
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      summary: Update user
+      description: Update user information
+      tags:
+        - Users
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                last_name:
+                  type: string
+                username:
+                  type: string
+                public_metadata:
+                  type: object
+                private_metadata:
+                  type: object
+                profile_image:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete user
+      description: Permanently delete a user
+      tags:
+        - Users
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '204':
+          description: User deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /users/{user_id}/details:
+    get:
+      summary: Get user details
+      description: Get complete user information including organizations and workspaces
+      tags:
+        - Users
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  first_name:
+                    type: string
+                  last_name:
+                    type: string
+                  email:
+                    type: string
+                  is_active:
+                    type: boolean
+                  created_at:
+                    type: string
+                    format: date-time
+                  updated_at:
+                    type: string
+                    format: date-time
+                  email_addresses:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserEmail'
+                  phone_numbers:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserPhone'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /users/{user_id}/password:
+    patch:
+      summary: Update user password
+      description: Update a user's password
+      tags:
+        - Users
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - new_password
+              properties:
+                new_password:
+                  type: string
+                  format: password
+                skip_password_check:
+                  type: boolean
+                  default: false
+      responses:
+        '200':
+          description: Password updated
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /organizations:
+    $ref: './paths/organizations/organizations.yaml#/Organizations'
+  /organizations/{organization_id}:
+    $ref: './paths/organizations/organization-by-id.yaml#/OrganizationById'
+  /organizations/{organization_id}/workspaces:
+    $ref: './paths/organizations/organization-workspaces.yaml#/OrganizationWorkspaces'
+  /organizations/{organization_id}/members:
+    $ref: './paths/organizations/organization-members.yaml#/OrganizationMembers'
+  /organizations/{organization_id}/members/{membership_id}:
+    $ref: './paths/organizations/organization-member-by-id.yaml#/OrganizationMemberById'
+  /organizations/{organization_id}/roles:
+    $ref: './paths/organizations/organization-roles.yaml#/OrganizationRoles'
+  /organizations/{organization_id}/roles/{role_id}:
+    $ref: './paths/organizations/organization-role-by-id.yaml#/OrganizationRoleById'
+  /organizations/roles:
+    $ref: './paths/organizations/deployment-roles.yaml#/DeploymentRoles'
+
+  # Workspaces
+  /workspaces:
+    $ref: './paths/workspaces/workspaces.yaml#/Workspaces'
+  /workspaces/{workspace_id}:
+    $ref: './paths/workspaces/workspace-by-id.yaml#/WorkspaceById'
+  /workspaces/roles:
+    $ref: './paths/workspaces/deployment-roles.yaml#/DeploymentRoles'
+  /workspaces/{workspace_id}/roles:
+    $ref: './paths/workspaces/workspace-roles.yaml#/WorkspaceRoles'
+  /workspaces/{workspace_id}/roles/{role_id}:
+    $ref: './paths/workspaces/workspace-role-by-id.yaml#/WorkspaceRoleById'
+  /workspaces/{workspace_id}/members:
+    $ref: './paths/workspaces/workspace-members.yaml#/WorkspaceMembers'
+  /workspaces/{workspace_id}/members/{membership_id}:
+    $ref: './paths/workspaces/workspace-member-by-id.yaml#/WorkspaceMemberById'
+
+  # AI Agents
+  /ai/agents:
+    $ref: './paths/ai/agents.yaml#/AIAgents'
+  /ai/agents/{agent_id}:
+    $ref: './paths/ai/agent-by-id.yaml#/AIAgentById'
+  /ai/agents/{agent_id}/details:
+    $ref: './paths/ai/agent-details.yaml#/AIAgentDetails'
+
+  # AI Tools
+  /ai/tools:
+    $ref: './paths/ai/tools.yaml#/AITools'
+  /ai/tools/{tool_id}:
+    $ref: './paths/ai/tool-by-id.yaml#/AIToolById'
+
+  # AI Knowledge Bases
+  /ai/knowledge-bases:
+    $ref: './paths/ai/knowledge-bases.yaml#/AIKnowledgeBases'
+  /ai/knowledge-bases/{kb_id}:
+    $ref: './paths/ai/knowledge-base-by-id.yaml#/AIKnowledgeBaseById'
+  /ai/knowledge-bases/{kb_id}/documents:
+    $ref: './paths/ai/knowledge-base-documents.yaml#/AIKnowledgeBaseDocuments'
+  /ai/knowledge-bases/{kb_id}/documents/{document_id}:
+    $ref: './paths/ai/knowledge-base-document-by-id.yaml#/AIKnowledgeBaseDocumentById'
+
+  # AI Integrations
+  /ai/agents/{agent_id}/integrations:
+    $ref: './paths/ai/agent-integrations.yaml#/AIAgentIntegrations'
+  /ai/agents/{agent_id}/integrations/{integration_id}:
+    $ref: './paths/ai/agent-integration-by-id.yaml#/AIAgentIntegrationById'
+
+  # AI Execution Contexts
+  /ai/execution-contexts:
+    $ref: './paths/ai/execution-contexts.yaml#/AIExecutionContexts'
+  /ai/execution-contexts/{context_id}:
+    $ref: './paths/ai/execution-context-by-id.yaml#/AIExecutionContextById'
+  /ai/execution-contexts/{context_id}/execute:
+    $ref: './paths/ai/execution-context-execute.yaml#/AIExecutionContextExecute'
+
+  # AI Settings
+  /ai/settings:
+    $ref: './paths/ai/settings.yaml#/AISettings'
+
+  # Webhooks
+  /webhooks/apps:
+    $ref: './paths/webhooks/webhook-apps.yaml#/WebhookApps'
+  /webhooks/apps/{app_name}:
+    $ref: './paths/webhooks/webhook-app-by-name.yaml#/WebhookAppByName'
+  /webhooks/apps/{app_name}/rotate-secret:
+    $ref: './paths/webhooks/webhook-app-rotate-secret.yaml#/WebhookAppRotateSecret'
+  /webhooks/apps/{app_name}/events:
+    $ref: './paths/webhooks/webhook-app-events.yaml#/WebhookAppEvents'
+  /webhooks/apps/{app_name}/endpoints:
+    $ref: './paths/webhooks/webhook-app-endpoints.yaml#/WebhookAppEndpoints'
+  /webhooks/apps/{app_name}/stats:
+    $ref: './paths/webhooks/webhook-app-stats.yaml#/WebhookAppStats'
+  /webhooks/apps/{app_name}/deliveries:
+    $ref: './paths/webhooks/webhook-app-deliveries.yaml#/WebhookAppDeliveries'
+  /webhooks/apps/{app_name}/analytics:
+    $ref: './paths/webhooks/webhook-app-analytics.yaml#/WebhookAppAnalytics'
+  /webhooks/apps/{app_name}/timeseries:
+    $ref: './paths/webhooks/webhook-app-timeseries.yaml#/WebhookAppTimeseries'
+  /webhooks/apps/{app_name}/trigger:
+    $ref: './paths/webhooks/webhook-app-trigger.yaml#/WebhookAppTrigger'
+  /webhooks/apps/{app_name}/trigger/batch:
+    $ref: './paths/webhooks/webhook-app-trigger-batch.yaml#/WebhookAppTriggerBatch'
+  /webhooks/apps/{app_name}/deliveries/replay:
+    $ref: './paths/webhooks/webhook-app-replay.yaml#/WebhookAppReplay'
+  /webhooks/endpoints:
+    $ref: './paths/webhooks/webhook-endpoints.yaml#/WebhookEndpoints'
+  /webhooks/endpoints/{endpoint_id}:
+    $ref: './paths/webhooks/webhook-endpoint-by-id.yaml#/WebhookEndpointById'
+  /webhooks/apps/{app_name}/endpoints/{endpoint_id}/test:
+    $ref: './paths/webhooks/webhook-endpoint-test.yaml#/WebhookEndpointTest'
+  /webhooks/endpoints/{endpoint_id}/reactivate:
+    $ref: './paths/webhooks/webhook-endpoint-reactivate.yaml#/WebhookEndpointReactivate'
+  /webhooks/deliveries/{delivery_id}:
+    $ref: './paths/webhooks/webhook-delivery-by-id.yaml#/WebhookDeliveryById'
+
+  # API Keys
+  /api-auth/apps:
+    $ref: './paths/api-keys/api-auth-apps.yaml#/ApiAuthApps'
+  /api-auth/apps/{app_name}:
+    $ref: './paths/api-keys/api-auth-app-by-name.yaml#/ApiAuthAppByName'
+  /api-auth/apps/{app_name}/keys:
+    $ref: './paths/api-keys/api-auth-app-keys.yaml#/ApiAuthAppKeys'
+  /api-auth/keys/revoke:
+    $ref: './paths/api-keys/api-keys-revoke.yaml#/ApiKeysRevoke'
+  /api-auth/keys/rotate:
+    $ref: './paths/api-keys/api-keys-rotate.yaml#/ApiKeysRotate'
+
+  # Settings
+  /:
+    $ref: './paths/settings/deployment.yaml#/Deployment'
+  /jwt-templates:
+    $ref: './paths/settings/jwt-templates.yaml#/JwtTemplates'
+  /jwt-templates/{id}:
+    $ref: './paths/settings/jwt-template-by-id.yaml#/JwtTemplateById'
+  /settings/auth:
+    $ref: './paths/settings/settings-auth.yaml#/SettingsAuth'
+  /settings/display:
+    $ref: './paths/settings/settings-display.yaml#/SettingsDisplay'
+  /settings/restrictions:
+    $ref: './paths/settings/settings-restrictions.yaml#/SettingsRestrictions'
+  /settings/b2b:
+    $ref: './paths/settings/settings-b2b.yaml#/SettingsB2B'
+  /settings/social-connections:
+    $ref: './paths/settings/settings-social-connections.yaml#/SettingsSocialConnections'
+  /settings/email/smtp:
+    $ref: './paths/settings/settings-smtp.yaml#/SettingsSmtp'
+  /settings/email/smtp/verify:
+    $ref: './paths/settings/settings-smtp-verify.yaml#/SettingsSmtpVerify'
+  /settings/email-templates/{template_name}:
+    $ref: './paths/settings/email-template-by-name.yaml#/EmailTemplateByName'
+
+  # Segments
+  /segments:
+    $ref: './paths/segments/segments.yaml#/Segments'
+  /segments/data:
+    $ref: './paths/segments/segments-data.yaml#/SegmentsData'
+  /segments/{id}:
+    $ref: './paths/segments/segment-by-id.yaml#/SegmentById'
+  /segments/{id}/assign:
+    $ref: './paths/segments/segment-assign.yaml#/SegmentAssign'
+  /segments/{id}/remove:
+    $ref: './paths/segments/segment-remove.yaml#/SegmentRemove'
+
+  # Analytics
+  /analytics/summary:
+    $ref: './paths/analytics/analytics-summary.yaml#/AnalyticsSummary'
+  /analytics/recent-signups:
+    $ref: './paths/analytics/analytics-recent-signups.yaml#/AnalyticsRecentSignups'
+  /analytics/recent-signins:
+    $ref: './paths/analytics/analytics-recent-signins.yaml#/AnalyticsRecentSignins'
+
+  # Notifications
+  /notifications:
+    $ref: './paths/notifications/notifications.yaml#/Notifications'
+
+  # Utility
+  /upload/{image_type}:
+    $ref: './paths/utility/upload.yaml#/Upload'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: 'API key authentication (format: Bearer {api_key})'
+
+  schemas:
+    PaginatedResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: {}
+        total:
+          type: integer
+          format: int64
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        username:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+        phone_number:
+          type: string
+          nullable: true
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    UserEmail:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        is_primary:
+          type: boolean
+        is_verified:
+          type: boolean
+        verified_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    UserPhone:
+      type: object
+      properties:
+        id:
+          type: string
+        phone_number:
+          type: string
+        is_primary:
+          type: boolean
+        is_verified:
+          type: boolean
+        verified_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    Organization:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        slug:
+          type: string
+        logo_url:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Workspace:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        organization_id:
+          type: string
+        organization_name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    AIAgent:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    AITool:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    AIKnowledgeBase:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        documents_count:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    KnowledgeBaseDocument:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        file_name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    WebhookApp:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ApiAuthApp:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ApiKey:
+      type: object
+      properties:
+        id:
+          type: string
+        app_id:
+          type: string
+        name:
+          type: string
+        key_prefix:
+          type: string
+        key_suffix:
+          type: string
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        last_used_at:
+          type: string
+          format: date-time
+          nullable: true
+        revoked_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    Segment:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        user_count:
+          type: integer
+        conditions:
+          type: object
+          properties:
+            operator:
+              type: string
+              enum: [AND, OR]
+            rules:
+              type: array
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                  operator:
+                    type: string
+                  value:
+                    type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+
+  responses:
+    Success:
+      description: Successful response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: "Resource not found"
+
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: "Invalid request data"
+
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: "Authentication required"
+
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: "Insufficient permissions"
+
+    Conflict:
+      description: Resource already exists
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: "Resource already exists"
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: "Internal server error"
+
+  parameters:
+    UserId:
+      name: user_id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: User ID
+
+    OrganizationId:
+      name: organization_id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Organization ID
+
+    WorkspaceId:
+      name: workspace_id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Workspace ID
+
+    AgentId:
+      name: agent_id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: AI Agent ID
+
+    ToolId:
+      name: tool_id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: AI Tool ID
+
+    KnowledgeBaseId:
+      name: kb_id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Knowledge Base ID
+
+    DocumentId:
+      name: document_id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Document ID
+
+    IntegrationId:
+      name: integration_id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Integration ID
+
+    ExecutionContextId:
+      name: context_id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Execution Context ID
+
+    WebhookAppName:
+      name: app_name
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Webhook app name
+
+    WebhookEndpointId:
+      name: endpoint_id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Webhook endpoint ID
+
+    WebhookDeliveryId:
+      name: delivery_id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Webhook delivery ID
+
+    ApiAuthAppName:
+      name: app_name
+      in: path
+      required: true
+      schema:
+        type: string
+      description: API Auth app name
+
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 50
+      description: Number of items to return
+
+    Offset:
+      name: offset
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+      description: Number of items to skip
+
+    Search:
+      name: search
+      in: query
+      schema:
+        type: string
+      description: Search query

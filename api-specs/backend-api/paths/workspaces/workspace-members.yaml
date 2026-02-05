@@ -1,0 +1,73 @@
+# Workspace members endpoint
+
+WorkspaceMembers:
+  get:
+    summary: List workspace members
+    description: Get all members of a workspace
+    tags:
+      - Workspaces
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/Limit'
+      - $ref: '#/components/parameters/Offset'
+    responses:
+      '200':
+        description: Workspace members
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/PaginatedResponse'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                          user_id:
+                            type: string
+                          workspace_id:
+                            type: string
+
+  post:
+    summary: Add workspace member
+    description: Add a user to a workspace with roles
+    tags:
+      - Workspaces
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - user_id
+              - role_ids
+            properties:
+              user_id:
+                type: string
+              role_ids:
+                type: array
+                items:
+                  type: string
+    responses:
+      '200':
+        description: Member added
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                user_id:
+                  type: string
+                workspace_id:
+                  type: string
+      '404':
+        $ref: '#/components/responses/NotFound'

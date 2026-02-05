@@ -1,0 +1,58 @@
+---
+title: SignUpForm
+description: A complete sign-up form with field validation, social authentication, and support for invitation tokens.
+---
+
+# SignUpForm
+
+Complete user registration interface with field validation, email/phone verification, social authentication, invitation support, and redirect handling.
+
+```tsx
+import { SignUpForm } from "@wacht/tanstack-router";
+
+export default function SignUpPage() {
+  return <SignUpForm />;
+}
+```
+
+## Form Fields
+
+```typescript
+interface SignUpParams {
+  first_name?: string;
+  last_name?: string;
+  username?: string;
+  email?: string;
+  phone_number?: string;
+  password?: string;
+  phone_country_code?: string;
+  invite_token?: string;
+}
+```
+
+## Invitation Tokens
+
+Pass an invitation token via URL to pre-fill fields and handle organization/workspace invitations:
+
+```tsx
+// User will be pre-filled and added to the organization after sign-up
+/signup?invite_token=abc123
+```
+
+If your deployment has `sign_up_mode` set to `"waitlist"`, users without an invitation token will be redirected to the waitlist page. If set to `"restricted"`, new registrations are blocked.
+
+## Redirect Handling
+
+After successful sign-up, the user is redirected based on:
+
+1. The `redirect_uri` query parameter (if present)
+2. The `after_signup_redirect_url` deployment setting
+3. The deployment's frontend host (fallback)
+
+For example, `/signup?redirect_uri=/onboarding` will bring users to `/onboarding` after sign-up completes.
+
+## Related
+
+- [SignInForm](./sign-in-form) - Sign-in form component
+- [useSignUp](../hooks/use-sign-up) - Hook for custom sign-up flows
+- [WaitlistForm](./waitlist-form) - Waitlist signup form

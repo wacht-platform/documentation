@@ -1,0 +1,75 @@
+---
+title: 'Installation'
+description: 'Install and set up the React Router SDK'
+---
+
+## Requirements
+
+Before installing the React Router SDK, ensure you have:
+
+- **React 18+** - The SDK requires React 18 or later
+- **React Router v7** - Built specifically for React Router v7
+- **pnpm 8+** (recommended) - Or npm 9+
+- **Wacht Deployment** - A Wacht deployment with a public key
+
+## Installation
+
+Install the React Router SDK and its dependencies:
+
+```bash
+pnpm add @wacht/react-router @wacht/types
+```
+
+Or with npm:
+
+```bash
+npm install @wacht/react-router @wacht/types
+```
+
+## Environment Variables
+
+Add your Wacht public key to your environment variables:
+
+```bash
+# .env
+WACHT_PUBLIC_KEY=your_public_key_here
+```
+
+You can find your public key in your Wacht deployment settings.
+
+## TypeScript Configuration
+
+The SDK includes TypeScript definitions out of the box. No additional configuration is needed if you're using TypeScript.
+
+## Peer Dependencies
+
+The SDK has the following peer dependencies that must be installed in your project:
+
+```json
+{
+  "peerDependencies": {
+    "@wacht/types": "*",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "react-router": "^7.0.0"
+  }
+}
+```
+
+## Verification
+
+To verify the installation:
+
+```tsx
+import { DeploymentProvider } from '@wacht/react-router'
+
+// This should work without errors
+console.log(DeploymentProvider)
+```
+
+## Next Steps
+
+- [Quick Start](quickstart) - Get started with a basic setup
+- [Setup Guide](setup) - Detailed configuration guide
+- [Components Reference](components) - Available components
+- [Hooks Reference](hooks) - Available hooks

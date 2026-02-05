@@ -1,0 +1,363 @@
+openapi: 3.0.3
+info:
+  title: Wacht Frontend API - Notifications
+  description: User notification management endpoints
+  version: 1.0.0
+servers:
+  - url: https://api.wacht.dev
+    description: Production server
+
+tags:
+  - name: Notifications
+    description: User notification management
+
+paths:
+  /notifications:
+    get:
+      tags:
+        - Notifications
+      summary: List notifications
+      description: Retrieve all notifications for the current user
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+        - name: scope
+          in: query
+          description: Filter by scope
+          schema:
+            type: string
+            example: "organization"
+        - name: scope_id
+          in: query
+          description: Filter by scope ID
+          schema:
+            type: string
+            format: uint64
+        - name: archived
+          in: query
+          description: Filter by archived status
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Notifications retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Notification'
+                  has_more:
+                    type: boolean
+                    example: false
+                  limit:
+                    type: integer
+                    example: 20
+                  offset:
+                    type: integer
+                    example: 0
+        '401':
+          description: Unauthorized
+
+  /notifications/scope-unread:
+    get:
+      tags:
+        - Notifications
+      summary: Get unread count by scope
+      description: Get unread notification counts grouped by scope
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Unread counts retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: integer
+                example:
+                  organization: 5
+                  workspace: 2
+                  global: 1
+        '401':
+          description: Unauthorized
+
+  /notifications/{id}/read:
+    post:
+      tags:
+        - Notifications
+      summary: Mark as read
+      description: Mark a notification as read
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uint64
+      responses:
+        '200':
+          description: Notification marked as read
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Notification not found
+
+  /notifications/{id}/unread:
+    post:
+      tags:
+        - Notifications
+      summary: Mark as unread
+      description: Mark a notification as unread
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uint64
+      responses:
+        '200':
+          description: Notification marked as unread
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Notification not found
+
+  /notifications/{id}/archive:
+    post:
+      tags:
+        - Notifications
+      summary: Archive notification
+      description: Archive a notification
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uint64
+      responses:
+        '200':
+          description: Notification archived
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Notification not found
+
+  /notifications/{id}/star:
+    post:
+      tags:
+        - Notifications
+      summary: Star notification
+      description: Star or unstar a notification
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uint64
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                starred:
+                  type: boolean
+                  description: Star status
+      responses:
+        '200':
+          description: Notification starred status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Notification not found
+
+  /notifications/mark-all-read:
+    post:
+      tags:
+        - Notifications
+      summary: Mark all as read
+      description: Mark all notifications as read, optionally filtered by scope
+      security:
+        - cookieAuth: []
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                scope:
+                  type: string
+                  description: Scope to filter (e.g., "organization", "workspace")
+                  example: "organization"
+                scope_id:
+                  type: string
+                  format: uint64
+                  description: Scope ID to filter
+                  example: "123456789012345678"
+      responses:
+        '200':
+          description: All notifications marked as read
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                    description: Number of notifications marked as read
+                    example: 15
+        '401':
+          description: Unauthorized
+
+  /notifications/archive-all-read:
+    post:
+      tags:
+        - Notifications
+      summary: Archive all read
+      description: Archive all read notifications
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: All read notifications archived
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                    description: Number of notifications archived
+                    example: 25
+        '401':
+          description: Unauthorized
+
+components:
+  schemas:
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+          description: Notification ID
+          example: "123456789012345678"
+        user_id:
+          type: string
+          format: uint64
+          description: User ID
+          example: "777777777777777777"
+        type:
+          type: string
+          description: Notification type
+          example: "organization.invitation"
+        title:
+          type: string
+          description: Notification title
+          example: "New organization invitation"
+        body:
+          type: string
+          description: Notification body
+          example: "You have been invited to join Acme Corp"
+        scope:
+          type: string
+          description: Notification scope
+          example: "organization"
+        scope_id:
+          type: string
+          format: uint64
+          description: Scope ID
+          example: "999999999999999999"
+          nullable: true
+        action_url:
+          type: string
+          format: uri
+          description: Action URL
+          example: "https://app.wacht.dev/organizations/999"
+          nullable: true
+        read:
+          type: boolean
+          description: Read status
+          example: false
+        starred:
+          type: boolean
+          description: Starred status
+          example: false
+        archived:
+          type: boolean
+          description: Archived status
+          example: false
+        metadata:
+          type: object
+          description: Additional metadata
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Unauthorized"
+        code:
+          type: string
+          example: "UNAUTHORIZED"
+
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: session_id
+      description: Session-based authentication using cookies

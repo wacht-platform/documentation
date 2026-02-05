@@ -1,0 +1,19 @@
+# Invitation by ID endpoint
+
+InvitationById:
+  delete:
+    summary: Delete invitation
+    description: Cancel a user invitation
+    tags:
+      - Users
+    parameters:
+      - name: invitation_id
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      '204':
+        description: Invitation deleted
+      '404':
+        $ref: '#/components/responses/NotFound'

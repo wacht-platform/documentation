@@ -1,0 +1,20 @@
+# User social connection endpoint
+
+UserSocialConnection:
+  delete:
+    summary: Delete social connection
+    description: Remove a social connection from a user
+    tags:
+      - Users
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+      - name: connection_id
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      '204':
+        description: Connection deleted
+      '404':
+        $ref: '#/components/responses/NotFound'

@@ -1,0 +1,56 @@
+---
+title: SignedOut
+description: Conditionally render children only when the user is signed out.
+---
+
+# SignedOut
+
+Conditionally renders its children only when no user is authenticated. Returns `null` during loading or if an active sign-in exists.
+
+```tsx
+import { SignedOut } from "@wacht/tanstack-router";
+
+export default function HomePage() {
+  return (
+    <SignedOut>
+      <div>
+        <h1>Welcome to our app!</h1>
+        <a href="/signin">Sign In</a>
+        <a href="/signup">Sign Up</a>
+      </div>
+    </SignedOut>
+  );
+}
+```
+
+## CTA When Signed Out
+
+```tsx
+import { SignedOut, SignedIn, UserButton } from "@wacht/tanstack-router";
+
+export default function Navbar() {
+  return (
+    <nav>
+      <h1>My App</h1>
+      <SignedOut>
+        <a href="/signin">Sign In</a>
+        <a href="/signup">Sign Up</a>
+      </SignedOut>
+      <SignedIn>
+        <UserButton />
+      </SignedIn>
+    </nav>
+  );
+}
+```
+
+## Params
+
+<ParamField path="children" type="ReactNode">
+Content to render when signed out.
+</ParamField>
+
+## Related
+
+- [SignedIn](./signed-in) - Render when user is signed in
+- [useSession](../hooks/use-session) - Access session data

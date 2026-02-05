@@ -1,0 +1,507 @@
+---
+title: 'Setup & Configuration'
+description: 'Detailed setup and configuration for TanStack Router SDK'
+---
+
+## Provider Setup
+
+The `DeploymentProvider` component wraps your application and provides authentication context to all child components.
+
+### Basic Setup
+
+```tsx
+// src/routes/__root.tsx
+import { createRouter, createRootRoute } from '@tanstack/react-router'
+import { DeploymentProvider } from '@wacht/tanstack-router'
+
+const router = createRouter()
+
+export const Route = createRootRoute({
+  component: Root
+})
+
+function Root() {
+  return (
+    <DeploymentProvider publicKey={import.meta.env.VITE_WACHT_PUBLIC_KEY}>
+      <div>
+        <h1>My App</h1>
+        <Outlet />
+      </div>
+    </DeploymentProvider>
+  )
+}
+```
+
+### Using Route Context
+
+Integrate with TanStack Router's route context:
+
+```tsx
+// src/routes/__root.tsx
+import { createRouter, createRootRoute, Outlet } from '@tanstack/react-router'
+import { DeploymentProvider } from '@wacht/tanstack-router'
+import { getSessionRouter } from '@wacht/tanstack-router/router'
+
+export const Route = createRootRoute({
+  beforeLoad: async () => {
+    const session = await getSessionRouter()
+    return { session }
+  },
+  component: Root
+})
+
+function Root() {
+  return (
+    <DeploymentProvider publicKey={import.meta.env.VITE_WACHT_PUBLIC_KEY}>
+      <Outlet />
+    </DeploymentProvider>
+  )
+}
+```
+
+### Provider Props
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `publicKey` | `string` | Yes | Your Wacht deployment public key |
+| `uiOverwrites` | `DeploymentUISettings` | No | Custom UI settings |
+
+### UI Customization
+
+Customize the appearance of Wacht components:
+
+```tsx
+// src/routes/__root.tsx
+import { DeploymentProvider } from '@wacht/tanstack-router'
+
+export const Route = createRootRoute({
+  component: Root
+})
+
+function Root() {
+  return (
+    <DeploymentProvider
+      publicKey={import.meta.env.VITE_WACHT_PUBLIC_KEY}
+      uiOverwrites={{
+        primaryColor: '#4f46e5',
+        borderRadius: '8px',
+        fontFamily: 'Inter, sans-serif',
+        buttonColor: '#ffffff',
+        buttonTextColor: '#4f46e5'
+      }}
+    >
+      <Outlet />
+    </DeploymentProvider>
+  )
+}
+```
+
+### DeploymentUISettings
+
+```typescript
+interface DeploymentUISettings {
+  primaryColor?: string          // Primary brand color (default: #4f46e5)
+  borderRadius?: string          // Border radius for components (default: 8px)
+  fontFamily?: string            // Font family (default: system-ui)
+  buttonColor?: string           // Button background color
+  buttonTextColor?: string       // Button text color
+  inputBackgroundColor?: string   // Input background color
+  inputBorderColor?: string       // Input border color
+  errorColor?: string            // Error message color
+  successColor?: string          // Success message color
+}
+```
+
+## Environment Configuration
+
+### Required Environment Variables
+
+```bash
+# .env
+VITE_WACHT_PUBLIC_KEY=your_public_key_here
+```
+
+### Optional Environment Variables
+
+```bash
+# Override the backend URL (for development)
+VITE_WACHT_FRONTEND_HOST=https://your-app.wacht.io
+```
+
+## Routing Configuration
+
+### Auth Routes
+
+Create dedicated routes for authentication:
+
+```tsx
+// src/routes/signin.tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { SignInForm } from '@wacht/tanstack-router'
+
+export const Route = createFileRoute('/signin')({
+  component: SignIn
+})
+
+function SignIn() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="max-w-md w-full">
+        <h1 className="text-2xl font-bold mb-4">Sign In</h1>
+        <SignInForm />
+      </div>
+    </div>
+  )
+}
+```
+
+```tsx
+// src/routes/signup.tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { SignUpForm } from '@wacht/tanstack-router'
+
+export const Route = createFileRoute('/signup')({
+  component: SignUp
+})
+
+function SignUp() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="max-w-md w-full">
+        <h1 className="text-2xl font-bold mb-4">Sign Up</h1>
+        <SignUpForm />
+      </div>
+    </div>
+  )
+}
+```
+
+### SSO Callback Route
+
+Required for OAuth authentication:
+
+```tsx
+// src/routes/auth.callback.tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { SSOCallback } from '@wacht/tanstack-router'
+
+export const Route = createFileRoute('/auth/callback')({
+  component: AuthCallback
+})
+
+function AuthCallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center">
+        <SSOCallback />
+        <p>Completing authentication...</p>
+      </div>
+    </div>
+  )
+}
+```
+
+### Magic Link Verification Route
+
+For magic link authentication:
+
+```tsx
+// src/routes/auth.verify-magic-link.tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { MagicLinkVerification } from '@wacht/tanstack-router'
+
+export const Route = createFileRoute('/auth/verify-magic-link')({
+  component: VerifyMagicLink
+})
+
+function VerifyMagicLink() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <MagicLinkVerification />
+    </div>
+  )
+}
+```
+
+## Route Protection
+
+### Using beforeLoad
+
+Protect routes at the router level:
+
+```tsx
+// src/routes/dashboard.tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { useSession } from '@wacht/tanstack-router'
+
+export const Route = createFileRoute('/dashboard')({
+  component: Dashboard,
+  beforeLoad: ({ context, navigate }) => {
+    if (!context.session) {
+      throw navigate({ to: '/signin' })
+    }
+  }
+})
+
+function Dashboard() {
+  const { session } = useSession({ from: '/dashboard' })
+
+  return (
+    <div>
+      <h1>Dashboard</h1>
+      <p>Welcome, {session.user.first_name}!</p>
+    </div>
+  )
+}
+```
+
+### Using Conditional Components
+
+```tsx
+// src/routes/protected.tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { SignedIn, SignedOut, Navigate } from '@wacht/tanstack-router'
+
+export const Route = createFileRoute('/protected')({
+  component: ProtectedPage
+})
+
+function ProtectedPage() {
+  return (
+    <>
+      <SignedOut>
+        <Navigate to="/signin" />
+      </SignedOut>
+      <SignedIn>
+        <div>This content is only shown to signed-in users</div>
+      </SignedIn>
+    </>
+  )
+}
+```
+
+### Using Route Loaders
+
+```tsx
+// src/routes/profile.tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { getSessionRouter } from '@wacht/tanstack-router/router'
+
+export const Route = createFileRoute('/profile')({
+  loader: async () => {
+    const session = await getSessionRouter()
+
+    if (!session) {
+      throw redirect({ to: '/signin' })
+    }
+
+    return { user: session.user }
+  },
+  component: Profile
+})
+
+function Profile({ loaderData }: { loaderData: { user: User } }) {
+  return (
+    <div>
+      <h1>Profile</h1>
+      <p>{loaderData.user.first_name} {loaderData.user.last_name}</p>
+    </div>
+  )
+}
+```
+
+## Navigation Configuration
+
+### Custom Redirect URLs
+
+Control where users are redirected after authentication:
+
+```tsx
+// src/components/CustomSignIn.tsx
+import { useNavigation } from '@wacht/tanstack-router'
+
+export function CustomSignIn() {
+  const { setAfterSignInUrl } = useNavigation()
+
+  const handleSignIn = () => {
+    setAfterSignInUrl('/dashboard')
+  }
+
+  return (
+    <div>
+      <button onClick={handleSignIn}>
+        Go to dashboard after sign in
+      </button>
+    </div>
+  )
+}
+```
+
+### Post-Authentication Redirects
+
+```tsx
+import { SignUpForm, useNavigation } from '@wacht/tanstack-router'
+
+export function SignUpWithRedirect() {
+  const { setAfterSignUpUrl } = useNavigation()
+
+  return (
+    <div>
+      <SignUpForm />
+      <button onClick={() => setAfterSignUpUrl('/onboarding')}>
+        Go to onboarding after sign up
+      </button>
+    </div>
+  )
+}
+```
+
+## Error Handling
+
+### Error Routes
+
+Create error pages for authentication errors:
+
+```tsx
+// src/routes/auth.error.tsx
+import { createFileRoute } from '@tanstack/react-router'
+
+export const Route = createFileRoute('/auth/error')({
+  component: AuthError
+})
+
+function AuthError() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center">
+        <h1 className="text-2xl font-bold mb-4">Authentication Error</h1>
+        <p>Something went wrong during authentication.</p>
+        <a href="/signin" className="text-blue-600 hover:text-blue-800">
+          Try Again
+        </a>
+      </div>
+    </div>
+  )
+}
+```
+
+### Error Callbacks
+
+Components accept error callbacks:
+
+```tsx
+// src/routes/auth.callback.tsx
+import { SSOCallback } from '@wacht/tanstack-router'
+
+export const Route = createFileRoute('/auth/callback')({
+  component: AuthCallback
+})
+
+function AuthCallback() {
+  return (
+    <SSOCallback
+      onError={(error) => {
+        console.error('Auth error:', error)
+        // Handle error (e.g., redirect to sign-in with error message)
+      }}
+    />
+  )
+}
+```
+
+## Multi-Tenant Setup
+
+### Organization Context
+
+Enable organization-aware routing:
+
+```tsx
+// src/routes/orgs.$orgId.tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { useActiveOrganization } from '@wacht/tanstack-router'
+
+export const Route = createFileRoute('/orgs/$orgId')({
+  component: OrgDashboard
+})
+
+function OrgDashboard() {
+  const { organization, loading } = useActiveOrganization()
+
+  if (loading) return <div>Loading...</div>
+
+  return (
+    <div>
+      <h1>{organization.name}</h1>
+      <p>{organization.description}</p>
+    </div>
+  )
+}
+```
+
+### Workspace Context
+
+Enable workspace-aware routing:
+
+```tsx
+// src/routes/workspaces.$workspaceId.tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { useActiveWorkspace } from '@wacht/tanstack-router'
+
+export const Route = createFileRoute('/workspaces/$workspaceId')({
+  component: WorkspaceSettings
+})
+
+function WorkspaceSettings() {
+  const { workspace, loading } = useActiveWorkspace()
+
+  if (loading) return <div>Loading...</div>
+
+  return (
+    <div>
+      <h1>{workspace.name}</h1>
+      <p>{workspace.description}</p>
+    </div>
+  )
+}
+```
+
+## Production Considerations
+
+### Deployment Checklist
+
+- [ ] Set `VITE_WACHT_PUBLIC_KEY` environment variable
+- [ ] Configure allowed redirect URLs in Wacht dashboard
+- [ ] Set up OAuth providers if using social sign-in
+- [ ] Configure email delivery for email verification
+- [ ] Test SSO callback route locally
+- [ ] Enable HTTPS in production
+
+### Performance Optimization
+
+```tsx
+// Use route loaders for data fetching
+export const Route = createFileRoute('/dashboard')({
+  loader: async () => {
+    const session = await getSessionRouter()
+
+    if (!session) {
+      throw redirect({ to: '/signin' })
+    }
+
+    // Fetch initial data in parallel
+    const [user, organizations] = await Promise.all([
+      fetchUser(session.user.id),
+      fetchOrganizations()
+    ])
+
+    return { user, organizations }
+  },
+  component: Dashboard
+})
+```
+
+## Related
+
+- [Installation](installation) - Installation guide
+- [Quick Start](quickstart) - Quick start guide
+- [Components Reference](components) - Component reference

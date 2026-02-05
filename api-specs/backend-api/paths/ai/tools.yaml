@@ -1,0 +1,59 @@
+# AI Tools list and create
+
+AITools:
+  get:
+    summary: List AI tools
+    description: Get all AI tools with optional filtering
+    tags:
+      - AI Tools
+    parameters:
+      - $ref: '#/components/parameters/Limit'
+      - $ref: '#/components/parameters/Offset'
+      - name: is_active
+        in: query
+        schema:
+          type: boolean
+      - name: search
+        in: query
+        schema:
+          type: string
+    responses:
+      '200':
+        description: List of AI tools
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/PaginatedResponse'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/AITool'
+
+  post:
+    summary: Create AI tool
+    description: Create a new AI tool
+    tags:
+      - AI Tools
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - name
+            properties:
+              name:
+                type: string
+              description:
+                type: string
+    responses:
+      '200':
+        description: AI tool created
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AITool'

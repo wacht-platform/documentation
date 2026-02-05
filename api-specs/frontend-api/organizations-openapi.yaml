@@ -1,0 +1,1602 @@
+openapi: 3.0.3
+info:
+  title: Wacht Frontend API - Organizations
+  description: Organization management endpoints for the Wacht Frontend API
+  version: 1.0.0
+servers:
+  - url: https://api.wacht.dev
+    description: Production server
+
+tags:
+  - name: Organizations
+    description: Organization CRUD operations
+  - name: Organization Members
+    description: Organization member management
+  - name: Organization Invitations
+    description: Organization invitation management
+  - name: Organization Roles
+    description: Organization role management
+  - name: Organization Domains
+    description: Organization domain verification and management
+  - name: Enterprise Connections
+    description: SSO and SCIM enterprise connections
+
+paths:
+  /organizations:
+    post:
+      tags:
+        - Organizations
+      summary: Create organization
+      description: Create a new organization
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  description: Organization name
+                  example: "Acme Corp"
+                description:
+                  type: string
+                  description: Organization description
+                  example: "A leading technology company"
+                image:
+                  type: string
+                  format: binary
+                  description: Organization profile image
+      responses:
+        '200':
+          description: Organization created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  organization:
+                    $ref: '#/components/schemas/Organization'
+                  membership:
+                    $ref: '#/components/schemas/OrganizationMembership'
+        '400':
+          description: Bad request - Invalid input or organizations not enabled
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Maximum organization limit reached
+
+  /organizations/invitations/accept:
+    post:
+      tags:
+        - Organization Invitations
+      summary: Accept organization invitation
+      description: Accept an invitation to join an organization
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - token
+              properties:
+                token:
+                  type: string
+                  description: Invitation token
+                  example: "inv_token_abc123"
+      responses:
+        '200':
+          description: Invitation accepted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcceptInvitationResponse'
+        '400':
+          description: Bad request - Invalid or expired token
+        '401':
+          description: Unauthorized
+
+  /organizations/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Organization ID
+        schema:
+          type: string
+          format: uint64
+
+  /organizations/{id}/update:
+    post:
+      tags:
+        - Organizations
+      summary: Update organization
+      description: Update organization details
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Acme Corp Updated"
+                description:
+                  type: string
+                  example: "Updated description"
+                whitelisted_ips:
+                  type: array
+                  items:
+                    type: string
+                  description: List of allowed IP addresses/CIDR ranges
+                  example: ["192.168.1.0/24", "10.0.0.1"]
+                auto_assigned_workspace_id:
+                  type: string
+                  format: uint64
+                  description: ID of workspace to auto-assign members
+                  example: "123456789012345678"
+                enable_ip_restriction:
+                  type: boolean
+                  description: Enable IP restriction
+                  example: true
+                enforce_mfa:
+                  type: boolean
+                  description: Enforce MFA setup for members
+                  example: true
+      responses:
+        '200':
+          description: Organization updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Insufficient permissions
+
+  /organizations/{id}/delete:
+    post:
+      tags:
+        - Organizations
+      summary: Delete organization
+      description: Delete an organization
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+      responses:
+        '200':
+          description: Organization deleted successfully
+        '400':
+          description: Bad request - Cannot delete (last admin, etc.)
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Insufficient permissions
+        '404':
+          description: Organization not found
+
+  /organizations/{id}/leave:
+    post:
+      tags:
+        - Organizations
+      summary: Leave organization
+      description: Leave an organization
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+      responses:
+        '200':
+          description: Left organization successfully
+        '400':
+          description: Bad request - Cannot leave (last admin, etc.)
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Not a member
+        '404':
+          description: Organization not found
+
+  /organizations/{id}/members:
+    get:
+      tags:
+        - Organization Members
+      summary: Get organization members
+      description: Retrieve all members of an organization
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+      responses:
+        '200':
+          description: Members retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrganizationMemberWithDetails'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Not a member
+        '404':
+          description: Organization not found
+
+  /organizations/{id}/members/{memberId}/remove:
+    post:
+      tags:
+        - Organization Members
+      summary: Remove organization member
+      description: Remove a member from the organization
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+        - name: memberId
+          in: path
+          required: true
+          description: Member ID
+          schema:
+            type: string
+            format: uint64
+      responses:
+        '200':
+          description: Member removed successfully
+        '400':
+          description: Bad request - Cannot remove (last admin, etc.)
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Insufficient permissions
+        '404':
+          description: Member or organization not found
+
+  /organizations/{id}/members/{memberId}/roles/{roleId}/add:
+    post:
+      tags:
+        - Organization Members
+      summary: Add role to member
+      description: Add a role to an organization member
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+        - name: memberId
+          in: path
+          required: true
+          description: Member ID
+          schema:
+            type: string
+            format: uint64
+        - name: roleId
+          in: path
+          required: true
+          description: Role ID
+          schema:
+            type: string
+            format: uint64
+      responses:
+        '200':
+          description: Role added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationMembership'
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Insufficient permissions
+        '404':
+          description: Member, role, or organization not found
+
+  /organizations/{id}/members/{memberId}/roles/{roleId}/remove:
+    post:
+      tags:
+        - Organization Members
+      summary: Remove role from member
+      description: Remove a role from an organization member
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+        - name: memberId
+          in: path
+          required: true
+          description: Member ID
+          schema:
+            type: string
+            format: uint64
+        - name: roleId
+          in: path
+          required: true
+          description: Role ID
+          schema:
+            type: string
+            format: uint64
+      responses:
+        '200':
+          description: Role removed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationMembership'
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Insufficient permissions
+        '404':
+          description: Member, role, or organization not found
+
+  /organizations/{id}/invitations:
+    get:
+      tags:
+        - Organization Invitations
+      summary: Get organization invitations
+      description: Retrieve all pending invitations for an organization
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+      responses:
+        '200':
+          description: Invitations retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrganizationInvitationWithDetails'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Insufficient permissions
+        '404':
+          description: Organization not found
+    post:
+      tags:
+        - Organization Invitations
+      summary: Invite member
+      description: Send an invitation to join the organization
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: Email address of the user to invite
+                  example: "newuser@example.com"
+                role_id:
+                  type: string
+                  format: uint64
+                  description: Organization role to assign
+                  example: "123456789012345678"
+                workspace_id:
+                  type: string
+                  format: uint64
+                  description: Specific workspace to invite to
+                  example: "987654321098765432"
+                workspace_role_id:
+                  type: string
+                  format: uint64
+                  description: Workspace role to assign
+                  example: "555555555555555555"
+      responses:
+        '200':
+          description: Invitation sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationInvitation'
+        '400':
+          description: Bad request - Invalid email or user already member
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Insufficient permissions
+        '404':
+          description: Organization or role not found
+
+  /organizations/{id}/invitations/{invitationId}/discard:
+    post:
+      tags:
+        - Organization Invitations
+      summary: Discard invitation
+      description: Cancel/delete a pending invitation
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+        - name: invitationId
+          in: path
+          required: true
+          description: Invitation ID
+          schema:
+            type: string
+            format: uint64
+      responses:
+        '200':
+          description: Invitation discarded successfully
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Insufficient permissions
+        '404':
+          description: Invitation or organization not found
+
+  /organizations/{id}/invitations/{invitationId}/resend:
+    post:
+      tags:
+        - Organization Invitations
+      summary: Resend invitation
+      description: Resend a pending invitation email
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+        - name: invitationId
+          in: path
+          required: true
+          description: Invitation ID
+          schema:
+            type: string
+            format: uint64
+      responses:
+        '200':
+          description: Invitation resent successfully
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Insufficient permissions
+        '404':
+          description: Invitation or organization not found
+
+  /organizations/{id}/roles:
+    get:
+      tags:
+        - Organization Roles
+      summary: Get organization roles
+      description: Retrieve all roles for an organization
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+      responses:
+        '200':
+          description: Roles retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrganizationRole'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Not a member
+        '404':
+          description: Organization not found
+    post:
+      tags:
+        - Organization Roles
+      summary: Create organization role
+      description: Create a new custom role for the organization
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - name
+                - permissions
+              properties:
+                name:
+                  type: string
+                  minLength: 2
+                  maxLength: 100
+                  description: Role name
+                  example: "Project Manager"
+                permissions:
+                  type: array
+                  items:
+                    type: string
+                  description: List of permissions
+                  example: ["organization:read", "organization:manage_members"]
+      responses:
+        '200':
+          description: Role created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationRole'
+        '400':
+          description: Bad request - Invalid input
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Insufficient permissions
+        '404':
+          description: Organization not found
+
+  /organizations/{id}/roles/{roleId}/remove:
+    post:
+      tags:
+        - Organization Roles
+      summary: Delete organization role
+      description: Delete a custom role from the organization
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+        - name: roleId
+          in: path
+          required: true
+          description: Role ID
+          schema:
+            type: string
+            format: uint64
+      responses:
+        '200':
+          description: Role deleted successfully
+        '400':
+          description: Bad request - Cannot delete default role or role in use
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Insufficient permissions
+        '404':
+          description: Role or organization not found
+
+  /organizations/{id}/domains:
+    get:
+      tags:
+        - Organization Domains
+      summary: Get organization domains
+      description: Retrieve all verified domains for an organization
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+      responses:
+        '200':
+          description: Domains retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrganizationDomain'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Not a member
+        '404':
+          description: Organization not found
+    post:
+      tags:
+        - Organization Domains
+      summary: Add organization domain
+      description: Add a domain for verification to the organization
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - domain
+              properties:
+                domain:
+                  type: string
+                  format: hostname
+                  description: Domain to verify
+                  example: "example.com"
+      responses:
+        '200':
+          description: Domain added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationDomain'
+        '400':
+          description: Bad request - Invalid domain
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Insufficient permissions
+        '404':
+          description: Organization not found
+
+  /organizations/{id}/domains/{domainId}/verify:
+    post:
+      tags:
+        - Organization Domains
+      summary: Verify organization domain
+      description: Verify domain ownership via DNS TXT record
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+        - name: domainId
+          in: path
+          required: true
+          description: Domain ID
+          schema:
+            type: string
+            format: uint64
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - domain
+              properties:
+                domain:
+                  type: string
+                  format: hostname
+                  description: Domain to verify
+                  example: "example.com"
+      responses:
+        '200':
+          description: Domain verified successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationDomain'
+        '400':
+          description: Bad request - Domain verification failed
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Insufficient permissions
+        '404':
+          description: Domain or organization not found
+
+  /organizations/{id}/domains/{domainId}/delete:
+    post:
+      tags:
+        - Organization Domains
+      summary: Delete organization domain
+      description: Remove a domain from the organization
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+        - name: domainId
+          in: path
+          required: true
+          description: Domain ID
+          schema:
+            type: string
+            format: uint64
+      responses:
+        '200':
+          description: Domain deleted successfully
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Insufficient permissions
+        '404':
+          description: Domain or organization not found
+
+  /organizations/{id}/enterprise-connections:
+    get:
+      tags:
+        - Enterprise Connections
+      summary: Get enterprise connections
+      description: Retrieve all SSO/SCIM enterprise connections for an organization
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+      responses:
+        '200':
+          description: Connections retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EnterpriseConnection'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Insufficient permissions
+        '404':
+          description: Organization not found
+    post:
+      tags:
+        - Enterprise Connections
+      summary: Create enterprise connection
+      description: Create a new SSO or SCIM enterprise connection
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - domain_id
+                - protocol
+              properties:
+                domain_id:
+                  type: string
+                  format: uint64
+                  description: Verified domain ID to link
+                  example: "123456789012345678"
+                protocol:
+                  type: string
+                  enum: [saml, oidc]
+                  description: SSO protocol
+                  example: "saml"
+                idp_entity_id:
+                  type: string
+                  description: Identity Provider Entity ID (SAML)
+                  example: "https://idp.example.com/entityid"
+                idp_sso_url:
+                  type: string
+                  format: uri
+                  description: Identity Provider SSO URL (SAML)
+                  example: "https://idp.example.com/sso"
+                idp_certificate:
+                  type: string
+                  description: Identity Provider X.509 certificate (SAML)
+                  example: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA..."
+                oidc_client_id:
+                  type: string
+                  description: OAuth Client ID (OIDC)
+                  example: "client_id_abc123"
+                oidc_client_secret:
+                  type: string
+                  description: OAuth Client Secret (OIDC)
+                  example: "secret_xyz789"
+                oidc_issuer_url:
+                  type: string
+                  format: uri
+                  description: OAuth Issuer URL (OIDC)
+                  example: "https://idp.example.com"
+                oidc_scopes:
+                  type: string
+                  description: OAuth scopes (OIDC)
+                  example: "openid email profile"
+                jit_enabled:
+                  type: boolean
+                  description: Enable Just-In-Time provisioning
+                  example: true
+                attribute_mapping:
+                  type: string
+                  description: JSON mapping for IdP attributes
+                  example: '{"email": "email", "firstName": "given_name"}'
+      responses:
+        '200':
+          description: Connection created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnterpriseConnection'
+        '400':
+          description: Bad request - Invalid configuration
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Insufficient permissions
+        '404':
+          description: Organization or domain not found
+
+  /organizations/{id}/enterprise-connections/test:
+    post:
+      tags:
+        - Enterprise Connections
+      summary: Test enterprise connection config
+      description: Validate enterprise connection configuration before saving
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - protocol
+              properties:
+                protocol:
+                  type: string
+                  enum: [saml, oidc]
+                  example: "saml"
+                idp_entity_id:
+                  type: string
+                idp_sso_url:
+                  type: string
+                  format: uri
+                idp_certificate:
+                  type: string
+                oidc_issuer_url:
+                  type: string
+                  format: uri
+                oidc_client_id:
+                  type: string
+                oidc_client_secret:
+                  type: string
+      responses:
+        '200':
+          description: Connection test results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestConnectionResult'
+        '400':
+          description: Bad request - Invalid configuration
+        '401':
+          description: Unauthorized
+
+  /organizations/{id}/enterprise-connections/{connectionId}/update:
+    post:
+      tags:
+        - Enterprise Connections
+      summary: Update enterprise connection
+      description: Update an existing enterprise connection
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+        - name: connectionId
+          in: path
+          required: true
+          description: Connection ID
+          schema:
+            type: string
+            format: uint64
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                domain_id:
+                  type: string
+                  format: uint64
+                idp_entity_id:
+                  type: string
+                idp_sso_url:
+                  type: string
+                  format: uri
+                idp_certificate:
+                  type: string
+                oidc_client_id:
+                  type: string
+                oidc_client_secret:
+                  type: string
+                oidc_issuer_url:
+                  type: string
+                  format: uri
+                oidc_scopes:
+                  type: string
+                jit_enabled:
+                  type: boolean
+                attribute_mapping:
+                  type: string
+      responses:
+        '200':
+          description: Connection updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnterpriseConnection'
+        '400':
+          description: Bad request - Invalid configuration
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Insufficient permissions
+        '404':
+          description: Connection or organization not found
+
+  /organizations/{id}/enterprise-connections/{connectionId}/delete:
+    post:
+      tags:
+        - Enterprise Connections
+      summary: Delete enterprise connection
+      description: Delete an enterprise connection
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+        - name: connectionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uint64
+      responses:
+        '200':
+          description: Connection deleted successfully
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Insufficient permissions
+        '404':
+          description: Connection or organization not found
+
+  /organizations/{id}/enterprise-connections/{connectionId}/test:
+    post:
+      tags:
+        - Enterprise Connections
+      summary: Test existing enterprise connection
+      description: Test a saved enterprise connection
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+        - name: connectionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uint64
+      responses:
+        '200':
+          description: Connection test results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestConnectionResult'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Insufficient permissions
+        '404':
+          description: Connection or organization not found
+
+  /organizations/{id}/enterprise-connections/{connectionId}/scim/token:
+    get:
+      tags:
+        - Enterprise Connections
+      summary: Get SCIM token
+      description: Retrieve SCIM token details (does not show full token)
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+        - name: connectionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uint64
+      responses:
+        '200':
+          description: SCIM token info retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SCIMTokenResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Insufficient permissions
+        '404':
+          description: Connection or organization not found
+    post:
+      tags:
+        - Enterprise Connections
+      summary: Generate SCIM token
+      description: Generate a new SCIM token (shown once)
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+        - name: connectionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uint64
+      responses:
+        '200':
+          description: SCIM token generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SCIMTokenResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Insufficient permissions
+        '404':
+          description: Connection or organization not found
+
+  /organizations/{id}/enterprise-connections/{connectionId}/scim/token/revoke:
+    post:
+      tags:
+        - Enterprise Connections
+      summary: Revoke SCIM token
+      description: Revoke the current SCIM token
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+        - name: connectionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uint64
+      responses:
+        '200':
+          description: SCIM token revoked successfully
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Insufficient permissions
+        '404':
+          description: Connection or organization not found
+
+components:
+  parameters:
+    OrganizationId:
+      name: id
+      in: path
+      required: true
+      description: Organization ID
+      schema:
+        type: string
+        format: uint64
+      example: "123456789012345678"
+
+  schemas:
+    Organization:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+          description: Organization ID
+          example: "123456789012345678"
+        deployment_id:
+          type: string
+          format: uint64
+          description: Deployment ID
+          example: "999999999999999999"
+        name:
+          type: string
+          description: Organization name
+          example: "Acme Corp"
+        description:
+          type: string
+          description: Organization description
+          example: "A leading technology company"
+        image_url:
+          type: string
+          format: uri
+          description: Organization logo URL
+          example: "https://cdn.wacht.dev/orgs/123/logo.png"
+        member_count:
+          type: integer
+          description: Number of members
+          example: 42
+        whitelisted_ips:
+          type: array
+          items:
+            type: string
+          description: Allowed IP addresses/CIDR ranges
+          example: ["192.168.1.0/24"]
+        enable_ip_restriction:
+          type: boolean
+          description: Whether IP restriction is enabled
+          example: false
+        enforce_mfa_setup:
+          type: boolean
+          description: Whether MFA is enforced
+          example: false
+        auto_assigned_workspace_id:
+          type: string
+          format: uint64
+          description: Default workspace for new members
+          example: "555555555555555555"
+          nullable: true
+        public_metadata:
+          type: object
+          description: Public metadata
+          additionalProperties: true
+          example: {"industry": "Technology"}
+        private_metadata:
+          type: object
+          description: Private metadata (admin only)
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+
+    OrganizationMembership:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+          description: Membership ID
+          example: "333333333333333333"
+        organization_id:
+          type: string
+          format: uint64
+          description: Organization ID
+          example: "123456789012345678"
+        user_id:
+          type: string
+          format: uint64
+          description: User ID
+          example: "777777777777777777"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+
+    OrganizationMemberWithDetails:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+          example: "333333333333333333"
+        organization_id:
+          type: string
+          format: uint64
+          example: "123456789012345678"
+        user_id:
+          type: string
+          format: uint64
+          example: "777777777777777777"
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrganizationRole'
+          description: Member's roles
+        user:
+          $ref: '#/components/schemas/User'
+        public_metadata:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    OrganizationRole:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+          description: Role ID
+          example: "444444444444444444"
+        organization_id:
+          type: string
+          format: uint64
+          description: Organization ID
+          example: "123456789012345678"
+        name:
+          type: string
+          description: Role name
+          example: "Admin"
+        permissions:
+          type: array
+          items:
+            type: string
+          description: Role permissions
+          example: ["organization:admin", "organization:manage_members"]
+        is_system_role:
+          type: boolean
+          description: Whether this is a system role
+          example: false
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    OrganizationInvitation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+          description: Invitation ID
+          example: "666666666666666666"
+        organization_id:
+          type: string
+          format: uint64
+          description: Organization ID
+          example: "123456789012345678"
+        email:
+          type: string
+          format: email
+          description: Invitee email
+          example: "newuser@example.com"
+        token:
+          type: string
+          description: Invitation token
+          example: "inv_token_abc123"
+        status:
+          type: string
+          enum: [pending, accepted, discarded]
+          description: Invitation status
+          example: "pending"
+        expires_at:
+          type: string
+          format: date-time
+          description: Expiration time
+          example: "2024-01-22T10:30:00Z"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    OrganizationInvitationWithDetails:
+      allOf:
+        - $ref: '#/components/schemas/OrganizationInvitation'
+        - type: object
+          properties:
+            initial_organization_role:
+              $ref: '#/components/schemas/OrganizationRole'
+            initial_workspace_role:
+              $ref: '#/components/schemas/WorkspaceRole'
+            workspace:
+              $ref: '#/components/schemas/Workspace'
+            inviter:
+              type: object
+              properties:
+                id:
+                  type: string
+                  format: uint64
+                first_name:
+                  type: string
+                last_name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+              description: User who sent the invitation
+            inviter_roles:
+              type: array
+              items:
+                $ref: '#/components/schemas/OrganizationRole'
+              description: Inviter's roles
+
+    OrganizationDomain:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+          description: Domain ID
+          example: "888888888888888888"
+        organization_id:
+          type: string
+          format: uint64
+          description: Organization ID
+          example: "123456789012345678"
+        domain:
+          type: string
+          description: Domain name
+          example: "example.com"
+        verified:
+          type: boolean
+          description: Verification status
+          example: true
+        verification_token:
+          type: string
+          description: DNS TXT verification token
+          example: "wacht-verify=abc123def456"
+        verified_at:
+          type: string
+          format: date-time
+          description: Verification timestamp
+          example: "2024-01-15T11:00:00Z"
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    EnterpriseConnection:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+          description: Connection ID
+          example: "999999999999999999"
+        organization_id:
+          type: string
+          format: uint64
+          description: Organization ID
+          example: "123456789012345678"
+        organization_domain_id:
+          type: string
+          format: uint64
+          description: Linked domain ID
+          example: "888888888888888888"
+        protocol:
+          type: string
+          enum: [saml, oidc]
+          description: SSO protocol
+          example: "saml"
+        idp_entity_id:
+          type: string
+          description: Identity Provider Entity ID (SAML)
+          example: "https://idp.example.com/entityid"
+        idp_sso_url:
+          type: string
+          format: uri
+          description: Identity Provider SSO URL (SAML)
+          example: "https://idp.example.com/sso"
+        idp_certificate:
+          type: string
+          description: Identity Provider X.509 certificate (SAML)
+        oidc_client_id:
+          type: string
+          description: OAuth Client ID (OIDC)
+          example: "client_id_abc123"
+        oidc_issuer_url:
+          type: string
+          format: uri
+          description: OAuth Issuer URL (OIDC)
+          example: "https://idp.example.com"
+        oidc_scopes:
+          type: string
+          description: OAuth scopes (OIDC)
+          example: "openid email profile"
+        jit_enabled:
+          type: boolean
+          description: Just-In-Time provisioning enabled
+          example: true
+        attribute_mapping:
+          type: object
+          description: Attribute mapping configuration
+          additionalProperties: true
+        scim_enabled:
+          type: boolean
+          description: SCIM provisioning enabled
+          example: false
+        scim_token_prefix:
+          type: string
+          description: SCIM token prefix (partial)
+          example: "wacht_scim...xyz"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    AcceptInvitationResponse:
+      type: object
+      properties:
+        organization:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+          description: Organization details (if accepted)
+        workspace:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+          description: Workspace details (if applicable)
+          nullable: true
+        signin_id:
+          type: string
+          description: Sign-in ID (if new user created)
+          example: "555555555555555555"
+          nullable: true
+        already_member:
+          type: boolean
+          description: Whether user was already a member
+          example: false
+        message:
+          type: string
+          description: Response message
+          example: "Invitation accepted"
+        requires_signin:
+          type: boolean
+          description: Whether user needs to sign in
+          example: false
+        invited_email:
+          type: string
+          format: email
+          description: Email that was invited
+          example: "user@example.com"
+        error_code:
+          type: string
+          description: Error code (if failed)
+          nullable: true
+
+    SCIMTokenResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: Full SCIM bearer token (only shown on generation)
+          example: "wacht_scim_abc123def456..."
+          nullable: true
+        token_prefix:
+          type: string
+          description: Token prefix for identification
+          example: "wacht_scim...xyz"
+        enabled:
+          type: boolean
+          description: Whether SCIM is enabled
+          example: true
+        created_at:
+          type: string
+          format: date-time
+          description: Token creation time
+          example: "2024-01-15T10:30:00Z"
+        last_used_at:
+          type: string
+          format: date-time
+          description: Last usage time
+          example: "2024-01-16T14:20:00Z"
+          nullable: true
+        scim_base_url:
+          type: string
+          format: uri
+          description: SCIM endpoint URL
+          example: "https://api.wacht.dev/scim/v2"
+
+    TestConnectionResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Overall test success
+          example: true
+        protocol:
+          type: string
+          enum: [saml, oidc]
+          description: Protocol being tested
+          example: "saml"
+        checks:
+          type: object
+          description: Individual check results
+          additionalProperties:
+            type: boolean
+          example:
+            certificate_valid: true
+            idp_reachable: true
+            configuration_valid: true
+        errors:
+          type: object
+          description: Error messages per check
+          additionalProperties:
+            type: string
+          example: null
+
+    Workspace:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+          example: "555555555555555555"
+        name:
+          type: string
+          example: "Main Workspace"
+
+    WorkspaceRole:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+        name:
+          type: string
+        permissions:
+          type: array
+          items:
+            type: string
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+          format: email
+        username:
+          type: string
+        profile_picture_url:
+          type: string
+          format: uri
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Invalid request"
+        code:
+          type: string
+          example: "INVALID_REQUEST"
+
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: session_id
+      description: Session-based authentication using cookies

@@ -1,0 +1,51 @@
+# Recent signins endpoint
+
+AnalyticsRecentSignins:
+  get:
+    summary: Get recent signins
+    description: Get list of recent user sign-ins
+    tags:
+      - Analytics
+    parameters:
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          default: 10
+          minimum: 1
+          maximum: 100
+      - name: offset
+        in: query
+        schema:
+          type: integer
+          default: 0
+          minimum: 0
+    responses:
+      '200':
+        description: Recent signins
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                signins:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      user_id:
+                        type: string
+                      user_email:
+                        type: string
+                      signed_in_at:
+                        type: string
+                        format: date-time
+                      method:
+                        type: string
+                        enum: [password, social, sso, mfa]
+                      ip_address:
+                        type: string
+                      user_agent:
+                        type: string
+                total:
+                  type: integer

@@ -1,0 +1,1114 @@
+openapi: 3.0.3
+info:
+  title: Wacht Backend API - Organizations
+  description: |
+    Complete API for managing organizations, members, and roles.
+
+    ## Authentication
+
+    All requests require API key authentication using the `Authorization` header:
+
+    ```
+    Authorization: Bearer {your_api_key}
+    ```
+
+    ## Pagination
+
+    List endpoints return paginated responses with the following structure:
+
+    ```json
+    {
+      "data": [...],
+      "has_more": true,
+      "limit": 10,
+      "offset": 0
+    }
+    ```
+
+    - `data`: Array of results
+    - `has_more`: Whether there are more results available
+    - `limit`: Number of items per page (only included if explicitly set)
+    - `offset`: Number of items skipped (only included if explicitly set)
+  version: 1.0.0
+
+servers:
+  - url: https://api.wacht.dev
+    description: Production server
+
+security:
+  - ApiKeyAuth: []
+
+tags:
+  - name: Organizations
+    description: Organization management
+  - name: Organization Members
+    description: Organization member management
+  - name: Organization Roles
+    description: Organization role management
+
+paths:
+  /organizations:
+    get:
+      summary: List organizations
+      description: |
+        Get a paginated list of organizations in your deployment.
+      operationId: listOrganizations
+      tags:
+        - Organizations
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Number of items to return per page
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          description: Number of items to skip
+        - name: sort_key
+          in: query
+          schema:
+            type: string
+            default: created_at
+          description: Field to sort by
+        - name: sort_order
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          description: Sort order (ascending or descending)
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search query to filter results
+      responses:
+        '200':
+          description: List of organizations retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Organization'
+                  has_more:
+                    type: boolean
+                    description: Whether there are more results available
+                  limit:
+                    type: integer
+                    description: Number of items per page
+                    nullable: true
+                  offset:
+                    type: integer
+                    description: Number of items skipped
+                    nullable: true
+                required:
+                  - data
+                  - has_more
+              examples:
+                success:
+                  summary: Paginated organizations
+                  value:
+                    data:
+                      - id: "1234567890"
+                        created_at: "2024-01-15T10:30:00Z"
+                        updated_at: "2024-01-20T15:45:00Z"
+                        name: "Acme Corp"
+                        description: "Main organization"
+                        image_url: "https://cdn.wacht.dev/orgs/acme.png"
+                        member_count: 25
+                        public_metadata: {}
+                        private_metadata: {}
+                    has_more: true
+                    limit: 10
+                    offset: 0
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      summary: Create organization
+      description: |
+        Create a new organization in your deployment.
+      operationId: createOrganization
+      tags:
+        - Organizations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  description: Organization name
+                  example: "Acme Corp"
+                description:
+                  type: string
+                  description: Organization description
+                  example: "Main organization for our company"
+                image_url:
+                  type: string
+                  format: uri
+                  description: Organization image URL
+                  example: "https://cdn.wacht.dev/orgs/acme.png"
+                public_metadata:
+                  type: object
+                  description: Public metadata (custom fields)
+                  example: {}
+                private_metadata:
+                  type: object
+                  description: Private metadata (custom fields, only accessible via backend API)
+                  example: {}
+      responses:
+        '200':
+          description: Organization created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+              examples:
+                success:
+                  summary: Organization created
+                  value:
+                    id: "1234567890"
+                    created_at: "2024-01-15T10:30:00Z"
+                    updated_at: "2024-01-15T10:30:00Z"
+                    name: "Acme Corp"
+                    description: "Main organization"
+                    image_url: "https://cdn.wacht.dev/orgs/acme.png"
+                    member_count: 0
+                    public_metadata: {}
+                    private_metadata: {}
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /organizations/{organization_id}:
+    get:
+      summary: Get organization details
+      description: |
+        Get complete organization information.
+      operationId: getOrganizationDetails
+      tags:
+        - Organizations
+      parameters:
+        - name: organization_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Organization ID (integer as string)
+          example: "1234567890"
+      responses:
+        '200':
+          description: Organization details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    patch:
+      summary: Update organization
+      description: |
+        Update organization information.
+      operationId: updateOrganization
+      tags:
+        - Organizations
+      parameters:
+        - name: organization_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Organization ID (integer as string)
+          example: "1234567890"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Organization name
+                  example: "Acme Corporation"
+                description:
+                  type: string
+                  description: Organization description
+                  example: "Updated description"
+                image_url:
+                  type: string
+                  format: uri
+                  description: Organization image URL
+                  example: "https://cdn.wacht.dev/orgs/acme-new.png"
+                public_metadata:
+                  type: object
+                  description: Public metadata (custom fields)
+                  example: {}
+                private_metadata:
+                  type: object
+                  description: Private metadata (custom fields)
+                  example: {}
+      responses:
+        '200':
+          description: Organization updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      summary: Delete organization
+      description: |
+        Permanently delete an organization.
+
+        **Warning**: This action cannot be undone. All organization data including:
+        - Members
+        - Roles
+        - Associated workspaces
+
+        will be permanently deleted.
+      operationId: deleteOrganization
+      tags:
+        - Organizations
+      parameters:
+        - name: organization_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Organization ID (integer as string)
+          example: "1234567890"
+      responses:
+        '204':
+          description: Organization deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /organizations/{organization_id}/workspaces:
+    post:
+      summary: Create workspace for organization
+      description: |
+        Create a new workspace within an organization.
+      operationId: createWorkspaceForOrganization
+      tags:
+        - Organizations
+      parameters:
+        - name: organization_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Organization ID (integer as string)
+          example: "1234567890"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  description: Workspace name
+                  example: "Engineering"
+                description:
+                  type: string
+                  description: Workspace description
+                  example: "Engineering team workspace"
+                image_url:
+                  type: string
+                  format: uri
+                  description: Workspace image URL
+                  example: "https://cdn.wacht.dev/workspaces/engineering.png"
+                public_metadata:
+                  type: object
+                  description: Public metadata (custom fields)
+                  example: {}
+                private_metadata:
+                  type: object
+                  description: Private metadata (custom fields)
+                  example: {}
+      responses:
+        '200':
+          description: Workspace created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /organizations/{organization_id}/members:
+    get:
+      summary: List organization members
+      description: |
+        Get all members of an organization with pagination.
+      operationId: listOrganizationMembers
+      tags:
+        - Organization Members
+      parameters:
+        - name: organization_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Organization ID (integer as string)
+          example: "1234567890"
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Number of items to return per page
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          description: Number of items to skip
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search query to filter results
+        - name: sort_key
+          in: query
+          schema:
+            type: string
+          description: Field to sort by
+        - name: sort_order
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+          description: Sort order (ascending or descending)
+      responses:
+        '200':
+          description: Organization members retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/OrganizationMemberDetails'
+                  has_more:
+                    type: boolean
+                  limit:
+                    type: integer
+                    nullable: true
+                  offset:
+                    type: integer
+                    nullable: true
+                required:
+                  - data
+                  - has_more
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      summary: Add organization member
+      description: |
+        Add a user to an organization with specific roles.
+      operationId: addOrganizationMember
+      tags:
+        - Organization Members
+      parameters:
+        - name: organization_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Organization ID (integer as string)
+          example: "1234567890"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - user_id
+                - role_ids
+              properties:
+                user_id:
+                  type: string
+                  description: User ID (integer as string)
+                  example: "9876543210"
+                role_ids:
+                  type: array
+                  items:
+                    type: string
+                  description: Role IDs to assign (array of integers as strings)
+                  example: ["1111111111", "2222222222"]
+      responses:
+        '200':
+          description: Member added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationMemberDetails'
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /organizations/{organization_id}/members/{membership_id}:
+    patch:
+      summary: Update organization member
+      description: |
+        Update organization member roles or metadata.
+      operationId: updateOrganizationMember
+      tags:
+        - Organization Members
+      parameters:
+        - name: organization_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Organization ID (integer as string)
+          example: "1234567890"
+        - name: membership_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Membership ID (integer as string)
+          example: "5555555555"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role_ids:
+                  type: array
+                  items:
+                    type: string
+                  description: Role IDs to assign (array of integers as strings)
+                  example: ["1111111111", "2222222222"]
+                public_metadata:
+                  type: object
+                  description: Public metadata (custom fields)
+                  example: {}
+      responses:
+        '200':
+          description: Member updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationMemberDetails'
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      summary: Remove organization member
+      description: |
+        Remove a member from an organization.
+
+        **Warning**: This will remove all access granted through organization roles.
+      operationId: removeOrganizationMember
+      tags:
+        - Organization Members
+      parameters:
+        - name: organization_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Organization ID (integer as string)
+          example: "1234567890"
+        - name: membership_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Membership ID (integer as string)
+          example: "5555555555"
+      responses:
+        '204':
+          description: Member removed successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /organizations/roles:
+    get:
+      summary: Get deployment organization roles
+      description: |
+        Get all organization roles in the deployment.
+
+        Returns both deployment-level roles and organization-specific roles.
+      operationId: getDeploymentOrganizationRoles
+      tags:
+        - Organization Roles
+      responses:
+        '200':
+          description: Organization roles retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DeploymentOrganizationRole'
+                  has_more:
+                    type: boolean
+                  limit:
+                    type: integer
+                    nullable: true
+                  offset:
+                    type: integer
+                    nullable: true
+                required:
+                  - data
+                  - has_more
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /organizations/{organization_id}/roles:
+    post:
+      summary: Create organization role
+      description: |
+        Create a new custom role for an organization.
+      operationId: createOrganizationRole
+      tags:
+        - Organization Roles
+      parameters:
+        - name: organization_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Organization ID (integer as string)
+          example: "1234567890"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - permissions
+              properties:
+                name:
+                  type: string
+                  description: Role name
+                  example: "Project Manager"
+                permissions:
+                  type: array
+                  items:
+                    type: string
+                  description: List of permissions
+                  example: ["read:projects", "write:projects", "delete:projects"]
+      responses:
+        '200':
+          description: Role created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationRole'
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /organizations/{organization_id}/roles/{role_id}:
+    patch:
+      summary: Update organization role
+      description: |
+        Update an organization role name or permissions.
+      operationId: updateOrganizationRole
+      tags:
+        - Organization Roles
+      parameters:
+        - name: organization_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Organization ID (integer as string)
+          example: "1234567890"
+        - name: role_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Role ID (integer as string)
+          example: "3333333333"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Role name
+                  example: "Senior Project Manager"
+                permissions:
+                  type: array
+                  items:
+                    type: string
+                  description: List of permissions
+                  example: ["read:projects", "write:projects", "delete:projects", "manage:team"]
+      responses:
+        '200':
+          description: Role updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationRole'
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      summary: Delete organization role
+      description: |
+        Delete an organization role.
+
+        **Warning**: This will revoke all permissions granted through this role.
+      operationId: deleteOrganizationRole
+      tags:
+        - Organization Roles
+      parameters:
+        - name: organization_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Organization ID (integer as string)
+          example: "1234567890"
+        - name: role_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Role ID (integer as string)
+          example: "3333333333"
+      responses:
+        '204':
+          description: Role deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: API Key
+      description: API key authentication (Bearer token)
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Error message
+      required:
+        - message
+
+    Organization:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Organization ID (integer serialized as string)
+          example: "1234567890"
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2024-01-20T15:45:00Z"
+        name:
+          type: string
+          description: Organization name
+          example: "Acme Corp"
+        description:
+          type: string
+          description: Organization description
+          example: "Main organization for our company"
+        image_url:
+          type: string
+          description: Organization image URL
+          example: "https://cdn.wacht.dev/orgs/acme.png"
+        member_count:
+          type: integer
+          description: Number of members in the organization
+          example: 25
+        public_metadata:
+          type: object
+          description: Public metadata (custom fields)
+          example: {}
+        private_metadata:
+          type: object
+          description: Private metadata (custom fields, only accessible via backend API)
+          example: {}
+      required:
+        - id
+        - created_at
+        - updated_at
+        - name
+        - description
+        - image_url
+        - member_count
+        - public_metadata
+        - private_metadata
+
+    OrganizationMemberDetails:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Membership ID (integer serialized as string)
+          example: "5555555555"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-01-20T15:45:00Z"
+        organization_id:
+          type: string
+          description: Organization ID (integer serialized as string)
+          example: "1234567890"
+        user_id:
+          type: string
+          description: User ID (integer serialized as string)
+          example: "9876543210"
+        roles:
+          type: array
+          description: Roles assigned to the member
+          items:
+            $ref: '#/components/schemas/OrganizationRole'
+        public_metadata:
+          type: object
+          description: Public metadata (custom fields)
+          example: {}
+        first_name:
+          type: string
+          description: User's first name
+          example: John
+        last_name:
+          type: string
+          description: User's last name
+          example: Doe
+        username:
+          type: string
+          description: User's username
+          nullable: true
+          example: johndoe
+        primary_email_address:
+          type: string
+          format: email
+          description: User's primary email address
+          nullable: true
+          example: john.doe@example.com
+        primary_phone_number:
+          type: string
+          description: User's primary phone number with country code
+          nullable: true
+          example: "+1234567890"
+        user_created_at:
+          type: string
+          format: date-time
+          description: User account creation timestamp
+          example: "2024-01-10T10:00:00Z"
+      required:
+        - id
+        - created_at
+        - updated_at
+        - organization_id
+        - user_id
+        - roles
+        - public_metadata
+        - first_name
+        - last_name
+        - username
+        - primary_email_address
+        - primary_phone_number
+        - user_created_at
+
+    OrganizationRole:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Role ID (integer serialized as string)
+          example: "3333333333"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-01-20T15:45:00Z"
+        name:
+          type: string
+          description: Role name
+          example: "Project Manager"
+        permissions:
+          type: array
+          description: List of permissions granted by this role
+          items:
+            type: string
+          example: ["read:projects", "write:projects", "delete:projects"]
+        is_deployment_level:
+          type: boolean
+          description: Whether this is a deployment-level role
+          example: false
+      required:
+        - id
+        - created_at
+        - updated_at
+        - name
+        - permissions
+        - is_deployment_level
+
+    DeploymentOrganizationRole:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Role ID (integer serialized as string)
+          example: "3333333333"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-01-20T15:45:00Z"
+        name:
+          type: string
+          description: Role name
+          example: "Admin"
+        permissions:
+          type: array
+          description: List of permissions granted by this role
+          items:
+            type: string
+          example: ["org:admin", "org:write", "org:read"]
+        deployment_id:
+          type: string
+          description: Deployment ID (integer serialized as string)
+          example: "1234567890"
+        organization_id:
+          type: string
+          description: Organization ID if this is an organization-specific role (integer serialized as string)
+          nullable: true
+          example: "1234567890"
+      required:
+        - id
+        - created_at
+        - updated_at
+        - name
+        - permissions
+        - deployment_id
+
+    Workspace:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Workspace ID (integer serialized as string)
+          example: "4444444444"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-01-20T15:45:00Z"
+        name:
+          type: string
+          description: Workspace name
+          example: "Engineering"
+        description:
+          type: string
+          description: Workspace description
+          example: "Engineering team workspace"
+        image_url:
+          type: string
+          description: Workspace image URL
+          example: "https://cdn.wacht.dev/workspaces/engineering.png"
+        member_count:
+          type: integer
+          description: Number of members in the workspace
+          example: 10
+        public_metadata:
+          type: object
+          description: Public metadata (custom fields)
+          example: {}
+        private_metadata:
+          type: object
+          description: Private metadata (custom fields)
+          example: {}
+      required:
+        - id
+        - created_at
+        - updated_at
+        - name
+        - description
+        - image_url
+        - member_count
+        - public_metadata
+        - private_metadata
+
+  responses:
+    Unauthorized:
+      description: Authentication failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: "Invalid or missing API key"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: "Organization not found"
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: "An unexpected error occurred"

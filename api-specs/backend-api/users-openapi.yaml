@@ -1,0 +1,1814 @@
+openapi: 3.0.3
+info:
+  title: Wacht Backend API - User Profiles
+  description: |
+    Complete API for managing user profiles, authentication, and user data.
+
+    ## Authentication
+
+    All requests require API key authentication using the `Authorization` header:
+
+    ```
+    Authorization: Bearer {your_api_key}
+    ```
+
+    ## Pagination
+
+    List endpoints return paginated responses with the following structure:
+
+    ```json
+    {
+      "data": [...],
+      "has_more": true,
+      "limit": 10,
+      "offset": 0
+    }
+    ```
+
+    - `data`: Array of results
+    - `has_more`: Whether there are more results available
+    - `limit`: Number of items per page (only included if explicitly set)
+    - `offset`: Number of items skipped (only included if explicitly set)
+  version: 1.0.0
+
+servers:
+  - url: https://api.wacht.dev
+    description: Production server
+
+security:
+  - ApiKeyAuth: []
+
+tags:
+  - name: Users
+    description: User profile and authentication management
+  - name: User Emails
+    description: User email address management
+  - name: User Phones
+    description: User phone number management
+  - name: User Social Connections
+    description: Social account management
+  - name: Invitations
+    description: User invitation management
+  - name: Waitlist
+    description: Waitlist user management
+  - name: Session Tickets
+    description: Session ticket generation for backend authentication
+
+paths:
+  /users:
+    get:
+      summary: List users
+      description: |
+        Get a paginated list of active users in your deployment.
+
+        Returns users with basic profile information including primary email and phone.
+        Use `/users/{user_id}/details` to get complete user information.
+      operationId: listUsers
+      tags:
+        - Users
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Number of items to return per page
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          description: Number of items to skip
+        - name: sort_key
+          in: query
+          schema:
+            type: string
+            enum: [created_at, username, email, phone_number]
+            default: created_at
+          description: Field to sort by
+        - name: sort_order
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          description: Sort order (ascending or descending)
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search query to filter results
+      responses:
+        '200':
+          description: List of users retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserWithIdentifiers'
+                  has_more:
+                    type: boolean
+                    description: Whether there are more results available
+                  limit:
+                    type: integer
+                    description: Number of items per page
+                    nullable: true
+                  offset:
+                    type: integer
+                    description: Number of items skipped
+                    nullable: true
+                required:
+                  - data
+                  - has_more
+              examples:
+                success:
+                  summary: Paginated users
+                  value:
+                    data:
+                      - id: "1234567890"
+                        created_at: "2024-01-15T10:30:00Z"
+                        updated_at: "2024-01-20T15:45:00Z"
+                        first_name: John
+                        last_name: Doe
+                        username: johndoe
+                        profile_picture_url: "https://cdn.wacht.dev/deployments/123/users/456/profile.jpg"
+                        primary_email_address: john.doe@example.com
+                        primary_phone_number: "+1234567890"
+                    has_more: true
+                    limit: 10
+                    offset: 0
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      summary: Create user
+      description: |
+        Create a new user in your deployment.
+
+        This endpoint accepts `multipart/form-data` to support profile image uploads.
+
+        ### Validation Rules
+
+        Fields are validated against your deployment's authentication settings:
+        - **first_name**: Required if enabled in deployment settings
+        - **last_name**: Required if enabled in deployment settings
+        - **email_address**: Required if email authentication is enabled
+        - **phone_number**: Required if phone authentication is enabled
+        - **username**: Required if username authentication is enabled
+        - **password**: Must meet minimum length requirements if enabled
+
+        ### Profile Image
+
+        Supported formats: JPEG, PNG, GIF, WEBP, ICO
+        Maximum file size: 25MB
+      operationId: createUser
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - first_name
+                - last_name
+              properties:
+                first_name:
+                  type: string
+                  description: User's first name
+                last_name:
+                  type: string
+                  description: User's last name
+                email_address:
+                  type: string
+                  format: email
+                  description: User's email address
+                phone_number:
+                  type: string
+                  description: User's phone number
+                username:
+                  type: string
+                  description: User's username
+                password:
+                  type: string
+                  format: password
+                  description: User's password
+                skip_password_check:
+                  type: boolean
+                  description: Skip password validation
+                  default: false
+                profile_image:
+                  type: string
+                  format: binary
+                  description: Profile image file (JPEG, PNG, GIF, WEBP, or ICO)
+            encoding:
+              profile_image:
+                contentType: image/jpeg, image/png, image/gif, image/webp, image/x-icon, image/vnd.microsoft.icon
+      responses:
+        '200':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserWithIdentifiers'
+              examples:
+                success:
+                  summary: User created
+                  value:
+                    id: "1234567890"
+                    created_at: "2024-01-15T10:30:00Z"
+                    updated_at: "2024-01-15T10:30:00Z"
+                    first_name: John
+                    last_name: Doe
+                    username: johndoe
+                    profile_picture_url: "https://cdn.wacht.dev/deployments/123/users/456/profile.jpg"
+                    primary_email_address: john.doe@example.com
+                    primary_phone_number: null
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                validationError:
+                  summary: Validation failed
+                  value:
+                    message: "First name is required"
+                passwordTooShort:
+                  summary: Password too short
+                  value:
+                    message: "Password must be at least 8 characters"
+                invalidImage:
+                  summary: Invalid image format
+                  value:
+                    message: "Unsupported image format. Supported formats: JPEG, PNG, GIF, WEBP, ICO"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /users/{user_id}/details:
+    get:
+      summary: Get user details
+      description: |
+        Get complete user information including all associated data.
+
+        Returns comprehensive user details including:
+        - Basic profile information
+        - All email addresses
+        - All phone numbers
+        - Social connections
+        - Segment memberships
+        - Authentication status (has_password, has_backup_codes)
+      operationId: getUserDetails
+      tags:
+        - Users
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: User ID (integer as string)
+          example: "1234567890"
+      responses:
+        '200':
+          description: User details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetails'
+              examples:
+                success:
+                  summary: Complete user details
+                  value:
+                    id: "1234567890"
+                    created_at: "2024-01-15T10:30:00Z"
+                    updated_at: "2024-01-20T15:45:00Z"
+                    first_name: John
+                    last_name: Doe
+                    username: johndoe
+                    profile_picture_url: "https://cdn.wacht.dev/deployments/123/users/456/profile.jpg"
+                    disabled: false
+                    schema_version: "v2"
+                    second_factor_policy: "disabled"
+                    availability: "available"
+                    last_password_reset_at: "2024-01-15T10:30:00Z"
+                    deployment_id: "1234567890"
+                    public_metadata: {}
+                    private_metadata: {}
+                    primary_email_address_id: "9876543210"
+                    primary_email_address: john.doe@example.com
+                    primary_phone_number_id: null
+                    primary_phone_number: null
+                    active_organization_membership_id: null
+                    active_workspace_membership_id: null
+                    has_password: true
+                    has_backup_codes: false
+                    email_addresses:
+                      - id: "9876543210"
+                        created_at: "2024-01-15T10:30:00Z"
+                        updated_at: "2024-01-15T10:30:00Z"
+                        deployment_id: "1234567890"
+                        user_id: "1234567890"
+                        email: john.doe@example.com
+                        is_primary: true
+                        verified: true
+                        verified_at: "2024-01-15T10:35:00Z"
+                        verification_strategy: otp
+                    phone_numbers: []
+                    social_connections: []
+                    segments: []
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /users/{user_id}:
+    patch:
+      summary: Update user
+      description: |
+        Update a user's profile information.
+
+        This endpoint accepts `multipart/form-data` to support profile image uploads.
+
+        ### Profile Image Handling
+
+        - Include a `profile_image` field to upload a new profile picture
+        - Set `remove_profile_image` to `true` to remove the existing profile picture
+        - Supported formats: JPEG, PNG, GIF, WEBP, ICO
+      operationId: updateUser
+      tags:
+        - Users
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: User ID (integer as string)
+          example: "1234567890"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                  description: User's first name
+                last_name:
+                  type: string
+                  description: User's last name
+                username:
+                  type: string
+                  description: User's username
+                public_metadata:
+                  type: string
+                  description: JSON string of public metadata
+                  example: '{"plan": "premium"}'
+                private_metadata:
+                  type: string
+                  description: JSON string of private metadata
+                  example: '{"internal_id": "12345"}'
+                disabled:
+                  type: boolean
+                  description: Whether the user account is disabled
+                remove_profile_image:
+                  type: boolean
+                  description: Set to true to remove the profile image
+                  default: false
+                profile_image:
+                  type: string
+                  format: binary
+                  description: Profile image file (JPEG, PNG, GIF, WEBP, or ICO)
+            encoding:
+              profile_image:
+                contentType: image/jpeg, image/png, image/gif, image/webp, image/x-icon, image/vnd.microsoft.icon
+      responses:
+        '200':
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetails'
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      summary: Delete user
+      description: |
+        Permanently delete a user from your deployment.
+
+        **Warning**: This action cannot be undone. All user data including:
+        - Profile information
+        - Email addresses
+        - Phone numbers
+        - Social connections
+        - Segment memberships
+        - Authentication credentials
+
+        will be permanently deleted.
+      operationId: deleteUser
+      tags:
+        - Users
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: User ID (integer as string)
+          example: "1234567890"
+      responses:
+        '200':
+          description: User deleted successfully
+          content:
+            application/json:
+              schema: {}
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /users/{user_id}/password:
+    patch:
+      summary: Update user password
+      description: |
+        Update a user's password.
+
+        The new password must meet your deployment's password requirements:
+        - Minimum length (if configured)
+        - Password complexity rules (if configured)
+
+        Use `skip_password_check` to bypass validation (not recommended).
+      operationId: updateUserPassword
+      tags:
+        - Users
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: User ID (integer as string)
+          example: "1234567890"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - new_password
+              properties:
+                new_password:
+                  type: string
+                  format: password
+                  description: New password
+                  example: newSecurePassword123
+                skip_password_check:
+                  type: boolean
+                  description: Skip password validation
+                  default: false
+      responses:
+        '200':
+          description: Password updated successfully
+          content:
+            application/json:
+              schema: {}
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                passwordTooShort:
+                  summary: Password too short
+                  value:
+                    message: "Password must be at least 8 characters"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /users/{user_id}/emails:
+    post:
+      summary: Add email address
+      description: |
+        Add a new email address to a user's account.
+
+        The email will need to be verified before it can be used for authentication.
+      operationId: addUserEmail
+      tags:
+        - User Emails
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: User ID (integer as string)
+          example: "1234567890"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: Email address to add
+                  example: jane.doe@example.com
+                verification_strategy:
+                  type: string
+                  enum: [otp, oauth_google, oauth_github, oauth_microsoft, oauth_facebook, oauth_linkedin, oauth_discord, oauth_apple]
+                  default: otp
+                  description: Verification strategy to use
+      responses:
+        '200':
+          description: Email added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserEmailAddress'
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /users/{user_id}/emails/{email_id}:
+    patch:
+      summary: Update email address
+      description: |
+        Update an existing email address or set it as primary.
+      operationId: updateUserEmail
+      tags:
+        - User Emails
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: User ID (integer as string)
+          example: "1234567890"
+        - name: email_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Email ID (integer as string)
+          example: "9876543210"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: New email address
+                  example: jane.doe@example.com
+                is_primary:
+                  type: boolean
+                  description: Set as primary email address
+                  example: true
+      responses:
+        '200':
+          description: Email updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserEmailAddress'
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      summary: Delete email address
+      description: |
+        Remove an email address from a user's account.
+
+        **Note**: You cannot delete the primary email address.
+      operationId: deleteUserEmail
+      tags:
+        - User Emails
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: User ID (integer as string)
+          example: "1234567890"
+        - name: email_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Email ID (integer as string)
+          example: "9876543210"
+      responses:
+        '200':
+          description: Email deleted successfully
+          content:
+            application/json:
+              schema: {}
+        '400':
+          description: Cannot delete primary email
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                primaryEmail:
+                  summary: Cannot delete primary email
+                  value:
+                    message: "Cannot delete primary email address"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /users/{user_id}/phones:
+    post:
+      summary: Add phone number
+      description: |
+        Add a new phone number to a user's account.
+
+        The phone will need to be verified before it can be used for authentication.
+      operationId: addUserPhone
+      tags:
+        - User Phones
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: User ID (integer as string)
+          example: "1234567890"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - phone_number
+                - country_code
+              properties:
+                phone_number:
+                  type: string
+                  description: Phone number (without country code)
+                  example: "1234567890"
+                country_code:
+                  type: string
+                  description: Country code (with +)
+                  example: "+1"
+      responses:
+        '200':
+          description: Phone number added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPhoneNumber'
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /users/{user_id}/phones/{phone_id}:
+    patch:
+      summary: Update phone number
+      description: |
+        Update an existing phone number or set it as primary.
+
+        You can update the phone number, country code, verification status, or set it as the primary phone.
+      operationId: updateUserPhone
+      tags:
+        - User Phones
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: User ID (integer as string)
+          example: "1234567890"
+        - name: phone_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Phone ID (integer as string)
+          example: "1111111111"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone_number:
+                  type: string
+                  description: Phone number (without country code)
+                  example: "9876543210"
+                country_code:
+                  type: string
+                  description: Country code (with +)
+                  example: "+1"
+                verified:
+                  type: boolean
+                  description: Whether the phone number is verified
+                  example: true
+                is_primary:
+                  type: boolean
+                  description: Set as primary phone number
+                  example: true
+      responses:
+        '200':
+          description: Phone number updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPhoneNumber'
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      summary: Delete phone number
+      description: |
+        Remove a phone number from a user's account.
+
+        **Note**: You cannot delete the primary phone number.
+      operationId: deleteUserPhone
+      tags:
+        - User Phones
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: User ID (integer as string)
+          example: "1234567890"
+        - name: phone_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Phone ID (integer as string)
+          example: "1111111111"
+      responses:
+        '200':
+          description: Phone number deleted successfully
+          content:
+            application/json:
+              schema: {}
+        '400':
+          description: Cannot delete primary phone
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                primaryPhone:
+                  summary: Cannot delete primary phone
+                  value:
+                    message: "Cannot delete primary phone number"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /users/{user_id}/social-connections/{connection_id}:
+    delete:
+      summary: Delete social connection
+      description: |
+        Remove a social connection (OAuth) from a user's account.
+
+        This will disconnect the user's account from the specified social provider.
+      operationId: deleteUserSocialConnection
+      tags:
+        - User Social Connections
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: User ID (integer as string)
+          example: "1234567890"
+        - name: connection_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Social connection ID (integer as string)
+          example: "2222222222"
+      responses:
+        '200':
+          description: Social connection deleted successfully
+          content:
+            application/json:
+              schema: {}
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /invitations:
+    get:
+      summary: List invitations
+      description: |
+        Get a paginated list of pending user invitations.
+      operationId: listInvitations
+      tags:
+        - Invitations
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Number of items to return per page
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          description: Number of items to skip
+        - name: sort_key
+          in: query
+          schema:
+            type: string
+            enum: [created_at, email]
+            default: created_at
+          description: Field to sort by
+        - name: sort_order
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          description: Sort order (ascending or descending)
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search query to filter results
+      responses:
+        '200':
+          description: List of invitations retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DeploymentInvitation'
+                  has_more:
+                    type: boolean
+                  limit:
+                    type: integer
+                    nullable: true
+                  offset:
+                    type: integer
+                    nullable: true
+                required:
+                  - data
+                  - has_more
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      summary: Invite user
+      description: |
+        Send an invitation to a new user.
+
+        Creates an invitation with a unique token that can be used to sign up.
+        The invitation expires after 7 days.
+      operationId: inviteUser
+      tags:
+        - Invitations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - first_name
+                - last_name
+                - email_address
+              properties:
+                first_name:
+                  type: string
+                  description: Invitee's first name
+                  example: Jane
+                last_name:
+                  type: string
+                  description: Invitee's last name
+                  example: Smith
+                email_address:
+                  type: string
+                  format: email
+                  description: Invitee's email address
+                  example: jane.smith@example.com
+      responses:
+        '200':
+          description: Invitation created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeploymentInvitation'
+              examples:
+                success:
+                  summary: Invitation created
+                  value:
+                    id: "1111111111"
+                    created_at: "2024-01-15T10:30:00Z"
+                    updated_at: "2024-01-15T10:30:00Z"
+                    deployment_id: "1234567890"
+                    first_name: Jane
+                    last_name: Smith
+                    email_address: jane.smith@example.com
+                    token: abc123def456
+                    expiry: "2024-01-22T10:30:00Z"
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /invitations/{invitation_id}:
+    delete:
+      summary: Delete invitation
+      description: |
+        Delete a pending invitation.
+
+        The invitation token will be invalidated and cannot be used for signup.
+      operationId: deleteInvitation
+      tags:
+        - Invitations
+      parameters:
+        - name: invitation_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Invitation ID (integer as string)
+          example: "1111111111"
+      responses:
+        '200':
+          description: Invitation deleted successfully
+          content:
+            application/json:
+              schema: {}
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /waitlist:
+    get:
+      summary: List waitlist users
+      description: |
+        Get a paginated list of users on the waitlist.
+      operationId: listWaitlist
+      tags:
+        - Waitlist
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Number of items to return per page
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          description: Number of items to skip
+        - name: sort_key
+          in: query
+          schema:
+            type: string
+            enum: [created_at, email]
+            default: created_at
+          description: Field to sort by
+        - name: sort_order
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          description: Sort order (ascending or descending)
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search query to filter results
+      responses:
+        '200':
+          description: List of waitlist users retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DeploymentWaitlistUser'
+                  has_more:
+                    type: boolean
+                  limit:
+                    type: integer
+                    nullable: true
+                  offset:
+                    type: integer
+                    nullable: true
+                required:
+                  - data
+                  - has_more
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /waitlist/{waitlist_user_id}/approve:
+    post:
+      summary: Approve waitlist user
+      description: |
+        Approve a waitlist user and send them an invitation.
+
+        Creates an invitation for the waitlist user's email address.
+      operationId: approveWaitlistUser
+      tags:
+        - Waitlist
+      parameters:
+        - name: waitlist_user_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Waitlist user ID (integer as string)
+          example: "3333333333"
+      responses:
+        '200':
+          description: User approved and invitation sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeploymentInvitation'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /session/tickets:
+    post:
+      summary: Generate session ticket
+      description: |
+        Generate a session ticket for backend-to-frontend authentication.
+
+        Session tickets are used to securely authenticate a user session
+        from your backend to the Wacht frontend.
+
+        ### Ticket Types
+
+        - **impersonation**: Impersonate a specific user (requires `user_id`)
+        - **agent_access**: Grant access to specific AI agents (requires `agent_ids`)
+
+        The ticket expires based on the `expires_in` parameter (default 5 minutes).
+      operationId: createSessionTicket
+      tags:
+        - Session Tickets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ticket_type
+              properties:
+                ticket_type:
+                  type: string
+                  enum: [impersonation, agent_access]
+                  description: Type of session ticket to generate
+                user_id:
+                  type: string
+                  description: User ID (required for impersonation tickets)
+                  example: "1234567890"
+                agent_ids:
+                  type: array
+                  items:
+                    type: string
+                  description: List of agent IDs (required for agent_access tickets)
+                  example: ["1111111111", "2222222222"]
+                context_group:
+                  type: string
+                  description: Optional context group for the ticket
+                  example: "support-session"
+                expires_in:
+                  type: integer
+                  description: Expiration time in seconds - default is 300
+                  example: 300
+      responses:
+        '200':
+          description: Session ticket generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionTicketResponse'
+              examples:
+                impersonation:
+                  summary: Impersonation ticket
+                  value:
+                    ticket: wacht_st_ticket_abc123xyz789...
+                    expires_at: 1705339500
+                agentAccess:
+                  summary: Agent access ticket
+                  value:
+                    ticket: wacht_st_ticket_def456uvw123...
+                    expires_at: 1705339500
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                missingUserId:
+                  summary: Missing user_id for impersonation
+                  value:
+                    message: "user_id is required for impersonation tickets"
+                missingAgentIds:
+                  summary: Missing agent_ids for agent_access
+                  value:
+                    message: "agent_ids is required for agent_access tickets"
+                invalidType:
+                  summary: Invalid ticket type
+                  value:
+                    message: "Invalid ticket_type. Must be 'impersonation' or 'agent_access'"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: API Key
+      description: API key authentication (Bearer token)
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Error message
+      required:
+        - message
+
+    UserWithIdentifiers:
+      type: object
+      properties:
+        id:
+          type: string
+          description: User ID (integer serialized as string)
+          example: "1234567890"
+        created_at:
+          type: string
+          format: date-time
+          description: User creation timestamp
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2024-01-20T15:45:00Z"
+        first_name:
+          type: string
+          description: User's first name
+          example: John
+        last_name:
+          type: string
+          description: User's last name
+          example: Doe
+        username:
+          type: string
+          description: User's username (nullable)
+          nullable: true
+          example: johndoe
+        profile_picture_url:
+          type: string
+          description: URL to profile picture
+          example: "https://cdn.wacht.dev/deployments/123/users/456/profile.jpg"
+        primary_email_address:
+          type: string
+          description: Primary email address (nullable)
+          nullable: true
+          example: john.doe@example.com
+        primary_phone_number:
+          type: string
+          description: Primary phone number with country code (nullable)
+          nullable: true
+          example: "+1234567890"
+      required:
+        - id
+        - created_at
+        - updated_at
+        - first_name
+        - last_name
+        - profile_picture_url
+
+    UserDetails:
+      type: object
+      properties:
+        id:
+          type: string
+          description: User ID (integer serialized as string)
+          example: "1234567890"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-01-20T15:45:00Z"
+        first_name:
+          type: string
+          description: User's first name
+          example: John
+        last_name:
+          type: string
+          description: User's last name
+          example: Doe
+        username:
+          type: string
+          description: User's username (nullable)
+          nullable: true
+          example: johndoe
+        profile_picture_url:
+          type: string
+          description: URL to profile picture
+          example: "https://cdn.wacht.dev/deployments/123/users/456/profile.jpg"
+        schema_version:
+          type: string
+          description: Schema version
+          enum: [v1, v2]
+          example: v2
+        disabled:
+          type: boolean
+          description: Whether the user account is disabled
+          example: false
+        second_factor_policy:
+          type: string
+          description: Second factor authentication policy
+          enum: [disabled, optional, required]
+          example: disabled
+        availability:
+          type: string
+          description: User availability status
+          example: available
+        last_password_reset_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Last password reset timestamp
+          example: "2024-01-15T10:30:00Z"
+        deployment_id:
+          type: string
+          description: Deployment ID (integer serialized as string)
+          example: "1234567890"
+        public_metadata:
+          type: object
+          description: Public metadata (custom fields)
+          example: {}
+        private_metadata:
+          type: object
+          description: Private metadata (custom fields, only accessible via backend API)
+          example: {}
+        primary_email_address_id:
+          type: string
+          nullable: true
+          description: Primary email ID
+          example: "9876543210"
+        primary_email_address:
+          type: string
+          format: email
+          nullable: true
+          description: Primary email address
+          example: john.doe@example.com
+        primary_phone_number_id:
+          type: string
+          nullable: true
+          description: Primary phone ID
+          example: "1111111111"
+        primary_phone_number:
+          type: string
+          nullable: true
+          description: Primary phone number with country code
+          example: "+1234567890"
+        active_organization_membership_id:
+          type: string
+          nullable: true
+          description: Active organization membership ID
+          example: "5555555555"
+        active_workspace_membership_id:
+          type: string
+          nullable: true
+          description: Active workspace membership ID
+          example: "6666666666"
+        has_password:
+          type: boolean
+          description: Whether the user has a password set
+          example: true
+        has_backup_codes:
+          type: boolean
+          description: Whether the user has backup codes generated
+          example: false
+        email_addresses:
+          type: array
+          description: All email addresses associated with the user
+          items:
+            $ref: '#/components/schemas/UserEmailAddress'
+        phone_numbers:
+          type: array
+          description: All phone numbers associated with the user
+          items:
+            $ref: '#/components/schemas/UserPhoneNumber'
+        social_connections:
+          type: array
+          description: All social connections associated with the user
+          items:
+            $ref: '#/components/schemas/SocialConnection'
+        segments:
+          type: array
+          description: All segments the user belongs to
+          items:
+            $ref: '#/components/schemas/Segment'
+      required:
+        - id
+        - created_at
+        - updated_at
+        - first_name
+        - last_name
+        - profile_picture_url
+        - disabled
+        - has_password
+        - has_backup_codes
+
+    UserEmailAddress:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Email ID (integer serialized as string)
+          example: "9876543210"
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2024-01-15T10:30:00Z"
+        deployment_id:
+          type: string
+          description: Deployment ID (integer serialized as string)
+          example: "1234567890"
+        user_id:
+          type: string
+          description: User ID (integer serialized as string)
+          example: "1234567890"
+        email:
+          type: string
+          format: email
+          description: Email address
+          example: john.doe@example.com
+        is_primary:
+          type: boolean
+          description: Whether this is the primary email
+          example: true
+        verified:
+          type: boolean
+          description: Whether the email has been verified
+          example: true
+        verified_at:
+          type: string
+          format: date-time
+          description: Verification timestamp
+          example: "2024-01-15T10:35:00Z"
+        verification_strategy:
+          type: string
+          description: Verification method used
+          enum: [otp, oauth_google, oauth_github, oauth_microsoft, oauth_facebook, oauth_linkedin, oauth_discord, oauth_apple]
+          example: otp
+      required:
+        - id
+        - created_at
+        - updated_at
+        - deployment_id
+        - user_id
+        - email
+        - is_primary
+        - verified
+        - verified_at
+        - verification_strategy
+
+    UserPhoneNumber:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Phone ID (integer serialized as string)
+          example: "1111111111"
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2024-01-15T10:30:00Z"
+        user_id:
+          type: string
+          description: User ID (integer serialized as string)
+          example: "1234567890"
+        phone_number:
+          type: string
+          description: Phone number (without country code)
+          example: "1234567890"
+        country_code:
+          type: string
+          description: Country code (with +)
+          example: "+1"
+        verified:
+          type: boolean
+          description: Whether the phone has been verified
+          example: true
+        verified_at:
+          type: string
+          format: date-time
+          description: Verification timestamp
+          example: "2024-01-15T10:36:00Z"
+      required:
+        - id
+        - created_at
+        - updated_at
+        - user_id
+        - phone_number
+        - country_code
+        - verified
+        - verified_at
+
+    SocialConnection:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Social connection ID (integer serialized as string)
+          example: "2222222222"
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2024-01-15T10:30:00Z"
+        user_id:
+          type: string
+          description: User ID (integer serialized as string)
+          example: "1234567890"
+        user_email_address_id:
+          type: string
+          description: Associated email address ID (integer serialized as string)
+          example: "9876543210"
+        provider:
+          type: string
+          description: Social provider name
+          enum: [x_oauth, github_oauth, gitlab_oauth, google_oauth, facebook_oauth, microsoft_oauth, linkedin_oauth, discord_oauth, apple_oauth]
+          example: google_oauth
+        email_address:
+          type: string
+          description: Email address from the social provider
+          example: user@gmail.com
+      required:
+        - id
+        - created_at
+        - updated_at
+        - user_id
+        - user_email_address_id
+        - provider
+        - email_address
+
+    Segment:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Segment ID (integer serialized as string)
+          example: "4444444444"
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Creation timestamp
+          example: "2024-01-10T10:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Last update timestamp
+          example: "2024-01-10T10:00:00Z"
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Deletion timestamp (if deleted)
+          example: null
+        deployment_id:
+          type: string
+          description: Deployment ID (integer serialized as string)
+          example: "1234567890"
+        name:
+          type: string
+          description: Segment name
+          example: "Premium Users"
+        type:
+          type: string
+          description: Segment type
+          enum: [organization, workspace, user]
+          example: user
+      required:
+        - id
+        - deployment_id
+        - name
+        - type
+
+    # Invitation & Waitlist Schemas
+    DeploymentInvitation:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Invitation ID (integer serialized as string)
+          example: "1111111111"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        deployment_id:
+          type: string
+          description: Deployment ID (integer serialized as string)
+          example: "1234567890"
+        first_name:
+          type: string
+          description: Invitee's first name
+          example: Jane
+        last_name:
+          type: string
+          description: Invitee's last name
+          example: Smith
+        email_address:
+          type: string
+          format: email
+          description: Invitee's email address
+          example: jane.smith@example.com
+        token:
+          type: string
+          description: Unique invitation token
+          example: abc123def456
+        expiry:
+          type: string
+          format: date-time
+          description: Invitation expiration timestamp
+          example: "2024-01-22T10:30:00Z"
+      required:
+        - id
+        - created_at
+        - updated_at
+        - deployment_id
+        - first_name
+        - last_name
+        - email_address
+        - token
+        - expiry
+
+    DeploymentWaitlistUser:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Waitlist user ID (integer serialized as string)
+          example: "3333333333"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        deployment_id:
+          type: string
+          description: Deployment ID (integer serialized as string)
+          example: "1234567890"
+        email_address:
+          type: string
+          format: email
+          description: User's email address
+          example: waitlist@example.com
+        first_name:
+          type: string
+          nullable: true
+          description: User's first name (optional)
+          example: John
+        last_name:
+          type: string
+          nullable: true
+          description: User's last name (optional)
+          example: Doe
+      required:
+        - id
+        - created_at
+        - updated_at
+        - deployment_id
+        - email_address
+
+    # Impersonation & Session Tickets
+    ImpersonationTokenResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: The impersonation token
+          example: wacht_imp_abc123xyz789...
+        redirect_url:
+          type: string
+          description: URL to redirect the user to for automatic sign-in
+          example: "https://app.wacht.dev/auth/impersonate?token=wacht_imp_abc123xyz789..."
+      required:
+        - token
+        - redirect_url
+
+    SessionTicketResponse:
+      type: object
+      properties:
+        ticket:
+          type: string
+          description: The session ticket token
+          example: wacht_st_ticket_abc123xyz789...
+        expires_at:
+          type: integer
+          format: int64
+          description: Unix timestamp when the ticket expires
+          example: 1705339200
+      required:
+        - ticket
+        - expires_at
+
+  responses:
+    Unauthorized:
+      description: Authentication failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: "Invalid or missing API key"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: "User not found"
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: "An unexpected error occurred"

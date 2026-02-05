@@ -1,0 +1,210 @@
+---
+title: useAgentSession
+description: Manage AI agent sessions including ticket exchange and agent selection.
+---
+
+# useAgentSession
+
+The `useAgentSession` hook manages AI agent sessions, including ticket exchange for impersonation, agent selection, and session validation.
+
+## Parameters
+
+<ParamField path="ticket" type="string | undefined">
+  Optional ticket token for session exchange (typically from URL query param)
+</ParamField>
+
+## Return Value
+
+<ParamField path="hasSession" type="boolean">
+  Whether a valid session exists
+</ParamField>
+
+<ParamField path="sessionLoading" type="boolean">
+  Whether session data is loading
+</ParamField>
+
+<ParamField path="sessionError" type="Error | null">
+  Any session error that occurred
+</ParamField>
+
+<ParamField path="sessionId" type="string | null">
+  The current session ID
+</ParamField>
+
+<ParamField path="contextGroup" type="string | null">
+  The context group for this session
+</ParamField>
+
+<ParamField path="agents" type="AgentWithIntegrations[]">
+  Available agents for this session
+</ParamField>
+
+<ParamField path="activeAgent" type="AgentWithIntegrations | null">
+  The currently selected agent
+</ParamField>
+
+<ParamField path="setActiveAgent">
+  <Expandable title="Set the active agent">
+    <ParamField path="agent" type="AgentWithIntegrations">
+      The agent to set as active
+    </ParamField>
+    <ParamField path="returns" type="void">
+      No return value
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="ticketExchanged" type="boolean">
+  Whether the ticket has been exchanged
+</ParamField>
+
+<ParamField path="ticketLoading" type="boolean">
+  Whether the ticket exchange is in progress
+</ParamField>
+
+<ParamField path="refetch">
+  <Expandable title="Refetch the session data">
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when session data is refetched
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+## Behavior
+
+1. **Ticket Exchange** - If a ticket is provided, exchanges it for a session
+2. **Agent Selection** - Auto-selects the first available agent
+3. **Session Refresh** - Continues to validate and refresh the session
+
+## Data Structures
+
+<Expandable title="AgentWithIntegrations">
+
+```typescript
+interface AgentWithIntegrations {
+  id: string;                      // Unique identifier for the agent
+  name: string;                    // Display name of the agent
+  description: string;             // Description of what the agent does
+  integrations: AgentIntegration[]; // Available integrations for this agent
+}
+```
+
+</Expandable>
+
+## Examples
+
+### With Ticket Exchange
+
+```tsx
+import { useAgentSession } from "@wacht/tanstack-router";
+import { useNavigate, useSearch } from "@tanstack/react-router";
+
+function AgentChat() {
+  const navigate = useNavigate();
+  const search = useSearch({ strict: false });
+  const ticket = search.ticket as string | undefined;
+
+  const {
+    sessionLoading,
+    hasSession,
+    agents,
+    activeAgent,
+    setActiveAgent,
+    ticketExchanged,
+  } = useAgentSession(ticket);
+
+  // Clear ticket from URL after exchange
+  if (ticket && ticketExchanged) {
+    navigate({ search: {} });
+  }
+
+  if (sessionLoading) {
+    return <div>Establishing session...</div>;
+  }
+
+  if (!hasSession) {
+    return <div>Invalid or expired ticket</div>;
+  }
+
+  return (
+    <div>
+      <select
+        value={activeAgent?.id || ""}
+        onChange={(e) => {
+          const agent = agents.find((a) => a.id === e.target.value);
+          if (agent) setActiveAgent(agent);
+        }}
+      >
+        {agents.map((agent) => (
+          <option key={agent.id} value={agent.id}>
+            {agent.name}
+          </option>
+        ))}
+      </select>
+      <div>Selected: {activeAgent?.name}</div>
+    </div>
+  );
+}
+```
+
+### Agent Selector Dropdown
+
+```tsx
+import { useAgentSession } from "@wacht/tanstack-router";
+
+function AgentSelector() {
+  const { agents, activeAgent, setActiveAgent } = useAgentSession();
+
+  return (
+    <select
+      value={activeAgent?.id || ""}
+      onChange={(e) => {
+        const agent = agents.find((a) => a.id === e.target.value);
+        if (agent) setActiveAgent(agent);
+      }}
+    >
+      {agents.map((agent) => (
+        <option key={agent.id} value={agent.id}>
+          {agent.name}
+          {agent.description && ` - ${agent.description}`}
+        </option>
+      ))}
+    </select>
+  );
+}
+```
+
+### Session Provider Pattern
+
+```tsx
+import { createContext, useContext } from "react";
+import { useAgentSession } from "@wacht/tanstack-router";
+
+const AgentContext = createContext<{
+  hasSession: boolean;
+  agents: AgentWithIntegrations[];
+  activeAgent: AgentWithIntegrations | null;
+  setActiveAgent: (agent: AgentWithIntegrations) => void;
+} | null>(null);
+
+export function AgentProvider({ ticket, children }: { ticket?: string; children: React.ReactNode }) {
+  const { hasSession, agents, activeAgent, setActiveAgent } = useAgentSession(ticket);
+
+  return (
+    <AgentContext.Provider value={{ hasSession, agents, activeAgent, setActiveAgent }}>
+      {children}
+    </AgentContext.Provider>
+  );
+}
+
+export function useActiveAgent() {
+  const context = useContext(AgentContext);
+  if (!context) throw new Error("useActiveAgent must be used within AgentProvider");
+  return context;
+}
+```
+
+## Related
+
+- [useAgentContext](./use-agent-context) - Agent chat context
+- [useAgentIntegrations](./use-agent-integrations) - Agent integrations

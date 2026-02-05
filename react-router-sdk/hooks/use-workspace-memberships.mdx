@@ -1,0 +1,116 @@
+---
+title: useWorkspaceMemberships
+description: Get a list of workspace memberships for the current user.
+---
+
+# useWorkspaceMemberships
+
+The `useWorkspaceMemberships` hook fetches and provides a list of all workspace memberships for the current user.
+
+## Return Value
+
+<ParamField path="workspaceMemberships" type="WorkspaceMembership[]">
+  List of workspace memberships for the current user
+</ParamField>
+
+<ParamField path="loading" type="boolean">
+  Whether the memberships are loading
+</ParamField>
+
+<ParamField path="error" type="Error | null">
+  Any error that occurred
+</ParamField>
+
+<ParamField path="refetch">
+  <Expandable title="Refetch the memberships list">
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the memberships list is refetched
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+```tsx
+import { useWorkspaceMemberships } from "@wacht/react-router";
+
+function WorkspaceList() {
+  const { workspaceMemberships, loading, refetch } = useWorkspaceMemberships();
+
+  return (
+    <ul>
+      {workspaceMemberships?.map((membership) => (
+        <li key={membership.id}>
+          {membership.workspace.name}
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+## Data Structures
+
+<Expandable title="WorkspaceMembership">
+
+```typescript
+interface WorkspaceMembership {
+  id: string;
+  workspace: Workspace;
+  organization_id: string;
+  user_id: string;
+  roles: WorkspaceRole[];
+  organization: Organization;
+  public_metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+  eligibility_restriction?: EligibilityRestriction;
+}
+```
+
+</Expandable>
+
+## Examples
+
+### List All Workspaces
+
+```tsx
+import { useWorkspaceMemberships } from "@wacht/react-router";
+
+function WorkspaceList() {
+  const { workspaceMemberships, loading } = useWorkspaceMemberships();
+
+  if (loading) return <div>Loading...</div>;
+
+  return (
+    <ul>
+      {workspaceMemberships.map((membership) => (
+        <li key={membership.id}>
+          {membership.workspace.name}
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+### Refetch After Update
+
+```tsx
+import { useWorkspaceMemberships, useWorkspaceList } from "@wacht/react-router";
+
+function WorkspaceManager() {
+  const { refetch } = useWorkspaceMemberships();
+  const { createWorkspace } = useWorkspaceList();
+
+  const handleCreate = async () => {
+    await createWorkspace("org_id", "New Workspace");
+    await refetch();
+  };
+
+  return <button onClick={handleCreate}>Create Workspace</button>;
+}
+```
+
+## Related
+
+- [useWorkspaceList](./use-workspace-list) - Workspace management
+- [useActiveWorkspace](./use-active-workspace) - Active workspace

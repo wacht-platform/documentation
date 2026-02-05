@@ -1,0 +1,42 @@
+# Segment remove endpoint
+
+SegmentRemove:
+  post:
+    summary: Remove users from segment
+    description: Remove users from a segment
+    tags:
+      - Segments
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          description: Segment ID
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - user_ids
+            properties:
+              user_ids:
+                type: array
+                items:
+                  type: string
+    responses:
+      '200':
+        description: Users removed from segment
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                removed_count:
+                  type: integer
+                segment_id:
+                  type: string
+      '404':
+        $ref: '#/components/responses/NotFound'

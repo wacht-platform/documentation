@@ -1,0 +1,333 @@
+---
+title: 'Users API'
+description: 'Working with users in the Rust SDK'
+---
+
+# Users API Guide
+
+Learn how to manage users using the Wacht Rust SDK.
+
+## Prerequisites
+
+Before using any API methods, you must initialize the SDK:
+
+```rust
+use wacht::init_from_env;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Initialize from environment variables
+    // Requires: WACHT_API_KEY and WACHT_FRONTEND_HOST
+    init_from_env().await?;
+
+    // Now you can use the API
+    Ok(())
+}
+```
+
+## List Users
+
+Retrieve a paginated list of users from your deployment.
+
+### Basic List
+
+```rust
+use wacht::api::users;
+
+// Fetch all users (default pagination)
+let users = users::fetch_users()
+    .send()
+    .await?;
+
+println!("Total users: {}", users.data.len());
+for user in users.data {
+    println!("{} {}", user.first_name, user.last_name);
+}
+```
+
+### With Pagination and Filters
+
+```rust
+use wacht::api::users;
+
+// Fetch users with builder options
+let users = users::fetch_users()
+    .limit(50)
+    .offset(0)
+    .search("john")
+    .sort_key("created_at")
+    .sort_order("desc")
+    .send()
+    .await?;
+
+println!("Has more: {}", users.has_more);
+```
+
+### Builder Methods
+
+- `limit(i32)` - Number of results to return (max 100)
+- `offset(i32)` - Number of results to skip
+- `search(&str)` - Search query to filter results
+- `sort_key(&str)` - Field to sort by
+- `sort_order(&str)` - Sort order ("asc" or "desc")
+
+## Get User Details
+
+Retrieve complete information about a user including all emails, phones, and social connections.
+
+```rust
+use wacht::api::users;
+
+let details = users::fetch_user_details("user_123")
+    .send()
+    .await?;
+
+println!("User: {} {}", details.first_name, details.last_name);
+println!("Email: {:?}", details.primary_email_address);
+println!("Has password: {}", details.has_password);
+println!("Emails: {}", details.email_addresses.len());
+```
+
+## Create User
+
+Create a new user in your deployment.
+
+### Basic User Creation
+
+```rust
+use wacht::api::users;
+use wacht::models::CreateUserRequest;
+
+let user = users::create_user(CreateUserRequest::new(
+    "John".to_string(),
+    "Doe".to_string()
+))
+.send()
+.await?;
+
+println!("Created user: {}", user.id);
+```
+
+### With Optional Fields
+
+```rust
+use wacht::api::users;
+use wacht::models::CreateUserRequest;
+
+let request = CreateUserRequest {
+    first_name: "Jane".to_string(),
+    last_name: "Smith".to_string(),
+    email_address: Some("jane@example.com".to_string()),
+    phone_number: Some("+1234567890".to_string()),
+    username: Some("janesmith".to_string()),
+    password: Some("securePassword123".to_string()),
+    skip_password_check: false,
+};
+
+let user = users::create_user(request)
+    .send()
+    .await?;
+```
+
+### Required Fields
+
+- `first_name` (String) - User's first name
+- `last_name` (String) - User's last name
+
+### Optional Fields
+
+- `email_address` (Option&lt;String&gt;) - Email address
+- `phone_number` (Option&lt;String&gt;) - Phone number
+- `username` (Option&lt;String&gt;) - Username
+- `password` (Option&lt;String&gt;) - Password
+- `skip_password_check` (bool) - Skip password validation (default: false)
+
+## Update User
+
+Update an existing user's information. Only provided fields will be updated.
+
+```rust
+use wacht::api::users;
+use wacht::models::UpdateUserRequest;
+
+let updated = users::update_user(
+    "user_123",
+    UpdateUserRequest {
+        first_name: Some("Jane".to_string()),
+        last_name: Some("Smith".to_string()),
+        username: Some("janesmith".to_string()),
+        ..Default::default()
+    }
+)
+.send()
+.await?;
+```
+
+### Available Update Fields
+
+All fields are optional - only include what you want to change:
+
+- `first_name` (Option&lt;String&gt;)
+- `last_name` (Option&lt;String&gt;)
+- `username` (Option&lt;String&gt;)
+- `public_metadata` (Option&lt;serde_json::Value&gt;)
+- `private_metadata` (Option&lt;serde_json::Value&gt;)
+- `disabled` (Option&lt;bool&gt;)
+
+## Update Password
+
+Update a user's password.
+
+```rust
+use wacht::api::users;
+use wacht::models::UpdatePasswordRequest;
+
+users::update_password(
+    "user_123",
+    UpdatePasswordRequest {
+        new_password: "newSecurePassword".to_string(),
+        skip_password_check: false,
+    }
+)
+.send()
+.await?;
+```
+
+## Delete User
+
+Permanently delete a user. This action cannot be undone.
+
+```rust
+use wacht::api::users;
+
+users::delete_user("user_123")
+    .send()
+    .await?;
+```
+
+## Manage Emails
+
+### Add Email Address
+
+```rust
+use wacht::api::users::emails;
+
+let email = emails::add_email(
+    "user_123",
+    "newemail@example.com",
+    None // verification_strategy
+)
+.send()
+.await?;
+```
+
+### Update Email
+
+```rust
+use wacht::api::users::emails;
+
+let email = emails::update_email(
+    "user_123",
+    "email_456",
+    Some("updated@example.com".to_string()),
+    Some(true) // set as primary
+)
+.send()
+.await?;
+```
+
+### Delete Email
+
+```rust
+use wacht::api::users::emails;
+
+emails::delete_email("user_123", "email_456")
+    .send()
+    .await?;
+```
+
+## Manage Phone Numbers
+
+### Add Phone
+
+```rust
+use wacht::api::users::phones;
+
+let phone = phones::add_phone(
+    "user_123",
+    "+1234567890",
+    "+1"
+)
+.send()
+.await?;
+```
+
+### Update Phone
+
+```rust
+use wacht::api::users::phones;
+
+let phone = phones::update_phone(
+    "user_123",
+    "phone_456",
+    Some("+1987654321".to_string()),
+    Some("+1".to_string()),
+    Some(true), // verified
+    Some(true)  // set as primary
+)
+.send()
+.await?;
+```
+
+### Delete Phone
+
+```rust
+use wacht::api::users::phones;
+
+phones::delete_phone("user_123", "phone_456")
+    .send()
+    await?;
+```
+
+## Social Connections
+
+Delete a social connection (OAuth provider) from a user's account.
+
+```rust
+use wacht::api::users::social_connections;
+
+social_connections::delete_connection(
+    "user_123",
+    "connection_456"
+)
+.send()
+.await?;
+```
+
+## Error Handling
+
+All SDK methods return a `Result<T, Error>`:
+
+```rust
+use wacht::{Error, api::users};
+
+match users::fetch_user_details("invalid_id").await {
+    Ok(details) => println!("User: {}", details.first_name),
+    Err(Error::Api { status, message, .. }) => {
+        eprintln!("API Error {}: {}", status, message);
+    }
+    Err(Error::Request(e)) => {
+        eprintln!("Network error: {}", e);
+    }
+    Err(e) => {
+        eprintln!("Other error: {}", e);
+    }
+}
+```
+
+## Related
+
+- [Installation](/rust-sdk/installation) - SDK setup
+- [Organizations Guide](/rust-sdk/guide/organizations) - Managing organizations
+- [Workspaces Guide](/rust-sdk/guide/workspaces) - Managing workspaces
+- [API Reference - Backend API](/api-reference/backend-api/users) - Full API docs

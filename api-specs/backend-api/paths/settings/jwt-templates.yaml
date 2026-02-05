@@ -1,0 +1,73 @@
+# JWT templates endpoint
+
+JwtTemplates:
+  get:
+    summary: Get JWT templates
+    description: List all JWT templates
+    tags:
+      - Settings
+    responses:
+      '200':
+        description: JWT templates
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  description:
+                    type: string
+                  issuer:
+                    type: string
+                  audience:
+                    type: string
+                  expiration:
+                    type: integer
+                  claims:
+                    type: object
+
+  post:
+    summary: Create JWT template
+    description: Create a new JWT template
+    tags:
+      - Settings
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - name
+              - issuer
+              - expiration
+            properties:
+              name:
+                type: string
+              description:
+                type: string
+              issuer:
+                type: string
+              audience:
+                type: string
+              expiration:
+                type: integer
+              claims:
+                type: object
+    responses:
+      '200':
+        description: JWT template created
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                name:
+                  type: string

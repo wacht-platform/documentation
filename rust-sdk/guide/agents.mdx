@@ -1,0 +1,254 @@
+---
+title: 'AI Agents API'
+description: 'Working with AI agents in the Rust SDK'
+---
+
+# AI Agents API Guide
+
+
+Learn how to work with AI agents using the Wacht Rust SDK.
+
+## Prerequisites
+
+Before using any API methods, you must initialize the SDK:
+
+```rust
+use wacht::init_from_env;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Initialize from environment variables
+    // Requires: WACHT_API_KEY and WACHT_FRONTEND_HOST
+    init_from_env().await?;
+
+    // Now you can use the API
+    Ok(())
+}
+```
+
+## List AI Agents
+
+Get all AI agents in your deployment.
+
+### Basic List
+
+```rust
+use wacht::api::ai;
+
+// Fetch all agents (default pagination)
+let agents = ai::list_agents()
+    .send()
+    .await?;
+
+for agent in agents.data {
+    println!("{}: {}", agent.name, agent.description.unwrap_or_default());
+}
+```
+
+### With Filters
+
+```rust
+use wacht::api::ai;
+
+// Fetch active agents with pagination
+let agents = ai::list_agents()
+    .limit(50)
+    .offset(0)
+    .is_active(true)
+    .search("support")
+    .send()
+    .await?;
+
+for agent in agents.data {
+    println!("{} (active: {})", agent.name, agent.is_active);
+}
+```
+
+## Get AI Agent
+
+Retrieve a specific AI agent by ID.
+
+```rust
+use wacht::api::ai;
+
+let agent = ai::fetch_agent("agent_123")
+    .send()
+    .await?;
+
+println!("Agent: {}", agent.name);
+println!("Description: {:?}", agent.description);
+```
+
+## Get Agent Details
+
+Retrieve complete details about an AI agent.
+
+```rust
+use wacht::api::ai;
+
+let details = ai::fetch_agent_details("agent_123")
+    .send()
+    .await?;
+
+println!("Name: {}", details.name);
+println!("Configuration: {:?}", details.configuration);
+println!("Tools: {:?}", details.tool_ids);
+println!("Knowledge Bases: {:?}", details.knowledge_base_ids);
+```
+
+## Create AI Agent
+
+Create a new AI agent with custom configuration.
+
+### Basic Agent Creation
+
+```rust
+use wacht::api::ai;
+use wacht::models::CreateAiAgentRequest;
+
+let agent = ai::create_agent(CreateAiAgentRequest::new(
+    "Support Bot".to_string(),
+    "gpt-4".to_string()
+))
+.send()
+.await?;
+
+println!("Created agent: {}", agent.id);
+```
+
+### Agent with Configuration
+
+```rust
+use wacht::api::ai;
+use wacht::models::CreateAiAgentRequest;
+
+let agent = ai::create_agent(CreateAiAgentRequest {
+    name: "Support Bot".to_string(),
+    model: "gpt-4".to_string(),
+    description: Some("Customer support assistant".to_string()),
+    system_prompt: Some("You are a helpful support assistant.".to_string()),
+    temperature: Some(0.7),
+    max_tokens: Some(2000),
+    tools: Some(vec!["tool_123".to_string()]),
+    knowledge_bases: Some(vec!["kb_789".to_string()]),
+})
+.send()
+.await?;
+```
+
+## Update AI Agent
+
+Modify an existing AI agent's configuration.
+
+```rust
+use wacht::api::ai;
+use wacht::models::UpdateAiAgentRequest;
+
+let updated = ai::update_agent(
+    "agent_123",
+    UpdateAiAgentRequest {
+        name: Some("Updated Support Bot".to_string()),
+        description: Some("Enhanced customer support".to_string()),
+        model: Some("gpt-4-turbo".to_string()),
+        system_prompt: Some("Updated instructions.".to_string()),
+        temperature: Some(0.6),
+        is_active: Some(true),
+        ..Default::default()
+    }
+)
+.send()
+.await?;
+```
+
+## Delete AI Agent
+
+Permanently delete an AI agent.
+
+```rust
+use wacht::api::ai;
+
+ai::delete_agent("agent_123")
+    .send()
+    .await?;
+```
+
+## Builder Methods
+
+### ListAgentsBuilder
+
+- `limit(i32)` - Number of results to return (max 100)
+- `offset(i32)` - Number of results to skip
+- `is_active(bool)` - Filter by active status
+- `search(&str)` - Search agents by name or description
+
+## Request Models
+
+### CreateAiAgentRequest
+
+- `name` (String) - Agent name (required)
+- `model` (String) - Model to use (required)
+- `description` (Option&lt;String&gt;) - Agent description
+- `system_prompt` (Option&lt;String&gt;) - System instructions
+- `temperature` (Option&lt;f64&gt;) - Temperature (0.0 - 2.0)
+- `max_tokens` (Option&lt;i32&gt;) - Maximum tokens in response
+- `tools` (Option&lt;Vec&lt;String&gt;&gt;) - Associated tool IDs
+- `knowledge_bases` (Option&lt;Vec&lt;String&gt;&gt;) - Associated knowledge base IDs
+
+### UpdateAiAgentRequest
+
+All fields are optional - only include what you want to change:
+
+- `name` (Option&lt;String&gt;)
+- `description` (Option&lt;String&gt;)
+- `model` (Option&lt;String&gt;)
+- `system_prompt` (Option&lt;String&gt;)
+- `temperature` (Option&lt;f64&gt;)
+- `max_tokens` (Option&lt;i32&gt;)
+- `tools` (Option&lt;Vec&lt;String&gt;&gt;)
+- `knowledge_bases` (Option&lt;Vec&lt;String&gt;&gt;)
+- `is_active` (Option&lt;bool&gt;)
+
+## Agent Configuration
+
+Agents are configured using direct fields rather than a nested configuration object:
+
+```rust
+CreateAiAgentRequest {
+    name: "Support Bot".to_string(),
+    model: "gpt-4".to_string(),
+    system_prompt: Some("You are a helpful assistant.".to_string()),
+    temperature: Some(0.7),
+    max_tokens: Some(2000),
+    tools: Some(vec!["tool_123".to_string()]),
+    knowledge_bases: Some(vec!["kb_789".to_string()]),
+}
+```
+
+## Error Handling
+
+All SDK methods return a `Result<T, Error>`:
+
+```rust
+use wacht::{Error, api::ai};
+
+match ai::fetch_agent("invalid_id").send().await {
+    Ok(agent) => println!("Agent: {}", agent.name),
+    Err(Error::Api { status, message, .. }) => {
+        eprintln!("API Error {}: {}", status, message);
+    }
+    Err(Error::Request(e)) => {
+        eprintln!("Network error: {}", e);
+    }
+    Err(e) => {
+        eprintln!("Other error: {}", e);
+    }
+}
+```
+
+## Related
+
+- [Installation](/rust-sdk/installation) - SDK setup
+- [Tools Guide](/rust-sdk/guide/tools) - Tool management
+- [Knowledge Bases Guide](/rust-sdk/guide/knowledge-bases) - Knowledge base management
+- [Execution Context Guide](/rust-sdk/guide/execution-context) - Agent execution
+- [API Reference - Backend API](/api-reference/backend-api/ai-agents) - Full API docs

@@ -1,0 +1,347 @@
+---
+title: 'Workspaces API'
+description: 'Working with workspaces in the Rust SDK'
+---
+
+# Workspaces API Guide
+
+
+Learn how to manage workspaces using the Wacht Rust SDK.
+
+## Prerequisites
+
+Before using any API methods, you must initialize the SDK:
+
+```rust
+use wacht::init_from_env;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Initialize from environment variables
+    // Requires: WACHT_API_KEY and WACHT_FRONTEND_HOST
+    init_from_env().await?;
+
+    // Now you can use the API
+    Ok(())
+}
+```
+
+## List Workspaces
+
+Retrieve a paginated list of workspaces from your deployment.
+
+### Basic List
+
+```rust
+use wacht::api::workspaces;
+
+// Fetch all workspaces (default pagination)
+let workspaces = workspaces::fetch_workspaces()
+    .send()
+    .await?;
+
+println!("Total workspaces: {}", workspaces.data.len());
+for ws in workspaces.data {
+    println!("{} in {}", ws.name, ws.organization_name);
+}
+```
+
+### With Pagination and Filters
+
+```rust
+use wacht::api::workspaces;
+
+// Fetch workspaces with builder options
+let workspaces = workspaces::fetch_workspaces()
+    .limit(50)
+    .offset(0)
+    .search("engineering")
+    .sort_key("created_at")
+    .sort_order("desc")
+    .send()
+    .await?;
+
+println!("Has more: {}", workspaces.has_more);
+```
+
+### Builder Methods
+
+- `limit(i32)` - Number of results to return (max 100)
+- `offset(i32)` - Number of results to skip
+- `search(&str)` - Search query to filter results
+- `sort_key(&str)` - Field to sort by
+- `sort_order(&str)` - Sort order ("asc" or "desc")
+
+## Get Workspace Details
+
+Retrieve complete information about a workspace.
+
+```rust
+use wacht::api::workspaces;
+
+let details = workspaces::fetch_workspace("workspace_123")
+    .send()
+    .await?;
+
+println!("Workspace: {}", details.name);
+println!("Organization: {}", details.organization_name);
+println!("Description: {:?}", details.description);
+println!("Members: {}", details.members_count);
+```
+
+## Create Workspace
+
+Create a new workspace in your deployment.
+
+### Basic Workspace Creation
+
+```rust
+use wacht::api::workspaces;
+use wacht::models::CreateWorkspaceRequest;
+
+let workspace = workspaces::create_workspace(
+    CreateWorkspaceRequest::new("Engineering".to_string())
+)
+.send()
+.await?;
+
+println!("Created workspace: {}", workspace.id);
+```
+
+### With Optional Fields
+
+```rust
+use wacht::api::workspaces;
+use wacht::models::CreateWorkspaceRequest;
+
+let request = CreateWorkspaceRequest {
+    name: "Engineering".to_string(),
+    description: Some("Engineering team workspace".to_string()),
+    public_metadata: Some(serde_json::json!({
+        "department": "Engineering",
+        "cost_center": "ENG-001"
+    })),
+    private_metadata: Some(serde_json::json!({
+        "internal_notes": "Priority workspace"
+    })),
+    workspace_image: None,
+};
+
+let workspace = workspaces::create_workspace(request)
+    .send()
+    .await?;
+```
+
+### Required Fields
+
+- `name` (String) - Workspace name
+
+### Optional Fields
+
+- `description` (Option&lt;String&gt;) - Workspace description
+- `public_metadata` (Option&lt;serde_json::Value&gt;) - Public metadata
+- `private_metadata` (Option&lt;serde_json::Value&gt;) - Private metadata
+- `workspace_image` (Option&lt;Vec&lt;u8&gt;&gt;) - Workspace image data
+
+## Update Workspace
+
+Update an existing workspace's information. Only provided fields will be updated.
+
+```rust
+use wacht::api::workspaces;
+use wacht::models::UpdateWorkspaceRequest;
+
+let updated = workspaces::update_workspace(
+    "workspace_123",
+    UpdateWorkspaceRequest {
+        name: Some("Engineering Team".to_string()),
+        description: Some("Updated description".to_string()),
+        public_metadata: Some(serde_json::json!({"updated": true})),
+        ..Default::default()
+    }
+)
+.send()
+.await?;
+```
+
+### Available Update Fields
+
+All fields are optional - only include what you want to change:
+
+- `name` (Option&lt;String&gt;)
+- `description` (Option&lt;String&gt;)
+- `public_metadata` (Option&lt;serde_json::Value&gt;)
+- `private_metadata` (Option&lt;serde_json::Value&gt;)
+- `workspace_image` (Option&lt;Vec&lt;u8&gt;&gt;)
+
+## Delete Workspace
+
+Permanently delete a workspace. This action cannot be undone.
+
+```rust
+use wacht::api::workspaces;
+
+workspaces::delete_workspace("workspace_123")
+    .send()
+    .await?;
+```
+
+## Manage Workspace Members
+
+### List Members
+
+```rust
+use wacht::api::workspaces::members;
+
+let members = members::fetch_members("workspace_123")
+    .limit(50)
+    .send()
+    .await?;
+
+for member in members.data {
+    println!("{} - {}", member.role.name, member.user.first_name);
+}
+```
+
+### Add Member
+
+```rust
+use wacht::api::workspaces::members;
+
+// First get available roles to find the role ID
+let roles = workspaces::roles::fetch_roles("workspace_123")
+    .send()
+    .await?;
+
+let member = members::add_member(
+    "workspace_123",
+    "user_456",
+    vec![roles.data[0].id.clone()]
+)
+.send()
+.await?;
+
+println!("Added member: {}", member.user.first_name);
+```
+
+### Update Member
+
+```rust
+use wacht::api::workspaces::members;
+
+let updated = members::update_member("workspace_123", "member_789")
+    .role_ids(vec!["new_role_id".to_string()])
+    .public_metadata(serde_json::json!({"updated": true}))
+    .send()
+    .await?;
+```
+
+### Remove Member
+
+```rust
+use wacht::api::workspaces::members;
+
+members::remove_member("workspace_123", "member_789")
+    .send()
+    .await?;
+```
+
+## Manage Workspace Roles
+
+### List Roles
+
+```rust
+use wacht::api::workspaces::roles;
+
+let roles = roles::fetch_roles("workspace_123")
+    .send()
+    .await?;
+
+for role in roles.data {
+    println!("{} ({} permissions)", role.name, role.permissions.len());
+}
+```
+
+### Create Role
+
+```rust
+use wacht::api::workspaces::roles;
+use wacht::models::CreateRoleRequest;
+
+let role = roles::create_role(
+    "workspace_123",
+    CreateRoleRequest {
+        name: "Editor".to_string(),
+        description: Some("Can edit content".to_string()),
+        permissions: vec![
+            "workspace:read".to_string(),
+            "workspace:write".to_string(),
+        ],
+    }
+)
+.send()
+.await?;
+
+println!("Created role: {}", role.name);
+```
+
+### Update Role
+
+```rust
+use wacht::api::workspaces::roles;
+use wacht::models::UpdateRoleRequest;
+
+let updated = roles::update_role(
+    "workspace_123",
+    "role_456",
+    UpdateRoleRequest {
+        name: Some("Senior Editor".to_string()),
+        description: Some("Advanced editing permissions".to_string()),
+        permissions: Some(vec![
+            "workspace:read".to_string(),
+            "workspace:write".to_string(),
+            "workspace:delete".to_string(),
+        ]),
+    }
+)
+.send()
+.await?;
+```
+
+### Delete Role
+
+```rust
+use wacht::api::workspaces::roles;
+
+roles::delete_role("workspace_123", "role_456")
+    .send()
+    .await?;
+```
+
+## Error Handling
+
+All SDK methods return a `Result<T, Error>`:
+
+```rust
+use wacht::{Error, api::workspaces};
+
+match workspaces::fetch_workspace("invalid_id").send().await {
+    Ok(details) => println!("Workspace: {}", details.name),
+    Err(Error::Api { status, message, .. }) => {
+        eprintln!("API Error {}: {}", status, message);
+    }
+    Err(Error::Request(e)) => {
+        eprintln!("Network error: {}", e);
+    }
+    Err(e) => {
+        eprintln!("Other error: {}", e);
+    }
+}
+```
+
+## Related
+
+- [Installation](/rust-sdk/installation) - SDK setup
+- [Organizations Guide](/rust-sdk/guide/organizations) - Managing organizations
+- [Users Guide](/rust-sdk/guide/users) - Managing users
+- [API Reference - Backend API](/api-reference/backend-api/workspaces) - Full API docs

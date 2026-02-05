@@ -1,0 +1,63 @@
+# Webhook Apps list and create
+
+WebhookApps:
+  get:
+    summary: List webhook apps
+    description: Get all webhook apps in the deployment
+    tags:
+      - Webhooks
+    responses:
+      '200':
+        description: List of webhook apps
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                total:
+                  type: integer
+                apps:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/WebhookApp'
+
+  post:
+    summary: Create webhook app
+    description: Create a new webhook app
+    tags:
+      - Webhooks
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - name
+            properties:
+              name:
+                type: string
+              description:
+                type: string
+              rate_limits:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    unit:
+                      type: string
+                      enum: [second, minute, hour, day]
+                    duration:
+                      type: integer
+                    max_requests:
+                      type: integer
+                    mode:
+                      type: string
+                      enum: [per_key, per_ip, per_key_and_ip]
+    responses:
+      '200':
+        description: Webhook app created
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookApp'

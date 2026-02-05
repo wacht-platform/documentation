@@ -1,0 +1,225 @@
+---
+title: 'Quick Start'
+description: 'Get up and running with the TanStack Router SDK in 5 minutes'
+---
+
+This quick start guide will help you set up authentication in your TanStack Router application.
+
+## Step 1: Install the SDK
+
+```bash
+pnpm add @wacht/tanstack-router @wacht/types
+```
+
+## Step 2: Set Environment Variables
+
+Create a `.env` file:
+
+```bash
+# .env
+VITE_WACHT_PUBLIC_KEY=your_public_key_here
+```
+
+## Step 3: Configure the Provider
+
+```tsx
+// src/routes/__root.tsx
+import { createRouter } from '@tanstack/react-router'
+import { DeploymentProvider } from '@wacht/tanstack-router'
+
+const router = createRouter()
+
+export const Route = router.wrap(({ children }) => {
+  return (
+    <DeploymentProvider publicKey={import.meta.env.VITE_WACHT_PUBLIC_KEY}>
+      {children}
+    </DeploymentProvider>
+  )
+})
+```
+
+## Step 4: Create Authentication Routes
+
+```tsx
+// src/routes/signin.tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { SignInForm } from '@wacht/tanstack-router'
+
+export const Route = createFileRoute('/signin')({
+  component: SignIn
+})
+
+function SignIn() {
+  return (
+    <div className="auth-page">
+      <h1>Sign In</h1>
+      <SignInForm />
+    </div>
+  )
+}
+```
+
+```tsx
+// src/routes/signup.tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { SignUpForm } from '@wacht/tanstack-router'
+
+export const Route = createFileRoute('/signup')({
+  component: SignUp
+})
+
+function SignUp() {
+  return (
+    <div className="auth-page">
+      <h1>Sign Up</h1>
+      <SignUpForm />
+    </div>
+  )
+}
+```
+
+## Step 5: Protect Routes
+
+```tsx
+// src/routes/dashboard.tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { useSession } from '@wacht/tanstack-router'
+import { Navigate } from '@tanstack/react-router'
+
+export const Route = createFileRoute('/dashboard')({
+  component: Dashboard,
+  beforeLoad: ({ context, navigate }) => {
+    if (!context.session) {
+      throw navigate({ to: '/signin' })
+    }
+  }
+})
+
+function Dashboard() {
+  const { session } = useSession({ from: '/dashboard' })
+
+  return (
+    <div>
+      <h1>Dashboard</h1>
+      <p>Welcome, {session.user.first_name}!</p>
+    </div>
+  )
+}
+```
+
+## Step 6: Add User Menu
+
+```tsx
+// src/routes/__root.tsx
+import { UserButton, SignedIn } from '@wacht/tanstack-router'
+
+export const Route = router.wrap(({ children }) => {
+  return (
+    <DeploymentProvider publicKey={import.meta.env.VITE_WACHT_PUBLIC_KEY}>
+      <div className="layout">
+        <header className="navbar">
+          <h1>My App</h1>
+          <SignedIn>
+            <UserButton />
+          </SignedIn>
+        </header>
+        <main>{children}</main>
+      </div>
+    </DeploymentProvider>
+  )
+})
+```
+
+## Complete Example
+
+Here's a complete working example:
+
+```tsx
+// src/routes/__root.tsx
+import { createRouter } from '@tanstack/react-router'
+import { Outlet, useRouter } from '@tanstack/react-router'
+import { DeploymentProvider, SignedIn, SignedOut, UserButton } from '@wacht/tanstack-router'
+import { TanStackRouterDevtools } from '@tanstack/router-devtools'
+
+const router = createRouter()
+
+export const Route = router.wrap(({ children }) => {
+  return (
+    <DeploymentProvider publicKey={import.meta.env.VITE_WACHT_PUBLIC_KEY}>
+      <div className="min-h-screen bg-gray-50">
+        <header className="bg-white shadow">
+          <div className="mx-auto max-w-7xl px-4 py-4 flex justify-between items-center">
+            <h1 className="text-xl font-bold">My App</h1>
+            <div className="flex items-center gap-4">
+              <SignedIn>
+                <UserButton />
+              </SignedIn>
+              <SignedOut>
+                <a href="/signin" className="text-blue-600 hover:text-blue-800">
+                  Sign In
+                </a>
+              </SignedOut>
+            </div>
+          </div>
+        </header>
+        <main className="mx-auto max-w-7xl px-4 py-8">
+          <Outlet />
+        </main>
+      </div>
+      <TanStackRouterDevtools />
+    </DeploymentProvider>
+  )
+})
+```
+
+```tsx
+// src/routes/index.tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { SignedIn, SignedOut } from '@wacht/tanstack-router'
+import { Link } from '@tanstack/react-router'
+
+export const Route = createFileRoute('/')({
+  component: Home
+})
+
+function Home() {
+  return (
+    <div>
+      <h1 className="text-3xl font-bold mb-4">Welcome</h1>
+      <SignedOut>
+        <div className="space-y-4">
+          <p>Get started by creating an account or signing in.</p>
+          <div className="flex gap-4">
+            <Link
+              to="/signup"
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Sign Up
+            </Link>
+            <Link
+              to="/signin"
+              className="px-4 py-2 border border-blue-600 text-blue-600 rounded hover:bg-blue-50"
+            >
+              Sign In
+            </Link>
+          </div>
+        </div>
+      </SignedOut>
+      <SignedIn>
+        <div>
+          <p>Welcome back!</p>
+          <Link to="/dashboard" className="text-blue-600 hover:text-blue-800">
+            Go to Dashboard
+          </Link>
+        </div>
+      </SignedIn>
+    </div>
+  )
+}
+```
+
+## Next Steps
+
+- [Setup Guide](setup) - Detailed configuration options
+- [Components Reference](components) - Available components
+- [Hooks Reference](hooks) - Available hooks

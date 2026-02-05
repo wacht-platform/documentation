@@ -1,0 +1,244 @@
+---
+title: 'AI Knowledge Bases API'
+description: 'Working with AI knowledge bases in the Rust SDK'
+---
+
+# AI Knowledge Bases API Guide
+
+
+Learn how to manage AI knowledge bases using the Wacht Rust SDK.
+
+## Prerequisites
+
+Before using any API methods, you must initialize the SDK:
+
+```rust
+use wacht::init_from_env;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Initialize from environment variables
+    // Requires: WACHT_API_KEY and WACHT_FRONTEND_HOST
+    init_from_env().await?;
+
+    // Now you can use the API
+    Ok(())
+}
+```
+
+## List Knowledge Bases
+
+Get all knowledge bases in your deployment.
+
+```rust
+use wacht::api::ai;
+
+// Fetch all knowledge bases
+let kb_list = ai::fetch_knowledge_bases(None)
+    .await?;
+
+for kb in kb_list.data {
+    println!("{} ({} documents)", kb.name, kb.documents_count);
+}
+```
+
+### With Options
+
+```rust
+use wacht::api::ai;
+use wacht::api::ai::ListKnowledgeBasesOptions;
+
+let kb_list = ai::fetch_knowledge_bases(Some(ListKnowledgeBasesOptions {
+    limit: Some(50),
+    offset: Some(0),
+    search: Some("product".to_string()),
+}))
+.await?;
+```
+
+## Get Knowledge Base
+
+Retrieve a specific knowledge base by ID.
+
+```rust
+use wacht::api::ai;
+
+let kb = ai::fetch_knowledge_base("kb_123")
+    .await?;
+
+println!("Knowledge Base: {}", kb.name);
+println!("Description: {:?}", kb.description);
+println!("Documents: {}", kb.documents_count);
+```
+
+## Create Knowledge Base
+
+Create a new knowledge base for AI agents.
+
+```rust
+use wacht::api::ai;
+use wacht::models::CreateAiKnowledgeBaseRequest;
+
+let kb = ai::create_knowledge_base(CreateAiKnowledgeBaseRequest {
+    name: "Product Docs".to_string(),
+    description: Some("Product documentation base".to_string()),
+})
+.await?;
+
+println!("Created knowledge base: {}", kb.id);
+```
+
+## Update Knowledge Base
+
+Modify an existing knowledge base.
+
+```rust
+use wacht::api::ai;
+use wacht::models::UpdateAiKnowledgeBaseRequest;
+
+let kb = ai::update_knowledge_base(
+    "kb_123",
+    UpdateAiKnowledgeBaseRequest {
+        name: Some("Updated Product Docs".to_string()),
+        description: Some("Enhanced documentation".to_string()),
+    }
+)
+.await?;
+```
+
+## Delete Knowledge Base
+
+Permanently delete a knowledge base.
+
+```rust
+use wacht::api::ai;
+
+ai::delete_knowledge_base("kb_123")
+    .await?;
+```
+
+## Manage Documents
+
+### List Documents
+
+Get all documents in a knowledge base.
+
+```rust
+use wacht::api::ai;
+
+let documents = ai::fetch_documents("kb_123")
+    .await?;
+
+for doc in documents.data {
+    println!("{}: {} bytes", doc.title, doc.file_size);
+}
+```
+
+### Upload Document
+
+Upload a document to a knowledge base.
+
+```rust
+use wacht::api::ai;
+use std::fs;
+
+// Read file content
+let file_content = fs::read("user_guide.pdf")?;
+
+// Upload to knowledge base
+let document = ai::upload_document(
+    "kb_123",
+    file_content,
+    "user_guide.pdf".to_string()
+)
+.await?;
+
+println!("Uploaded document: {}", document.id);
+```
+
+### Delete Document
+
+Remove a document from a knowledge base.
+
+```rust
+use wacht::api::ai;
+
+ai::delete_document("kb_123", "doc_456")
+    .await?;
+```
+
+## Supported File Types
+
+Knowledge bases support various document types:
+
+- **PDF** - `.pdf` files
+- **Text** - `.txt`, `.md` files
+- **Word** - `.docx`, `.doc` files
+- **HTML** - `.html`, `.htm` files
+- **Code** - Various programming language files
+
+Files are automatically processed and indexed for semantic search.
+
+## Request Models
+
+### CreateAiKnowledgeBaseRequest
+
+- `name` (String) - Knowledge base name (required)
+- `description` (Option&lt;String&gt;) - Knowledge base description
+
+### UpdateAiKnowledgeBaseRequest
+
+- `name` (Option&lt;String&gt;) - Updated name
+- `description` (Option&lt;String&gt;) - Updated description
+
+### ListKnowledgeBasesOptions
+
+- `limit` (Option&lt;i32&gt;) - Number of results to return
+- `offset` (Option&lt;i32&gt;) - Number of results to skip
+- `search` (Option&lt;String&gt;) - Search query
+
+## Document Model
+
+Knowledge base documents include:
+
+```rust
+pub struct KnowledgeBaseDocument {
+    pub id: String,
+    pub knowledge_base_id: String,
+    pub title: String,
+    pub file_name: String,
+    pub file_size: i64,
+    pub status: String,
+    pub created_at: String,
+    pub updated_at: String,
+}
+```
+
+## Error Handling
+
+All SDK methods return a `Result<T, Error>`:
+
+```rust
+use wacht::{Error, api::ai};
+
+match ai::fetch_knowledge_base("invalid_id").await {
+    Ok(kb) => println!("Knowledge Base: {}", kb.name),
+    Err(Error::Api { status, message, .. }) => {
+        eprintln!("API Error {}: {}", status, message);
+    }
+    Err(Error::Request(e)) => {
+        eprintln!("Network error: {}", e);
+    }
+    Err(e) => {
+        eprintln!("Other error: {}", e);
+    }
+}
+```
+
+## Related
+
+- [Installation](/rust-sdk/installation) - SDK setup
+- [Agents Guide](/rust-sdk/guide/agents) - AI agent management
+- [Tools Guide](/rust-sdk/guide/tools) - Tool management
+- [Execution Context Guide](/rust-sdk/guide/execution-context) - Agent execution
+- [API Reference - Backend API](/api-reference/backend-api/ai-knowledge-bases) - Full API docs

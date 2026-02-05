@@ -1,0 +1,731 @@
+openapi: 3.0.3
+info:
+  title: Wacht Frontend API - Authentication
+  description: Authentication endpoints for the Wacht Frontend API
+  version: 1.0.0
+servers:
+  - url: https://api.wacht.dev
+    description: Production server
+
+tags:
+  - name: Authentication
+    description: User authentication and authorization endpoints
+
+paths:
+  /auth/signin:
+    post:
+      tags:
+        - Authentication
+      summary: Sign in a user
+      description: Authenticate a user using various strategies (email OTP, phone OTP, magic link, username/password, email/password)
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - strategy
+              properties:
+                username:
+                  type: string
+                  description: Username for username/password login
+                  example: "johndoe"
+                email:
+                  type: string
+                  format: email
+                  description: Email for email/password or email OTP login
+                  example: "john@example.com"
+                phone:
+                  type: string
+                  description: Phone number for phone OTP login
+                  example: "+1234567890"
+                phone_country_code:
+                  type: string
+                  description: Country code for phone number
+                  example: "+1"
+                password:
+                  type: string
+                  format: password
+                  description: Password for username/password or email/password login
+                  example: "SecurePass123!"
+                strategy:
+                  type: string
+                  enum: [email_otp, phone_otp, magic_link, plain_username, plain_email]
+                  description: Authentication strategy
+                token:
+                  type: string
+                  description: Token for certain authentication methods
+      responses:
+        '200':
+          description: Successful sign in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '400':
+          description: Bad request - Invalid input
+        '401':
+          description: Unauthorized - Invalid credentials
+        '500':
+          description: Internal server error
+
+  /auth/signup:
+    post:
+      tags:
+        - Authentication
+      summary: Sign up a new user
+      description: Create a new user account
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                first_name:
+                  type: string
+                  description: User's first name
+                  example: "John"
+                last_name:
+                  type: string
+                  description: User's last name
+                  example: "Doe"
+                username:
+                  type: string
+                  description: Desired username
+                  example: "johndoe"
+                email:
+                  type: string
+                  format: email
+                  description: User's email address
+                  example: "john@example.com"
+                phone_number:
+                  type: string
+                  description: User's phone number
+                  example: "+1234567890"
+                phone_country_code:
+                  type: string
+                  description: Country code for phone number
+                  example: "+1"
+                password:
+                  type: string
+                  format: password
+                  description: Desired password
+                  example: "SecurePass123!"
+      responses:
+        '200':
+          description: Successful sign up
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '400':
+          description: Bad request - Invalid input or user already exists
+        '500':
+          description: Internal server error
+
+  /auth/forgot-password:
+    post:
+      tags:
+        - Authentication
+      summary: Initiate password reset
+      description: Send a password reset email to the user
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: User's email address
+                  example: "john@example.com"
+      responses:
+        '200':
+          description: Password reset email sent
+        '400':
+          description: Bad request - Invalid email
+        '404':
+          description: User not found
+        '500':
+          description: Internal server error
+
+  /auth/reset-password:
+    post:
+      tags:
+        - Authentication
+      summary: Reset password with token
+      description: Reset user's password using the token from the reset email
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - token
+                - password
+              properties:
+                token:
+                  type: string
+                  description: Password reset token from email
+                  example: "reset_token_abc123"
+                password:
+                  type: string
+                  format: password
+                  description: New password
+                  example: "NewSecurePass456!"
+      responses:
+        '200':
+          description: Password successfully reset
+        '400':
+          description: Bad request - Invalid token or password
+        '500':
+          description: Internal server error
+
+  /auth/prepare-verification:
+    post:
+      tags:
+        - Authentication
+      summary: Prepare verification code
+      description: Send a verification code to the user's email
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: Email address to send verification code
+                  example: "john@example.com"
+      responses:
+        '200':
+          description: Verification code sent
+        '400':
+          description: Bad request
+        '500':
+          description: Internal server error
+
+  /auth/attempt-verification:
+    post:
+      tags:
+        - Authentication
+      summary: Verify code
+      description: Verify the code sent to the user
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - verification_code
+              properties:
+                verification_code:
+                  type: string
+                  description: Verification code received by user
+                  example: "123456"
+      responses:
+        '200':
+          description: Code verified successfully
+        '400':
+          description: Invalid code
+        '500':
+          description: Internal server error
+
+  /auth/oauth2/init:
+    post:
+      tags:
+        - Authentication
+      summary: Initialize OAuth2 flow
+      description: Initialize OAuth2/OIDC authentication with external provider
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - provider
+              properties:
+                provider:
+                  type: string
+                  description: OAuth2 provider (google, github, etc.)
+                  example: "google"
+                redirect_url:
+                  type: string
+                  format: uri
+                  description: URL to redirect to after authentication
+                  example: "https://app.example.com/auth/callback"
+      responses:
+        '200':
+          description: OAuth2 URL generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  oauth_url:
+                    type: string
+                    format: uri
+                    example: "https://accounts.google.com/o/oauth2/v2/auth?..."
+        '400':
+          description: Bad request - Invalid provider
+
+  /auth/oauth2/callback:
+    get:
+      tags:
+        - Authentication
+      summary: OAuth2 callback
+      description: Handle OAuth2/OIDC callback from external provider
+      parameters:
+        - name: code
+          in: query
+          description: OAuth2 authorization code
+          schema:
+            type: string
+        - name: state
+          in: query
+          description: OAuth2 state parameter
+          schema:
+            type: string
+        - name: provider
+          in: query
+          description: OAuth2 provider
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Redirect to application
+        '400':
+          description: Bad request - Invalid callback
+        '401':
+          description: Unauthorized - Invalid OAuth credentials
+
+  /auth/complete-profile:
+    post:
+      tags:
+        - Authentication
+      summary: Complete user profile
+      description: Complete user profile during signup flow
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                  example: "John"
+                last_name:
+                  type: string
+                  example: "Doe"
+                username:
+                  type: string
+                  example: "johndoe"
+      responses:
+        '200':
+          description: Profile completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+
+  /auth/identifier-availability:
+    get:
+      tags:
+        - Authentication
+      summary: Check identifier availability
+      description: Check if username or email is available
+      parameters:
+        - name: identifier
+          in: query
+          required: true
+          description: Username or email to check
+          schema:
+            type: string
+        - name: type
+          in: query
+          description: Type of identifier
+          schema:
+            type: string
+            enum: [username, email]
+      responses:
+        '200':
+          description: Availability status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  available:
+                    type: boolean
+                    example: true
+        '400':
+          description: Bad request
+
+  /auth/verify-magic-link:
+    get:
+      tags:
+        - Authentication
+      summary: Verify magic link
+      description: Verify and consume a magic link authentication token
+      parameters:
+        - name: token
+          in: query
+          required: true
+          description: Magic link token
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Magic link verified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '400':
+          description: Invalid or expired token
+        '401':
+          description: Unauthorized
+
+  /auth/identify:
+    post:
+      tags:
+        - Authentication
+      summary: Identify user
+      description: Identify user by email or username for passwordless auth
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - identifier
+              properties:
+                identifier:
+                  type: string
+                  description: Email or username
+                  example: "john@example.com"
+      responses:
+        '200':
+          description: User identified
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  available_methods:
+                    type: array
+                    items:
+                      type: string
+                    example: ["email_otp", "magic_link"]
+                  user_id:
+                    type: string
+                    format: uint64
+                    example: "123456789012345678"
+        '400':
+          description: User not found
+
+  /auth/sso/metadata:
+    get:
+      tags:
+        - Authentication
+      summary: Get SSO metadata
+      description: Get SAML/SP metadata for SSO configuration
+      parameters:
+        - name: organization_id
+          in: query
+          description: Organization ID for SSO
+          schema:
+            type: string
+            format: uint64
+      responses:
+        '200':
+          description: SSO metadata
+          content:
+            application/xml:
+              schema:
+                type: object
+        '404':
+          description: Organization not found
+
+  /auth/sso/login:
+    post:
+      tags:
+        - Authentication
+      summary: Initiate SSO login
+      description: Initiate SAML SSO login flow
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - organization_id
+              properties:
+                organization_id:
+                  type: string
+                  format: uint64
+                  description: Organization ID
+                  example: "123456789012345678"
+                relay_url:
+                  type: string
+                  format: uri
+                  description: URL to relay SAML response
+                  example: "https://app.example.com/sso/callback"
+      responses:
+        '200':
+          description: SSO login initiated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sso_url:
+                    type: string
+                    format: uri
+        '400':
+          description: Bad request
+
+  /auth/sso/callback:
+    post:
+      tags:
+        - Authentication
+      summary: SSO callback
+      description: Handle SAML SSO response callback
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - SAMLResponse
+              properties:
+                SAMLResponse:
+                  type: string
+                  description: SAML response from IdP
+                RelayState:
+                  type: string
+                  description: Relay state parameter
+      responses:
+        '200':
+          description: SSO authentication completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '400':
+          description: Invalid SAML response
+        '401':
+          description: SSO authentication failed
+
+  /auth/sso/oidc/callback:
+    get:
+      tags:
+        - Authentication
+      summary: OIDC callback
+      description: Handle OIDC/OAuth2 SSO callback from enterprise IdP
+      parameters:
+        - name: code
+          in: query
+          schema:
+            type: string
+        - name: state
+          in: query
+          schema:
+            type: string
+        - name: connection_id
+          in: query
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Redirect to application
+        '400':
+          description: Invalid callback
+
+  /auth/passkey/login/begin:
+    post:
+      tags:
+        - Authentication
+      summary: Begin passkey login
+      description: Initialize WebAuthn/passkey authentication flow
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - identifier
+              properties:
+                identifier:
+                  type: string
+                  description: Email or username
+                  example: "john@example.com"
+      responses:
+        '200':
+          description: Passkey challenge generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  options:
+                    type: object
+                    description: WebAuthn credential request options
+        '400':
+          description: Bad request
+        '404':
+          description: User not found
+
+  /auth/passkey/login/finish:
+    post:
+      tags:
+        - Authentication
+      summary: Finish passkey login
+      description: Complete WebAuthn/passkey authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - credential
+              properties:
+                credential:
+                  type: object
+                  description: WebAuthn credential response
+      responses:
+        '200':
+          description: Passkey authentication completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '400':
+          description: Invalid credential
+        '401':
+          description: Authentication failed
+
+components:
+  schemas:
+    Session:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+          description: Session ID
+          example: "123456789012345678"
+        created_at:
+          type: string
+          format: date-time
+          description: Session creation timestamp
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Session last update timestamp
+          example: "2024-01-15T10:30:00Z"
+        signin_attempts:
+          type: array
+          items:
+            $ref: '#/components/schemas/SignInAttempt'
+          description: Sign-in attempts associated with this session
+        signins:
+          type: array
+          items:
+            $ref: '#/components/schemas/SignIn'
+          description: Successful sign-ins associated with this session
+        signup_attempts:
+          type: array
+          items:
+            $ref: '#/components/schemas/SignupAttempt'
+          description: Signup attempts associated with this session
+        active_signin_id:
+          type: string
+          format: uint64
+          description: ID of the active sign-in
+          example: "987654321098765432"
+        active_signin:
+          $ref: '#/components/schemas/SignIn'
+          description: Active sign-in details
+
+    SignInAttempt:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+          description: Sign-in attempt ID
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    SignIn:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+          description: Sign-in ID
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    SignupAttempt:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+          description: Signup attempt ID
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: "Invalid credentials"
+        code:
+          type: string
+          description: Error code
+          example: "INVALID_CREDENTIALS"

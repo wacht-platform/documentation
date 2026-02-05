@@ -1,0 +1,19 @@
+# Webhook endpoint reactivate endpoint
+
+WebhookEndpointReactivate:
+  post:
+    summary: Reactivate webhook endpoint
+    description: Reactivate a disabled webhook endpoint
+    tags:
+      - Webhooks
+    parameters:
+      - name: endpoint_id
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Endpoint reactivated
+      '404':
+        $ref: '#/components/responses/NotFound'

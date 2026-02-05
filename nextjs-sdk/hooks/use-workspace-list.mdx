@@ -1,0 +1,369 @@
+---
+title: useWorkspaceList
+description: Manage workspaces including creating, updating, and deleting workspaces.
+---
+
+# useWorkspaceList
+
+The `useWorkspaceList` hook provides methods for managing workspaces the user has access to, including creating, updating, deleting, and managing workspace members and roles.
+
+## Return Value
+
+<ParamField path="workspaces" type="WorkspaceWithOrganization[]">
+  List of workspaces the user has access to
+</ParamField>
+
+<ParamField path="loading" type="boolean">
+  Whether data is loading
+</ParamField>
+
+<ParamField path="error" type="Error | null">
+  Any error that occurred
+</ParamField>
+
+<ParamField path="refetch">
+  <Expandable title="Refetch the workspaces list">
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the workspaces list is refetched
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="leaveWorkspace">
+  <Expandable title="Leave a workspace">
+    <ParamField path="workspace" type="Workspace">
+      The workspace to leave
+    </ParamField>
+    <ParamField path="userId" type="string">
+      The user ID to remove
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the workspace is left
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="createWorkspace">
+  <Expandable title="Create a new workspace">
+    <ParamField path="organizationId" type="string">
+      The organization ID to create the workspace in
+    </ParamField>
+    <ParamField path="name" type="string">
+      The workspace name
+    </ParamField>
+    <ParamField path="image" type="File">
+      Optional workspace image
+    </ParamField>
+    <ParamField path="description" type="string">
+      Optional workspace description
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;Workspace&gt;">
+      The created workspace
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="updateWorkspace">
+  <Expandable title="Update a workspace">
+    <ParamField path="workspace" type="Workspace">
+      The workspace to update
+    </ParamField>
+    <ParamField path="params" type="Partial&lt;Workspace&gt;">
+      Workspace fields to update
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;Workspace&gt;">
+      The updated workspace
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="deleteWorkspace">
+  <Expandable title="Delete a workspace">
+    <ParamField path="workspace" type="Workspace">
+      The workspace to delete
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the workspace is deleted
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="getWorkspaceMembers">
+  <Expandable title="Get workspace members">
+    <ParamField path="workspace" type="Workspace">
+      The workspace
+    </ParamField>
+    <ParamField path="options" type="{ page?: number; limit?: number }">
+      Pagination options
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;{ data: WorkspaceMember[]; total: number }&gt;">
+      Paginated list of workspace members
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="removeWorkspaceMember">
+  <Expandable title="Remove a workspace member">
+    <ParamField path="workspace" type="Workspace">
+      The workspace
+    </ParamField>
+    <ParamField path="member" type="WorkspaceMembership">
+      The member to remove
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the member is removed
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="addWorkspaceMemberRole">
+  <Expandable title="Add a role to a workspace member">
+    <ParamField path="workspace" type="Workspace">
+      The workspace
+    </ParamField>
+    <ParamField path="member" type="WorkspaceMembership">
+      The member
+    </ParamField>
+    <ParamField path="role" type="WorkspaceRole">
+      The role to add
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the role is added
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="removeWorkspaceMemberRole">
+  <Expandable title="Remove a role from a workspace member">
+    <ParamField path="workspace" type="Workspace">
+      The workspace
+    </ParamField>
+    <ParamField path="member" type="WorkspaceMembership">
+      The member
+    </ParamField>
+    <ParamField path="role" type="WorkspaceRole">
+      The role to remove
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the role is removed
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="getWorkspaceRoles">
+  <Expandable title="Get workspace roles">
+    <ParamField path="workspace" type="Workspace">
+      The workspace
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;WorkspaceRole[]&gt;">
+      List of workspace roles
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="createWorkspaceRole">
+  <Expandable title="Create a workspace role">
+    <ParamField path="workspace" type="Workspace">
+      The workspace
+    </ParamField>
+    <ParamField path="name" type="string">
+      The role name
+    </ParamField>
+    <ParamField path="permissions" type="string[]">
+      List of permissions for this role
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;WorkspaceRole&gt;">
+      The created role
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="deleteWorkspaceRole">
+  <Expandable title="Delete a workspace role">
+    <ParamField path="workspace" type="Workspace">
+      The workspace
+    </ParamField>
+    <ParamField path="role" type="WorkspaceRole">
+      The role to delete
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the role is deleted
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="getWorkspaceInvitations">
+  <Expandable title="Get workspace invitations">
+    <ParamField path="workspace" type="Workspace">
+      The workspace
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;Invitation[]&gt;">
+      List of workspace invitations
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="createWorkspaceInvitation">
+  <Expandable title="Create a workspace invitation">
+    <ParamField path="workspace" type="Workspace">
+      The workspace
+    </ParamField>
+    <ParamField path="email" type="string">
+      The email address of the user to invite
+    </ParamField>
+    <ParamField path="workspaceRoleId" type="string">
+      Optional workspace role ID to assign
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;Invitation&gt;">
+      The created invitation
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="discardWorkspaceInvitation">
+  <Expandable title="Discard a workspace invitation">
+    <ParamField path="workspace" type="Workspace">
+      The workspace
+    </ParamField>
+    <ParamField path="invitation" type="Invitation">
+      The invitation to discard
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;void&gt;">
+      Resolves when the invitation is discarded
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="resendWorkspaceInvitation">
+  <Expandable title="Resend a workspace invitation">
+    <ParamField path="workspace" type="Workspace">
+      The workspace
+    </ParamField>
+    <ParamField path="invitation" type="Invitation">
+      The invitation to resend
+    </ParamField>
+    <ParamField path="returns" type="Promise&lt;Invitation&gt;">
+      The resent invitation
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+```tsx
+import { useWorkspaceList } from "@wacht/nextjs";
+
+function WorkspacesPage() {
+  const { workspaces, loading, createWorkspace } = useWorkspaceList();
+
+  const handleCreate = async (organizationId: string) => {
+    await createWorkspace(organizationId, "My Workspace");
+  };
+
+  return (
+    <div>
+      {workspaces.map((ws) => (
+        <div key={ws.id}>{ws.name}</div>
+      ))}
+    </div>
+  );
+}
+```
+
+## Data Structures
+
+<Expandable title="WorkspaceWithOrganization">
+
+```typescript
+interface WorkspaceWithOrganization {
+  id: string;
+  name: string;
+  image_url: string;
+  description: string;
+  member_count: number;
+  public_metadata: Record<string, unknown>;
+  private_metadata: Record<string, unknown>;
+  enforce_2fa: boolean;
+  enable_ip_restriction: boolean;
+  whitelisted_ips: string[];
+  created_at: string;
+  updated_at: string;
+  segments: Segment[];
+  organization: Organization;
+  eligibility_restriction?: EligibilityRestriction;
+}
+```
+
+</Expandable>
+
+## Examples
+
+### Create Workspace
+
+```tsx
+import { useWorkspaceList } from "@wacht/nextjs";
+
+function CreateWorkspace() {
+  const { createWorkspace } = useWorkspaceList();
+
+  const handleCreate = async () => {
+    await createWorkspace("org_123", "Engineering Team");
+  };
+
+  return <button onClick={handleCreate}>Create Workspace</button>;
+}
+```
+
+### Update Workspace Settings
+
+```tsx
+import { useWorkspaceList } from "@wacht/nextjs";
+
+function WorkspaceSettings() {
+  const { workspaces, updateWorkspace } = useWorkspaceList();
+  const workspace = workspaces[0];
+
+  const enable2FA = async () => {
+    await updateWorkspace(workspace, { enforce_2fa: true });
+  };
+
+  return <button onClick={enable2FA}>Enable 2FA</button>;
+}
+```
+
+### Manage Members
+
+```tsx
+import { useWorkspaceList } from "@wacht/nextjs";
+
+function WorkspaceMembers({ workspace }) {
+  const { getWorkspaceMembers } = useWorkspaceList();
+  const [members, setMembers] = useState([]);
+
+  useEffect(() => {
+    getWorkspaceMembers(workspace, { page: 1, limit: 10 }).then(setMembers);
+  }, [workspace]);
+
+  return <div>{/* Render members */}</div>;
+}
+```
+
+### Create Workspace Role
+
+```tsx
+import { useWorkspaceList } from "@wacht/nextjs";
+
+function CreateRole({ workspace }) {
+  const { createWorkspaceRole } = useWorkspaceList();
+
+  const handleCreate = async () => {
+    await createWorkspaceRole(workspace, "Admin", ["read", "write", "delete"]);
+  };
+
+  return <button onClick={handleCreate}>Create Admin Role</button>;
+}
+```
+
+## Related
+
+- [useActiveWorkspace](./use-active-workspace) - Active workspace
+- [useWorkspaceMemberships](./use-workspace-memberships) - Memberships list
+- [CreateWorkspaceForm](../components/create-workspace-form) - Create workspace form

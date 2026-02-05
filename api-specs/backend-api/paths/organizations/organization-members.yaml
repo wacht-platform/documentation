@@ -1,0 +1,73 @@
+# Organization members endpoint
+
+OrganizationMembers:
+  get:
+    summary: List organization members
+    description: Get all members of an organization
+    tags:
+      - Organizations
+    parameters:
+      - $ref: '#/components/parameters/OrganizationId'
+      - $ref: '#/components/parameters/Limit'
+      - $ref: '#/components/parameters/Offset'
+    responses:
+      '200':
+        description: Organization members
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/PaginatedResponse'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                          user_id:
+                            type: string
+                          organization_id:
+                            type: string
+
+  post:
+    summary: Add organization member
+    description: Add a user to an organization with roles
+    tags:
+      - Organizations
+    parameters:
+      - $ref: '#/components/parameters/OrganizationId'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - user_id
+              - role_ids
+            properties:
+              user_id:
+                type: string
+              role_ids:
+                type: array
+                items:
+                  type: string
+    responses:
+      '200':
+        description: Member added
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                user_id:
+                  type: string
+                organization_id:
+                  type: string
+      '404':
+        $ref: '#/components/responses/NotFound'

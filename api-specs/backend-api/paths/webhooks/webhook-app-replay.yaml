@@ -1,0 +1,37 @@
+# Webhook app replay deliveries endpoint
+
+WebhookAppReplay:
+  post:
+    summary: Replay webhook deliveries
+    description: Replay failed webhook deliveries
+    tags:
+      - Webhooks
+    parameters:
+      - $ref: '#/components/parameters/WebhookAppName'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - delivery_ids
+            properties:
+              delivery_ids:
+                type: array
+                items:
+                  type: string
+    responses:
+      '200':
+        description: Deliveries replayed
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                replayed:
+                  type: integer
+                failed:
+                  type: integer
+      '404':
+        $ref: '#/components/responses/NotFound'

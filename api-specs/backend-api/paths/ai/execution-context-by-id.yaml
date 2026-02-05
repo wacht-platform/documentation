@@ -1,0 +1,39 @@
+# Execution Context by ID operations
+
+AIExecutionContextById:
+  patch:
+    summary: Update execution context
+    description: Update an execution context
+    tags:
+      - AI Execution Contexts
+    parameters:
+      - $ref: '#/components/parameters/ExecutionContextId'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              title:
+                type: string
+              system_instructions:
+                type: string
+              context_group:
+                type: string
+              status:
+                type: string
+    responses:
+      '200':
+        description: Execution context updated
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                title:
+                  type: string
+      '404':
+        $ref: '#/components/responses/NotFound'

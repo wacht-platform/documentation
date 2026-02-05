@@ -1,0 +1,355 @@
+---
+title: 'Organizations API'
+description: 'Working with organizations in the Rust SDK'
+---
+
+# Organizations API Guide
+
+
+Learn how to manage organizations using the Wacht Rust SDK.
+
+## Prerequisites
+
+Before using any API methods, you must initialize the SDK:
+
+```rust
+use wacht::init_from_env;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Initialize from environment variables
+    // Requires: WACHT_API_KEY and WACHT_FRONTEND_HOST
+    init_from_env().await?;
+
+    // Now you can use the API
+    Ok(())
+}
+```
+
+## List Organizations
+
+Retrieve a paginated list of organizations from your deployment.
+
+### Basic List
+
+```rust
+use wacht::api::organizations;
+
+// Fetch all organizations (default pagination)
+let orgs = organizations::fetch_organizations()
+    .send()
+    .await?;
+
+println!("Total organizations: {}", orgs.data.len());
+for org in orgs.data {
+    println!("{} ({} members)", org.name, org.members_count);
+}
+```
+
+### With Pagination and Filters
+
+```rust
+use wacht::api::organizations;
+
+// Fetch organizations with builder options
+let orgs = organizations::fetch_organizations()
+    .limit(50)
+    .offset(0)
+    .search("acme")
+    .sort_key("created_at")
+    .sort_order("desc")
+    .send()
+    .await?;
+
+println!("Has more: {}", orgs.has_more);
+```
+
+### Builder Methods
+
+- `limit(i32)` - Number of results to return (max 100)
+- `offset(i32)` - Number of results to skip
+- `search(&str)` - Search query to filter results
+- `sort_key(&str)` - Field to sort by
+- `sort_order(&str)` - Sort order ("asc" or "desc")
+
+## Get Organization Details
+
+Retrieve complete information about an organization.
+
+```rust
+use wacht::api::organizations;
+
+let details = organizations::fetch_organization_details("org_123")
+    .send()
+    .await?;
+
+println!("Organization: {}", details.name);
+println!("Description: {:?}", details.description);
+println!("Members: {}", details.members_count);
+println!("Created: {}", details.created_at);
+```
+
+## Create Organization
+
+Create a new organization in your deployment.
+
+### Basic Organization Creation
+
+```rust
+use wacht::api::organizations;
+use wacht::models::CreateOrganizationRequest;
+
+let org = organizations::create_organization(
+    CreateOrganizationRequest::new("Acme Corp".to_string())
+)
+.send()
+.await?;
+
+println!("Created organization: {}", org.id);
+```
+
+### With Optional Fields
+
+```rust
+use wacht::api::organizations;
+use wacht::models::CreateOrganizationRequest;
+
+let request = CreateOrganizationRequest {
+    name: "Acme Corp".to_string(),
+    description: Some("A sample organization".to_string()),
+    public_metadata: Some(serde_json::json!({
+        "industry": "Technology",
+        "website": "https://acme.com"
+    })),
+    private_metadata: Some(serde_json::json!({
+        "internal_notes": "Priority customer"
+    })),
+    organization_image: None,
+};
+
+let org = organizations::create_organization(request)
+    .send()
+    .await?;
+```
+
+### Required Fields
+
+- `name` (String) - Organization name
+
+### Optional Fields
+
+- `description` (Option&lt;String&gt;) - Organization description
+- `public_metadata` (Option&lt;serde_json::Value&gt;) - Public metadata
+- `private_metadata` (Option&lt;serde_json::Value&gt;) - Private metadata
+- `organization_image` (Option&lt;Vec&lt;u8&gt;&gt;) - Organization image data
+
+## Update Organization
+
+Update an existing organization's information. Only provided fields will be updated.
+
+```rust
+use wacht::api::organizations;
+use wacht::models::UpdateOrganizationRequest;
+
+let updated = organizations::update_organization(
+    "org_123",
+    UpdateOrganizationRequest {
+        name: Some("Acme Corporation".to_string()),
+        description: Some("Updated description".to_string()),
+        public_metadata: Some(serde_json::json!({"updated": true})),
+        ..Default::default()
+    }
+)
+.send()
+.await?;
+```
+
+### Available Update Fields
+
+All fields are optional - only include what you want to change:
+
+- `name` (Option&lt;String&gt;)
+- `description` (Option&lt;String&gt;)
+- `public_metadata` (Option&lt;serde_json::Value&gt;)
+- `private_metadata` (Option&lt;serde_json::Value&gt;)
+- `disabled` (Option&lt;bool&gt;)
+
+## Delete Organization
+
+Permanently delete an organization. This action cannot be undone.
+
+```rust
+use wacht::api::organizations;
+
+organizations::delete_organization("org_123")
+    .send()
+    .await?;
+```
+
+## Manage Organization Members
+
+### List Members
+
+```rust
+use wacht::api::organizations::members;
+
+let members = members::list_members("org_123")
+    .limit(50)
+    .send()
+    .await?;
+
+for member in members.data {
+    println!("{} - {} {}", member.role.name, member.user.first_name, member.user.last_name);
+}
+```
+
+### Add Member
+
+```rust
+use wacht::api::organizations::members;
+use wacht::models::AddOrganizationMemberRequest;
+
+// First get available roles to find the role ID
+let roles = organizations::roles::list_roles("org_123")
+    .send()
+    .await?;
+
+let member = members::add_member(
+    "org_123",
+    AddOrganizationMemberRequest {
+        user_id: "user_456".to_string(),
+        role_ids: vec![roles.data[0].id.clone()],
+    }
+)
+.send()
+.await?;
+
+println!("Added member: {}", member.user.first_name);
+```
+
+### Update Member Role
+
+```rust
+use wacht::api::organizations::members;
+use wacht::models::UpdateMemberRoleRequest;
+
+let updated = members::update_member_role(
+    "org_123",
+    "member_789",
+    UpdateMemberRoleRequest {
+        role_ids: vec!["new_role_id".to_string()],
+    }
+)
+.send()
+.await?;
+```
+
+### Remove Member
+
+```rust
+use wacht::api::organizations::members;
+
+members::remove_member("org_123", "member_789")
+    .send()
+    .await?;
+```
+
+## Manage Organization Roles
+
+### List Roles
+
+```rust
+use wacht::api::organizations::roles;
+
+let roles = roles::list_roles("org_123")
+    .send()
+    .await?;
+
+for role in roles.data {
+    println!("{} ({} permissions)", role.name, role.permissions.len());
+}
+```
+
+### Create Role
+
+```rust
+use wacht::api::organizations::roles;
+use wacht::models::CreateRoleRequest;
+
+let role = roles::create_role(
+    "org_123",
+    CreateRoleRequest {
+        name: "Editor".to_string(),
+        description: Some("Can edit content".to_string()),
+        permissions: vec![
+            "org:read".to_string(),
+            "org:write".to_string(),
+        ],
+    }
+)
+.send()
+.await?;
+
+println!("Created role: {}", role.name);
+```
+
+### Update Role
+
+```rust
+use wacht::api::organizations::roles;
+use wacht::models::UpdateRoleRequest;
+
+let updated = roles::update_role(
+    "org_123",
+    "role_456",
+    UpdateRoleRequest {
+        name: Some("Senior Editor".to_string()),
+        description: Some("Advanced editing permissions".to_string()),
+        permissions: Some(vec![
+            "org:read".to_string(),
+            "org:write".to_string(),
+            "org:delete".to_string(),
+        ]),
+    }
+)
+.send()
+.await?;
+```
+
+### Delete Role
+
+```rust
+use wacht::api::organizations::roles;
+
+roles::delete_role("org_123", "role_456")
+    .send()
+    .await?;
+```
+
+## Error Handling
+
+All SDK methods return a `Result<T, Error>`:
+
+```rust
+use wacht::{Error, api::organizations};
+
+match organizations::fetch_organization_details("invalid_id").send().await {
+    Ok(details) => println!("Organization: {}", details.name),
+    Err(Error::Api { status, message, .. }) => {
+        eprintln!("API Error {}: {}", status, message);
+    }
+    Err(Error::Request(e)) => {
+        eprintln!("Network error: {}", e);
+    }
+    Err(e) => {
+        eprintln!("Other error: {}", e);
+    }
+}
+```
+
+## Related
+
+- [Installation](/rust-sdk/installation) - SDK setup
+- [Users Guide](/rust-sdk/guide/users) - Managing users
+- [Workspaces Guide](/rust-sdk/guide/workspaces) - Managing workspaces
+- [API Reference - Backend API](/api-reference/backend-api/organizations) - Full API docs

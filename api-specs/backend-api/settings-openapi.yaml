@@ -1,0 +1,1124 @@
+openapi: 3.0.3
+info:
+  title: Wacht Backend API - Settings
+  description: Deployment settings endpoints
+  version: 1.0.0
+
+servers:
+  - url: https://api.wacht.dev
+    description: Production server
+
+security:
+  - ApiKeyAuth: []
+
+tags:
+  - name: Settings
+    description: Settings management
+
+paths:
+
+  /:
+    get:
+      summary: Get deployment with settings
+      description: Retrieve deployment information with all settings
+      tags:
+        - Settings
+      responses:
+        '200':
+          description: Deployment with settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeploymentWithSettings'
+
+  /jwt-templates:
+    get:
+      summary: Get JWT templates
+      description: List all JWT templates
+      tags:
+        - Settings
+      responses:
+        '200':
+          description: JWT templates
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedJwtTemplates'
+    post:
+      summary: Create JWT template
+      description: Create a new JWT template
+      tags:
+        - Settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewDeploymentJwtTemplate'
+      responses:
+        '200':
+          description: JWT template created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeploymentJwtTemplate'
+
+  /jwt-templates/{id}:
+    patch:
+      summary: Update JWT template
+      description: Update a JWT template
+      tags:
+        - Settings
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartialDeploymentJwtTemplate'
+      responses:
+        '200':
+          description: JWT template updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeploymentJwtTemplate'
+    delete:
+      summary: Delete JWT template
+      description: Delete a JWT template
+      tags:
+        - Settings
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: JWT template deleted
+
+  /settings/auth:
+    patch:
+      summary: Update auth settings
+      description: Update deployment authentication settings
+      tags:
+        - Settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeploymentAuthSettingsUpdates'
+      responses:
+        '200':
+          description: Auth settings updated successfully
+
+  /settings/display:
+    patch:
+      summary: Update display settings
+      description: Update deployment display and branding settings
+      tags:
+        - Settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeploymentDisplaySettingsUpdates'
+      responses:
+        '200':
+          description: Display settings updated successfully
+
+  /settings/restrictions:
+    patch:
+      summary: Update deployment restrictions
+      description: Update deployment restriction settings
+      tags:
+        - Settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeploymentRestrictionsUpdates'
+      responses:
+        '200':
+          description: Restrictions updated successfully
+
+  /settings/b2b:
+    patch:
+      summary: Update B2B settings
+      description: Update deployment B2B/SaaS settings
+      tags:
+        - Settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeploymentB2bSettingsUpdates'
+      responses:
+        '200':
+          description: B2B settings updated successfully
+
+  /settings/social-connections:
+    get:
+      summary: Get social connections
+      description: List all social connection configurations
+      tags:
+        - Settings
+      responses:
+        '200':
+          description: Social connections
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSocialConnections'
+    put:
+      summary: Upsert social connection
+      description: Create or update a social connection configuration
+      tags:
+        - Settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeploymentSocialConnectionUpsert'
+      responses:
+        '200':
+          description: Social connection updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeploymentSocialConnection'
+
+  /settings/email/smtp:
+    post:
+      summary: Update SMTP config
+      description: Configure SMTP settings for sending emails
+      tags:
+        - Settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SmtpConfigRequest'
+      responses:
+        '200':
+          description: SMTP config updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SmtpConfigResponse'
+    delete:
+      summary: Remove SMTP config
+      description: Remove SMTP configuration
+      tags:
+        - Settings
+      responses:
+        '204':
+          description: SMTP config removed
+
+  /settings/email/smtp/verify:
+    post:
+      summary: Verify SMTP connection
+      description: Test SMTP connection with current configuration
+      tags:
+        - Settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SmtpConfigRequest'
+      responses:
+        '200':
+          description: SMTP connection verified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SmtpVerifyResponse'
+
+  /settings/email-templates/{template_name}:
+    get:
+      summary: Get email template
+      description: Retrieve email template by name
+      tags:
+        - Settings
+      parameters:
+        - name: template_name
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Template name
+      responses:
+        '200':
+          description: Email template
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailTemplate'
+    patch:
+      summary: Update email template
+      description: Update email template content
+      tags:
+        - Settings
+      parameters:
+        - name: template_name
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailTemplate'
+      responses:
+        '200':
+          description: Email template updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailTemplate'
+
+  /settings/upload/{image_type}:
+    post:
+      summary: Upload image
+      description: Upload an image file to CDN (supports JPEG, PNG, GIF, WEBP, ICO formats)
+      tags:
+        - Settings
+      parameters:
+        - name: image_type
+          in: path
+          required: true
+          description: Type of image to upload
+          schema:
+            type: string
+            enum: [logo, favicon, user-profile, org-profile, workspace-profile]
+          example: "logo"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Image file to upload
+      responses:
+        '200':
+          description: Image uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadResponse'
+              example:
+                url: "https://cdn.wacht.services/deployments/123/logo.png"
+        '400':
+          description: Invalid file type, size, or no data provided
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: File too large
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: 'API key authentication (format: Bearer {api_key})'
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+
+    # =====================================================
+    # DEPLOYMENT SCHEMAS
+    # =====================================================
+
+    DeploymentWithSettings:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Deployment ID
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        maintenance_mode:
+          type: boolean
+        backend_host:
+          type: string
+        frontend_host:
+          type: string
+        mail_from_host:
+          type: string
+        publishable_key:
+          type: string
+        mode:
+          type: string
+          enum: [production, staging]
+        auth_settings:
+          $ref: '#/components/schemas/DeploymentAuthSettings'
+        ui_settings:
+          $ref: '#/components/schemas/DeploymentUISettings'
+        b2b_settings:
+          $ref: '#/components/schemas/DeploymentB2bSettings'
+        restrictions:
+          $ref: '#/components/schemas/DeploymentRestrictions'
+        email_provider:
+          type: string
+          enum: [postmark, custom_smtp]
+        custom_smtp_config:
+          $ref: '#/components/schemas/CustomSmtpConfig'
+
+    # =====================================================
+    # AUTH SETTINGS
+    # =====================================================
+
+    DeploymentAuthSettingsUpdates:
+      type: object
+      properties:
+        email:
+          $ref: '#/components/schemas/PartialEmailSettings'
+        phone:
+          $ref: '#/components/schemas/PartialPhoneSettings'
+        username:
+          $ref: '#/components/schemas/PartialUsernameSettings'
+        password:
+          $ref: '#/components/schemas/PartialPasswordSettings'
+        name:
+          $ref: '#/components/schemas/PartialNameSettings'
+        authentication_factors:
+          $ref: '#/components/schemas/PartialAuthenticationFactorSettings'
+        second_factor_policy:
+          type: string
+          enum: [optional, required, no_second_factor]
+        first_factor:
+          type: string
+          enum: [email_password, username_password, sso, web3_wallet, email_otp, phone_otp, magic_link, passkey]
+        backup_code:
+          $ref: '#/components/schemas/PartialIndividualAuthSettings'
+        web3_wallet:
+          $ref: '#/components/schemas/PartialIndividualAuthSettings'
+        multi_session_support:
+          type: string
+          enum: [enabled, disabled]
+        session_token_lifetime:
+          type: integer
+          description: Session token lifetime in seconds
+        session_validity_period:
+          type: integer
+          description: Session validity period in seconds
+        session_inactive_timeout:
+          type: integer
+          description: Session inactive timeout in seconds
+
+    PartialEmailSettings:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        required:
+          type: boolean
+        verify_signup:
+          type: boolean
+        otp_verification_allowed:
+          type: boolean
+        magic_link_verification_allowed:
+          type: boolean
+
+    PartialPhoneSettings:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        required:
+          type: boolean
+        verify_signup:
+          type: boolean
+        sms_verification_allowed:
+          type: boolean
+        whatsapp_verification_allowed:
+          type: boolean
+
+    PartialUsernameSettings:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        required:
+          type: boolean
+        min_length:
+          type: integer
+          minimum: 1
+          maximum: 255
+        max_length:
+          type: integer
+          minimum: 1
+          maximum: 255
+
+    PartialPasswordSettings:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        min_length:
+          type: integer
+          minimum: 1
+          maximum: 255
+        require_lowercase:
+          type: boolean
+        require_uppercase:
+          type: boolean
+        require_number:
+          type: boolean
+        require_special:
+          type: boolean
+
+    PartialNameSettings:
+      type: object
+      properties:
+        first_name_enabled:
+          type: boolean
+        first_name_required:
+          type: boolean
+        last_name_enabled:
+          type: boolean
+        last_name_required:
+          type: boolean
+
+    PartialEmailLinkSettings:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        require_same_device:
+          type: boolean
+
+    PartialPasskeySettings:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        prompt_registration_on_auth:
+          type: boolean
+        allow_autofill:
+          type: boolean
+
+    PartialIndividualAuthSettings:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        required:
+          type: boolean
+
+    PartialAuthenticationFactorSettings:
+      type: object
+      properties:
+        email_password_enabled:
+          type: boolean
+        username_password_enabled:
+          type: boolean
+        sso_enabled:
+          type: boolean
+        web3_wallet_enabled:
+          type: boolean
+        email_otp_enabled:
+          type: boolean
+        phone_otp_enabled:
+          type: boolean
+        magic_link:
+          $ref: '#/components/schemas/PartialEmailLinkSettings'
+        passkey:
+          $ref: '#/components/schemas/PartialPasskeySettings'
+        second_factor_authenticator_enabled:
+          type: boolean
+        second_factor_backup_code_enabled:
+          type: boolean
+
+    DeploymentAuthSettings:
+      type: object
+      properties:
+        email:
+          type: object
+        phone:
+          type: object
+        username:
+          type: object
+        password:
+          type: object
+        name:
+          type: object
+        authentication_factors:
+          type: object
+        second_factor_policy:
+          type: string
+        first_factor:
+          type: string
+        backup_code:
+          type: object
+        web3_wallet:
+          type: object
+        multi_session_support:
+          type: string
+        session_token_lifetime:
+          type: integer
+        session_validity_period:
+          type: integer
+        session_inactive_timeout:
+          type: integer
+
+    # =====================================================
+    # DISPLAY SETTINGS
+    # =====================================================
+
+    DeploymentDisplaySettingsUpdates:
+      type: object
+      properties:
+        app_name:
+          type: string
+        tos_page_url:
+          type: string
+          format: uri
+        sign_in_page_url:
+          type: string
+          format: uri
+        sign_up_page_url:
+          type: string
+          format: uri
+        after_sign_out_one_page_url:
+          type: string
+          format: uri
+        after_sign_out_all_page_url:
+          type: string
+          format: uri
+        favicon_image_url:
+          type: string
+          format: uri
+        logo_image_url:
+          type: string
+          format: uri
+        privacy_policy_url:
+          type: string
+          format: uri
+        signup_terms_statement:
+          type: string
+        signup_terms_statement_shown:
+          type: boolean
+        after_logo_click_url:
+          type: string
+          format: uri
+        organization_profile_url:
+          type: string
+          format: uri
+        create_organization_url:
+          type: string
+          format: uri
+        default_user_profile_image_url:
+          type: string
+          format: uri
+        default_organization_profile_image_url:
+          type: string
+          format: uri
+        default_workspace_profile_image_url:
+          type: string
+          format: uri
+        use_initials_for_user_profile_image:
+          type: boolean
+        use_initials_for_organization_profile_image:
+          type: boolean
+        after_signup_redirect_url:
+          type: string
+          format: uri
+        after_signin_redirect_url:
+          type: string
+          format: uri
+        user_profile_url:
+          type: string
+          format: uri
+        after_create_organization_redirect_url:
+          type: string
+          format: uri
+        waitlist_page_url:
+          type: string
+          format: uri
+        support_page_url:
+          type: string
+          format: uri
+        light_mode_settings:
+          $ref: '#/components/schemas/LightModeSettings'
+        dark_mode_settings:
+          $ref: '#/components/schemas/DarkModeSettings'
+
+    LightModeSettings:
+      type: object
+      properties:
+        background_color:
+          type: string
+        text_color:
+          type: string
+        primary_color:
+          type: string
+        secondary_color:
+          type: string
+        border_color:
+          type: string
+
+    DarkModeSettings:
+      type: object
+      properties:
+        background_color:
+          type: string
+        text_color:
+          type: string
+        primary_color:
+          type: string
+        secondary_color:
+          type: string
+        border_color:
+          type: string
+
+    DeploymentUISettings:
+      type: object
+      properties:
+        app_name:
+          type: string
+        logo_image_url:
+          type: string
+        favicon_image_url:
+          type: string
+        primary_color:
+          type: string
+
+    # =====================================================
+    # RESTRICTIONS
+    # =====================================================
+
+    DeploymentRestrictionsUpdates:
+      type: object
+      properties:
+        allowlist_enabled:
+          type: boolean
+        blocklist_enabled:
+          type: boolean
+        block_subaddresses:
+          type: boolean
+        block_disposable_emails:
+          type: boolean
+        block_voip_numbers:
+          type: boolean
+        country_restrictions:
+          $ref: '#/components/schemas/CountryRestrictions'
+        banned_keywords:
+          type: array
+          items:
+            type: string
+        allowlisted_resources:
+          type: array
+          items:
+            type: string
+        blocklisted_resources:
+          type: array
+          items:
+            type: string
+        sign_up_mode:
+          type: string
+          enum: [open, closed, waitlist]
+        waitlist_collect_names:
+          type: boolean
+        multi_session_support:
+          type: string
+          enum: [enabled, disabled]
+        session_token_lifetime:
+          type: integer
+        session_validity_period:
+          type: integer
+        session_inactive_timeout:
+          type: integer
+
+    CountryRestrictions:
+      type: object
+      properties:
+        mode:
+          type: string
+          enum: [allowlist, blocklist, disabled]
+        allowed_country_codes:
+          type: array
+          items:
+            type: string
+        blocked_country_codes:
+          type: array
+          items:
+            type: string
+
+    DeploymentRestrictions:
+      type: object
+      properties:
+        allowlist_enabled:
+          type: boolean
+        blocklist_enabled:
+          type: boolean
+        country_restrictions:
+          $ref: '#/components/schemas/CountryRestrictions'
+        sign_up_mode:
+          type: string
+
+    # =====================================================
+    # B2B SETTINGS
+    # =====================================================
+
+    DeploymentB2bSettingsUpdates:
+      type: object
+      properties:
+        organizations_enabled:
+          type: boolean
+        workspaces_enabled:
+          type: boolean
+        ip_allowlist_per_org_enabled:
+          type: boolean
+        allow_users_to_create_orgs:
+          type: boolean
+        max_allowed_org_members:
+          type: string
+        max_allowed_workspace_members:
+          type: string
+        allow_org_deletion:
+          type: boolean
+        allow_workspace_deletion:
+          type: boolean
+        custom_org_role_enabled:
+          type: boolean
+        custom_workspace_role_enabled:
+          type: boolean
+        default_workspace_creator_role_id:
+          type: string
+        default_workspace_member_role_id:
+          type: string
+        default_org_creator_role_id:
+          type: string
+        default_org_member_role_id:
+          type: string
+        limit_org_creation_per_user:
+          type: boolean
+        limit_workspace_creation_per_org:
+          type: boolean
+        org_creation_per_user_count:
+          type: integer
+        workspaces_per_org_count:
+          type: integer
+        workspace_permissions:
+          type: array
+          items:
+            type: string
+        organization_permissions:
+          type: array
+          items:
+            type: string
+        ip_allowlist_per_workspace_enabled:
+          type: boolean
+        enforce_mfa_per_org_enabled:
+          type: boolean
+        enforce_mfa_per_workspace_enabled:
+          type: boolean
+        enterprise_sso_enabled:
+          type: boolean
+
+    DeploymentB2bSettings:
+      type: object
+      properties:
+        organizations_enabled:
+          type: boolean
+        workspaces_enabled:
+          type: boolean
+
+    # =====================================================
+    # JWT TEMPLATES
+    # =====================================================
+
+    DeploymentJwtTemplate:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        token_lifetime:
+          type: integer
+          description: Token lifetime in seconds
+        allowed_clock_skew:
+          type: integer
+          description: Allowed clock skew in seconds
+        custom_signing_key:
+          $ref: '#/components/schemas/CustomSigningKey'
+        template:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    NewDeploymentJwtTemplate:
+      type: object
+      required:
+        - name
+        - token_lifetime
+        - allowed_clock_skew
+        - template
+      properties:
+        name:
+          type: string
+        token_lifetime:
+          type: integer
+          description: Token lifetime in seconds
+        allowed_clock_skew:
+          type: integer
+          description: Allowed clock skew in seconds
+        custom_signing_key:
+          $ref: '#/components/schemas/CustomSigningKey'
+        template:
+          type: object
+          additionalProperties: true
+          description: JWT template claims
+
+    PartialDeploymentJwtTemplate:
+      type: object
+      properties:
+        name:
+          type: string
+        token_lifetime:
+          type: integer
+        allowed_clock_skew:
+          type: integer
+        custom_signing_key:
+          $ref: '#/components/schemas/CustomSigningKey'
+        template:
+          type: object
+          additionalProperties: true
+
+    CustomSigningKey:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        key:
+          type: string
+        algorithm:
+          type: string
+          description: JWT signing algorithm (e.g., RS256, HS256)
+
+    PaginatedJwtTemplates:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeploymentJwtTemplate'
+        has_more:
+          type: boolean
+        limit:
+          type: integer
+          nullable: true
+        offset:
+          type: integer
+          nullable: true
+
+    # =====================================================
+    # SOCIAL CONNECTIONS
+    # =====================================================
+
+    DeploymentSocialConnection:
+      type: object
+      properties:
+        id:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        provider:
+          type: string
+          enum: [x_oauth, github_oauth, gitlab_oauth, google_oauth, facebook_oauth, microsoft_oauth, linkedin_oauth, discord_oauth, apple_oauth]
+        enabled:
+          type: boolean
+        credentials:
+          $ref: '#/components/schemas/OauthCredentials'
+
+    DeploymentSocialConnectionUpsert:
+      type: object
+      properties:
+        provider:
+          type: string
+          enum: [x_oauth, github_oauth, gitlab_oauth, google_oauth, facebook_oauth, microsoft_oauth, linkedin_oauth, discord_oauth, apple_oauth]
+        enabled:
+          type: boolean
+        user_defined_scopes:
+          type: array
+          items:
+            type: string
+        credentials:
+          $ref: '#/components/schemas/OauthCredentials'
+
+    OauthCredentials:
+      type: object
+      properties:
+        client_id:
+          type: string
+        client_secret:
+          type: string
+        redirect_uri:
+          type: string
+        scopes:
+          type: array
+          items:
+            type: string
+
+    PaginatedSocialConnections:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeploymentSocialConnection'
+        has_more:
+          type: boolean
+        limit:
+          type: integer
+          nullable: true
+        offset:
+          type: integer
+          nullable: true
+
+    # =====================================================
+    # SMTP CONFIG
+    # =====================================================
+
+    SmtpConfigRequest:
+      type: object
+      required:
+        - host
+        - port
+        - username
+        - password
+        - from_email
+      properties:
+        host:
+          type: string
+        port:
+          type: integer
+        username:
+          type: string
+        password:
+          type: string
+        from_email:
+          type: string
+          format: email
+        use_tls:
+          type: boolean
+          default: true
+
+    SmtpConfigResponse:
+      type: object
+      properties:
+        host:
+          type: string
+        port:
+          type: integer
+        username:
+          type: string
+        from_email:
+          type: string
+        use_tls:
+          type: boolean
+        verified:
+          type: boolean
+
+    SmtpVerifyResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+
+    CustomSmtpConfig:
+      type: object
+      properties:
+        host:
+          type: string
+        port:
+          type: integer
+        username:
+          type: string
+        from_email:
+          type: string
+        use_tls:
+          type: boolean
+        verified:
+          type: boolean
+
+    # =====================================================
+    # EMAIL TEMPLATES
+    # =====================================================
+
+    EmailTemplate:
+      type: object
+      properties:
+        template_name:
+          type: string
+        template_data:
+          type: string
+          description: HTML body of the email template
+        template_from:
+          type: string
+        template_reply_to:
+          type: string
+        template_subject:
+          type: string
+
+    # =====================================================
+    # IMAGE UPLOAD
+    # =====================================================
+
+    UploadResponse:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+          description: CDN URL of the uploaded image
+          example: "https://cdn.wacht.services/deployments/123/logo.png"

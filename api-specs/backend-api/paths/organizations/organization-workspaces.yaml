@@ -1,0 +1,32 @@
+# Organization workspaces endpoint
+
+OrganizationWorkspaces:
+  post:
+    summary: Create workspace in organization
+    description: Create a new workspace within an organization
+    tags:
+      - Organizations
+    parameters:
+      - $ref: '#/components/parameters/OrganizationId'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - name
+            properties:
+              name:
+                type: string
+              description:
+                type: string
+    responses:
+      '200':
+        description: Workspace created
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Workspace'
+      '404':
+        $ref: '#/components/responses/NotFound'

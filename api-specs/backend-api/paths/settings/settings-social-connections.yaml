@@ -1,0 +1,70 @@
+# Social connections settings endpoint
+
+SettingsSocialConnections:
+  get:
+    summary: Get social connections
+    description: List all social connection configurations
+    tags:
+      - Settings
+    responses:
+      '200':
+        description: Social connections
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  provider:
+                    type: string
+                  enabled:
+                    type: boolean
+                  client_id:
+                    type: string
+                  scopes:
+                    type: array
+                    items:
+                      type: string
+
+  put:
+    summary: Upsert social connection
+    description: Create or update a social connection configuration
+    tags:
+      - Settings
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - provider
+            properties:
+              provider:
+                type: string
+                enum: [google, github, facebook, twitter, apple, microsoft, linkedin]
+              enabled:
+                type: boolean
+              client_id:
+                type: string
+              client_secret:
+                type: string
+              scopes:
+                type: array
+                items:
+                  type: string
+              redirect_url:
+                type: string
+    responses:
+      '200':
+        description: Social connection updated
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                provider:
+                  type: string
+                enabled:
+                  type: boolean

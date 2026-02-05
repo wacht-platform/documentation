@@ -1,0 +1,64 @@
+# Restrictions settings endpoint
+
+SettingsRestrictions:
+  patch:
+    summary: Update deployment restrictions
+    description: Update deployment restriction settings
+    tags:
+      - Settings
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              allow_new_signups:
+                type: boolean
+              allow_new_orgs:
+                type: boolean
+              allow_new_workspaces:
+                type: boolean
+              max_users:
+                type: integer
+                nullable: true
+              max_orgs:
+                type: integer
+                nullable: true
+              max_workspaces_per_org:
+                type: integer
+                nullable: true
+              ip_whitelist:
+                type: array
+                items:
+                  type: string
+              ip_blacklist:
+                type: array
+                items:
+                  type: string
+              allowed_countries:
+                type: array
+                items:
+                  type: string
+              blocked_countries:
+                type: array
+                items:
+                  type: string
+    responses:
+      '200':
+        description: Restrictions updated
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                allow_new_signups:
+                  type: boolean
+                allow_new_orgs:
+                  type: boolean
+                max_users:
+                  type: integer
+                ip_whitelist:
+                  type: array
+                  items:
+                    type: string

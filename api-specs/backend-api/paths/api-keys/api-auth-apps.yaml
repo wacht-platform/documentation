@@ -1,0 +1,66 @@
+# API Auth Apps list and create
+
+ApiAuthApps:
+  get:
+    summary: List API auth apps
+    description: Get all API authentication apps
+    tags:
+      - API Keys
+    parameters:
+      - name: include_inactive
+        in: query
+        schema:
+          type: boolean
+    responses:
+      '200':
+        description: List of API auth apps
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                apps:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ApiAuthApp'
+
+  post:
+    summary: Create API auth app
+    description: Create a new API authentication app
+    tags:
+      - API Keys
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - name
+            properties:
+              name:
+                type: string
+              description:
+                type: string
+              rate_limits:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    unit:
+                      type: string
+                      enum: [second, minute, hour, day]
+                    duration:
+                      type: integer
+                    max_requests:
+                      type: integer
+                    mode:
+                      type: string
+                      enum: [per_key, per_ip, per_key_and_ip]
+    responses:
+      '200':
+        description: API auth app created
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiAuthApp'

@@ -1,0 +1,56 @@
+# User email by ID endpoint
+
+UserEmailById:
+  patch:
+    summary: Update user email
+    description: Update a user's email address
+    tags:
+      - Users
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+      - name: email_id
+        in: path
+        required: true
+        schema:
+          type: string
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              email:
+                type: string
+                format: email
+              verified:
+                type: boolean
+              is_primary:
+                type: boolean
+    responses:
+      '200':
+        description: Email updated
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserEmail'
+      '404':
+        $ref: '#/components/responses/NotFound'
+
+  delete:
+    summary: Delete user email
+    description: Remove an email address from a user
+    tags:
+      - Users
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+      - name: email_id
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      '204':
+        description: Email deleted
+      '404':
+        $ref: '#/components/responses/NotFound'

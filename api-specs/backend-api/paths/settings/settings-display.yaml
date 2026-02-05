@@ -1,0 +1,48 @@
+# Display settings endpoint
+
+SettingsDisplay:
+  patch:
+    summary: Update display settings
+    description: Update deployment display and branding settings
+    tags:
+      - Settings
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              display_name:
+                type: string
+              primary_color:
+                type: string
+              logo_url:
+                type: string
+              favicon_url:
+                type: string
+              custom_css:
+                type: string
+              theme:
+                type: string
+                enum: [light, dark, auto]
+              locale:
+                type: string
+              timezone:
+                type: string
+    responses:
+      '200':
+        description: Display settings updated
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                display_name:
+                  type: string
+                primary_color:
+                  type: string
+                logo_url:
+                  type: string
+                theme:
+                  type: string

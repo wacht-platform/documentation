@@ -465,7 +465,7 @@ components:
           example: "Impersonation successful"
         session_id:
           type: string
-          description: Session ID (for agent access tickets)
+          description: Session ID (for agent/webhook/api_auth access tickets)
           example: "123456789012345678"
           nullable: true
         context_group:
@@ -477,10 +477,98 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AgentInfo'
-          description: Available agents (for agent access tickets)
+          description: Available agents (for agent_access tickets)
+        webhook_app:
+          $ref: '#/components/schemas/WebhookAppInfo'
+          description: Webhook app info (for webhook_app_access tickets)
+          nullable: true
+        api_auth_app:
+          $ref: '#/components/schemas/ApiAuthAppInfo'
+          description: API auth app info (for api_auth_access tickets)
+          nullable: true
         session:
           $ref: '#/components/schemas/Session'
           description: Updated session (for impersonation tickets)
+
+    WebhookAppInfo:
+      type: object
+      description: Webhook app information returned after ticket exchange
+      properties:
+        app_slug:
+          type: string
+          description: Unique slug identifier for the webhook app
+          example: "payment-webhooks"
+        name:
+          type: string
+          description: Display name of the webhook app
+          example: "Payment Webhooks"
+        signing_secret:
+          type: string
+          description: Secret used to sign webhook payloads
+          example: "whsec_xxxxxxxxxxxxx"
+        is_active:
+          type: boolean
+          description: Whether the webhook app is currently active
+          example: true
+
+    ApiAuthAppInfo:
+      type: object
+      description: API auth app information returned after ticket exchange
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the API auth app
+          example: "mobile-app"
+        app_slug:
+          type: string
+          description: Unique slug identifier for the API auth app
+          example: "mobile-app"
+        name:
+          type: string
+          description: Display name of the API auth app
+          example: "Mobile Application"
+        description:
+          type: string
+          description: Optional description of the API auth app
+          example: "Mobile app API access"
+          nullable: true
+        is_active:
+          type: boolean
+          description: Whether the API auth app is currently active
+          example: true
+        rate_limits:
+          $ref: '#/components/schemas/RateLimits'
+          description: Rate limiting configuration
+
+    RateLimits:
+      type: object
+      description: Rate limiting configuration for API auth apps
+      properties:
+        mode:
+          type: string
+          enum: [disabled, single, sliding]
+          description: Rate limiting mode
+        limits:
+          type: array
+          items:
+            $ref: '#/components/schemas/RateLimit'
+          description: List of rate limit rules
+
+    RateLimit:
+      type: object
+      properties:
+        limit:
+          type: integer
+          description: Maximum number of requests
+          example: 100
+        window:
+          type: integer
+          description: Time window in the specified unit
+          example: 1
+        unit:
+          type: string
+          enum: [second, minute, hour, day]
+          description: Time unit for the rate limit window
 
     AgentInfo:
       type: object

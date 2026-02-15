@@ -3,7 +3,14 @@
 SessionTickets:
   post:
     summary: Create session ticket
-    description: Create a session ticket for backend authentication
+    description: |
+      Create a session ticket for backend-initiated authentication flows.
+
+      Ticket types:
+      - `impersonation`: Allow an admin to impersonate another user. Requires `user_id`.
+      - `agent_access`: Grant access to specific AI agents. Requires `agent_ids` and `context_group`.
+      - `webhook_app_access`: Grant access to a webhook app. Requires `webhook_app_slug`.
+      - `api_auth_access`: Grant access to an API auth app. Requires `api_auth_app_slug`.
     tags:
       - Users
     requestBody:
@@ -17,19 +24,29 @@ SessionTickets:
             properties:
               ticket_type:
                 type: string
-                enum: [session, api]
+                enum: [impersonation, agent_access, webhook_app_access, api_auth_access]
+                description: Type of ticket to create
               user_id:
                 type: string
+                description: User ID to impersonate (required for impersonation tickets)
               agent_ids:
                 type: array
                 items:
                   type: string
+                description: List of agent IDs to grant access to (required for agent_access tickets)
               context_group:
                 type: string
+                description: Context group for grouping agent sessions (required for agent_access tickets)
+              webhook_app_slug:
+                type: string
+                description: Slug of the webhook app to access (required for webhook_app_access tickets)
+              api_auth_app_slug:
+                type: string
+                description: Slug of the API auth app to access (required for api_auth_access tickets)
               expires_at:
                 type: integer
                 format: int64
-                description: Unix timestamp
+                description: Unix timestamp when the ticket expires
     responses:
       '200':
         description: Session ticket created
@@ -40,8 +57,12 @@ SessionTickets:
               properties:
                 ticket:
                   type: string
+                  description: The ticket string to be exchanged via GET /session/ticket/exchange
                 expires_at:
                   type: integer
                   format: int64
+                  description: Unix timestamp when the ticket expires
       '400':
         $ref: '#/components/responses/BadRequest'
+      '401':
+        $ref: '#/components/responses/Unauthorized'

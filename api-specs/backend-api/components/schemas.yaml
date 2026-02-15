@@ -213,7 +213,11 @@ schemas:
     properties:
       id:
         type: string
+      app_slug:
+        type: string
       name:
+        type: string
+      key_prefix:
         type: string
       description:
         type: string

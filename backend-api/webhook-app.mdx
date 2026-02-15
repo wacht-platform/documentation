@@ -1,0 +1,361 @@
+# Webhook App (Frontend API)
+
+The Webhook App endpoints allow authenticated users to manage webhook endpoints, view deliveries, and access analytics. These endpoints require an active webhook app session obtained via session ticket exchange.
+
+## Overview
+
+Webhook Apps provide a way to send webhooks to external systems. The frontend API endpoints allow users with an active session to:
+
+- View their current webhook app session
+- Manage webhook endpoints (CRUD operations)
+- View and replay webhook deliveries
+- Access analytics and statistics
+
+## Authentication
+
+All endpoints require:
+1. An active user session (cookie-based)
+2. An active webhook app session (obtained via `POST /session/ticket/exchange` with a `webhook_app_access` ticket)
+
+## Endpoints
+
+### Session
+
+#### Get Current Session
+
+```
+GET /webhook/session
+```
+
+Returns information about the current webhook app session.
+
+**Response**
+
+```json
+{
+  "session_id": "123456789012345678",
+  "webhook_app": {
+    "deployment_id": "111111111111111111",
+    "app_slug": "payment-webhooks",
+    "name": "Payment Webhooks",
+    "description": "Webhooks for payment events",
+    "signing_secret": "whsec_xxxxxxxxxxxxx",
+    "is_active": true,
+    "created_at": "2024-01-15T10:30:00Z",
+    "updated_at": "2024-01-15T10:30:00Z"
+  }
+}
+```
+
+### Endpoints
+
+#### List Endpoints
+
+```
+GET /webhook/endpoints
+```
+
+Returns all webhook endpoints for the current app.
+
+#### Create Endpoint
+
+```
+POST /webhook/endpoints
+```
+
+**Request Body**
+
+```json
+{
+  "url": "https://example.com/webhooks",
+  "description": "Production webhook endpoint",
+  "headers": {
+    "X-Custom-Header": "value"
+  },
+  "is_active": true,
+  "max_retries": 5,
+  "timeout_seconds": 30,
+  "subscriptions": ["user.created", "user.updated", "payment.completed"]
+}
+```
+
+**Parameters**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `url` | string | Yes | Endpoint URL (must be HTTPS) |
+| `description` | string | No | Optional description |
+| `headers` | object | No | Custom headers to send |
+| `is_active` | boolean | No | Enable endpoint (default: true) |
+| `max_retries` | integer | No | Max retry attempts (default: 5) |
+| `timeout_seconds` | integer | No | Request timeout (default: 30) |
+| `subscriptions` | array | No | Event names to subscribe to |
+
+#### Update Endpoint
+
+```
+PUT /webhook/endpoints/{id}
+```
+
+Updates an existing endpoint. All fields are optional.
+
+#### Delete Endpoint
+
+```
+DELETE /webhook/endpoints/{id}
+```
+
+Permanently deletes an endpoint.
+
+#### Test Endpoint
+
+```
+POST /webhook/endpoints/{id}/test
+```
+
+Sends a test payload to the endpoint.
+
+**Request Body**
+
+```json
+{
+  "event_name": "user.created",
+  "payload": "{\"user_id\": \"123\", \"email\": \"test@example.com\"}"
+}
+```
+
+**Response**
+
+```json
+{
+  "success": true,
+  "status_code": 200,
+  "response_body": "{\"received\": true}",
+  "duration_ms": 245
+}
+```
+
+### Events
+
+#### List Event Subscriptions
+
+```
+GET /webhook/events
+```
+
+Returns all event subscriptions across endpoints.
+
+#### Get Event Catalog
+
+```
+GET /webhook/catalog
+```
+
+Returns the available event types and their schemas.
+
+### Deliveries
+
+#### List Deliveries
+
+```
+GET /webhook/deliveries
+```
+
+**Query Parameters**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `limit` | integer | Max results (default: 50) |
+| `offset` | integer | Number to skip |
+| `cursor` | string | Base64-encoded pagination cursor |
+| `status` | string | Filter: `pending`, `success`, `failed`, `retrying` |
+| `event_name` | string | Filter by event name |
+| `endpoint_id` | string | Filter by endpoint ID |
+
+#### Get Delivery Details
+
+```
+GET /webhook/deliveries/{id}
+```
+
+Returns full delivery details including payload and attempt history.
+
+#### Replay Deliveries
+
+```
+POST /webhook/deliveries/replay
+```
+
+Creates a task to resend webhook deliveries.
+
+**Request Body**
+
+```json
+{
+  "delivery_ids": ["123", "456"],
+  "start_date": "2024-01-01T00:00:00Z",
+  "end_date": "2024-01-31T23:59:59Z",
+  "event_names": ["user.created"],
+  "endpoint_id": "123456789",
+  "status": "failed"
+}
+```
+
+**Parameters**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `delivery_ids` | array | Specific delivery IDs to replay |
+| `start_date` | string | Start date for bulk replay |
+| `end_date` | string | End date for bulk replay |
+| `event_names` | array | Filter by event names |
+| `endpoint_id` | string | Filter by endpoint ID |
+| `status` | string | Filter: `failed` or `all` (default: `failed`) |
+
+#### List Replay Tasks
+
+```
+GET /webhook/deliveries/replay
+```
+
+Returns all replay tasks for the webhook app.
+
+#### Get Replay Task Status
+
+```
+GET /webhook/deliveries/replay/{task_id}
+```
+
+Returns the status of a specific replay task.
+
+#### Cancel Replay Task
+
+```
+POST /webhook/deliveries/replay/{task_id}/cancel
+```
+
+Cancels an ongoing replay task.
+
+### Analytics
+
+#### Get Analytics
+
+```
+GET /webhook/analytics
+```
+
+**Query Parameters**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `start_date` | string | Start date (RFC3339) |
+| `end_date` | string | End date (RFC3339) |
+| `endpoint_id` | string | Filter by endpoint ID |
+| `fields` | string | Comma-separated fields to include |
+
+**Response**
+
+```json
+{
+  "total_deliveries": 15000,
+  "successful_deliveries": 14500,
+  "failed_deliveries": 300,
+  "pending_deliveries": 200,
+  "success_rate": 96.67,
+  "avg_delivery_time_ms": 245.5,
+  "deliveries_by_event": {
+    "user.created": 5000,
+    "user.updated": 3000,
+    "payment.completed": 7000
+  }
+}
+```
+
+#### Get Timeseries
+
+```
+GET /webhook/analytics/timeseries
+```
+
+**Query Parameters**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `start_date` | string | Start date (RFC3339) |
+| `end_date` | string | End date (RFC3339) |
+| `interval` | string | Grouping: `minute`, `hour`, `day`, `week` |
+| `endpoint_id` | string | Filter by endpoint ID |
+
+#### Get Stats
+
+```
+GET /webhook/stats
+```
+
+Returns quick stats for the webhook app.
+
+**Response**
+
+```json
+{
+  "total_endpoints": 5,
+  "active_endpoints": 4,
+  "total_deliveries_24h": 1250,
+  "success_rate_24h": 98.5,
+  "pending_deliveries": 15,
+  "failed_deliveries_24h": 18
+}
+```
+
+### Security
+
+#### Rotate Signing Secret
+
+```
+POST /webhook/rotate-secret
+```
+
+Generates a new signing secret. The old secret will stop working immediately.
+
+**Response**
+
+Returns the updated webhook app with the new signing secret.
+
+## Webhook Signature Verification
+
+Webhooks are signed using HMAC-SHA256. Verify the signature using the `signing_secret`:
+
+```javascript
+const crypto = require('crypto');
+
+function verifySignature(payload, signature, secret) {
+  const expectedSignature = crypto
+    .createHmac('sha256', secret)
+    .update(payload)
+    .digest('hex');
+
+  return crypto.timingSafeEqual(
+    Buffer.from(signature),
+    Buffer.from(expectedSignature)
+  );
+}
+```
+
+## Retry Behavior
+
+Failed deliveries are automatically retried with exponential backoff:
+
+| Attempt | Delay |
+|---------|-------|
+| 1 | Immediate |
+| 2 | 1 minute |
+| 3 | 5 minutes |
+| 4 | 15 minutes |
+| 5 | 1 hour |
+
+Endpoints are auto-disabled after 10 consecutive failures.
+
+## Related
+
+- [Session Tickets](/backend-api/session-tickets) - Creating webhook app access tickets
+- [Webhooks (Backend API)](/backend-api/webhooks) - Server-side webhook configuration

@@ -36,9 +36,15 @@ ApiAuthApps:
           schema:
             type: object
             required:
+              - app_slug
               - name
+              - key_prefix
             properties:
+              app_slug:
+                type: string
               name:
+                type: string
+              key_prefix:
                 type: string
               description:
                 type: string

@@ -1,0 +1,248 @@
+---
+title: 'Session Tickets'
+description: 'Create and exchange session tickets for impersonation and agent access'
+---
+
+# Session Tickets Guide
+
+Session tickets provide a secure way to grant temporary access for impersonation, AI agent access, webhook app access, and API auth app access.
+
+## Prerequisites
+
+Before using any API methods, you must initialize the SDK:
+
+```rust
+use wacht::init_from_env;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Initialize from environment variables
+    // Requires: WACHT_API_KEY and WACHT_FRONTEND_HOST
+    init_from_env().await?;
+
+    // Now you can use the API
+    Ok(())
+}
+```
+
+## Ticket Types
+
+The SDK supports four ticket types:
+
+| Type | Use Case |
+|------|----------|
+| `Impersonation` | Allow admins to impersonate other users |
+| `AgentAccess` | Grant access to specific AI agents |
+| `WebhookAppAccess` | Grant access to a webhook app |
+| `ApiAuthAccess` | Grant access to an API auth app |
+
+## Creating Tickets
+
+### Impersonation Ticket
+
+Allow an admin to impersonate another user:
+
+```rust
+use wacht::api::session::{create, TicketType};
+use wacht::models::CreateSessionTicketRequest;
+
+let response = create(
+    CreateSessionTicketRequest::impersonation("user_123")
+)
+.send()
+.await?;
+
+println!("Ticket: {}", response.ticket);
+println!("Expires at: {}", response.expires_at);
+```
+
+### Agent Access Ticket
+
+Grant access to specific AI agents with a context group:
+
+```rust
+use wacht::api::session::{create, TicketType};
+use wacht::models::CreateSessionTicketRequest;
+
+let response = create(
+    CreateSessionTicketRequest::agent_access(
+        vec!["agent_1".to_string(), "agent_2".to_string()],
+        "support-agents"
+    )
+)
+.send()
+.await?;
+
+println!("Ticket: {}", response.ticket);
+```
+
+### Webhook App Access Ticket
+
+Grant access to a webhook app:
+
+```rust
+use wacht::api::session::{create, TicketType};
+use wacht::models::CreateSessionTicketRequest;
+
+let response = create(
+    CreateSessionTicketRequest::webhook_app_access("payment-webhooks")
+)
+.send()
+.await?;
+
+println!("Ticket: {}", response.ticket);
+```
+
+### API Auth App Access Ticket
+
+Grant access to an API auth app:
+
+```rust
+use wacht::api::session::{create, TicketType};
+use wacht::models::CreateSessionTicketRequest;
+
+let response = create(
+    CreateSessionTicketRequest::api_auth_access("mobile-app")
+)
+.send()
+.await?;
+
+println!("Ticket: {}", response.ticket);
+```
+
+### With Custom Expiration
+
+Set a custom expiration timestamp (Unix timestamp):
+
+```rust
+use wacht::api::session::{create, TicketType};
+use wacht::models::CreateSessionTicketRequest;
+use std::time::{SystemTime, UNIX_EPOCH};
+
+let expires_at = SystemTime::now()
+    .duration_since(UNIX_EPOCH)
+    .unwrap()
+    .as_secs() as i64 + 3600; // 1 hour from now
+
+let response = create(
+    CreateSessionTicketRequest::impersonation("user_123")
+        .expires_at(expires_at)
+)
+.send()
+.await?;
+```
+
+## Exchanging Tickets
+
+Tickets are exchanged on the frontend using the session API:
+
+```
+GET /session/ticket/exchange?ticket=<ticket_string>
+```
+
+The exchange endpoint:
+- Validates the ticket
+- Creates the appropriate session (impersonation, agent, webhook, or API auth)
+- Returns session details
+- Deletes the ticket (single-use)
+
+### Exchange Response
+
+The response varies by ticket type:
+
+#### Impersonation Response
+
+```json
+{
+  "success": true,
+  "message": "Impersonation successful",
+  "session": { ... }
+}
+```
+
+#### Agent Access Response
+
+```json
+{
+  "success": true,
+  "message": "Agent session created",
+  "session_id": "123456789",
+  "context_group": "support-agents",
+  "agents": [
+    {
+      "id": "agent_1",
+      "name": "Support Agent",
+      "description": "Handles customer support",
+      "integrations": [...]
+    }
+  ]
+}
+```
+
+#### Webhook App Access Response
+
+```json
+{
+  "success": true,
+  "message": "Webhook app session created",
+  "session_id": "123456789",
+  "webhook_app": {
+    "app_slug": "payment-webhooks",
+    "name": "Payment Webhooks",
+    "signing_secret": "whsec_xxx",
+    "is_active": true
+  }
+}
+```
+
+#### API Auth App Access Response
+
+```json
+{
+  "success": true,
+  "message": "API auth app session created",
+  "session_id": "123456789",
+  "api_auth_app": {
+    "id": "mobile-app",
+    "app_slug": "mobile-app",
+    "name": "Mobile Application",
+    "is_active": true,
+    "rate_limits": { ... }
+  }
+}
+```
+
+## Security Considerations
+
+1. **Single-use**: Tickets are deleted after exchange
+2. **Expiration**: Always set reasonable expiration times
+3. **HTTPS**: Only exchange tickets over secure connections
+4. **Validation**: The frontend validates deployment ID matches
+
+## Error Handling
+
+```rust
+use wacht::{Error, api::session};
+use wacht::models::CreateSessionTicketRequest;
+
+match session::create(
+    CreateSessionTicketRequest::impersonation("invalid_user")
+)
+.send()
+.await {
+    Ok(response) => println!("Ticket: {}", response.ticket),
+    Err(Error::Api { status, message, .. }) => {
+        eprintln!("API Error {}: {}", status, message);
+    }
+    Err(e) => {
+        eprintln!("Error: {}", e);
+    }
+}
+```
+
+## Related
+
+- [API Keys Guide](/rust-sdk/guide/api-keys) - Managing API auth apps
+- [Agents Guide](/rust-sdk/guide/agents) - AI agent management
+- [Webhooks Guide](/rust-sdk/guide/webhooks) - Webhook configuration
+- [API Reference - Session Tickets](/api-reference/backend-api/users/session-tickets) - Full API docs

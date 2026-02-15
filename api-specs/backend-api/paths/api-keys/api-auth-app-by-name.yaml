@@ -34,6 +34,8 @@ ApiAuthAppByName:
             properties:
               name:
                 type: string
+              key_prefix:
+                type: string
               description:
                 type: string
               is_active:

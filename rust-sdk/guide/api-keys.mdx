@@ -80,7 +80,9 @@ use wacht::api::api_keys;
 use wacht::api::api_keys::CreateApiAuthAppRequest;
 
 let app = api_keys::create_api_auth_app(CreateApiAuthAppRequest {
+    app_slug: "my-integration".to_string(),
     name: "My Integration".to_string(),
+    key_prefix: "sk_live".to_string(),
     description: Some("Integration with external service".to_string()),
     rate_limits: None,
 })
@@ -97,7 +99,9 @@ use wacht::api::api_keys;
 use wacht::api::api_keys::{CreateApiAuthAppRequest, RateLimit, RateLimitUnit, RateLimitMode};
 
 let app = api_keys::create_api_auth_app(CreateApiAuthAppRequest {
+    app_slug: "my-integration".to_string(),
     name: "My Integration".to_string(),
+    key_prefix: "sk_live".to_string(),
     description: Some("Integration with external service".to_string()),
     rate_limits: Some(vec![
         RateLimit {
@@ -188,7 +192,6 @@ let key = api_keys::create_api_key(
     "my-integration",
     CreateApiKeyRequest {
         name: "Production Key".to_string(),
-        key_prefix: "wacht_prod".to_string(),
         permissions: None,
         expires_at: None,
         metadata: None,
@@ -211,7 +214,6 @@ let key = api_keys::create_api_key(
     "my-integration",
     CreateApiKeyRequest {
         name: "Production Key".to_string(),
-        key_prefix: "wacht_prod".to_string(),
         permissions: Some(vec![
             "users:read".to_string(),
             "orgs:read".to_string(),
@@ -326,7 +328,6 @@ RateLimit {
 ### CreateApiKeyRequest
 
 - `name` (String) - Key name (required)
-- `key_prefix` (String) - Key prefix (required)
 - `permissions` (Option&lt;Vec&lt;String&gt;&gt;) - Permission scopes
 - `expires_at` (Option&lt;DateTime&lt;Utc&gt;&gt;) - Expiration timestamp
 - `metadata` (Option&lt;Value&gt;) - Additional metadata

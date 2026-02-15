@@ -185,7 +185,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiKeyWithSecret'
         '400':
-          description: Bad request (missing key_prefix for backend API)
+          description: Bad request
           content:
             application/json:
               schema:
@@ -197,10 +197,75 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /api-auth/apps/{app_name}/keys/{key_id}/revoke:
+    post:
+      summary: Revoke API key for app
+      description: Revoke an API key by ID within a specific app
+      tags:
+        - API Keys
+      parameters:
+        - $ref: '#/components/parameters/ApiAuthAppName'
+        - name: key_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: int64
+          description: API key ID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  description: Reason for revocation
+      responses:
+        '200':
+          description: API key revoked
+        '400':
+          description: Bad request
+        '404':
+          description: API key or app not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api-auth/apps/{app_name}/keys/{key_id}/rotate:
+    post:
+      summary: Rotate API key for app
+      description: Rotate an API key and generate a new secret within a specific app
+      tags:
+        - API Keys
+      parameters:
+        - $ref: '#/components/parameters/ApiAuthAppName'
+        - name: key_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: int64
+          description: API key ID
+      responses:
+        '200':
+          description: API key rotated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiKeyWithSecret'
+        '404':
+          description: API key or app not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /api-auth/keys/revoke:
     post:
       summary: Revoke API key
-      description: Revoke an API key by ID
+      description: Revoke an API key by ID (global endpoint)
       tags:
         - API Keys
       requestBody:
@@ -210,7 +275,7 @@ paths:
             schema:
               $ref: '#/components/schemas/RevokeApiKeyRequest'
       responses:
-        '204':
+        '200':
           description: API key revoked
         '400':
           description: Bad request (missing key_id)
@@ -222,7 +287,7 @@ paths:
   /api-auth/keys/rotate:
     post:
       summary: Rotate API key
-      description: Rotate an API key and generate a new secret
+      description: Rotate an API key and generate a new secret (global endpoint)
       tags:
         - API Keys
       requestBody:
@@ -238,6 +303,265 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiKeyWithSecret'
+
+  # Rate Limit Schemes
+  /api-auth/rate-limit-schemes:
+    get:
+      summary: List rate limit schemes
+      description: Get all rate limit schemes for the deployment
+      tags:
+        - Rate Limit Schemes
+      responses:
+        '200':
+          description: List of rate limit schemes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  schemes:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RateLimitScheme'
+    post:
+      summary: Create rate limit scheme
+      description: Create a new reusable rate limit scheme
+      tags:
+        - Rate Limit Schemes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRateLimitSchemeRequest'
+      responses:
+        '200':
+          description: Rate limit scheme created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitScheme'
+        '400':
+          description: Invalid request
+
+  /api-auth/rate-limit-schemes/{slug}:
+    get:
+      summary: Get rate limit scheme
+      description: Get a specific rate limit scheme
+      tags:
+        - Rate Limit Schemes
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Rate limit scheme slug
+      responses:
+        '200':
+          description: Rate limit scheme
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitScheme'
+        '404':
+          description: Scheme not found
+    patch:
+      summary: Update rate limit scheme
+      description: Update a rate limit scheme
+      tags:
+        - Rate Limit Schemes
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Rate limit scheme slug
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRateLimitSchemeRequest'
+      responses:
+        '200':
+          description: Rate limit scheme updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitScheme'
+        '404':
+          description: Scheme not found
+    delete:
+      summary: Delete rate limit scheme
+      description: Delete a rate limit scheme
+      tags:
+        - Rate Limit Schemes
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Rate limit scheme slug
+      responses:
+        '204':
+          description: Scheme deleted
+        '404':
+          description: Scheme not found
+
+  # Audit Endpoints
+  /api-auth/apps/{app_name}/audit/logs:
+    get:
+      summary: Get API audit logs
+      description: Retrieve audit logs for API usage with cursor-based pagination
+      tags:
+        - API Audit
+      parameters:
+        - $ref: '#/components/parameters/ApiAuthAppName'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+            maximum: 1000
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: cursor
+          in: query
+          schema:
+            type: string
+          description: Base64-encoded pagination cursor
+        - name: outcome
+          in: query
+          schema:
+            type: string
+            enum: [success, blocked, error]
+        - name: key_id
+          in: query
+          schema:
+            type: string
+        - name: start_date
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Audit logs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiAuditLogsResponse'
+        '404':
+          description: App not found
+
+  /api-auth/apps/{app_name}/audit/analytics:
+    get:
+      summary: Get API audit analytics
+      description: Retrieve aggregated analytics for API usage
+      tags:
+        - API Audit
+      parameters:
+        - $ref: '#/components/parameters/ApiAuthAppName'
+        - name: start_date
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: key_id
+          in: query
+          schema:
+            type: string
+        - name: include_top_keys
+          in: query
+          schema:
+            type: boolean
+            default: false
+        - name: include_top_paths
+          in: query
+          schema:
+            type: boolean
+            default: false
+        - name: include_blocked_reasons
+          in: query
+          schema:
+            type: boolean
+            default: false
+        - name: include_rate_limits
+          in: query
+          schema:
+            type: boolean
+            default: false
+        - name: top_limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+            maximum: 50
+      responses:
+        '200':
+          description: Audit analytics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiAuditAnalyticsResponse'
+        '404':
+          description: App not found
+
+  /api-auth/apps/{app_name}/audit/timeseries:
+    get:
+      summary: Get API audit timeseries
+      description: Retrieve timeseries data for API usage
+      tags:
+        - API Audit
+      parameters:
+        - $ref: '#/components/parameters/ApiAuthAppName'
+        - name: start_date
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: interval
+          in: query
+          schema:
+            type: string
+            enum: [minute, hour, day, week, month]
+            default: hour
+        - name: key_id
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Timeseries data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiAuditTimeseriesResponse'
+        '404':
+          description: App not found
 
 components:
   securitySchemes:
@@ -270,21 +594,31 @@ components:
     CreateApiAuthAppRequest:
       type: object
       required:
+        - app_slug
         - name
+        - key_prefix
       properties:
+        app_slug:
+          type: string
+          description: Unique slug identifier for the app
+          example: "my-integration"
         name:
           type: string
-          description: App name
+          description: App display name
           example: "My App"
+        key_prefix:
+          type: string
+          description: API key prefix used for keys in this app
+          example: "sk_live"
         description:
           type: string
           description: App description
           example: "Production application"
-        rate_limits:
-          type: array
-          description: Rate limit rules
-          items:
-            $ref: '#/components/schemas/RateLimit'
+        rate_limit_scheme_slug:
+          type: string
+          description: Slug of the rate limit scheme to apply
+          example: "default-rate-limits"
+          nullable: true
 
     UpdateApiAuthAppRequest:
       type: object
@@ -292,17 +626,60 @@ components:
         name:
           type: string
           description: New app name
+        key_prefix:
+          type: string
+          description: API key prefix used for keys in this app
         description:
           type: string
           description: New app description
         is_active:
           type: boolean
           description: Whether the app is active
-        rate_limits:
+        rate_limit_scheme_slug:
+          type: string
+          description: Slug of the rate limit scheme to apply
+          nullable: true
+
+    CreateRateLimitSchemeRequest:
+      type: object
+      required:
+        - slug
+        - name
+        - rules
+      properties:
+        slug:
+          type: string
+          description: Unique slug identifier
+          example: "default-rate-limits"
+        name:
+          type: string
+          description: Display name
+          example: "Default Rate Limits"
+        description:
+          type: string
+          description: Optional description
+          nullable: true
+        rules:
           type: array
-          description: New rate limit rules
           items:
             $ref: '#/components/schemas/RateLimit'
+          description: Rate limit rules
+
+    UpdateRateLimitSchemeRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: New display name
+        description:
+          type: string
+          description: New description
+          nullable: true
+        rules:
+          type: array
+          items:
+            $ref: '#/components/schemas/RateLimit'
+          description: Updated rate limit rules
 
     CreateApiKeyRequest:
       type: object
@@ -313,20 +690,17 @@ components:
           type: string
           description: API key name
           example: "Production Key"
-        key_prefix:
-          type: string
-          description: Key prefix (required for backend API, optional for console)
-          example: "wacht_prod"
-        scope_preset:
-          type: string
-          description: Permission preset
-          enum: [default, read_only, read_write, admin, custom]
-          example: "read_write"
         permissions:
           type: array
-          description: Custom permissions (used when scope_preset is custom)
+          description: Permissions list (defaults to read-only if omitted)
           items:
             type: string
+        organization_membership_id:
+          type: string
+          description: Organization membership ID to link this API key
+        workspace_membership_id:
+          type: string
+          description: Workspace membership ID to link this API key
         metadata:
           type: object
           description: Additional metadata
@@ -376,10 +750,18 @@ components:
           type: string
           description: Deployment ID
           example: "9876543210987654321"
+        app_slug:
+          type: string
+          description: App slug
+          example: "my-app"
         name:
           type: string
           description: App name
           example: "My App"
+        key_prefix:
+          type: string
+          description: API key prefix used for this app
+          example: "sk_live"
         description:
           type: string
           description: App description
@@ -389,9 +771,14 @@ components:
           type: boolean
           description: Whether the app is active
           example: true
+        rate_limit_scheme_slug:
+          type: string
+          description: Slug of the applied rate limit scheme
+          example: "default-rate-limits"
+          nullable: true
         rate_limits:
           type: array
-          description: Rate limit rules
+          description: Rate limit rules (resolved from scheme)
           items:
             $ref: '#/components/schemas/RateLimit'
         created_at:
@@ -409,6 +796,36 @@ components:
           format: date-time
           description: Deletion timestamp
           nullable: true
+
+    RateLimitScheme:
+      type: object
+      properties:
+        deployment_id:
+          type: string
+          description: Deployment ID
+        slug:
+          type: string
+          description: Unique slug identifier
+          example: "default-rate-limits"
+        name:
+          type: string
+          description: Display name
+          example: "Default Rate Limits"
+        description:
+          type: string
+          description: Optional description
+          nullable: true
+        rules:
+          type: array
+          items:
+            $ref: '#/components/schemas/RateLimit'
+          description: Rate limit rules
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
 
     ApiKey:
       type: object
@@ -442,6 +859,32 @@ components:
           description: Granted permissions
           items:
             type: string
+        org_role_permissions:
+          type: array
+          description: Permissions derived from organization roles
+          items:
+            type: string
+        workspace_role_permissions:
+          type: array
+          description: Permissions derived from workspace roles
+          items:
+            type: string
+        organization_id:
+          type: string
+          description: Organization ID linked to this key
+          nullable: true
+        workspace_id:
+          type: string
+          description: Workspace ID linked to this key
+          nullable: true
+        organization_membership_id:
+          type: string
+          description: Organization membership ID linked to this key
+          nullable: true
+        workspace_membership_id:
+          type: string
+          description: Workspace membership ID linked to this key
+          nullable: true
         metadata:
           type: object
           description: Additional metadata
@@ -494,8 +937,8 @@ components:
       properties:
         unit:
           type: string
-          description: Time unit
-          enum: [second, minute, hour, day]
+          description: Time unit for the rate limit
+          enum: [millisecond, second, minute, hour, day, calendar_day, month, calendar_month]
           example: "minute"
         duration:
           type: integer
@@ -503,10 +946,149 @@ components:
           example: 1
         max_requests:
           type: integer
-          description: Maximum requests per duration
+          description: Maximum requests allowed
           example: 100
         mode:
           type: string
-          description: Rate limit mode
-          enum: [per_key, per_ip, per_key_and_ip]
+          description: How rate limits are applied
+          enum: [per_key, per_ip, per_key_and_ip, per_app, per_app_and_ip]
           example: "per_key"
+          nullable: true
+        endpoints:
+          type: array
+          items:
+            type: string
+          description: Endpoints this limit applies to (["*"] for all)
+          example: ["*"]
+        priority:
+          type: integer
+          description: Priority (lower = higher precedence)
+          example: 0
+
+    # Audit Schemas
+    ApiAuditLogsResponse:
+      type: object
+      properties:
+        logs:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApiAuditLogEntry'
+        cursor:
+          type: string
+          description: Next page cursor (base64 encoded)
+          nullable: true
+        has_more:
+          type: boolean
+
+    ApiAuditLogEntry:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Log entry ID
+        timestamp:
+          type: string
+          format: date-time
+          description: When the request occurred
+        key_id:
+          type: string
+          description: API key ID used
+        key_name:
+          type: string
+          description: API key name
+        method:
+          type: string
+          description: HTTP method
+          example: "GET"
+        path:
+          type: string
+          description: Request path
+          example: "/api/users"
+        status_code:
+          type: integer
+          description: HTTP response status code
+          example: 200
+        outcome:
+          type: string
+          description: Request outcome
+          enum: [success, blocked, error]
+        duration_ms:
+          type: integer
+          description: Request duration in milliseconds
+        ip_address:
+          type: string
+          description: Client IP address
+        user_agent:
+          type: string
+          description: Client user agent
+        error_message:
+          type: string
+          description: Error message (if applicable)
+          nullable: true
+
+    ApiAuditAnalyticsResponse:
+      type: object
+      properties:
+        total_requests:
+          type: integer
+          description: Total number of requests
+        successful_requests:
+          type: integer
+          description: Number of successful requests
+        blocked_requests:
+          type: integer
+          description: Number of blocked requests
+        error_requests:
+          type: integer
+          description: Number of errored requests
+        avg_duration_ms:
+          type: number
+          description: Average request duration in milliseconds
+        top_keys:
+          type: array
+          items:
+            type: object
+            properties:
+              key_id:
+                type: string
+              key_name:
+                type: string
+              count:
+                type: integer
+          description: Top API keys by usage
+        top_paths:
+          type: array
+          items:
+            type: object
+            properties:
+              path:
+                type: string
+              count:
+                type: integer
+          description: Top API paths by usage
+        blocked_reasons:
+          type: object
+          additionalProperties:
+            type: integer
+          description: Breakdown of blocked request reasons
+        rate_limit_hits:
+          type: object
+          additionalProperties:
+            type: integer
+          description: Rate limit hit counts
+
+    ApiAuditTimeseriesResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              timestamp:
+                type: string
+                format: date-time
+              count:
+                type: integer
+              avg_duration_ms:
+                type: number

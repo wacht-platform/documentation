@@ -8,6 +8,13 @@ ApiAuthAppKeys:
       - API Keys
     parameters:
       - $ref: '#/components/parameters/ApiAuthAppName'
+      - name: status
+        in: query
+        description: Filter by key status
+        schema:
+          type: string
+          enum: [active, revoked, all]
+          default: active
       - name: include_inactive
         in: query
         schema:
@@ -40,11 +47,8 @@ ApiAuthAppKeys:
             type: object
             required:
               - name
-              - key_prefix
             properties:
               name:
-                type: string
-              key_prefix:
                 type: string
               permissions:
                 type: array

@@ -1,0 +1,634 @@
+openapi: 3.0.3
+info:
+  title: Wacht Frontend API - API Auth App
+  description: API authentication app endpoints for managing API keys and audit logs
+  version: 1.0.0
+servers:
+  - url: https://api.wacht.dev
+    description: Production server
+
+tags:
+  - name: API Auth
+    description: API authentication app management
+
+paths:
+  /api-auth/session:
+    get:
+      tags:
+        - API Auth
+      summary: Get API auth app session
+      description: Retrieve the current API auth app session information
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Session retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session_id:
+                    type: string
+                    description: API auth app session ID
+                    example: "123456789012345678"
+                  api_auth_app:
+                    $ref: '#/components/schemas/ApiAuthApp'
+        '401':
+          description: Unauthorized - No active API auth app session
+
+  /api-auth/keys:
+    get:
+      tags:
+        - API Auth
+      summary: List API keys
+      description: Retrieve all API keys for the current API auth app
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: status
+          in: query
+          description: Filter by key status
+          schema:
+            type: string
+            enum: [active, revoked, expired]
+        - name: include_inactive
+          in: query
+          description: Include inactive keys
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Keys retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiKey'
+        '401':
+          description: Unauthorized
+
+    post:
+      tags:
+        - API Auth
+      summary: Create API key
+      description: Create a new API key for the current API auth app
+      security:
+        - cookieAuth: []
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  description: Name for the API key
+                  example: "Production Server"
+                expires_at:
+                  type: string
+                  format: date-time
+                  description: Optional expiration timestamp (RFC3339)
+                  example: "2024-12-31T23:59:59Z"
+      responses:
+        '200':
+          description: Key created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateKeyResponse'
+        '400':
+          description: Bad request - Missing name or invalid expires_at
+        '401':
+          description: Unauthorized
+
+  /api-auth/keys/{id}/rotate:
+    post:
+      tags:
+        - API Auth
+      summary: Rotate API key
+      description: Rotate an API key, generating a new key value
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: API key ID
+          schema:
+            type: string
+            format: uint64
+      responses:
+        '200':
+          description: Key rotated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateKeyResponse'
+        '400':
+          description: Bad request - Invalid key ID
+        '401':
+          description: Unauthorized
+
+  /api-auth/keys/{id}/revoke:
+    post:
+      tags:
+        - API Auth
+      summary: Revoke API key
+      description: Revoke an API key
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: API key ID
+          schema:
+            type: string
+            format: uint64
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  description: Reason for revocation
+                  example: "Key compromised"
+      responses:
+        '200':
+          description: Key revoked successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '400':
+          description: Bad request - Invalid key ID
+        '401':
+          description: Unauthorized
+
+  /api-auth/audit/logs:
+    get:
+      tags:
+        - API Auth
+      summary: Get audit logs
+      description: Retrieve audit logs for the API auth app with cursor-based pagination
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of logs to return
+          schema:
+            type: integer
+            default: 100
+            maximum: 1000
+        - name: offset
+          in: query
+          description: Number of logs to skip
+          schema:
+            type: integer
+            default: 0
+        - name: cursor
+          in: query
+          description: Pagination cursor (base64 encoded)
+          schema:
+            type: string
+        - name: outcome
+          in: query
+          description: Filter by outcome
+          schema:
+            type: string
+            enum: [success, blocked, error]
+        - name: key_id
+          in: query
+          description: Filter by API key ID
+          schema:
+            type: string
+        - name: start_date
+          in: query
+          description: Filter by start date (RFC3339)
+          schema:
+            type: string
+            format: date-time
+        - name: end_date
+          in: query
+          description: Filter by end date (RFC3339)
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Audit logs retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AuditLogEntry'
+        '400':
+          description: Bad request - Invalid cursor
+        '401':
+          description: Unauthorized
+
+  /api-auth/audit/analytics:
+    get:
+      tags:
+        - API Auth
+      summary: Get audit analytics
+      description: Retrieve aggregated analytics for the API auth app
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: start_date
+          in: query
+          description: Start date for analytics (RFC3339)
+          schema:
+            type: string
+            format: date-time
+        - name: end_date
+          in: query
+          description: End date for analytics (RFC3339)
+          schema:
+            type: string
+            format: date-time
+        - name: key_id
+          in: query
+          description: Filter by API key ID
+          schema:
+            type: string
+        - name: include_top_keys
+          in: query
+          description: Include top API keys by usage
+          schema:
+            type: boolean
+            default: false
+        - name: include_top_paths
+          in: query
+          description: Include top API paths by usage
+          schema:
+            type: boolean
+            default: false
+        - name: include_blocked_reasons
+          in: query
+          description: Include blocked request reasons breakdown
+          schema:
+            type: boolean
+            default: false
+        - name: include_rate_limits
+          in: query
+          description: Include rate limit hit statistics
+          schema:
+            type: boolean
+            default: false
+        - name: top_limit
+          in: query
+          description: Limit for top items (max 50)
+          schema:
+            type: integer
+            default: 10
+            maximum: 50
+      responses:
+        '200':
+          description: Analytics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditAnalytics'
+        '401':
+          description: Unauthorized
+
+  /api-auth/audit/timeseries:
+    get:
+      tags:
+        - API Auth
+      summary: Get audit timeseries
+      description: Retrieve timeseries data for API usage
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: start_date
+          in: query
+          description: Start date (RFC3339)
+          schema:
+            type: string
+            format: date-time
+        - name: end_date
+          in: query
+          description: End date (RFC3339)
+          schema:
+            type: string
+            format: date-time
+        - name: interval
+          in: query
+          description: Time interval for grouping
+          schema:
+            type: string
+            enum: [minute, hour, day, week]
+            default: hour
+        - name: key_id
+          in: query
+          description: Filter by API key ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Timeseries data retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TimeseriesPoint'
+        '401':
+          description: Unauthorized
+
+components:
+  schemas:
+    ApiAuthApp:
+      type: object
+      properties:
+        id:
+          type: string
+          description: API auth app ID
+          example: "123456789012345678"
+        app_slug:
+          type: string
+          description: Unique slug identifier
+          example: "mobile-app"
+        name:
+          type: string
+          description: Display name
+          example: "Mobile Application"
+        key_prefix:
+          type: string
+          description: Prefix for API keys
+          example: "wacht_mobile_"
+        description:
+          type: string
+          description: Optional description
+          example: "API keys for mobile applications"
+          nullable: true
+        is_active:
+          type: boolean
+          description: Whether the app is active
+          example: true
+        rate_limits:
+          type: array
+          items:
+            $ref: '#/components/schemas/RateLimit'
+          description: Rate limiting configuration
+
+    ApiKey:
+      type: object
+      properties:
+        id:
+          type: string
+          description: API key ID
+          example: "123456789012345678"
+        app_id:
+          type: string
+          description: Parent API auth app ID
+          example: "111111111111111111"
+        app_slug:
+          type: string
+          description: Parent app slug
+          example: "mobile-app"
+        name:
+          type: string
+          description: Key name
+          example: "Production Server"
+        key_prefix:
+          type: string
+          description: Key prefix (for identification)
+          example: "wacht_mobile_"
+        key_suffix:
+          type: string
+          description: Last 4 characters of the key
+          example: "abcd"
+        is_active:
+          type: boolean
+          description: Whether the key is active
+          example: true
+        expires_at:
+          type: string
+          format: date-time
+          description: Expiration timestamp
+          nullable: true
+        last_used_at:
+          type: string
+          format: date-time
+          description: Last usage timestamp
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        revoked_at:
+          type: string
+          format: date-time
+          description: Revocation timestamp (if revoked)
+          nullable: true
+        revoked_reason:
+          type: string
+          description: Reason for revocation
+          nullable: true
+
+    CreateKeyResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: API key ID
+          example: "123456789012345678"
+        name:
+          type: string
+          description: Key name
+          example: "Production Server"
+        key:
+          type: string
+          description: The full API key (only shown once)
+          example: "wacht_mobile_sk_live_abcdefghijklmnopqrstuvwxyz"
+        key_prefix:
+          type: string
+          description: Key prefix
+          example: "wacht_mobile_"
+        key_suffix:
+          type: string
+          description: Key suffix
+          example: "wxyz"
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    RateLimit:
+      type: object
+      properties:
+        unit:
+          type: string
+          description: Time unit for the rate limit
+          enum: [millisecond, second, minute, hour, day, calendar_day, month, calendar_month]
+          example: "minute"
+        duration:
+          type: integer
+          description: Duration in the specified unit
+          example: 1
+        max_requests:
+          type: integer
+          description: Maximum requests allowed
+          example: 100
+        mode:
+          type: string
+          description: How rate limits are applied
+          enum: [per_key, per_ip, per_key_and_ip, per_app, per_app_and_ip]
+          nullable: true
+        endpoints:
+          type: array
+          items:
+            type: string
+          description: Endpoints this limit applies to (["*"] for all)
+          example: ["*"]
+        priority:
+          type: integer
+          description: Priority (lower = higher precedence)
+          example: 0
+
+    AuditLogEntry:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Log entry ID
+        timestamp:
+          type: string
+          format: date-time
+          description: When the request occurred
+        key_id:
+          type: string
+          description: API key ID used
+        key_name:
+          type: string
+          description: API key name
+        method:
+          type: string
+          description: HTTP method
+          example: "GET"
+        path:
+          type: string
+          description: Request path
+          example: "/api/users"
+        status_code:
+          type: integer
+          description: HTTP response status code
+          example: 200
+        outcome:
+          type: string
+          description: Request outcome
+          enum: [success, blocked, error]
+        duration_ms:
+          type: integer
+          description: Request duration in milliseconds
+        ip_address:
+          type: string
+          description: Client IP address
+        user_agent:
+          type: string
+          description: Client user agent
+        error_message:
+          type: string
+          description: Error message (if applicable)
+          nullable: true
+
+    AuditAnalytics:
+      type: object
+      properties:
+        total_requests:
+          type: integer
+          description: Total number of requests
+        successful_requests:
+          type: integer
+          description: Number of successful requests
+        blocked_requests:
+          type: integer
+          description: Number of blocked requests
+        error_requests:
+          type: integer
+          description: Number of errored requests
+        avg_duration_ms:
+          type: number
+          description: Average request duration in milliseconds
+        top_keys:
+          type: array
+          items:
+            type: object
+            properties:
+              key_id:
+                type: string
+              key_name:
+                type: string
+              count:
+                type: integer
+          description: Top API keys by usage
+        top_paths:
+          type: array
+          items:
+            type: object
+            properties:
+              path:
+                type: string
+              count:
+                type: integer
+          description: Top API paths by usage
+        blocked_reasons:
+          type: object
+          additionalProperties:
+            type: integer
+          description: Breakdown of blocked request reasons
+        rate_limit_hits:
+          type: object
+          additionalProperties:
+            type: integer
+          description: Rate limit hit counts
+
+    TimeseriesPoint:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: Time of the data point
+        count:
+          type: integer
+          description: Number of requests
+        avg_duration_ms:
+          type: number
+          description: Average duration in milliseconds
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Unauthorized"
+        code:
+          type: string
+          example: "UNAUTHORIZED"
+
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: session_id
+      description: Session-based authentication using cookies

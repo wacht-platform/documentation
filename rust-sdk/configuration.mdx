@@ -47,13 +47,3 @@ use wacht::WachtConfig;
 
 let config = WachtConfig::from_env()?.load_public_key().await?;
 ```
-
-## Legacy global init (optional)
-
-```rust
-use wacht::{init, init_from_env};
-
-init_from_env().await?;
-// or
-init(config)?;
-```

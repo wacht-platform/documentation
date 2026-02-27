@@ -6,9 +6,7 @@
         "prompt": "Search docs"
     },
     "colors": {
-        "primary": "#4f46e5",
-        "light": "#ffffff",
-        "dark": "#4f46e5"
+        "primary": "#4f46e5"
     },
     "fonts": {
         "family": "Inter"

@@ -1,0 +1,58 @@
+---
+title: 'Server Auth'
+description: 'Detailed reference for @wacht/react-router/server auth helpers.'
+---
+
+## Imports
+
+```ts
+import {
+  authenticateRequest,
+  getAuth,
+  requireAuth,
+  wachtClient,
+  createWachtServerClient,
+} from '@wacht/react-router/server'
+```
+
+## `authenticateRequest(request, options?)`
+
+Returns:
+
+```ts
+{ auth: WachtAuth, headers: Headers }
+```
+
+`headers` may include session/auth synchronization updates.
+You must forward them in your response.
+
+## Loader/action pattern
+
+```ts
+const { auth, headers } = await authenticateRequest(request, {
+  publishableKey: process.env.WACHT_PUBLISHABLE_KEY,
+})
+
+if (!auth.userId) throw redirect('/sign-in', { headers })
+return json(data, { headers })
+```
+
+## `getAuth` and `requireAuth`
+
+- `getAuth`: read auth state
+- `requireAuth`: enforce sign-in by running `protect()`
+
+## Backend client
+
+```ts
+const client = await wachtClient()
+```
+
+For explicit/named instances:
+
+```ts
+const client = createWachtServerClient({
+  apiKey: process.env.WACHT_API_KEY,
+  name: 'jobs',
+})
+```

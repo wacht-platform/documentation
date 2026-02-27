@@ -270,7 +270,7 @@ async fn billing_handler(
 
 let app = Router::new()
     .route("/billing", get(billing_handler))
-    .layer(PermissionLayer::organization("billing:read"))  // Route-level check
+    .layer(PermissionLayer::organization("billing:read")) 
     .layer(AuthLayer::new());
 ```
 

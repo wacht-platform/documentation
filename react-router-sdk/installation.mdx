@@ -1,75 +1,32 @@
 ---
 title: 'Installation'
-description: 'Install and set up the React Router SDK'
+description: 'Install @wacht/react-router and configure environment.'
 ---
 
 ## Requirements
 
-Before installing the React Router SDK, ensure you have:
+- React 18+
+- React Router 7+
 
-- **React 18+** - The SDK requires React 18 or later
-- **React Router v7** - Built specifically for React Router v7
-- **pnpm 8+** (recommended) - Or npm 9+
-- **Wacht Deployment** - A Wacht deployment with a public key
+## Install
 
-## Installation
+<CodeGroup>
 
-Install the React Router SDK and its dependencies:
+```bash pnpm
+pnpm add @wacht/react-router @wacht/jsx @wacht/types react-router
+```
+
+```bash npm
+npm install @wacht/react-router @wacht/jsx @wacht/types react-router
+```
+
+</CodeGroup>
+
+## Environment
 
 ```bash
-pnpm add @wacht/react-router @wacht/types
+WACHT_PUBLISHABLE_KEY=pk_test_xxx
 ```
 
-Or with npm:
-
-```bash
-npm install @wacht/react-router @wacht/types
-```
-
-## Environment Variables
-
-Add your Wacht public key to your environment variables:
-
-```bash
-# .env
-WACHT_PUBLIC_KEY=your_public_key_here
-```
-
-You can find your public key in your Wacht deployment settings.
-
-## TypeScript Configuration
-
-The SDK includes TypeScript definitions out of the box. No additional configuration is needed if you're using TypeScript.
-
-## Peer Dependencies
-
-The SDK has the following peer dependencies that must be installed in your project:
-
-```json
-{
-  "peerDependencies": {
-    "@wacht/types": "*",
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0",
-    "react-router": "^7.0.0"
-  }
-}
-```
-
-## Verification
-
-To verify the installation:
-
-```tsx
-import { DeploymentProvider } from '@wacht/react-router'
-
-// This should work without errors
-console.log(DeploymentProvider)
-```
-
-## Next Steps
-
-- [Quick Start](quickstart) - Get started with a basic setup
-- [Setup Guide](setup) - Detailed configuration guide
-- [Components Reference](components) - Available components
-- [Hooks Reference](hooks) - Available hooks
+- Publishable key: required for auth/session derivation
+- API key: only needed for backend API access from server

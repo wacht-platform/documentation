@@ -1,244 +1,119 @@
 ---
 title: 'Quick Start'
-description: 'Get up and running with the Next.js SDK in 5 minutes'
+description: 'End-to-end Next.js setup with provider, proxy, and server usage.'
 ---
 
-This quick start guide will help you set up authentication in your Next.js App Router application.
-
-## Step 1: Install the SDK
-
-```bash
-pnpm add @wacht/nextjs @wacht/types
-```
-
-## Step 2: Set Environment Variables
-
-Create a `.env.local` file:
+<Steps>
+  <Step title="Set environment variables">
 
 ```bash
-NEXT_PUBLIC_WACHT_PUBLIC_KEY=your_public_key_here
+NEXT_PUBLIC_WACHT_PUBLISHABLE_KEY=pk_test_xxx
+WACHT_API_KEY=wk_live_xxx
 ```
 
-## Step 3: Create Provider Component
+  </Step>
 
-```tsx
-// app/providers.tsx
-'use client'
-
-import { DeploymentProvider } from '@wacht/nextjs'
-
-export function Providers({ children }: { children: React.ReactNode }) {
-  return (
-    <DeploymentProvider publicKey={process.env.NEXT_PUBLIC_WACHT_PUBLIC_KEY!}>
-      {children}
-    </DeploymentProvider>
-  )
-}
-```
-
-## Step 4: Update Root Layout
+  <Step title="Wrap your app with DeploymentProvider">
 
 ```tsx
 // app/layout.tsx
-import { Providers } from './providers'
+import { DeploymentProvider } from '@wacht/nextjs'
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html>
       <body>
-        <Providers>{children}</Providers>
+        <DeploymentProvider publicKey={process.env.NEXT_PUBLIC_WACHT_PUBLISHABLE_KEY!}>
+          {children}
+        </DeploymentProvider>
       </body>
     </html>
   )
 }
 ```
 
-## Step 5: Create Auth Pages
+  </Step>
 
-```tsx
-// app/signin/page.tsx
-import { SignInForm } from '@wacht/nextjs'
-
-export default function SignInPage() {
-  return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold">Sign In</h1>
-          <p className="text-muted-foreground">Welcome back</p>
-        </div>
-        <SignInForm />
-      </div>
-    </div>
-  )
-}
-```
-
-```tsx
-// app/signup/page.tsx
-import { SignUpForm } from '@wacht/nextjs'
-
-export default function SignUpPage() {
-  return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold">Sign Up</h1>
-          <p className="text-muted-foreground">Create your account</p>
-        </div>
-        <SignUpForm />
-      </div>
-    </div>
-  )
-}
-```
-
-## Step 6: Create SSO Callback Route
-
-```tsx
-// app/auth/callback/route.tsx
-import { SSOCallback } from '@wacht/nextjs'
-
-export default function AuthCallbackPage() {
-  return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="text-center">
-        <SSOCallback />
-        <p>Completing authentication...</p>
-      </div>
-    </div>
-  )
-}
-```
-
-## Step 7: Protect Routes with Middleware
+  <Step title="Protect routes with proxy/middleware">
 
 ```ts
-// middleware.ts
-import { createMiddlewareClient } from '@wacht/nextjs/server'
+// proxy.ts (Next.js 16+)
+import { NextResponse } from 'next/server'
+import { createRouteMatcher, wachtMiddleware } from '@wacht/nextjs/server'
 
-export const { authMiddleware, requireAuth } = createMiddlewareClient()
+const isProtected = createRouteMatcher(['/dashboard(.*)', '/api/private(.*)'])
 
-export default authMiddleware((req) => {
-  // Protect dashboard routes
-  if (req.nextUrl.pathname.startsWith('/dashboard')) {
-    return requireAuth(req)
-  }
-
-  return {}
+export default wachtMiddleware(async (auth, req) => {
+  if (!isProtected(req)) return NextResponse.next()
+  await auth.protect()
+  return NextResponse.next()
+}, {
+  apiRoutePrefixes: ['/api', '/trpc'],
 })
 
 export const config = {
-  matcher: ['/dashboard/:path*']
+  matcher: [
+    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    '/(api|trpc)(.*)',
+  ],
 }
 ```
 
-## Step 8: Create Protected Page
+  </Step>
+
+  <Step title="Use the backend client in server code (optional)">
+
+```ts
+// app/api/webhooks/route.ts
+import { NextResponse } from 'next/server'
+import { wachtClient } from '@wacht/nextjs/server'
+
+export async function GET() {
+  const client = await wachtClient()
+  const apps = await client.webhooks.listWebhookApps()
+  return NextResponse.json({ apps })
+}
+```
+
+  </Step>
+</Steps>
+
+## Sign-in UI example
 
 ```tsx
-// app/dashboard/page.tsx
-import { SignedIn } from '@wacht/nextjs'
-import { getSession } from '@wacht/nextjs/server'
+// app/sign-in/page.tsx
+import { SignInForm } from '@wacht/nextjs'
 
-export default async function DashboardPage() {
-  const session = await getSession()
-
-  return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold">Dashboard</h1>
-      <SignedIn>
-        <p>Welcome, {session.user.first_name}!</p>
-      </SignedIn>
-    </div>
-  )
+export default function Page() {
+  return <SignInForm />
 }
 ```
 
-## Complete Example
+## Middleware options
 
-Here's a complete working example:
-
-```tsx
-// app/layout.tsx
-import { Providers } from './providers'
-import './globals.css'
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  return (
-    <html lang="en">
-      <body>
-        <Providers>{children}</Providers>
-      </body>
-    </html>
-  )
+```ts
+type WachtMiddlewareOptions = {
+  publishableKey?: string
+  signInUrl?: string
+  authCookieName?: string
+  sessionCookieName?: string
+  devSessionCookieName?: string
+  clockSkewInMs?: number
+  requiredIssuer?: string
+  apiRoutePrefixes?: string[]
+  isApiRoute?: (request: NextRequest) => boolean
+  gatewayUrl?: string
 }
 ```
 
-```tsx
-// app/providers.tsx
-'use client'
+## API route classification
 
-import { DeploymentProvider } from '@wacht/nextjs'
-
-export function Providers({ children }: { children: React.ReactNode }) {
-  return (
-    <DeploymentProvider publicKey={process.env.NEXT_PUBLIC_WACHT_PUBLIC_KEY!}>
-      {children}
-    </DeploymentProvider>
-  )
-}
+```ts
+{ apiRoutePrefixes: ['/api', '/trpc'] }
 ```
 
-```tsx
-// app/page.tsx
-import Link from 'next/link'
-import { SignInForm, SignedIn, SignedOut } from '@wacht/nextjs'
-import { UserButton } from '@wacht/nextjs'
+or:
 
-export default function HomePage() {
-  return (
-    <div className="min-h-screen">
-      <header className="border-b p-4 flex justify-between">
-        <h1 className="text-xl font-bold">My App</h1>
-        <SignedIn>
-          <UserButton />
-        </SignedIn>
-        <SignedOut>
-          <div className="flex gap-4">
-            <Link href="/signin">Sign In</Link>
-            <Link href="/signup">Sign Up</Link>
-          </div>
-        </SignedOut>
-      </header>
-
-      <main className="p-8">
-        <SignedIn>
-          <div>
-            <h2>Welcome back!</h2>
-            <Link href="/dashboard">Go to Dashboard</Link>
-          </div>
-        </SignedIn>
-        <SignedOut>
-          <div className="max-w-md">
-            <SignInForm />
-          </div>
-        </SignedOut>
-      </main>
-    </div>
-  )
-}
+```ts
+{ isApiRoute: (req) => req.nextUrl.pathname.startsWith('/internal') }
 ```
-
-## Next Steps
-
-- [Setup Guide](setup) - Detailed configuration options
-- [Components](components) - Available components
-- [Hooks](hooks) - Available hooks

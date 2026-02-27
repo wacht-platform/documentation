@@ -1,0 +1,53 @@
+---
+title: 'Server Auth'
+description: 'Detailed reference for @wacht/tanstack-router/server auth helpers.'
+---
+
+## Imports
+
+```ts
+import {
+  authenticateRequest,
+  getAuth,
+  requireAuth,
+  wachtClient,
+  createWachtServerClient,
+} from '@wacht/tanstack-router/server'
+```
+
+## `authenticateRequest` contract
+
+```ts
+const { auth, headers } = await authenticateRequest(request, options)
+```
+
+Always merge returned `headers` into your response to preserve cookie/session state.
+
+## Typical redirect flow
+
+```ts
+if (!auth.userId) {
+  return new Response(null, {
+    status: 302,
+    headers: {
+      ...Object.fromEntries(headers.entries()),
+      Location: '/sign-in',
+    },
+  })
+}
+```
+
+## Backend client helpers
+
+```ts
+const client = await wachtClient()
+```
+
+or:
+
+```ts
+const client = createWachtServerClient({
+  apiKey: process.env.WACHT_API_KEY,
+  name: 'server-actions',
+})
+```

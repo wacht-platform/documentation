@@ -88,7 +88,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/WebhookApp'
 
-  /webhooks/apps/{app_name}:
+  /webhooks/apps/{app_slug}:
     get:
       summary: Get webhook app
       description: Retrieve a specific webhook app
@@ -156,7 +156,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /webhooks/apps/{app_name}/rotate-secret:
+  /webhooks/apps/{app_slug}/rotate-secret:
     post:
       summary: Rotate webhook secret
       description: Rotate the webhook signing secret for an app
@@ -174,7 +174,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /webhooks/apps/{app_name}/events:
+  /webhooks/apps/{app_slug}/events:
     get:
       summary: Get available webhook events
       description: Get all available webhook events for an app
@@ -192,7 +192,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /webhooks/apps/{app_name}/endpoints:
+  /webhooks/apps/{app_slug}/endpoints:
     get:
       summary: List webhook endpoints
       description: Get all webhook endpoints for an app
@@ -370,7 +370,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /webhooks/apps/{app_name}/endpoints/{endpoint_id}/test:
+  /webhooks/apps/{app_slug}/endpoints/{endpoint_id}/test:
     post:
       summary: Test webhook endpoint
       description: Send a test event to a webhook endpoint
@@ -409,7 +409,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /webhooks/apps/{app_name}/trigger:
+  /webhooks/apps/{app_slug}/trigger:
     post:
       summary: Trigger webhook event
       description: Manually trigger a webhook event
@@ -450,7 +450,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/TriggerWebhookEventResponse'
 
-  /webhooks/apps/{app_name}/trigger/batch:
+  /webhooks/apps/{app_slug}/trigger/batch:
     post:
       summary: Batch trigger webhook events
       description: Trigger multiple webhook events at once
@@ -535,7 +535,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /webhooks/apps/{app_name}/deliveries:
+  /webhooks/apps/{app_slug}/deliveries:
     get:
       summary: Get webhook deliveries for app
       description: Get webhook delivery history for an app
@@ -575,7 +575,25 @@ paths:
                         items:
                           $ref: '#/components/schemas/WebhookDeliveryListResponse'
 
-  /webhooks/apps/{app_name}/deliveries/replay:
+  /webhooks/apps/{app_slug}/deliveries/replay:
+    get:
+      summary: List replay tasks
+      description: Get list of webhook replay tasks for an app
+      tags:
+        - Webhook Deliveries
+      parameters:
+        - $ref: '#/components/parameters/WebhookAppName'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          description: List of replay tasks
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReplayTaskListResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
     post:
       summary: Replay webhook deliveries
       description: Replay failed or successful webhook deliveries
@@ -601,7 +619,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ReplayWebhookDeliveryResponse'
 
-  /webhooks/apps/{app_name}/analytics:
+  /webhooks/apps/{app_slug}/analytics:
     get:
       summary: Get webhook analytics
       description: Get analytics data for a webhook app
@@ -634,7 +652,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/WebhookAnalyticsResult'
 
-  /webhooks/apps/{app_name}/timeseries:
+  /webhooks/apps/{app_slug}/timeseries:
     get:
       summary: Get webhook timeseries data
       description: Get time-series data for webhook analytics
@@ -674,7 +692,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/WebhookTimeseriesResult'
 
-  /webhooks/apps/{app_name}/stats:
+  /webhooks/apps/{app_slug}/stats:
     get:
       summary: Get webhook stats
       description: Get overall statistics for a webhook app
@@ -690,7 +708,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/WebhookAnalyticsResult'
 
-  /webhooks/apps/{app_name}/catalog:
+  /webhooks/apps/{app_slug}/catalog:
     get:
       summary: Get webhook app event catalog
       description: Get the event catalog assigned to a webhook app
@@ -878,27 +896,8 @@ paths:
           $ref: '#/components/responses/NotFound'
 
   # Replay Task Management
-  /webhooks/apps/{app_name}/deliveries/replay:
-    get:
-      summary: List replay tasks
-      description: Get list of webhook replay tasks for an app
-      tags:
-        - Webhook Deliveries
-      parameters:
-        - $ref: '#/components/parameters/WebhookAppName'
-        - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/Offset'
-      responses:
-        '200':
-          description: List of replay tasks
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ReplayTaskListResponse'
-        '404':
-          $ref: '#/components/responses/NotFound'
 
-  /webhooks/apps/{app_name}/deliveries/replay/{task_id}:
+  /webhooks/apps/{app_slug}/deliveries/replay/{task_id}:
     get:
       summary: Get replay task status
       description: Get status of a specific replay task
@@ -922,7 +921,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /webhooks/apps/{app_name}/deliveries/replay/{task_id}/cancel:
+  /webhooks/apps/{app_slug}/deliveries/replay/{task_id}/cancel:
     post:
       summary: Cancel replay task
       description: Cancel an ongoing replay task

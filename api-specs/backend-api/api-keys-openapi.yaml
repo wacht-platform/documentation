@@ -69,7 +69,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /api-auth/apps/{app_name}:
+  /api-auth/apps/{app_slug}:
     get:
       summary: Get API auth app
       description: Retrieve a specific API auth app
@@ -133,7 +133,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /api-auth/apps/{app_name}/keys:
+  /api-auth/apps/{app_slug}/keys:
     get:
       summary: List API keys
       description: Get all API keys for an app
@@ -197,7 +197,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /api-auth/apps/{app_name}/keys/{key_id}/revoke:
+  /api-auth/apps/{app_slug}/keys/{key_id}/revoke:
     post:
       summary: Revoke API key for app
       description: Revoke an API key by ID within a specific app
@@ -233,7 +233,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /api-auth/apps/{app_name}/keys/{key_id}/rotate:
+  /api-auth/apps/{app_slug}/keys/{key_id}/rotate:
     post:
       summary: Rotate API key for app
       description: Rotate an API key and generate a new secret within a specific app
@@ -414,7 +414,7 @@ paths:
           description: Scheme not found
 
   # Audit Endpoints
-  /api-auth/apps/{app_name}/audit/logs:
+  /api-auth/apps/{app_slug}/audit/logs:
     get:
       summary: Get API audit logs
       description: Retrieve audit logs for API usage with cursor-based pagination
@@ -467,7 +467,7 @@ paths:
         '404':
           description: App not found
 
-  /api-auth/apps/{app_name}/audit/analytics:
+  /api-auth/apps/{app_slug}/audit/analytics:
     get:
       summary: Get API audit analytics
       description: Retrieve aggregated analytics for API usage
@@ -525,7 +525,7 @@ paths:
         '404':
           description: App not found
 
-  /api-auth/apps/{app_name}/audit/timeseries:
+  /api-auth/apps/{app_slug}/audit/timeseries:
     get:
       summary: Get API audit timeseries
       description: Retrieve timeseries data for API usage

@@ -1,76 +1,52 @@
 ---
 title: 'Installation'
-description: 'Install and set up the Next.js SDK'
+description: 'Install and configure @wacht/nextjs for app router and server runtime.'
 ---
 
 ## Requirements
 
-Before installing the Next.js SDK, ensure you have:
+- Next.js 14+ (proxy/middleware guidance below includes Next.js 16 conventions)
+- React 18+
+- Node 18+
 
-- **Next.js 14+** - The SDK requires Next.js 14 or later (App Router)
-- **React 18+** - The SDK requires React 18 or later
-- **Node.js 18+** - Node.js 18 or later
-- **pnpm 8+** (recommended) - Or npm 9+
-- **Wacht Deployment** - A Wacht deployment with a public key
+## Packages
 
-## Installation
+<CodeGroup>
 
-Install the Next.js SDK and its dependencies:
-
-```bash
-pnpm add @wacht/nextjs @wacht/types
+```bash pnpm
+pnpm add @wacht/nextjs @wacht/jsx @wacht/types
 ```
 
-Or with npm:
-
-```bash
-npm install @wacht/nextjs @wacht/types
+```bash npm
+npm install @wacht/nextjs @wacht/jsx @wacht/types
 ```
+
+</CodeGroup>
 
 ## Environment Variables
 
-Add your Wacht public key to your environment variables:
-
 ```bash
-# .env.local
-NEXT_PUBLIC_WACHT_PUBLIC_KEY=your_public_key_here
+NEXT_PUBLIC_WACHT_PUBLISHABLE_KEY=pk_test_xxx
+WACHT_API_KEY=wk_live_xxx
 ```
 
-You can find your public key in your Wacht deployment settings.
+<AccordionGroup>
+  <Accordion title="Do I need WACHT_API_KEY for UI-only integration?">
+    No. If you are not calling Wacht backend APIs from server routes/actions, only `NEXT_PUBLIC_WACHT_PUBLISHABLE_KEY` is required.
+  </Accordion>
+  <Accordion title="Can I pass frontendApiUrl manually?">
+    No. The SDK derives it from the publishable key to keep behavior consistent across runtimes.
+  </Accordion>
+  <Accordion title="Can I use Pages Router?">
+    Yes for client provider usage, but the recommended server protection path is proxy/middleware with App Router style server integration.
+  </Accordion>
+</AccordionGroup>
 
-## TypeScript Configuration
-
-The SDK includes TypeScript definitions. No additional configuration is needed.
-
-## Peer Dependencies
-
-The SDK has these peer dependencies:
-
-```json
-{
-  "peerDependencies": {
-    "@wacht/types": "*",
-    "next": "^14.0.0",
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0"
-  }
-}
-```
-
-## Verification
-
-Verify the installation:
+## Verify Installation
 
 ```tsx
 import { DeploymentProvider } from '@wacht/nextjs'
-
-// This should work without errors
-console.log(DeploymentProvider)
+import { wachtMiddleware } from '@wacht/nextjs/server'
 ```
 
-## Next Steps
-
-- [Quick Start](quickstart) - Get started with a basic setup
-- [Setup Guide](setup) - Detailed configuration guide
-- [Components Reference](components) - Available components
-- [Hooks Reference](hooks) - Available hooks
+If both imports resolve, package setup is correct.

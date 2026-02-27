@@ -1,0 +1,63 @@
+---
+title: 'Server Auth & Middleware'
+description: 'Detailed reference for @wacht/nextjs/server APIs and runtime behavior.'
+---
+
+## Imports
+
+```ts
+import {
+  auth,
+  getAuth,
+  requireAuth,
+  wachtMiddleware,
+  createRouteMatcher,
+  wachtClient,
+  createWachtServerClient,
+} from '@wacht/nextjs/server'
+```
+
+## `auth` usage modes
+
+- `await auth(request, options?)`: request-aware auth context
+- `auth(headers)`: deserialize middleware-propagated auth context
+
+## `auth.protect(options)`
+
+Supports:
+- auth checks
+- permission checks
+- token acceptance constraints: `session_token | api_key | oauth_token | machine_token | any`
+
+## Middleware contract
+
+`wachtMiddleware(handler?, options?)`:
+- normalizes `__dev_session__` query tokens
+- performs session exchange when needed
+- applies auth/sync headers to outgoing response
+- redirects for browser-like routes, JSON errors for API-like routes
+
+## Options reference
+
+```ts
+type WachtMiddlewareOptions = {
+  publishableKey?: string
+  signInUrl?: string
+  authCookieName?: string
+  sessionCookieName?: string
+  devSessionCookieName?: string
+  clockSkewInMs?: number
+  requiredIssuer?: string
+  apiRoutePrefixes?: string[]
+  isApiRoute?: (request: NextRequest) => boolean
+  gatewayUrl?: string
+}
+```
+
+## Backend API client
+
+```ts
+const client = await wachtClient()
+// or
+const client = createWachtServerClient({ apiKey: process.env.WACHT_API_KEY })
+```

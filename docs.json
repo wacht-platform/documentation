@@ -26,6 +26,7 @@
                             {
                                 "group": "Overview",
                                 "pages": [
+                                    "index",
                                     "getting-started/introduction",
                                     "getting-started/quickstart"
                                 ]
@@ -379,6 +380,7 @@
                             {
                                 "group": "Overview",
                                 "pages": [
+                                    "index",
                                     "getting-started/introduction",
                                     "getting-started/quickstart"
                                 ]
@@ -496,7 +498,7 @@
     "footer": {
         "socials": {
             "x": "https://x.com/wacht",
-            "github": "https://github.com/snipextt/wacht",
+            "github": "https://github.com/wacht-platform/",
             "linkedin": "https://linkedin.com/company/wacht"
         }
     }

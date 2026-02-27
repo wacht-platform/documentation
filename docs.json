@@ -1,6 +1,6 @@
 {
     "$schema": "https://mintlify.com/docs.json",
-    "theme": "sequoia",
+    "theme": "linden",
     "name": "Wacht Platform Documentation",
     "search": {
         "prompt": "Search docs"
@@ -12,13 +12,6 @@
     },
     "fonts": {
         "family": "Inter"
-    },
-    "background": {
-        "decoration": "windows",
-        "color": {
-            "light": "#ffffff",
-            "dark": "#0a0a0a"
-        }
     },
     "favicon": "/logo.png",
     "navigation": {

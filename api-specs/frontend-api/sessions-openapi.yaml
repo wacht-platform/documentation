@@ -537,18 +537,6 @@ components:
           description: Whether the API auth app is currently active
           example: true
         rate_limits:
-          $ref: '#/components/schemas/RateLimits'
-          description: Rate limiting configuration
-
-    RateLimits:
-      type: object
-      description: Rate limiting configuration for API auth apps
-      properties:
-        mode:
-          type: string
-          enum: [disabled, single, sliding]
-          description: Rate limiting mode
-        limits:
           type: array
           items:
             $ref: '#/components/schemas/RateLimit'
@@ -557,18 +545,24 @@ components:
     RateLimit:
       type: object
       properties:
-        limit:
-          type: integer
-          description: Maximum number of requests
-          example: 100
-        window:
-          type: integer
-          description: Time window in the specified unit
-          example: 1
         unit:
           type: string
           enum: [second, minute, hour, day]
           description: Time unit for the rate limit window
+          example: "minute"
+        duration:
+          type: integer
+          description: Time window duration in the specified unit
+          example: 1
+        max_requests:
+          type: integer
+          description: Maximum number of requests allowed
+          example: 100
+        mode:
+          type: string
+          enum: [disabled, single, sliding]
+          description: Rate limiting mode
+          nullable: true
 
     AgentInfo:
       type: object

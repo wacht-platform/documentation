@@ -58,34 +58,18 @@ paths:
                   valid:
                     type: boolean
                     example: true
-                  type:
+                  message:
                     type: string
-                    enum: [organization, workspace]
-                    example: "organization"
-                  organization:
-                    type: object
-                    properties:
-                      id:
-                        type: string
-                      name:
-                        type: string
-                  workspace:
-                    type: object
-                    properties:
-                      id:
-                        type: string
-                      name:
-                        type: string
                     nullable: true
-                  inviter:
-                    type: object
-                    properties:
-                      first_name:
-                        type: string
-                      last_name:
-                        type: string
-                      email:
-                        type: string
+                  error_code:
+                    type: string
+                    nullable: true
+                  first_name:
+                    type: string
+                  last_name:
+                    type: string
+                  email:
+                    type: string
         '400':
           description: Invalid or expired token
         '401':
@@ -103,7 +87,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PublicMetadata'
+                $ref: '#/components/schemas/UISettings'
 
   /.well-known/jwk:
     get:
@@ -119,29 +103,36 @@ paths:
               schema:
                 type: object
                 properties:
-                  keys:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        kty:
-                          type: string
-                          example: "EC"
-                        kid:
-                          type: string
-                          example: "key-123"
-                        crv:
-                          type: string
-                          example: "P-256"
-                        x:
-                          type: string
-                          description: Public key X coordinate
-                        y:
-                          type: string
-                          description: Public key Y coordinate
-                        alg:
-                          type: string
-                          example: "ES256"
+                  id:
+                    type: string
+                    format: uint64
+                  deployment_id:
+                    type: string
+                    format: uint64
+                  kid:
+                    type: string
+                  kty:
+                    type: string
+                  use:
+                    type: string
+                  alg:
+                    type: string
+                  crv:
+                    type: string
+                  x:
+                    type: string
+                  y:
+                    type: string
+                  n:
+                    type: string
+                  e:
+                    type: string
+                  created_at:
+                    type: string
+                    format: date-time
+                  updated_at:
+                    type: string
+                    format: date-time
 
 components:
   schemas:

@@ -288,7 +288,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EmailAddress'
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Email verified successfully"
         '400':
           description: Invalid code
         '401':
@@ -314,7 +318,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EmailAddress'
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Primary email updated successfully"
         '400':
           description: Email not verified
         '401':
@@ -461,7 +469,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PhoneNumber'
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Phone number verified successfully"
 
   /me/phone-numbers/{id}/make-primary:
     post:
@@ -483,7 +495,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PhoneNumber'
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Primary phone updated successfully"
 
   /me/profile-picture:
     post:
@@ -511,7 +527,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
         '400':
           description: Bad request - Invalid file
 
@@ -541,11 +561,15 @@ paths:
               schema:
                 type: object
                 properties:
-                  authenticator:
-                    $ref: '#/components/schemas/Authenticator'
-                  qr_code:
+                  id:
                     type: string
-                    description: Base64 encoded QR code image
+                  otp_url:
+                    type: string
+                  totp_secret:
+                    type: string
+                  created_at:
+                    type: string
+                    format: date-time
 
   /me/authenticator/attempt-verification:
     post:
@@ -578,6 +602,10 @@ paths:
       responses:
         '200':
           description: Authenticator verified and activated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Authenticator'
         '400':
           description: Invalid codes
 
@@ -613,13 +641,10 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  codes:
-                    type: array
-                    items:
-                      type: string
-                    example: ["12345678", "87654321"]
+                type: array
+                items:
+                  type: string
+                example: ["1234-5678", "8765-4321"]
 
   /me/backup-codes/regenerate:
     post:
@@ -635,146 +660,10 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  codes:
-                    type: array
-                    items:
-                      type: string
-
-  /me/passkeys:
-    get:
-      tags:
-        - Passkeys
-      summary: Get passkeys
-      description: Retrieve all passkeys registered to the user
-      security:
-        - cookieAuth: []
-      responses:
-        '200':
-          description: Passkeys retrieved
-          content:
-            application/json:
-              schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Passkey'
-        '401':
-          description: Unauthorized
-
-  /me/passkeys/register/begin:
-    post:
-      tags:
-        - Passkeys
-      summary: Begin passkey registration
-      description: Initialize WebAuthn/passkey registration flow
-      security:
-        - cookieAuth: []
-      requestBody:
-        required: true
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              properties:
-                name:
                   type: string
-                  description: Friendly name for the passkey
-                  example: "My iPhone"
-      responses:
-        '200':
-          description: Registration options generated
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  options:
-                    type: object
-                    description: WebAuthn credential creation options
 
-  /me/passkeys/register/finish:
-    post:
-      tags:
-        - Passkeys
-      summary: Finish passkey registration
-      description: Complete WebAuthn/passkey registration
-      security:
-        - cookieAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - credential
-              properties:
-                credential:
-                  type: object
-                name:
-                  type: string
-      responses:
-        '200':
-          description: Passkey registered
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Passkey'
-
-  /me/passkeys/{id}:
-    patch:
-      tags:
-        - Passkeys
-      summary: Rename passkey
-      security:
-        - cookieAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uint64
-      requestBody:
-        required: true
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              required:
-                - name
-              properties:
-                name:
-                  type: string
-                  example: "Updated Name"
-      responses:
-        '200':
-          description: Passkey renamed
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Passkey'
-
-  /me/passkeys/{id}/delete:
-    post:
-      tags:
-        - Passkeys
-      summary: Delete passkey
-      security:
-        - cookieAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uint64
-      responses:
-        '200':
-          description: Passkey deleted
-        '401':
-          description: Unauthorized
 
   /me/signins:
     get:
@@ -940,7 +829,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  url:
+                  oauth_url:
                     type: string
                     format: uri
 
@@ -975,7 +864,178 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SocialConnection'
+                type: object
+                properties:
+                  message:
+                    type: string
+                  session:
+                    type: object
+                  redirect_uri:
+                    type: string
+                    format: uri
+
+  /me/passkeys:
+    get:
+      tags:
+        - Passkeys
+      summary: Get user passkeys
+      description: Retrieve all passkeys for the current user
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Passkeys retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Passkey'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Passkeys are not enabled
+
+  /me/passkeys/register/begin:
+    post:
+      tags:
+        - Passkeys
+      summary: Begin passkey registration
+      description: Initialize WebAuthn registration
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Registration options generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  options:
+                    type: object
+                    description: WebAuthn registration options
+        '401':
+          description: Unauthorized
+        '403':
+          description: Passkeys are not enabled
+
+  /me/passkeys/register/finish:
+    post:
+      tags:
+        - Passkeys
+      summary: Finish passkey registration
+      description: Complete WebAuthn registration
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: name
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Custom name for the passkey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: WebAuthn credential response
+      responses:
+        '200':
+          description: Passkey registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  passkey:
+                    $ref: '#/components/schemas/Passkey'
+        '400':
+          description: Invalid registration data
+        '401':
+          description: Unauthorized
+        '403':
+          description: Passkeys are not enabled
+
+  /me/passkeys/{id}/delete:
+    post:
+      tags:
+        - Passkeys
+      summary: Delete passkey
+      description: Remove a registered passkey
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uint64
+      responses:
+        '200':
+          description: Passkey deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Passkey deleted successfully"
+        '400':
+          description: Invalid passkey ID
+        '401':
+          description: Unauthorized
+        '403':
+          description: Passkeys are not enabled
+        '404':
+          description: Passkey not found
+
+  /me/passkeys/{id}:
+    patch:
+      tags:
+        - Passkeys
+      summary: Rename passkey
+      description: Update the name of a registered passkey
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uint64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  example: "My iPhone"
+      responses:
+        '200':
+          description: Passkey renamed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Passkey'
+        '400':
+          description: Invalid request data
+        '401':
+          description: Unauthorized
+        '403':
+          description: Passkeys are not enabled
+        '404':
+          description: Passkey not found
 
 components:
   schemas:
@@ -995,6 +1055,10 @@ components:
         username:
           type: string
           example: "johndoe"
+        availability:
+          type: string
+          enum: [available, busy, away]
+          example: "available"
         email:
           type: string
           format: email
@@ -1028,6 +1092,17 @@ components:
           type: boolean
         disabled:
           type: boolean
+        active_organization_membership_id:
+          type: string
+          format: uint64
+          nullable: true
+        active_workspace_membership_id:
+          type: string
+          format: uint64
+          nullable: true
+        public_metadata:
+          type: object
+          additionalProperties: true
 
     EmailAddress:
       type: object
@@ -1076,24 +1151,7 @@ components:
           type: string
           format: date-time
 
-    Passkey:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uint64
-        name:
-          type: string
-          example: "My iPhone"
-        device_type:
-          type: string
-          example: "single_device"
-        created_at:
-          type: string
-          format: date-time
-        last_used_at:
-          type: string
-          format: date-time
+
 
     SignIn:
       type: object
@@ -1109,20 +1167,97 @@ components:
         user_agent:
           type: string
 
+    PublicOrganizationData:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+        name:
+          type: string
+        image_url:
+          type: string
+          format: uri
+        description:
+          type: string
+        member_count:
+          type: integer
+        whitelisted_ips:
+          type: array
+          items:
+            type: string
+        auto_assigned_workspace_id:
+          type: string
+          format: uint64
+          nullable: true
+        enforce_mfa:
+          type: boolean
+        enable_ip_restriction:
+          type: boolean
+        public_metadata:
+          type: object
+          additionalProperties: true
+        segments:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    PublicWorkspaceData:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+        name:
+          type: string
+        image_url:
+          type: string
+          format: uri
+        description:
+          type: string
+        member_count:
+          type: integer
+        whitelisted_ips:
+          type: array
+          items:
+            type: string
+        enforce_mfa:
+          type: boolean
+        enable_ip_restriction:
+          type: boolean
+        public_metadata:
+          type: object
+          additionalProperties: true
+        segments:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
     OrganizationMembershipWithDetails:
       type: object
       properties:
         id:
           type: string
           format: uint64
-        organization_id:
+        user_id:
           type: string
           format: uint64
-        organization_name:
-          type: string
-        organization_image_url:
-          type: string
-          format: uri
+        organization:
+          $ref: '#/components/schemas/PublicOrganizationData'
         roles:
           type: array
           items:
@@ -1134,6 +1269,18 @@ components:
                 type: array
                 items:
                   type: string
+        public_metadata:
+          type: object
+          additionalProperties: true
+        eligibility_restriction:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
 
     WorkspaceMembershipWithDetails:
       type: object
@@ -1141,17 +1288,42 @@ components:
         id:
           type: string
           format: uint64
-        workspace_id:
+        organization_id:
           type: string
           format: uint64
-        workspace_name:
+        organization_membership_id:
           type: string
-        organization_name:
+          format: uint64
+        user_id:
           type: string
+          format: uint64
+        organization:
+          $ref: '#/components/schemas/PublicOrganizationData'
+        workspace:
+          $ref: '#/components/schemas/PublicWorkspaceData'
         roles:
           type: array
           items:
             type: object
+            properties:
+              name:
+                type: string
+              permissions:
+                type: array
+                items:
+                  type: string
+        public_metadata:
+          type: object
+          additionalProperties: true
+        eligibility_restriction:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
 
     SocialConnection:
       type: object
@@ -1165,6 +1337,37 @@ components:
         email:
           type: string
           format: email
+
+    Passkey:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+          example: "123456789012345678"
+        user_id:
+          type: string
+          format: uint64
+        name:
+          type: string
+          example: "My iPhone"
+        credential_id:
+          type: string
+        transports:
+          type: array
+          items:
+            type: string
+        backup_eligible:
+          type: boolean
+        device_type:
+          type: string
+          example: "platform"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
 
     Error:
       type: object

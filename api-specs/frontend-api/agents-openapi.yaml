@@ -403,6 +403,74 @@ paths:
         '404':
           description: Integration not found
 
+  /api/agent/mcp-servers:
+    get:
+      tags:
+        - Agent Integrations
+      summary: List MCP servers
+      description: Retrieve all configured MCP servers for the current agent session
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: MCP servers retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/McpServer'
+        '401':
+          description: Unauthorized
+
+  /api/agent/mcp-servers/{id}/connect:
+    post:
+      tags:
+        - Agent Integrations
+      summary: Connect to MCP server
+      description: Connect to a specific MCP server
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: MCP server ID
+          schema:
+            type: string
+            format: uint64
+      responses:
+        '200':
+          description: Connected successfully
+        '401':
+          description: Unauthorized
+        '404':
+          description: MCP server not found
+
+  /api/agent/mcp-servers/{id}/disconnect:
+    post:
+      tags:
+        - Agent Integrations
+      summary: Disconnect from MCP server
+      description: Disconnect from a specific MCP server
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: MCP server ID
+          schema:
+            type: string
+            format: uint64
+      responses:
+        '200':
+          description: Disconnected successfully
+        '401':
+          description: Unauthorized
+        '404':
+          description: MCP server not found
+
 components:
   parameters:
     ContextId:
@@ -455,14 +523,6 @@ components:
           description: Session expiration time
           example: "2024-01-16T10:30:00Z"
           nullable: true
-        created_at:
-          type: string
-          format: date-time
-          example: "2024-01-15T10:30:00Z"
-        updated_at:
-          type: string
-          format: date-time
-          example: "2024-01-15T10:30:00Z"
 
     AgentContext:
       type: object
@@ -538,10 +598,10 @@ components:
           type: string
           description: Message ID
           example: "msg_abc123"
-        role:
+        message_type:
           type: string
           enum: [user, assistant, system]
-          description: Message role
+          description: Message type (role)
           example: "user"
         content:
           type: object
@@ -654,6 +714,21 @@ components:
         code:
           type: string
           example: "NO_AGENT_SESSION"
+
+    McpServer:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+        deployment_id:
+          type: string
+          format: uint64
+        name:
+          type: string
+        config:
+          type: object
+          description: McpServer configuration details
 
   securitySchemes:
     cookieAuth:

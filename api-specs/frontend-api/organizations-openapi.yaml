@@ -182,6 +182,14 @@ paths:
       responses:
         '200':
           description: Organization deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
         '400':
           description: Bad request - Cannot delete (last admin, etc.)
         '401':
@@ -204,6 +212,14 @@ paths:
       responses:
         '200':
           description: Left organization successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
         '400':
           description: Bad request - Cannot leave (last admin, etc.)
         '401':
@@ -229,9 +245,14 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/OrganizationMemberWithDetails'
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/OrganizationMemberWithDetails'
+                  meta:
+                    type: object
         '401':
           description: Unauthorized
         '403':
@@ -259,6 +280,14 @@ paths:
       responses:
         '200':
           description: Member removed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
         '400':
           description: Bad request - Cannot remove (last admin, etc.)
         '401':
@@ -298,7 +327,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OrganizationMembership'
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
         '400':
           description: Bad request
         '401':
@@ -338,7 +371,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OrganizationMembership'
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
         '400':
           description: Bad request
         '401':
@@ -447,6 +484,14 @@ paths:
       responses:
         '200':
           description: Invitation discarded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
         '401':
           description: Unauthorized
         '403':
@@ -683,7 +728,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OrganizationDomain'
+                type: object
+                properties:
+                  domain:
+                    $ref: '#/components/schemas/OrganizationDomain'
         '400':
           description: Bad request - Domain verification failed
         '401':
@@ -713,6 +761,14 @@ paths:
       responses:
         '200':
           description: Domain deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
         '401':
           description: Unauthorized
         '403':
@@ -959,6 +1015,14 @@ paths:
       responses:
         '200':
           description: Connection deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
         '401':
           description: Unauthorized
         '403':
@@ -1018,7 +1082,15 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SCIMTokenResponse'
+                type: object
+                properties:
+                  exists:
+                    type: boolean
+                  token:
+                    $ref: '#/components/schemas/SCIMTokenResponse'
+                  scim_base_url:
+                    type: string
+                    format: uri
         '401':
           description: Unauthorized
         '403':
@@ -1073,6 +1145,14 @@ paths:
       responses:
         '200':
           description: SCIM token revoked successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
         '401':
           description: Unauthorized
         '403':
@@ -1133,7 +1213,7 @@ components:
           type: boolean
           description: Whether IP restriction is enabled
           example: false
-        enforce_mfa_setup:
+        enforce_mfa:
           type: boolean
           description: Whether MFA is enforced
           example: false

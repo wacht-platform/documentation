@@ -37,6 +37,65 @@ paths:
         '401':
           description: Unauthorized - No active webhook app session
 
+  /webhook/settings:
+    get:
+      tags:
+        - Webhooks
+      summary: Get webhook app settings
+      description: Retrieve settings for the current webhook app session
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Settings retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  failure_notification_emails:
+                    type: array
+                    items:
+                      type: string
+                      format: email
+        '401':
+          description: Unauthorized - No active webhook app session
+    put:
+      tags:
+        - Webhooks
+      summary: Update webhook app settings
+      description: Update settings for the current webhook app session
+      security:
+        - cookieAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                failure_notification_emails:
+                  type: array
+                  items:
+                    type: string
+                    format: email
+      responses:
+        '200':
+          description: Settings updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  failure_notification_emails:
+                    type: array
+                    items:
+                      type: string
+                      format: email
+        '400':
+          description: Bad request - Invalid emails
+        '401':
+          description: Unauthorized - No active webhook app session
+
   /webhook/endpoints:
     get:
       tags:
@@ -533,6 +592,48 @@ paths:
         '401':
           description: Unauthorized
 
+  /webhook/settings:
+    get:
+      tags:
+        - Webhooks
+      summary: Get webhook settings
+      description: Retrieve settings for the current webhook app
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Settings retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookSettings'
+        '401':
+          description: Unauthorized
+
+    put:
+      tags:
+        - Webhooks
+      summary: Update webhook settings
+      description: Update settings for the current webhook app
+      security:
+        - cookieAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookSettings'
+      responses:
+        '200':
+          description: Settings updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookSettings'
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+
 components:
   schemas:
     WebhookApp:
@@ -572,6 +673,26 @@ components:
         updated_at:
           type: string
           format: date-time
+
+    WebhookSettings:
+      type: object
+      properties:
+        rate_limit_enabled:
+          type: boolean
+        rate_limit_config:
+          type: object
+          properties:
+            duration_ms:
+              type: integer
+            max_requests:
+              type: integer
+        retry_policy:
+          type: object
+          properties:
+            max_retries:
+              type: integer
+            timeout_seconds:
+              type: integer
 
     WebhookEndpoint:
       type: object

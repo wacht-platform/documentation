@@ -115,6 +115,10 @@ paths:
                   format: password
                   description: Desired password
                   example: "SecurePass123!"
+                invite_token:
+                  type: string
+                  description: Optional invite token
+                  example: "inv_123456"
       responses:
         '200':
           description: Successful sign up
@@ -147,9 +151,21 @@ paths:
                   format: email
                   description: User's email address
                   example: "john@example.com"
+                otp:
+                  type: string
+                  description: OTP code for verification
+                  example: "123456"
       responses:
         '200':
-          description: Password reset email sent
+          description: Password reset email sent or OTP verified
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: Password reset token (if OTP verified)
         '400':
           description: Bad request - Invalid email
         '404':
@@ -185,6 +201,10 @@ paths:
       responses:
         '200':
           description: Password successfully reset
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
         '400':
           description: Bad request - Invalid token or password
         '500':
@@ -213,6 +233,11 @@ paths:
       responses:
         '200':
           description: Verification code sent
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
         '400':
           description: Bad request
         '500':
@@ -240,6 +265,10 @@ paths:
       responses:
         '200':
           description: Code verified successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
         '400':
           description: Invalid code
         '500':
@@ -281,6 +310,8 @@ paths:
                     type: string
                     format: uri
                     example: "https://accounts.google.com/o/oauth2/v2/auth?..."
+                  session:
+                    $ref: '#/components/schemas/Session'
         '400':
           description: Bad request - Invalid provider
 
@@ -377,7 +408,9 @@ paths:
               schema:
                 type: object
                 properties:
-                  available:
+                  exists:
+                    type: boolean
+                    description: Whether the identifier exists
                     type: boolean
                     example: true
         '400':
@@ -435,15 +468,19 @@ paths:
               schema:
                 type: object
                 properties:
-                  available_methods:
-                    type: array
-                    items:
-                      type: string
-                    example: ["email_otp", "magic_link"]
-                  user_id:
+                  strategy:
                     type: string
-                    format: uint64
-                    example: "123456789012345678"
+                    example: "password"
+                  connection_id:
+                    type: string
+                    nullable: true
+                  idp_url:
+                    type: string
+                    format: uri
+                    nullable: true
+                  provider:
+                    type: string
+                    nullable: true
         '400':
           description: User not found
 
@@ -476,25 +513,19 @@ paths:
         - Authentication
       summary: Initiate SSO login
       description: Initiate SAML SSO login flow
-      requestBody:
-        required: true
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              required:
-                - organization_id
-              properties:
-                organization_id:
-                  type: string
-                  format: uint64
-                  description: Organization ID
-                  example: "123456789012345678"
-                relay_url:
-                  type: string
-                  format: uri
-                  description: URL to relay SAML response
-                  example: "https://app.example.com/sso/callback"
+      parameters:
+        - name: connection_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uint64
+        - name: redirect_uri
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uri
       responses:
         '200':
           description: SSO login initiated
@@ -506,6 +537,8 @@ paths:
                   sso_url:
                     type: string
                     format: uri
+                  session:
+                    $ref: '#/components/schemas/Session'
         '400':
           description: Bad request
 

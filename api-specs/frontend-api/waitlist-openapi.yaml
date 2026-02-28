@@ -48,12 +48,11 @@ paths:
               schema:
                 type: object
                 properties:
-                  success:
-                    type: boolean
-                    example: true
                   message:
                     type: string
-                    example: "You have been added to the waitlist"
+                    example: "Successfully joined waitlist"
+                  entry:
+                    $ref: '#/components/schemas/WaitlistEntry'
         '400':
           description: Bad request - Invalid email or already on waitlist
           content:
@@ -72,3 +71,27 @@ components:
         code:
           type: string
           example: "INVALID_EMAIL"
+
+    WaitlistEntry:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uint64
+        deployment_id:
+          type: string
+          format: uint64
+          nullable: true
+        email:
+          type: string
+          format: email
+        first_name:
+          type: string
+        last_name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time

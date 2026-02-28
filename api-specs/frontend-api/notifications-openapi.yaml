@@ -114,12 +114,10 @@ paths:
             application/json:
               schema:
                 type: object
-                additionalProperties:
-                  type: integer
-                example:
-                  organization: 5
-                  workspace: 2
-                  global: 1
+                properties:
+                  count:
+                    type: integer
+                    example: 5
         '401':
           description: Unauthorized
 
@@ -144,7 +142,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Notification'
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Notification marked as read"
+                  success:
+                    type: boolean
+                    example: true
         '401':
           description: Unauthorized
         '404':
@@ -171,7 +176,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Notification'
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Notification marked as unread"
+                  success:
+                    type: boolean
+                    example: true
         '401':
           description: Unauthorized
         '404':
@@ -198,7 +210,17 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Notification'
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Notification archive status updated"
+                  is_archived:
+                    type: boolean
+                    example: true
+                  success:
+                    type: boolean
+                    example: true
         '401':
           description: Unauthorized
         '404':
@@ -234,7 +256,17 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Notification'
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Notification star status updated"
+                  is_starred:
+                    type: boolean
+                    example: true
+                  success:
+                    type: boolean
+                    example: true
         '401':
           description: Unauthorized
         '404':

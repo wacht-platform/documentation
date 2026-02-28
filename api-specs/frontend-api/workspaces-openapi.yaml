@@ -152,6 +152,14 @@ paths:
       responses:
         '200':
           description: Workspace deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
         '400':
           description: Bad request - Cannot delete
         '401':
@@ -177,9 +185,14 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/WorkspaceMemberWithDetails'
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WorkspaceMemberWithDetails'
+                  meta:
+                    type: object
         '401':
           description: Unauthorized
         '403':
@@ -207,6 +220,14 @@ paths:
       responses:
         '200':
           description: Member removed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
         '400':
           description: Bad request
         '401':
@@ -306,6 +327,14 @@ paths:
       responses:
         '200':
           description: Role deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Workspace role deleted"
         '400':
           description: Bad request - Cannot delete default role or role in use
         '401':
@@ -345,7 +374,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/WorkspaceMembership'
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
         '400':
           description: Bad request
         '401':
@@ -385,7 +418,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/WorkspaceMembership'
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
         '400':
           description: Bad request
         '401':
@@ -444,10 +481,14 @@ components:
           type: boolean
           description: Whether IP restriction is enabled
           example: false
-        enforce_mfa_setup:
+        enforce_mfa:
           type: boolean
           description: Whether MFA is enforced
           example: false
+        member_count:
+          type: integer
+          description: Number of members
+          example: 42
         public_metadata:
           type: object
           description: Public metadata

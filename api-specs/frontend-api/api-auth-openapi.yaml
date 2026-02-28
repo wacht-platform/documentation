@@ -357,10 +357,6 @@ components:
     ApiAuthApp:
       type: object
       properties:
-        id:
-          type: string
-          description: API auth app ID
-          example: "123456789012345678"
         app_slug:
           type: string
           description: Unique slug identifier
@@ -395,14 +391,6 @@ components:
           type: string
           description: API key ID
           example: "123456789012345678"
-        app_id:
-          type: string
-          description: Parent API auth app ID
-          example: "111111111111111111"
-        app_slug:
-          type: string
-          description: Parent app slug
-          example: "mobile-app"
         name:
           type: string
           description: Key name
@@ -443,35 +431,14 @@ components:
           nullable: true
 
     CreateKeyResponse:
-      type: object
-      properties:
-        id:
-          type: string
-          description: API key ID
-          example: "123456789012345678"
-        name:
-          type: string
-          description: Key name
-          example: "Production Server"
-        key:
-          type: string
-          description: The full API key (only shown once)
-          example: "wacht_mobile_sk_live_abcdefghijklmnopqrstuvwxyz"
-        key_prefix:
-          type: string
-          description: Key prefix
-          example: "wacht_mobile_"
-        key_suffix:
-          type: string
-          description: Key suffix
-          example: "wxyz"
-        expires_at:
-          type: string
-          format: date-time
-          nullable: true
-        created_at:
-          type: string
-          format: date-time
+      allOf:
+        - $ref: '#/components/schemas/ApiKey'
+        - type: object
+          properties:
+            secret:
+              type: string
+              description: The full, unhashed API key (only shown once)
+              example: "wacht_mobile_abc123def456xyz789"
 
     RateLimit:
       type: object
@@ -609,12 +576,23 @@ components:
           type: string
           format: date-time
           description: Time of the data point
-        count:
+        total_requests:
           type: integer
-          description: Number of requests
-        avg_duration_ms:
+          description: Total number of requests
+          example: 100
+        allowed_requests:
+          type: integer
+          description: Number of allowed requests
+          example: 95
+        blocked_requests:
+          type: integer
+          description: Number of blocked requests
+          example: 5
+        success_rate:
           type: number
-          description: Average duration in milliseconds
+          format: float
+          description: Success rate ratio
+          example: 0.95
 
     Error:
       type: object

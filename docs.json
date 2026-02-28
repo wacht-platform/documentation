@@ -1,12 +1,14 @@
 {
     "$schema": "https://mintlify.com/docs.json",
-    "theme": "linden",
+    "theme": "maple",
     "name": "Wacht Platform Documentation",
     "search": {
         "prompt": "Search docs"
     },
     "colors": {
-        "primary": "#4f46e5"
+        "primary": "#4f46e5",
+        "dark": "#4f46e5",
+        "light": "#ffffff"
     },
     "fonts": {
         "family": "Inter"
@@ -16,25 +18,9 @@
         "tabs": [
             {
                 "tab": "Documentation",
-                "anchors": [
-                    {
-                        "anchor": "Getting Started",
-                        "icon": "book",
-                        "groups": [
-                            {
-                                "group": "Overview",
-                                "pages": [
-                                    "index",
-                                    "getting-started/introduction",
-                                    "getting-started/quickstart"
-                                ]
-                            }
-                        ]
-                    }
-                ],
                 "dropdowns": [
                     {
-                        "dropdown": "React Router SDK",
+                        "dropdown": "React Router",
                         "icon": "react",
                         "groups": [
                             {
@@ -129,7 +115,7 @@
                         ]
                     },
                     {
-                        "dropdown": "Next.js SDK",
+                        "dropdown": "Next.js",
                         "icon": "/images/nextjs-icon.svg",
                         "groups": [
                             {
@@ -222,7 +208,7 @@
                         ]
                     },
                     {
-                        "dropdown": "TanStack Router SDK",
+                        "dropdown": "TanStack Router",
                         "icon": "/images/tanstack-icon.svg",
                         "groups": [
                             {
@@ -317,7 +303,7 @@
                         ]
                     },
                     {
-                        "dropdown": "Rust SDK",
+                        "dropdown": "Rust",
                         "icon": "rust",
                         "groups": [
                             {
@@ -370,22 +356,6 @@
             },
             {
                 "tab": "API Reference",
-                "anchors": [
-                    {
-                        "anchor": "Getting Started",
-                        "icon": "book",
-                        "groups": [
-                            {
-                                "group": "Overview",
-                                "pages": [
-                                    "index",
-                                    "getting-started/introduction",
-                                    "getting-started/quickstart"
-                                ]
-                            }
-                        ]
-                    }
-                ],
                 "dropdowns": [
                     {
                         "dropdown": "Backend API",

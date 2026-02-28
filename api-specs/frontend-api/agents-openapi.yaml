@@ -4,89 +4,171 @@ info:
   description: AI agent context and execution endpoints for the Wacht Frontend API
   version: 1.0.0
 servers:
-  - url: https://api.wacht.dev
-    description: Production server
+- url: https://api.wacht.dev
+  description: Production server
 
 tags:
-  - name: Agent Session
-    description: Agent session management
-  - name: Agent Contexts
-    description: Agent conversation contexts
-  - name: Agent Integrations
-    description: Third-party integrations for agents
-  - name: Agent Execution
-    description: Agent execution and messaging
+- name: Agent Session
+  description: Agent session management
+- name: Agent Contexts
+  description: Agent conversation contexts
+- name: Agent Integrations
+  description: Third-party integrations for agents
+- name: Agent Execution
+  description: Agent execution and messaging
 
 paths:
   /api/agent/session:
     get:
       tags:
-        - Agent Session
+      - Agent Session
       summary: Get agent session
       description: Retrieve the current active agent session
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       responses:
         '200':
           description: Agent session retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AgentSession'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/AgentSession'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '401':
           description: Unauthorized - No active agent session
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized - No active agent session
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /api/agent/contexts:
     get:
       tags:
-        - Agent Contexts
+      - Agent Contexts
       summary: List agent contexts
       description: Retrieve a paginated list of agent conversation contexts
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: limit
-          in: query
-          description: Maximum number of contexts to return
-          schema:
-            type: integer
-            default: 10
-            minimum: 1
-            maximum: 100
-        - name: offset
-          in: query
-          description: Number of contexts to skip
-          schema:
-            type: integer
-            default: 0
-            minimum: 0
-        - name: status
-          in: query
-          description: Filter by status
-          schema:
-            type: string
-            enum: [active, archived, all]
-        - name: search
-          in: query
-          description: Search term for context titles
-          schema:
-            type: string
+      - name: limit
+        in: query
+        description: Maximum number of contexts to return
+        schema:
+          type: integer
+          default: 10
+          minimum: 1
+          maximum: 100
+      - name: offset
+        in: query
+        description: Number of contexts to skip
+        schema:
+          type: integer
+          default: 0
+          minimum: 0
+      - name: status
+        in: query
+        description: Filter by status
+        schema:
+          type: string
+          enum: [active, archived, all]
+      - name: search
+        in: query
+        description: Search term for context titles
+        schema:
+          type: string
       responses:
         '200':
           description: Contexts retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ListContextsResponse'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/ListContextsResponse'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '401':
           description: Unauthorized - No active agent session
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized - No active agent session
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
     post:
       tags:
-        - Agent Contexts
+      - Agent Contexts
       summary: Create agent context
       description: Create a new agent conversation context
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       requestBody:
         required: true
         content:
@@ -94,7 +176,7 @@ paths:
             schema:
               type: object
               required:
-                - title
+              - title
               properties:
                 title:
                   type: string
@@ -110,44 +192,170 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AgentContext'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/AgentContext'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Bad request - Missing title
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request - Missing title
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized - No active agent session
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized - No active agent session
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /api/agent/contexts/{id}:
     get:
       tags:
-        - Agent Contexts
+      - Agent Contexts
       summary: Get agent context
       description: Retrieve a specific agent context
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - $ref: '#/components/parameters/ContextId'
+      - $ref: '#/components/parameters/ContextId'
       responses:
         '200':
           description: Context retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AgentContext'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/AgentContext'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '401':
           description: Unauthorized - No active agent session
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized - No active agent session
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '404':
           description: Context not found
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 404
+                  message:
+                    type: string
+                    description: Context not found
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /api/agent/contexts/{id}/update:
     post:
       tags:
-        - Agent Contexts
+      - Agent Contexts
       summary: Update agent context
       description: Update an agent context's title
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - $ref: '#/components/parameters/ContextId'
+      - $ref: '#/components/parameters/ContextId'
       requestBody:
         required: true
         content:
@@ -155,7 +363,7 @@ paths:
             schema:
               type: object
               required:
-                - title
+              - title
               properties:
                 title:
                   type: string
@@ -168,91 +376,283 @@ paths:
             application/json:
               schema:
                 type: object
-                additionalProperties: true
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: object
+                    additionalProperties: true
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized - No active agent session
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized - No active agent session
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '404':
           description: Context not found
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 404
+                  message:
+                    type: string
+                    description: Context not found
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /api/agent/contexts/{id}/delete:
     post:
       tags:
-        - Agent Contexts
+      - Agent Contexts
       summary: Delete agent context
       description: Delete an agent context and all its messages
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - $ref: '#/components/parameters/ContextId'
+      - $ref: '#/components/parameters/ContextId'
       responses:
         '204':
           description: Context deleted successfully
         '401':
           description: Unauthorized - No active agent session
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized - No active agent session
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '404':
           description: Context not found
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 404
+                  message:
+                    type: string
+                    description: Context not found
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /api/agent/contexts/{id}/messages:
     get:
       tags:
-        - Agent Contexts
+      - Agent Contexts
       summary: Get context messages
       description: Retrieve all messages in a conversation context
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - $ref: '#/components/parameters/ContextId'
-        - name: limit
-          in: query
-          description: Maximum number of messages to return
-          schema:
-            type: integer
-            default: 50
-            minimum: 1
-            maximum: 200
-        - name: offset
-          in: query
-          description: Number of messages to skip
-          schema:
-            type: integer
-            default: 0
-            minimum: 0
+      - $ref: '#/components/parameters/ContextId'
+      - name: limit
+        in: query
+        description: Maximum number of messages to return
+        schema:
+          type: integer
+          default: 50
+          minimum: 1
+          maximum: 200
+      - name: offset
+        in: query
+        description: Number of messages to skip
+        schema:
+          type: integer
+          default: 0
+          minimum: 0
       responses:
         '200':
           description: Messages retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ListMessagesResponse'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/ListMessagesResponse'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '401':
           description: Unauthorized - No active agent session
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized - No active agent session
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '404':
           description: Context not found
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 404
+                  message:
+                    type: string
+                    description: Context not found
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /api/agent/contexts/{context_id}/files/{filename}:
     get:
       tags:
-        - Agent Contexts
+      - Agent Contexts
       summary: Serve context file
       description: Download a file attached to a message in the context
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: context_id
-          in: path
-          required: true
-          description: Context ID
-          schema:
-            type: string
-            format: uint64
-        - name: filename
-          in: path
-          required: true
-          description: File name
-          schema:
-            type: string
+      - name: context_id
+        in: path
+        required: true
+        description: Context ID
+        schema:
+          type: string
+          format: uint64
+      - name: filename
+        in: path
+        required: true
+        description: File name
+        schema:
+          type: string
       responses:
         '200':
           description: File content
@@ -263,19 +663,63 @@ paths:
                 format: binary
         '401':
           description: Unauthorized - No active agent session
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized - No active agent session
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '404':
           description: Context or file not found
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 404
+                  message:
+                    type: string
+                    description: Context or file not found
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /api/agent/contexts/{id}/execute:
     post:
       tags:
-        - Agent Execution
+      - Agent Execution
       summary: Execute agent
       description: Execute the agent with a new message in the context
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - $ref: '#/components/parameters/ContextId'
+      - $ref: '#/components/parameters/ContextId'
       requestBody:
         required: true
         content:
@@ -283,7 +727,7 @@ paths:
             schema:
               type: object
               required:
-                - message
+              - message
               properties:
                 message:
                   type: string
@@ -301,76 +745,268 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AgentExecutionResponse'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/AgentExecutionResponse'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Bad request - Missing message
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request - Missing message
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized - No active agent session
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized - No active agent session
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '404':
           description: Context not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 404
+                  message:
+                    type: string
+                    description: Context not found
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '503':
           description: Service unavailable - Agent integration not configured
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 503
+                  message:
+                    type: string
+                    description: Service unavailable - Agent integration not configured
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /api/agent/integrations:
     get:
       tags:
-        - Agent Integrations
+      - Agent Integrations
       summary: Get active integrations
       description: Retrieve all active integrations for the current agent session
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       responses:
         '200':
           description: Integrations retrieved successfully
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AgentIntegration'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AgentIntegration'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '401':
           description: Unauthorized - No active agent session
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized - No active agent session
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /api/agent/integrations/{integration_id}/remove:
     post:
       tags:
-        - Agent Integrations
+      - Agent Integrations
       summary: Remove integration
       description: Remove an integration from the current agent session
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: integration_id
-          in: path
-          required: true
-          description: Integration ID
-          schema:
-            type: string
-            format: int64
+      - name: integration_id
+        in: path
+        required: true
+        description: Integration ID
+        schema:
+          type: string
+          format: int64
       responses:
         '200':
           description: Integration removed successfully
         '401':
           description: Unauthorized - No active agent session
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized - No active agent session
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '404':
           description: Integration not found
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 404
+                  message:
+                    type: string
+                    description: Integration not found
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /api/agent/integrations/{integration_id}/consent-url:
     post:
       tags:
-        - Agent Integrations
+      - Agent Integrations
       summary: Generate consent URL
       description: Generate a URL for user to grant consent to an integration
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: integration_id
-          in: path
-          required: true
-          description: Integration ID
-          schema:
-            type: string
-            format: int64
+      - name: integration_id
+        in: path
+        required: true
+        description: Integration ID
+        schema:
+          type: string
+          format: int64
       requestBody:
         required: true
         content:
@@ -378,7 +1014,7 @@ paths:
             schema:
               type: object
               required:
-                - redirect_url
+              - redirect_url
               properties:
                 redirect_url:
                   type: string
@@ -393,84 +1029,276 @@ paths:
               schema:
                 type: object
                 properties:
-                  consent_url:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
                     type: string
-                    format: uri
-                    description: URL for user to grant consent
-                    example: "https://provider.com/oauth/authorize?..."
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: object
+                    properties:
+                      consent_url:
+                        type: string
+                        format: uri
+                        description: URL for user to grant consent
+                        example: "https://provider.com/oauth/authorize?..."
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '401':
           description: Unauthorized - No active agent session
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized - No active agent session
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '404':
           description: Integration not found
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 404
+                  message:
+                    type: string
+                    description: Integration not found
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /api/agent/mcp-servers:
     get:
       tags:
-        - Agent Integrations
+      - Agent Integrations
       summary: List MCP servers
       description: Retrieve all configured MCP servers for the current agent session
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       responses:
         '200':
           description: MCP servers retrieved successfully
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/McpServer'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/McpServer'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /api/agent/mcp-servers/{id}/connect:
     post:
       tags:
-        - Agent Integrations
+      - Agent Integrations
       summary: Connect to MCP server
       description: Connect to a specific MCP server
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          description: MCP server ID
-          schema:
-            type: string
-            format: uint64
+      - name: id
+        in: path
+        required: true
+        description: MCP server ID
+        schema:
+          type: string
+          format: uint64
       responses:
         '200':
           description: Connected successfully
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '404':
           description: MCP server not found
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 404
+                  message:
+                    type: string
+                    description: MCP server not found
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /api/agent/mcp-servers/{id}/disconnect:
     post:
       tags:
-        - Agent Integrations
+      - Agent Integrations
       summary: Disconnect from MCP server
       description: Disconnect from a specific MCP server
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          description: MCP server ID
-          schema:
-            type: string
-            format: uint64
+      - name: id
+        in: path
+        required: true
+        description: MCP server ID
+        schema:
+          type: string
+          format: uint64
       responses:
         '200':
           description: Disconnected successfully
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '404':
           description: MCP server not found
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 404
+                  message:
+                    type: string
+                    description: MCP server not found
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
 components:
   parameters:
     ContextId:
@@ -705,16 +1533,6 @@ components:
           format: date-time
           example: "2024-01-15T10:30:00Z"
 
-    Error:
-      type: object
-      properties:
-        error:
-          type: string
-          example: "No active agent session"
-        code:
-          type: string
-          example: "NO_AGENT_SESSION"
-
     McpServer:
       type: object
       properties:
@@ -730,6 +1548,34 @@ components:
           type: object
           description: McpServer configuration details
 
+    SessionInfo:
+      type: object
+      description: Minimal session info included in every response
+      nullable: true
+      properties:
+        id:
+          type: string
+          description: Session ID
+          example: '123456789012345678'
+        created_at:
+          type: string
+          format: date-time
+          description: Session creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+          description: Session last update timestamp
+    ErrorDetail:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Machine-readable error code
+          example: INVALID_CREDENTIALS
+        message:
+          type: string
+          description: Human-readable error message
+          example: Invalid credentials. Please try again.
   securitySchemes:
     cookieAuth:
       type: apiKey

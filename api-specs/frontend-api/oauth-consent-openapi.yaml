@@ -4,29 +4,29 @@ info:
   description: OAuth Consent endpoints for handling authorization requests
   version: 1.0.0
 servers:
-  - url: https://api.wacht.dev
-    description: Production server
+- url: https://api.wacht.dev
+  description: Production server
 
 tags:
-  - name: OAuth Consent
-    description: Endpoints for handling OAuth consent flows
+- name: OAuth Consent
+  description: Endpoints for handling OAuth consent flows
 
 paths:
   /oauth/consent/init:
     get:
       tags:
-        - OAuth Consent
+      - OAuth Consent
       summary: Initialize consent
       description: Initialize the OAuth consent flow
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: handoff_id
-          in: query
-          required: true
-          description: Consent handoff ID
-          schema:
-            type: string
+      - name: handoff_id
+        in: query
+        required: true
+        description: Consent handoff ID
+        schema:
+          type: string
       responses:
         '302':
           description: Redirect to the frontend consent screen
@@ -34,19 +34,85 @@ paths:
           description: Temporary redirect to frontend consent screen
         '400':
           description: Bad request - Missing handoff_id or invalid handoff
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request - Missing handoff_id or invalid handoff
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized - Invalid session or handoff not valid for deployment
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized - Invalid session or handoff not valid for deployment
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '500':
           description: Internal server error
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 500
+                  message:
+                    type: string
+                    description: Internal server error
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /oauth/consent/details:
     get:
       tags:
-        - OAuth Consent
+      - OAuth Consent
       summary: Get consent details
       description: Retrieve the details of the pending OAuth consent request
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       responses:
         '200':
           description: Consent details retrieved successfully
@@ -55,57 +121,120 @@ paths:
               schema:
                 type: object
                 properties:
-                  client_name:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
                     type: string
-                  client_id:
-                    type: string
-                  redirect_uri:
-                    type: string
-                    format: uri
-                  scopes:
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: object
+                    properties:
+                      client_name:
+                        type: string
+                      client_id:
+                        type: string
+                      redirect_uri:
+                        type: string
+                        format: uri
+                      scopes:
+                        type: array
+                        items:
+                          type: string
+                      scope_definitions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            description:
+                              type: string
+                          additionalProperties: true
+                      resource:
+                        type: string
+                        nullable: true
+                      resource_options:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ConsentResourceOption'
+                      state:
+                        type: string
+                        nullable: true
+                      expires_at:
+                        type: string
+                        format: date-time
+                      csrf_token:
+                        type: string
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
                     type: array
                     items:
-                      type: string
-                  scope_definitions:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                        name:
-                          type: string
-                        description:
-                          type: string
-                      additionalProperties: true
-                  resource:
-                    type: string
+                      $ref: '#/components/schemas/ErrorDetail'
                     nullable: true
-                  resource_options:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ConsentResourceOption'
-                  state:
-                    type: string
-                    nullable: true
-                  expires_at:
-                    type: string
-                    format: date-time
-                  csrf_token:
-                    type: string
+                    description: Error details (null on success)
         '400':
           description: Bad request - Missing or expired consent session/handoff
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request - Missing or expired consent session/handoff
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized - No active sign-in
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized - No active sign-in
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /oauth/consent/submit:
     post:
       tags:
-        - OAuth Consent
+      - OAuth Consent
       summary: Submit consent
       description: Submit the user's consent decision (approve or deny)
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       requestBody:
         required: true
         content:
@@ -123,9 +252,28 @@ paths:
               schema:
                 type: object
                 properties:
-                  ok:
-                    type: boolean
-                    example: true
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: object
+                    properties:
+                      ok:
+                        type: boolean
+                        example: true
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '302':
           description: Redirected to the redirect_uri with auth code or error
         '303':
@@ -136,18 +284,84 @@ paths:
           description: Permanent redirect
         '400':
           description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized - Invalid session or CSRF token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized - Invalid session or CSRF token
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '403':
           description: Forbidden - No access to the requested resource
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 403
+                  message:
+                    type: string
+                    description: Forbidden - No access to the requested resource
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
 components:
   schemas:
     SubmitConsentRequest:
       type: object
       required:
-        - action
-        - csrf_token
+      - action
+      - csrf_token
       properties:
         action:
           type: string
@@ -183,6 +397,34 @@ components:
           description: Human readable label
           example: "Personal Profile"
 
+    SessionInfo:
+      type: object
+      description: Minimal session info included in every response
+      nullable: true
+      properties:
+        id:
+          type: string
+          description: Session ID
+          example: '123456789012345678'
+        created_at:
+          type: string
+          format: date-time
+          description: Session creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+          description: Session last update timestamp
+    ErrorDetail:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Machine-readable error code
+          example: INVALID_CREDENTIALS
+        message:
+          type: string
+          description: Human-readable error message
+          example: Invalid credentials. Please try again.
   securitySchemes:
     cookieAuth:
       type: apiKey

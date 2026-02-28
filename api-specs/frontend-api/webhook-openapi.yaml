@@ -4,22 +4,22 @@ info:
   description: Webhook app endpoints for managing endpoints, deliveries, and analytics
   version: 1.0.0
 servers:
-  - url: https://api.wacht.dev
-    description: Production server
+- url: https://api.wacht.dev
+  description: Production server
 
 tags:
-  - name: Webhooks
-    description: Webhook app management
+- name: Webhooks
+  description: Webhook app management
 
 paths:
   /webhook/session:
     get:
       tags:
-        - Webhooks
+      - Webhooks
       summary: Get webhook app session
       description: Retrieve the current webhook app session information
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       responses:
         '200':
           description: Session retrieved successfully
@@ -28,101 +28,124 @@ paths:
               schema:
                 type: object
                 properties:
-                  session_id:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
                     type: string
-                    description: Webhook app session ID
-                    example: "123456789012345678"
-                  webhook_app:
-                    $ref: '#/components/schemas/WebhookApp'
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: object
+                    properties:
+                      session_id:
+                        type: string
+                        description: Webhook app session ID
+                        example: "123456789012345678"
+                      webhook_app:
+                        $ref: '#/components/schemas/WebhookApp'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '401':
           description: Unauthorized - No active webhook app session
 
-  /webhook/settings:
-    get:
-      tags:
-        - Webhooks
-      summary: Get webhook app settings
-      description: Retrieve settings for the current webhook app session
-      security:
-        - cookieAuth: []
-      responses:
-        '200':
-          description: Settings retrieved successfully
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  failure_notification_emails:
-                    type: array
-                    items:
-                      type: string
-                      format: email
-        '401':
-          description: Unauthorized - No active webhook app session
-    put:
-      tags:
-        - Webhooks
-      summary: Update webhook app settings
-      description: Update settings for the current webhook app session
-      security:
-        - cookieAuth: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                failure_notification_emails:
-                  type: array
-                  items:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
                     type: string
-                    format: email
-      responses:
-        '200':
-          description: Settings updated successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  failure_notification_emails:
+                    description: Unauthorized - No active webhook app session
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
                     type: array
                     items:
-                      type: string
-                      format: email
-        '400':
-          description: Bad request - Invalid emails
-        '401':
-          description: Unauthorized - No active webhook app session
-
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /webhook/endpoints:
     get:
       tags:
-        - Webhooks
+      - Webhooks
       summary: List webhook endpoints
       description: Retrieve all webhook endpoints for the current webhook app
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       responses:
         '200':
           description: Endpoints retrieved successfully
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/WebhookEndpoint'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WebhookEndpoint'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
     post:
       tags:
-        - Webhooks
+      - Webhooks
       summary: Create webhook endpoint
       description: Create a new webhook endpoint
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       requestBody:
         content:
           application/json:
@@ -134,28 +157,91 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/WebhookEndpoint'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/WebhookEndpoint'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Bad request - Invalid URL or configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request - Invalid URL or configuration
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /webhook/endpoints/{id}:
     put:
       tags:
-        - Webhooks
+      - Webhooks
       summary: Update webhook endpoint
       description: Update an existing webhook endpoint
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          description: Endpoint ID
-          schema:
-            type: string
-            format: uint64
+      - name: id
+        in: path
+        required: true
+        description: Endpoint ID
+        schema:
+          type: string
+          format: uint64
       requestBody:
         content:
           application/json:
@@ -167,27 +253,90 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/WebhookEndpoint'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/WebhookEndpoint'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Bad request - Invalid endpoint ID or configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request - Invalid endpoint ID or configuration
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
     delete:
       tags:
-        - Webhooks
+      - Webhooks
       summary: Delete webhook endpoint
       description: Delete a webhook endpoint
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          description: Endpoint ID
-          schema:
-            type: string
-            format: uint64
+      - name: id
+        in: path
+        required: true
+        description: Endpoint ID
+        schema:
+          type: string
+          format: uint64
       responses:
         '200':
           description: Endpoint deleted successfully
@@ -196,30 +345,93 @@ paths:
               schema:
                 type: object
                 properties:
-                  success:
-                    type: boolean
-                    example: true
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: object
+                    properties:
+                      success:
+                        type: boolean
+                        example: true
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Bad request - Invalid endpoint ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request - Invalid endpoint ID
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /webhook/endpoints/{id}/test:
     post:
       tags:
-        - Webhooks
+      - Webhooks
       summary: Test webhook endpoint
       description: Send a test payload to a webhook endpoint
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          description: Endpoint ID
-          schema:
-            type: string
-            format: uint64
+      - name: id
+        in: path
+        required: true
+        description: Endpoint ID
+        schema:
+          type: string
+          format: uint64
       requestBody:
         content:
           application/json:
@@ -231,144 +443,437 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TestEndpointResponse'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/TestEndpointResponse'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Bad request - Invalid endpoint ID or payload
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request - Invalid endpoint ID or payload
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /webhook/events:
     get:
       tags:
-        - Webhooks
+      - Webhooks
       summary: List subscribed events
       description: Retrieve all events subscribed by endpoints in this webhook app
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       responses:
         '200':
           description: Events retrieved successfully
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/WebhookEventSubscription'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WebhookEventSubscription'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /webhook/catalog:
     get:
       tags:
-        - Webhooks
+      - Webhooks
       summary: Get event catalog
       description: Retrieve the event catalog with all available event types
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       responses:
         '200':
           description: Catalog retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EventCatalog'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/EventCatalog'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /webhook/deliveries:
     get:
       tags:
-        - Webhooks
+      - Webhooks
       summary: List webhook deliveries
       description: Retrieve webhook deliveries with cursor-based pagination
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: limit
-          in: query
-          description: Maximum number of deliveries to return
-          schema:
-            type: integer
-            default: 50
-        - name: offset
-          in: query
-          description: Number of deliveries to skip
-          schema:
-            type: integer
-            default: 0
-        - name: cursor
-          in: query
-          description: Pagination cursor (base64 encoded)
-          schema:
-            type: string
-        - name: status
-          in: query
-          description: Filter by delivery status
-          schema:
-            type: string
-            enum: [pending, success, failed, retrying]
-        - name: event_name
-          in: query
-          description: Filter by event name
-          schema:
-            type: string
-        - name: endpoint_id
-          in: query
-          description: Filter by endpoint ID
-          schema:
-            type: string
+      - name: limit
+        in: query
+        description: Maximum number of deliveries to return
+        schema:
+          type: integer
+          default: 50
+      - name: offset
+        in: query
+        description: Number of deliveries to skip
+        schema:
+          type: integer
+          default: 0
+      - name: cursor
+        in: query
+        description: Pagination cursor (base64 encoded)
+        schema:
+          type: string
+      - name: status
+        in: query
+        description: Filter by delivery status
+        schema:
+          type: string
+          enum: [pending, success, failed, retrying]
+      - name: event_name
+        in: query
+        description: Filter by event name
+        schema:
+          type: string
+      - name: endpoint_id
+        in: query
+        description: Filter by endpoint ID
+        schema:
+          type: string
       responses:
         '200':
           description: Deliveries retrieved successfully
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/WebhookDelivery'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WebhookDelivery'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Bad request - Invalid cursor or parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request - Invalid cursor or parameters
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /webhook/deliveries/{id}:
     get:
       tags:
-        - Webhooks
+      - Webhooks
       summary: Get webhook delivery
       description: Retrieve details of a specific webhook delivery
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          description: Delivery ID
-          schema:
-            type: string
-            format: int64
+      - name: id
+        in: path
+        required: true
+        description: Delivery ID
+        schema:
+          type: string
+          format: int64
       responses:
         '200':
           description: Delivery retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/WebhookDeliveryDetail'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/WebhookDeliveryDetail'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Bad request - Invalid delivery ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request - Invalid delivery ID
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '404':
           description: Delivery not found
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 404
+                  message:
+                    type: string
+                    description: Delivery not found
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /webhook/deliveries/replay:
     post:
       tags:
-        - Webhooks
+      - Webhooks
       summary: Replay webhook deliveries
       description: Create a replay task to resend webhook deliveries
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       requestBody:
         content:
           application/json:
@@ -380,243 +885,678 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ReplayTask'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/ReplayTask'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Bad request - Invalid parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request - Invalid parameters
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
     get:
       tags:
-        - Webhooks
+      - Webhooks
       summary: List replay tasks
       description: Retrieve all replay tasks for the webhook app
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            default: 20
-        - name: offset
-          in: query
-          schema:
-            type: integer
-            default: 0
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        schema:
+          type: integer
+          default: 0
       responses:
         '200':
           description: Replay tasks retrieved successfully
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ReplayTask'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ReplayTask'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /webhook/deliveries/replay/{task_id}:
     get:
       tags:
-        - Webhooks
+      - Webhooks
       summary: Get replay task status
       description: Retrieve the status of a replay task
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: task_id
-          in: path
-          required: true
-          description: Replay task ID
-          schema:
-            type: string
+      - name: task_id
+        in: path
+        required: true
+        description: Replay task ID
+        schema:
+          type: string
       responses:
         '200':
           description: Task status retrieved
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ReplayTask'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/ReplayTask'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Bad request - Invalid task ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request - Invalid task ID
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /webhook/deliveries/replay/{task_id}/cancel:
     post:
       tags:
-        - Webhooks
+      - Webhooks
       summary: Cancel replay task
       description: Cancel an ongoing replay task
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: task_id
-          in: path
-          required: true
-          description: Replay task ID
-          schema:
-            type: string
+      - name: task_id
+        in: path
+        required: true
+        description: Replay task ID
+        schema:
+          type: string
       responses:
         '200':
           description: Task cancelled successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ReplayTask'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/ReplayTask'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Bad request - Invalid task ID or task already completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request - Invalid task ID or task already completed
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /webhook/analytics:
     get:
       tags:
-        - Webhooks
+      - Webhooks
       summary: Get webhook analytics
       description: Retrieve aggregated analytics for the webhook app
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: start_date
-          in: query
-          description: Start date (RFC3339)
-          schema:
-            type: string
-            format: date-time
-        - name: end_date
-          in: query
-          description: End date (RFC3339)
-          schema:
-            type: string
-            format: date-time
-        - name: endpoint_id
-          in: query
-          description: Filter by endpoint ID
-          schema:
-            type: string
-        - name: fields
-          in: query
-          description: Comma-separated list of fields to include
-          schema:
-            type: string
+      - name: start_date
+        in: query
+        description: Start date (RFC3339)
+        schema:
+          type: string
+          format: date-time
+      - name: end_date
+        in: query
+        description: End date (RFC3339)
+        schema:
+          type: string
+          format: date-time
+      - name: endpoint_id
+        in: query
+        description: Filter by endpoint ID
+        schema:
+          type: string
+      - name: fields
+        in: query
+        description: Comma-separated list of fields to include
+        schema:
+          type: string
       responses:
         '200':
           description: Analytics retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/WebhookAnalytics'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/WebhookAnalytics'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /webhook/analytics/timeseries:
     get:
       tags:
-        - Webhooks
+      - Webhooks
       summary: Get webhook timeseries
       description: Retrieve timeseries data for webhook deliveries
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: start_date
-          in: query
-          description: Start date (RFC3339)
-          schema:
-            type: string
-            format: date-time
-        - name: end_date
-          in: query
-          description: End date (RFC3339)
-          schema:
-            type: string
-            format: date-time
-        - name: interval
-          in: query
-          description: Time interval for grouping
-          schema:
-            type: string
-            enum: [minute, hour, day, week]
-            default: hour
-        - name: endpoint_id
-          in: query
-          description: Filter by endpoint ID
-          schema:
-            type: string
+      - name: start_date
+        in: query
+        description: Start date (RFC3339)
+        schema:
+          type: string
+          format: date-time
+      - name: end_date
+        in: query
+        description: End date (RFC3339)
+        schema:
+          type: string
+          format: date-time
+      - name: interval
+        in: query
+        description: Time interval for grouping
+        schema:
+          type: string
+          enum: [minute, hour, day, week]
+          default: hour
+      - name: endpoint_id
+        in: query
+        description: Filter by endpoint ID
+        schema:
+          type: string
       responses:
         '200':
           description: Timeseries data retrieved successfully
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/TimeseriesPoint'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TimeseriesPoint'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /webhook/stats:
     get:
       tags:
-        - Webhooks
+      - Webhooks
       summary: Get webhook stats
       description: Retrieve quick stats for the webhook app
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       responses:
         '200':
           description: Stats retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/WebhookStats'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/WebhookStats'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /webhook/rotate-secret:
     post:
       tags:
-        - Webhooks
+      - Webhooks
       summary: Rotate signing secret
       description: Rotate the webhook signing secret
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       responses:
         '200':
           description: Secret rotated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/WebhookApp'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/WebhookApp'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /webhook/settings:
     get:
       tags:
-        - Webhooks
+      - Webhooks
       summary: Get webhook settings
       description: Retrieve settings for the current webhook app
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       responses:
         '200':
           description: Settings retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/WebhookSettings'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/WebhookSettings'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
     put:
       tags:
-        - Webhooks
+      - Webhooks
       summary: Update webhook settings
       description: Update settings for the current webhook app
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       requestBody:
         content:
           application/json:
@@ -628,12 +1568,75 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/WebhookSettings'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/WebhookSettings'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
 components:
   schemas:
     WebhookApp:
@@ -766,7 +1769,7 @@ components:
     CreateEndpointRequest:
       type: object
       required:
-        - url
+      - url
       properties:
         url:
           type: string
@@ -826,8 +1829,8 @@ components:
     TestEndpointRequest:
       type: object
       required:
-        - event_name
-        - payload
+      - event_name
+      - payload
       properties:
         event_name:
           type: string
@@ -937,41 +1940,41 @@ components:
 
     WebhookDeliveryDetail:
       allOf:
-        - $ref: '#/components/schemas/WebhookDelivery'
-        - type: object
-          properties:
-            payload:
-              type: object
-              description: Full webhook payload
-            signature:
-              type: string
-              description: Webhook signature
-              nullable: true
-            response:
+      - $ref: '#/components/schemas/WebhookDelivery'
+      - type: object
+        properties:
+          payload:
+            type: object
+            description: Full webhook payload
+          signature:
+            type: string
+            description: Webhook signature
+            nullable: true
+          response:
+            type: object
+            properties:
+              status_code:
+                type: integer
+              body:
+                type: string
+              headers:
+                type: object
+                additionalProperties:
+                  type: string
+          attempt_history:
+            type: array
+            items:
               type: object
               properties:
+                attempted_at:
+                  type: string
+                  format: date-time
                 status_code:
                   type: integer
-                body:
+                  nullable: true
+                error:
                   type: string
-                headers:
-                  type: object
-                  additionalProperties:
-                    type: string
-            attempt_history:
-              type: array
-              items:
-                type: object
-                properties:
-                  attempted_at:
-                    type: string
-                    format: date-time
-                  status_code:
-                    type: integer
-                    nullable: true
-                  error:
-                    type: string
-                    nullable: true
+                  nullable: true
 
     ReplayDeliveryRequest:
       type: object
@@ -1102,16 +2105,34 @@ components:
           type: number
           format: float
 
-    Error:
+    SessionInfo:
+      type: object
+      description: Minimal session info included in every response
+      nullable: true
+      properties:
+        id:
+          type: string
+          description: Session ID
+          example: '123456789012345678'
+        created_at:
+          type: string
+          format: date-time
+          description: Session creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+          description: Session last update timestamp
+    ErrorDetail:
       type: object
       properties:
-        error:
-          type: string
-          example: "Unauthorized"
         code:
           type: string
-          example: "UNAUTHORIZED"
-
+          description: Machine-readable error code
+          example: INVALID_CREDENTIALS
+        message:
+          type: string
+          description: Human-readable error message
+          example: Invalid credentials. Please try again.
   securitySchemes:
     cookieAuth:
       type: apiKey

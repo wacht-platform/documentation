@@ -4,50 +4,91 @@ info:
   description: User profile management endpoints
   version: 1.0.0
 servers:
-  - url: https://api.wacht.dev
-    description: Production server
+- url: https://api.wacht.dev
+  description: Production server
 
 tags:
-  - name: User Profile
-    description: User profile and account management
-  - name: Email Addresses
-    description: Email address management
-  - name: Phone Numbers
-    description: Phone number management
-  - name: Authentication Methods
-    description: MFA authenticator and backup codes
-  - name: Passkeys
-    description: Passkey/WebAuthn management
-  - name: Sessions
-    description: User session management
-  - name: Social Connections
-    description: OAuth social connection management
+- name: User Profile
+  description: User profile and account management
+- name: Email Addresses
+  description: Email address management
+- name: Phone Numbers
+  description: Phone number management
+- name: Authentication Methods
+  description: MFA authenticator and backup codes
+- name: Passkeys
+  description: Passkey/WebAuthn management
+- name: Sessions
+  description: User session management
+- name: Social Connections
+  description: OAuth social connection management
 
 paths:
   /me:
     get:
       tags:
-        - User Profile
+      - User Profile
       summary: Get current user
       description: Retrieve the currently authenticated user's profile
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       responses:
         '200':
           description: User profile retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/User'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
     post:
       tags:
-        - User Profile
+      - User Profile
       summary: Update user profile
       description: Update the current user's profile information
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       requestBody:
         required: true
         content:
@@ -85,78 +126,264 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/User'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /me/organization-memberships:
     get:
       tags:
-        - User Profile
+      - User Profile
       summary: Get user organization memberships
       description: Retrieve all organization memberships for the current user
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       responses:
         '200':
           description: Memberships retrieved
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/OrganizationMembershipWithDetails'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/OrganizationMembershipWithDetails'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /me/workspace-memberships:
     get:
       tags:
-        - User Profile
+      - User Profile
       summary: Get user workspace memberships
       description: Retrieve all workspace memberships for the current user
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       responses:
         '200':
           description: Memberships retrieved
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/WorkspaceMembershipWithDetails'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WorkspaceMembershipWithDetails'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /me/email-addresses:
     get:
       tags:
-        - Email Addresses
+      - Email Addresses
       summary: Get user email addresses
       description: Retrieve all email addresses associated with the user
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       responses:
         '200':
           description: Email addresses retrieved
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/EmailAddress'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EmailAddress'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
     post:
       tags:
-        - Email Addresses
+      - Email Addresses
       summary: Add email address
       description: Add a new email address to the user account
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       requestBody:
         required: true
         content:
@@ -164,7 +391,7 @@ paths:
             schema:
               type: object
               required:
-                - email
+              - email
               properties:
                 email:
                   type: string
@@ -176,100 +403,358 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EmailAddress'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/EmailAddress'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '409':
           description: Email already exists
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 409
+                  message:
+                    type: string
+                    description: Email already exists
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /me/email-addresses/{id}:
     get:
       tags:
-        - Email Addresses
+      - Email Addresses
       summary: Get email address details
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uint64
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uint64
       responses:
         '200':
           description: Email address details
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EmailAddress'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/EmailAddress'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '404':
           description: Email address not found
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 404
+                  message:
+                    type: string
+                    description: Email address not found
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /me/email-addresses/{id}/delete:
     post:
       tags:
-        - Email Addresses
+      - Email Addresses
       summary: Delete email address
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uint64
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uint64
       responses:
         '200':
           description: Email address deleted
         '400':
           description: Cannot delete primary email
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Cannot delete primary email
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '404':
           description: Email address not found
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 404
+                  message:
+                    type: string
+                    description: Email address not found
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /me/email-addresses/{id}/prepare-verification:
     post:
       tags:
-        - Email Addresses
+      - Email Addresses
       summary: Send email verification code
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uint64
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uint64
       responses:
         '200':
           description: Verification code sent
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '404':
           description: Email address not found
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 404
+                  message:
+                    type: string
+                    description: Email address not found
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /me/email-addresses/{id}/attempt-verification:
     post:
       tags:
-        - Email Addresses
+      - Email Addresses
       summary: Verify email address
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uint64
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uint64
       requestBody:
         required: true
         content:
@@ -277,7 +762,7 @@ paths:
             schema:
               type: object
               required:
-                - verification_code
+              - verification_code
               properties:
                 verification_code:
                   type: string
@@ -290,28 +775,91 @@ paths:
               schema:
                 type: object
                 properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
                   message:
                     type: string
-                    example: "Email verified successfully"
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: "Email verified successfully"
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Invalid code
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Invalid code
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /me/email-addresses/{id}/make-primary:
     post:
       tags:
-        - Email Addresses
+      - Email Addresses
       summary: Make email primary
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uint64
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uint64
       responses:
         '200':
           description: Email set as primary
@@ -320,38 +868,142 @@ paths:
               schema:
                 type: object
                 properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
                   message:
                     type: string
-                    example: "Primary email updated successfully"
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: "Primary email updated successfully"
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Email not verified
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Email not verified
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /me/phone-numbers:
     get:
       tags:
-        - Phone Numbers
+      - Phone Numbers
       summary: Get phone numbers
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       responses:
         '200':
           description: Phone numbers retrieved
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/PhoneNumber'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PhoneNumber'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
     post:
       tags:
-        - Phone Numbers
+      - Phone Numbers
       summary: Add phone number
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       requestBody:
         required: true
         content:
@@ -359,8 +1011,8 @@ paths:
             schema:
               type: object
               required:
-                - phone_number
-                - country_code
+              - phone_number
+              - country_code
               properties:
                 phone_number:
                   type: string
@@ -374,66 +1026,148 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PhoneNumber'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/PhoneNumber'
 
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
   /me/phone-numbers/{id}:
     get:
       tags:
-        - Phone Numbers
+      - Phone Numbers
       summary: Get phone number details
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uint64
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uint64
       responses:
         '200':
           description: Phone number details
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PhoneNumber'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/PhoneNumber'
 
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
   /me/phone-numbers/{id}/delete:
     post:
       tags:
-        - Phone Numbers
+      - Phone Numbers
       summary: Delete phone number
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uint64
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uint64
       responses:
         '200':
           description: Phone number deleted
         '400':
           description: Cannot delete primary phone
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Cannot delete primary phone
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /me/phone-numbers/{id}/prepare-verification:
     post:
       tags:
-        - Phone Numbers
+      - Phone Numbers
       summary: Send SMS verification code
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uint64
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uint64
       responses:
         '200':
           description: Verification code sent
@@ -441,17 +1175,17 @@ paths:
   /me/phone-numbers/{id}/attempt-verification:
     post:
       tags:
-        - Phone Numbers
+      - Phone Numbers
       summary: Verify phone number
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uint64
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uint64
       requestBody:
         required: true
         content:
@@ -459,7 +1193,7 @@ paths:
             schema:
               type: object
               required:
-                - verification_code
+              - verification_code
               properties:
                 verification_code:
                   type: string
@@ -471,24 +1205,43 @@ paths:
               schema:
                 type: object
                 properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
                   message:
                     type: string
-                    example: "Phone number verified successfully"
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: "Phone number verified successfully"
 
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
   /me/phone-numbers/{id}/make-primary:
     post:
       tags:
-        - Phone Numbers
+      - Phone Numbers
       summary: Make phone primary
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uint64
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uint64
       responses:
         '200':
           description: Phone set as primary
@@ -497,18 +1250,37 @@ paths:
               schema:
                 type: object
                 properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
                   message:
                     type: string
-                    example: "Primary phone updated successfully"
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: "Primary phone updated successfully"
 
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
   /me/profile-picture:
     post:
       tags:
-        - User Profile
+      - User Profile
       summary: Upload profile picture
       description: Upload a profile picture for the user
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       requestBody:
         required: true
         content:
@@ -516,7 +1288,7 @@ paths:
             schema:
               type: object
               required:
-                - file
+              - file
               properties:
                 file:
                   type: string
@@ -529,20 +1301,61 @@ paths:
               schema:
                 type: object
                 properties:
-                  success:
-                    type: boolean
-                    example: true
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: object
+                    properties:
+                      success:
+                        type: boolean
+                        example: true
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Bad request - Invalid file
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request - Invalid file
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /me/authenticator:
     post:
       tags:
-        - Authentication Methods
+      - Authentication Methods
       summary: Generate TOTP authenticator
       description: Generate a new TOTP authenticator (Google Authenticator, etc.)
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       requestBody:
         required: true
         content:
@@ -561,24 +1374,43 @@ paths:
               schema:
                 type: object
                 properties:
-                  id:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
                     type: string
-                  otp_url:
-                    type: string
-                  totp_secret:
-                    type: string
-                  created_at:
-                    type: string
-                    format: date-time
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      otp_url:
+                        type: string
+                      totp_secret:
+                        type: string
+                      created_at:
+                        type: string
+                        format: date-time
 
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
   /me/authenticator/attempt-verification:
     post:
       tags:
-        - Authentication Methods
+      - Authentication Methods
       summary: Verify TOTP authenticator
       description: Verify and activate a TOTP authenticator
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       requestBody:
         required: true
         content:
@@ -586,8 +1418,8 @@ paths:
             schema:
               type: object
               required:
-                - authenticator_id
-                - codes
+              - authenticator_id
+              - codes
               properties:
                 authenticator_id:
                   type: string
@@ -605,24 +1437,65 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Authenticator'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/Authenticator'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Invalid codes
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Invalid codes
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /me/authenticator/{id}/delete:
     post:
       tags:
-        - Authentication Methods
+      - Authentication Methods
       summary: Delete authenticator
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uint64
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uint64
       responses:
         '200':
           description: Authenticator deleted
@@ -630,74 +1503,131 @@ paths:
   /me/backup-codes:
     post:
       tags:
-        - Authentication Methods
+      - Authentication Methods
       summary: Generate backup codes
       description: Generate new backup codes for account recovery
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       responses:
         '200':
           description: Backup codes generated (shown once)
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: string
-                example: ["1234-5678", "8765-4321"]
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: array
+                    items:
+                      type: string
+                    example: ["1234-5678", "8765-4321"]
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
 
   /me/backup-codes/regenerate:
     post:
       tags:
-        - Authentication Methods
+      - Authentication Methods
       summary: Regenerate backup codes
       description: Regenerate all backup codes (invalidates old ones)
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       responses:
         '200':
           description: New backup codes generated
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: string
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: array
+                    items:
+                      type: string
 
 
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
   /me/signins:
     get:
       tags:
-        - Sessions
+      - Sessions
       summary: Get user sign-ins
       description: Retrieve all active sign-ins/sessions for the user
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       responses:
         '200':
           description: Sign-ins retrieved
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/SignIn'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SignIn'
 
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
   /me/signins/{id}/signout:
     post:
       tags:
-        - Sessions
+      - Sessions
       summary: Sign out from session
       description: Sign out from a specific session/device
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uint64
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uint64
       responses:
         '200':
           description: Signed out successfully
@@ -705,10 +1635,10 @@ paths:
   /me/update-password:
     post:
       tags:
-        - User Profile
+      - User Profile
       summary: Update password
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       requestBody:
         required: true
         content:
@@ -716,7 +1646,7 @@ paths:
             schema:
               type: object
               required:
-                - new_password
+              - new_password
               properties:
                 current_password:
                   type: string
@@ -730,17 +1660,61 @@ paths:
           description: Password updated
         '400':
           description: Invalid current password
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Invalid current password
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /me/remove-password:
     post:
       tags:
-        - User Profile
+      - User Profile
       summary: Remove password
       description: Remove password from account (passwordless only)
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       requestBody:
         required: true
         content:
@@ -748,7 +1722,7 @@ paths:
             schema:
               type: object
               required:
-                - current_password
+              - current_password
               properties:
                 current_password:
                   type: string
@@ -758,53 +1732,163 @@ paths:
           description: Password removed
         '400':
           description: Must have alternative auth method
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Must have alternative auth method
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /me/account/delete:
     post:
       tags:
-        - User Profile
+      - User Profile
       summary: Delete account
       description: Permanently delete user account
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       responses:
         '200':
           description: Account deletion initiated
         '400':
           description: Cannot delete account
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Cannot delete account
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /me/social-connections/{id}/disconnect:
     post:
       tags:
-        - Social Connections
+      - Social Connections
       summary: Disconnect social connection
       description: Disconnect OAuth social provider
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
       responses:
         '200':
           description: Connection disconnected
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /me/init-sso-connection:
     post:
       tags:
-        - Social Connections
+      - Social Connections
       summary: Initiate SSO connection
       description: Start OAuth flow for connecting social account
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       requestBody:
         required: true
         content:
@@ -812,8 +1896,8 @@ paths:
             schema:
               type: object
               required:
-                - provider
-                - redirect_url
+              - provider
+              - redirect_url
               properties:
                 provider:
                   type: string
@@ -829,18 +1913,37 @@ paths:
               schema:
                 type: object
                 properties:
-                  oauth_url:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
                     type: string
-                    format: uri
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: object
+                    properties:
+                      oauth_url:
+                        type: string
+                        format: uri
 
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
   /me/sso-connection-callback:
     post:
       tags:
-        - Social Connections
+      - Social Connections
       summary: SSO connection callback
       description: Handle OAuth callback for social connection
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       requestBody:
         required: true
         content:
@@ -848,9 +1951,9 @@ paths:
             schema:
               type: object
               required:
-                - code
-                - provider
-                - state
+              - code
+              - provider
+              - state
               properties:
                 code:
                   type: string
@@ -866,44 +1969,126 @@ paths:
               schema:
                 type: object
                 properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
                   message:
                     type: string
-                  session:
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
                     type: object
-                  redirect_uri:
-                    type: string
-                    format: uri
+                    properties:
+                      message:
+                        type: string
+                      session:
+                        type: object
+                      redirect_uri:
+                        type: string
+                        format: uri
 
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
   /me/passkeys:
     get:
       tags:
-        - Passkeys
+      - Passkeys
       summary: Get user passkeys
       description: Retrieve all passkeys for the current user
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       responses:
         '200':
           description: Passkeys retrieved successfully
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Passkey'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Passkey'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '403':
           description: Passkeys are not enabled
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 403
+                  message:
+                    type: string
+                    description: Passkeys are not enabled
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /me/passkeys/register/begin:
     post:
       tags:
-        - Passkeys
+      - Passkeys
       summary: Begin passkey registration
       description: Initialize WebAuthn registration
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       responses:
         '200':
           description: Registration options generated
@@ -912,29 +2097,92 @@ paths:
               schema:
                 type: object
                 properties:
-                  options:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
                     type: object
-                    description: WebAuthn registration options
+                    properties:
+                      options:
+                        type: object
+                        description: WebAuthn registration options
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '403':
           description: Passkeys are not enabled
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 403
+                  message:
+                    type: string
+                    description: Passkeys are not enabled
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /me/passkeys/register/finish:
     post:
       tags:
-        - Passkeys
+      - Passkeys
       summary: Finish passkey registration
       description: Complete WebAuthn registration
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: name
-          in: query
-          required: false
-          schema:
-            type: string
-          description: Custom name for the passkey
+      - name: name
+        in: query
+        required: false
+        schema:
+          type: string
+        description: Custom name for the passkey
       requestBody:
         required: true
         content:
@@ -950,30 +2198,115 @@ paths:
               schema:
                 type: object
                 properties:
-                  passkey:
-                    $ref: '#/components/schemas/Passkey'
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: object
+                    properties:
+                      passkey:
+                        $ref: '#/components/schemas/Passkey'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Invalid registration data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Invalid registration data
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '403':
           description: Passkeys are not enabled
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 403
+                  message:
+                    type: string
+                    description: Passkeys are not enabled
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /me/passkeys/{id}/delete:
     post:
       tags:
-        - Passkeys
+      - Passkeys
       summary: Delete passkey
       description: Remove a registered passkey
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uint64
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uint64
       responses:
         '200':
           description: Passkey deleted successfully
@@ -982,33 +2315,140 @@ paths:
               schema:
                 type: object
                 properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
                   message:
                     type: string
-                    example: "Passkey deleted successfully"
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: "Passkey deleted successfully"
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Invalid passkey ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Invalid passkey ID
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '403':
           description: Passkeys are not enabled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 403
+                  message:
+                    type: string
+                    description: Passkeys are not enabled
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '404':
           description: Passkey not found
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 404
+                  message:
+                    type: string
+                    description: Passkey not found
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /me/passkeys/{id}:
     patch:
       tags:
-        - Passkeys
+      - Passkeys
       summary: Rename passkey
       description: Update the name of a registered passkey
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uint64
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uint64
       requestBody:
         required: true
         content:
@@ -1016,7 +2456,7 @@ paths:
             schema:
               type: object
               required:
-                - name
+              - name
               properties:
                 name:
                   type: string
@@ -1027,16 +2467,123 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Passkey'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/Passkey'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Invalid request data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Invalid request data
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '403':
           description: Passkeys are not enabled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 403
+                  message:
+                    type: string
+                    description: Passkeys are not enabled
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '404':
           description: Passkey not found
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 404
+                  message:
+                    type: string
+                    description: Passkey not found
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
 components:
   schemas:
     User:
@@ -1369,13 +2916,34 @@ components:
           type: string
           format: date-time
 
-    Error:
+    SessionInfo:
+      type: object
+      description: Minimal session info included in every response
+      nullable: true
+      properties:
+        id:
+          type: string
+          description: Session ID
+          example: '123456789012345678'
+        created_at:
+          type: string
+          format: date-time
+          description: Session creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+          description: Session last update timestamp
+    ErrorDetail:
       type: object
       properties:
-        error:
+        code:
           type: string
-          example: "Invalid request"
-
+          description: Machine-readable error code
+          example: INVALID_CREDENTIALS
+        message:
+          type: string
+          description: Human-readable error message
+          example: Invalid credentials. Please try again.
   securitySchemes:
     cookieAuth:
       type: apiKey

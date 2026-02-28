@@ -4,22 +4,22 @@ info:
   description: API authentication app endpoints for managing API keys and audit logs
   version: 1.0.0
 servers:
-  - url: https://api.wacht.dev
-    description: Production server
+- url: https://api.wacht.dev
+  description: Production server
 
 tags:
-  - name: API Auth
-    description: API authentication app management
+- name: API Auth
+  description: API authentication app management
 
 paths:
   /api-auth/session:
     get:
       tags:
-        - API Auth
+      - API Auth
       summary: Get API auth app session
       description: Retrieve the current API auth app session information
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       responses:
         '200':
           description: Session retrieved successfully
@@ -28,62 +28,144 @@ paths:
               schema:
                 type: object
                 properties:
-                  session_id:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
                     type: string
-                    description: API auth app session ID
-                    example: "123456789012345678"
-                  api_auth_app:
-                    $ref: '#/components/schemas/ApiAuthApp'
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: object
+                    properties:
+                      session_id:
+                        type: string
+                        description: API auth app session ID
+                        example: "123456789012345678"
+                      api_auth_app:
+                        $ref: '#/components/schemas/ApiAuthApp'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '401':
           description: Unauthorized - No active API auth app session
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized - No active API auth app session
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /api-auth/keys:
     get:
       tags:
-        - API Auth
+      - API Auth
       summary: List API keys
       description: Retrieve all API keys for the current API auth app
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: status
-          in: query
-          description: Filter by key status
-          schema:
-            type: string
-            enum: [active, revoked, expired]
-        - name: include_inactive
-          in: query
-          description: Include inactive keys
-          schema:
-            type: boolean
-            default: false
+      - name: status
+        in: query
+        description: Filter by key status
+        schema:
+          type: string
+          enum: [active, revoked, expired]
+      - name: include_inactive
+        in: query
+        description: Include inactive keys
+        schema:
+          type: boolean
+          default: false
       responses:
         '200':
           description: Keys retrieved successfully
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiKey'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ApiKey'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
     post:
       tags:
-        - API Auth
+      - API Auth
       summary: Create API key
       description: Create a new API key for the current API auth app
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       requestBody:
         content:
           application/x-www-form-urlencoded:
             schema:
               type: object
               required:
-                - name
+              - name
               properties:
                 name:
                   type: string
@@ -100,56 +182,182 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreateKeyResponse'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/CreateKeyResponse'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Bad request - Missing name or invalid expires_at
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request - Missing name or invalid expires_at
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /api-auth/keys/{id}/rotate:
     post:
       tags:
-        - API Auth
+      - API Auth
       summary: Rotate API key
       description: Rotate an API key, generating a new key value
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          description: API key ID
-          schema:
-            type: string
-            format: uint64
+      - name: id
+        in: path
+        required: true
+        description: API key ID
+        schema:
+          type: string
+          format: uint64
       responses:
         '200':
           description: Key rotated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreateKeyResponse'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/CreateKeyResponse'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Bad request - Invalid key ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request - Invalid key ID
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /api-auth/keys/{id}/revoke:
     post:
       tags:
-        - API Auth
+      - API Auth
       summary: Revoke API key
       description: Revoke an API key
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          description: API key ID
-          schema:
-            type: string
-            format: uint64
+      - name: id
+        in: path
+        required: true
+        description: API key ID
+        schema:
+          type: string
+          format: uint64
       requestBody:
         content:
           application/x-www-form-urlencoded:
@@ -168,190 +376,398 @@ paths:
               schema:
                 type: object
                 properties:
-                  success:
-                    type: boolean
-                    example: true
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: object
+                    properties:
+                      success:
+                        type: boolean
+                        example: true
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Bad request - Invalid key ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request - Invalid key ID
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /api-auth/audit/logs:
     get:
       tags:
-        - API Auth
+      - API Auth
       summary: Get audit logs
       description: Retrieve audit logs for the API auth app with cursor-based pagination
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: limit
-          in: query
-          description: Maximum number of logs to return
-          schema:
-            type: integer
-            default: 100
-            maximum: 1000
-        - name: offset
-          in: query
-          description: Number of logs to skip
-          schema:
-            type: integer
-            default: 0
-        - name: cursor
-          in: query
-          description: Pagination cursor (base64 encoded)
-          schema:
-            type: string
-        - name: outcome
-          in: query
-          description: Filter by outcome
-          schema:
-            type: string
-            enum: [success, blocked, error]
-        - name: key_id
-          in: query
-          description: Filter by API key ID
-          schema:
-            type: string
-        - name: start_date
-          in: query
-          description: Filter by start date (RFC3339)
-          schema:
-            type: string
-            format: date-time
-        - name: end_date
-          in: query
-          description: Filter by end date (RFC3339)
-          schema:
-            type: string
-            format: date-time
+      - name: limit
+        in: query
+        description: Maximum number of logs to return
+        schema:
+          type: integer
+          default: 100
+          maximum: 1000
+      - name: offset
+        in: query
+        description: Number of logs to skip
+        schema:
+          type: integer
+          default: 0
+      - name: cursor
+        in: query
+        description: Pagination cursor (base64 encoded)
+        schema:
+          type: string
+      - name: outcome
+        in: query
+        description: Filter by outcome
+        schema:
+          type: string
+          enum: [success, blocked, error]
+      - name: key_id
+        in: query
+        description: Filter by API key ID
+        schema:
+          type: string
+      - name: start_date
+        in: query
+        description: Filter by start date (RFC3339)
+        schema:
+          type: string
+          format: date-time
+      - name: end_date
+        in: query
+        description: Filter by end date (RFC3339)
+        schema:
+          type: string
+          format: date-time
       responses:
         '200':
           description: Audit logs retrieved successfully
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AuditLogEntry'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AuditLogEntry'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Bad request - Invalid cursor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request - Invalid cursor
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /api-auth/audit/analytics:
     get:
       tags:
-        - API Auth
+      - API Auth
       summary: Get audit analytics
       description: Retrieve aggregated analytics for the API auth app
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: start_date
-          in: query
-          description: Start date for analytics (RFC3339)
-          schema:
-            type: string
-            format: date-time
-        - name: end_date
-          in: query
-          description: End date for analytics (RFC3339)
-          schema:
-            type: string
-            format: date-time
-        - name: key_id
-          in: query
-          description: Filter by API key ID
-          schema:
-            type: string
-        - name: include_top_keys
-          in: query
-          description: Include top API keys by usage
-          schema:
-            type: boolean
-            default: false
-        - name: include_top_paths
-          in: query
-          description: Include top API paths by usage
-          schema:
-            type: boolean
-            default: false
-        - name: include_blocked_reasons
-          in: query
-          description: Include blocked request reasons breakdown
-          schema:
-            type: boolean
-            default: false
-        - name: include_rate_limits
-          in: query
-          description: Include rate limit hit statistics
-          schema:
-            type: boolean
-            default: false
-        - name: top_limit
-          in: query
-          description: Limit for top items (max 50)
-          schema:
-            type: integer
-            default: 10
-            maximum: 50
+      - name: start_date
+        in: query
+        description: Start date for analytics (RFC3339)
+        schema:
+          type: string
+          format: date-time
+      - name: end_date
+        in: query
+        description: End date for analytics (RFC3339)
+        schema:
+          type: string
+          format: date-time
+      - name: key_id
+        in: query
+        description: Filter by API key ID
+        schema:
+          type: string
+      - name: include_top_keys
+        in: query
+        description: Include top API keys by usage
+        schema:
+          type: boolean
+          default: false
+      - name: include_top_paths
+        in: query
+        description: Include top API paths by usage
+        schema:
+          type: boolean
+          default: false
+      - name: include_blocked_reasons
+        in: query
+        description: Include blocked request reasons breakdown
+        schema:
+          type: boolean
+          default: false
+      - name: include_rate_limits
+        in: query
+        description: Include rate limit hit statistics
+        schema:
+          type: boolean
+          default: false
+      - name: top_limit
+        in: query
+        description: Limit for top items (max 50)
+        schema:
+          type: integer
+          default: 10
+          maximum: 50
       responses:
         '200':
           description: Analytics retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuditAnalytics'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/AuditAnalytics'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /api-auth/audit/timeseries:
     get:
       tags:
-        - API Auth
+      - API Auth
       summary: Get audit timeseries
       description: Retrieve timeseries data for API usage
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: start_date
-          in: query
-          description: Start date (RFC3339)
-          schema:
-            type: string
-            format: date-time
-        - name: end_date
-          in: query
-          description: End date (RFC3339)
-          schema:
-            type: string
-            format: date-time
-        - name: interval
-          in: query
-          description: Time interval for grouping
-          schema:
-            type: string
-            enum: [minute, hour, day, week]
-            default: hour
-        - name: key_id
-          in: query
-          description: Filter by API key ID
-          schema:
-            type: string
+      - name: start_date
+        in: query
+        description: Start date (RFC3339)
+        schema:
+          type: string
+          format: date-time
+      - name: end_date
+        in: query
+        description: End date (RFC3339)
+        schema:
+          type: string
+          format: date-time
+      - name: interval
+        in: query
+        description: Time interval for grouping
+        schema:
+          type: string
+          enum: [minute, hour, day, week]
+          default: hour
+      - name: key_id
+        in: query
+        description: Filter by API key ID
+        schema:
+          type: string
       responses:
         '200':
           description: Timeseries data retrieved successfully
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/TimeseriesPoint'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TimeseriesPoint'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
 components:
   schemas:
     ApiAuthApp:
@@ -432,13 +848,13 @@ components:
 
     CreateKeyResponse:
       allOf:
-        - $ref: '#/components/schemas/ApiKey'
-        - type: object
-          properties:
-            secret:
-              type: string
-              description: The full, unhashed API key (only shown once)
-              example: "wacht_mobile_abc123def456xyz789"
+      - $ref: '#/components/schemas/ApiKey'
+      - type: object
+        properties:
+          secret:
+            type: string
+            description: The full, unhashed API key (only shown once)
+            example: "wacht_mobile_abc123def456xyz789"
 
     RateLimit:
       type: object
@@ -594,16 +1010,34 @@ components:
           description: Success rate ratio
           example: 0.95
 
-    Error:
+    SessionInfo:
+      type: object
+      description: Minimal session info included in every response
+      nullable: true
+      properties:
+        id:
+          type: string
+          description: Session ID
+          example: '123456789012345678'
+        created_at:
+          type: string
+          format: date-time
+          description: Session creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+          description: Session last update timestamp
+    ErrorDetail:
       type: object
       properties:
-        error:
-          type: string
-          example: "Unauthorized"
         code:
           type: string
-          example: "UNAUTHORIZED"
-
+          description: Machine-readable error code
+          example: INVALID_CREDENTIALS
+        message:
+          type: string
+          description: Human-readable error message
+          example: Invalid credentials. Please try again.
   securitySchemes:
     cookieAuth:
       type: apiKey

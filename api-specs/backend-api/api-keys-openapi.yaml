@@ -35,15 +35,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  apps:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ApiAuthApp'
-                  total:
-                    type: integer
-                    description: Total number of apps
+                $ref: '#/components/schemas/ListApiAuthAppsResponse'
     post:
       summary: Create API auth app
       description: Create a new API authentication app
@@ -152,12 +144,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  keys:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ApiKey'
+                $ref: '#/components/schemas/ListApiKeysResponse'
         '404':
           description: API auth app not found
           content:
@@ -262,48 +249,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /api-auth/keys/revoke:
-    post:
-      summary: Revoke API key
-      description: Revoke an API key by ID (global endpoint)
-      tags:
-        - API Keys
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RevokeApiKeyRequest'
-      responses:
-        '200':
-          description: API key revoked
-        '400':
-          description: Bad request (missing key_id)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /api-auth/keys/rotate:
-    post:
-      summary: Rotate API key
-      description: Rotate an API key and generate a new secret (global endpoint)
-      tags:
-        - API Keys
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RotateApiKeyRequest'
-      responses:
-        '200':
-          description: API key rotated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiKeyWithSecret'
-
   # Rate Limit Schemes
   /api-auth/rate-limit-schemes:
     get:
@@ -317,14 +262,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  total:
-                    type: integer
-                  schemes:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/RateLimitScheme'
+                $ref: '#/components/schemas/PaginatedRateLimitSchemes'
     post:
       summary: Create rate limit scheme
       description: Create a new reusable rate limit scheme
@@ -528,21 +466,11 @@ paths:
   /api-auth/apps/{app_slug}/audit/timeseries:
     get:
       summary: Get API audit timeseries
-      description: Retrieve timeseries data for API usage
+      description: Retrieve time-series data for API usage analytics
       tags:
-        - API Audit
+        - API Keys
       parameters:
         - $ref: '#/components/parameters/ApiAuthAppName'
-        - name: start_date
-          in: query
-          schema:
-            type: string
-            format: date-time
-        - name: end_date
-          in: query
-          schema:
-            type: string
-            format: date-time
         - name: interval
           in: query
           schema:
@@ -581,11 +509,79 @@ components:
       description: API Auth app name
 
   schemas:
-    Error:
+    ErrorItem:
       type: object
       properties:
         message:
           type: string
+        code:
+          type: integer
+      required:
+        - message
+        - code
+
+    Error:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorItem'
+      required:
+        - errors
+
+    PaginatedResponse:
+      type: object
+      properties:
+        has_more:
+          type: boolean
+          description: Whether there are more items
+        limit:
+          type: integer
+          description: Optional page limit
+          nullable: true
+        offset:
+          type: integer
+          description: Optional offset
+          nullable: true
+
+    PaginatedApiAuthApps:
+      allOf:
+    ListApiAuthAppsResponse:
+      type: object
+      properties:
+        apps:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApiAuthApp'
+        total:
+          type: integer
+          example: 10
+      required:
+        - apps
+        - total
+
+    ListApiKeysResponse:
+      type: object
+      properties:
+        keys:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApiKey'
+      required:
+        - keys
+
+    PaginatedRateLimitSchemes:
+      allOf:
+        - $ref: '#/components/schemas/PaginatedResponse'
+        - type: object
+        - properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/RateLimitScheme'
+          required:
+            - data
 
     # =====================================================
     # REQUEST SCHEMAS
@@ -598,6 +594,18 @@ components:
         - name
         - key_prefix
       properties:
+        user_id:
+          type: string
+          description: Contextual user ID for this app
+          nullable: true
+        organization_id:
+          type: string
+          description: Contextual organization ID for this app
+          nullable: true
+        workspace_id:
+          type: string
+          description: Contextual workspace ID for this app
+          nullable: true
         app_slug:
           type: string
           description: Unique slug identifier for the app
@@ -619,10 +627,30 @@ components:
           description: Slug of the rate limit scheme to apply
           example: "default-rate-limits"
           nullable: true
+        permissions:
+          type: array
+          description: Granted permissions for the app
+          items:
+            type: string
+          nullable: true
+        resources:
+          type: array
+          description: Granted resources for the app
+          items:
+            type: string
+          nullable: true
 
     UpdateApiAuthAppRequest:
       type: object
       properties:
+        organization_id:
+          type: string
+          description: Contextual organization ID for this app
+          nullable: true
+        workspace_id:
+          type: string
+          description: Contextual workspace ID for this app
+          nullable: true
         name:
           type: string
           description: New app name
@@ -638,6 +666,18 @@ components:
         rate_limit_scheme_slug:
           type: string
           description: Slug of the rate limit scheme to apply
+          nullable: true
+        permissions:
+          type: array
+          description: Granted permissions for the app
+          items:
+            type: string
+          nullable: true
+        resources:
+          type: array
+          description: Granted resources for the app
+          items:
+            type: string
           nullable: true
 
     CreateRateLimitSchemeRequest:
@@ -695,21 +735,18 @@ components:
           description: Permissions list (defaults to read-only if omitted)
           items:
             type: string
-        organization_membership_id:
-          type: string
-          description: Organization membership ID to link this API key
-        workspace_membership_id:
-          type: string
-          description: Workspace membership ID to link this API key
+          nullable: true
         metadata:
           type: object
           description: Additional metadata
           additionalProperties: true
+          nullable: true
         expires_at:
           type: string
           format: date-time
           description: Expiration timestamp
           example: "2024-12-31T23:59:59Z"
+          nullable: true
 
     RevokeApiKeyRequest:
       type: object
@@ -750,6 +787,18 @@ components:
           type: string
           description: Deployment ID
           example: "9876543210987654321"
+        user_id:
+          type: string
+          description: Linked user ID
+          nullable: true
+        organization_id:
+          type: string
+          description: Linked organization ID
+          nullable: true
+        workspace_id:
+          type: string
+          description: Linked workspace ID
+          nullable: true
         app_slug:
           type: string
           description: App slug
@@ -771,6 +820,16 @@ components:
           type: boolean
           description: Whether the app is active
           example: true
+        permissions:
+          type: array
+          description: Granted permissions for the app
+          items:
+            type: string
+        resources:
+          type: array
+          description: Granted resources for the app
+          items:
+            type: string
         rate_limit_scheme_slug:
           type: string
           description: Slug of the applied rate limit scheme
@@ -834,10 +893,10 @@ components:
           type: string
           description: Key ID
           example: "1234567890123456789"
-        app_id:
+        app_slug:
           type: string
-          description: App ID
-          example: "9876543210987654321"
+          description: App slug
+          example: "my-app"
         deployment_id:
           type: string
           description: Deployment ID
@@ -869,6 +928,10 @@ components:
           description: Permissions derived from workspace roles
           items:
             type: string
+        owner_user_id:
+          type: string
+          description: User ID who owns this key
+          nullable: true
         organization_id:
           type: string
           description: Organization ID linked to this key
@@ -1092,3 +1155,69 @@ components:
                 type: integer
               avg_duration_ms:
                 type: number
+    OAuthApp:
+      type: object
+      properties:
+        id:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        deployment_id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        slug:
+          type: string
+
+    OAuthClient:
+      type: object
+      properties:
+        id:
+          type: string
+        oauth_app_id:
+          type: string
+        name:
+          type: string
+        client_id:
+          type: string
+        redirect_uris:
+          type: array
+          items:
+            type: string
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    OAuthClientWithSecret:
+      allOf:
+        - $ref: '#/components/schemas/OAuthClient'
+        - type: object
+          properties:
+            client_secret:
+              type: string
+
+    OAuthGrant:
+      type: object
+      properties:
+        id:
+          type: string
+        oauth_client_id:
+          type: string
+        user_id:
+          type: string
+        scopes:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time

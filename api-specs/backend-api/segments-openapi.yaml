@@ -219,11 +219,41 @@ components:
       description: 'API key authentication (format: Bearer {api_key})'
 
   schemas:
-    Error:
+    ErrorItem:
       type: object
       properties:
         message:
           type: string
+        code:
+          type: integer
+      required:
+        - message
+        - code
+
+    Error:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorItem'
+      required:
+        - errors
+
+    PaginatedResponse:
+      type: object
+      properties:
+        has_more:
+          type: boolean
+          description: Whether there are more results
+        limit:
+          type: integer
+          description: Page size
+          nullable: true
+        offset:
+          type: integer
+          description: Number of items skipped
+          nullable: true
 
     # =====================================================
     # REQUEST SCHEMAS
@@ -380,39 +410,25 @@ components:
           example: "Doe"
 
     PaginatedSegments:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Segment'
-        has_more:
-          type: boolean
-          description: Whether there are more results
-        limit:
-          type: integer
-          description: Page size
-          nullable: true
-        offset:
-          type: integer
-          description: Number of items skipped
-          nullable: true
+      allOf:
+        - $ref: '#/components/schemas/PaginatedResponse'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/Segment'
+          required:
+            - data
 
     PaginatedAnalyzedEntities:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/AnalyzedEntity'
-        has_more:
-          type: boolean
-          description: Whether there are more results
-        limit:
-          type: integer
-          description: Page size
-          nullable: true
-        offset:
-          type: integer
-          description: Number of items skipped
-          nullable: true
+      allOf:
+        - $ref: '#/components/schemas/PaginatedResponse'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/AnalyzedEntity'
+          required:
+            - data

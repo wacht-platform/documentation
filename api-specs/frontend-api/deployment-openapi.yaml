@@ -4,49 +4,90 @@ info:
   description: Deployment configuration and public metadata endpoints
   version: 1.0.0
 servers:
-  - url: https://api.wacht.dev
-    description: Production server
+- url: https://api.wacht.dev
+  description: Production server
 
 tags:
-  - name: Deployment
-    description: Deployment configuration
-  - name: Public Metadata
-    description: Public deployment metadata (no authentication required)
+- name: Deployment
+  description: Deployment configuration
+- name: Public Metadata
+  description: Public deployment metadata (no authentication required)
 
 paths:
   /deployment:
     get:
       tags:
-        - Deployment
+      - Deployment
       summary: Get deployment configuration
       description: Retrieve the current deployment's configuration and settings
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       responses:
         '200':
           description: Deployment configuration retrieved
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Deployment'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/Deployment'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /deployment/invitations/validate:
     get:
       tags:
-        - Deployment
+      - Deployment
       summary: Validate invitation
       description: Validate an organization or workspace invitation token
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       parameters:
-        - name: token
-          in: query
-          required: true
-          description: Invitation token
-          schema:
-            type: string
+      - name: token
+        in: query
+        required: true
+        description: Invitation token
+        schema:
+          type: string
       responses:
         '200':
           description: Invitation validated
@@ -55,30 +96,93 @@ paths:
               schema:
                 type: object
                 properties:
-                  valid:
-                    type: boolean
-                    example: true
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
                   message:
                     type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: object
+                    properties:
+                      valid:
+                        type: boolean
+                        example: true
+                      message:
+                        type: string
+                        nullable: true
+                      error_code:
+                        type: string
+                        nullable: true
+                      first_name:
+                        type: string
+                      last_name:
+                        type: string
+                      email:
+                        type: string
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
                     nullable: true
-                  error_code:
-                    type: string
-                    nullable: true
-                  first_name:
-                    type: string
-                  last_name:
-                    type: string
-                  email:
-                    type: string
+                    description: Error details (null on success)
         '400':
           description: Invalid or expired token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Invalid or expired token
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /.well-known/meta:
     get:
       tags:
-        - Public Metadata
+      - Public Metadata
       summary: Get deployment metadata
       description: Retrieve public deployment metadata (no authentication required)
       responses:
@@ -87,12 +191,31 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UISettings'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/UISettings'
 
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
   /.well-known/jwk:
     get:
       tags:
-        - Public Metadata
+      - Public Metadata
       summary: Get JWT public keys
       description: Retrieve the deployment's public JWT keys for token verification
       responses:
@@ -103,37 +226,56 @@ paths:
               schema:
                 type: object
                 properties:
-                  id:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
                     type: string
-                    format: uint64
-                  deployment_id:
-                    type: string
-                    format: uint64
-                  kid:
-                    type: string
-                  kty:
-                    type: string
-                  use:
-                    type: string
-                  alg:
-                    type: string
-                  crv:
-                    type: string
-                  x:
-                    type: string
-                  y:
-                    type: string
-                  n:
-                    type: string
-                  e:
-                    type: string
-                  created_at:
-                    type: string
-                    format: date-time
-                  updated_at:
-                    type: string
-                    format: date-time
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uint64
+                      deployment_id:
+                        type: string
+                        format: uint64
+                      kid:
+                        type: string
+                      kty:
+                        type: string
+                      use:
+                        type: string
+                      alg:
+                        type: string
+                      crv:
+                        type: string
+                      x:
+                        type: string
+                      y:
+                        type: string
+                      n:
+                        type: string
+                      e:
+                        type: string
+                      created_at:
+                        type: string
+                        format: date-time
+                      updated_at:
+                        type: string
+                        format: date-time
 
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
 components:
   schemas:
     Deployment:
@@ -283,16 +425,34 @@ components:
           description: Logo URL
           nullable: true
 
-    Error:
+    SessionInfo:
+      type: object
+      description: Minimal session info included in every response
+      nullable: true
+      properties:
+        id:
+          type: string
+          description: Session ID
+          example: '123456789012345678'
+        created_at:
+          type: string
+          format: date-time
+          description: Session creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+          description: Session last update timestamp
+    ErrorDetail:
       type: object
       properties:
-        error:
-          type: string
-          example: "Unauthorized"
         code:
           type: string
-          example: "UNAUTHORIZED"
-
+          description: Machine-readable error code
+          example: INVALID_CREDENTIALS
+        message:
+          type: string
+          description: Human-readable error message
+          example: Invalid credentials. Please try again.
   securitySchemes:
     cookieAuth:
       type: apiKey

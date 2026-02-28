@@ -4,20 +4,21 @@ info:
   description: Authentication endpoints for the Wacht Frontend API
   version: 1.0.0
 servers:
-  - url: https://api.wacht.dev
-    description: Production server
+- url: https://api.wacht.dev
+  description: Production server
 
 tags:
-  - name: Authentication
-    description: User authentication and authorization endpoints
+- name: Authentication
+  description: User authentication and authorization endpoints
 
 paths:
   /auth/signin:
     post:
       tags:
-        - Authentication
+      - Authentication
       summary: Sign in a user
-      description: Authenticate a user using various strategies (email OTP, phone OTP, magic link, username/password, email/password)
+      description: Authenticate a user using various strategies (email OTP, phone OTP, magic link, username/password, 
+        email/password)
       requestBody:
         required: true
         content:
@@ -25,7 +26,7 @@ paths:
             schema:
               type: object
               required:
-                - strategy
+              - strategy
               properties:
                 username:
                   type: string
@@ -62,18 +63,103 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Session'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/Session'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Bad request - Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request - Invalid input
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized - Invalid credentials
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized - Invalid credentials
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '500':
           description: Internal server error
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 500
+                  message:
+                    type: string
+                    description: Internal server error
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /auth/signup:
     post:
       tags:
-        - Authentication
+      - Authentication
       summary: Sign up a new user
       description: Create a new user account
       requestBody:
@@ -83,7 +169,7 @@ paths:
             schema:
               type: object
               required:
-                - email
+              - email
               properties:
                 first_name:
                   type: string
@@ -125,16 +211,79 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Session'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/Session'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Bad request - Invalid input or user already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request - Invalid input or user already exists
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '500':
           description: Internal server error
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 500
+                  message:
+                    type: string
+                    description: Internal server error
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /auth/forgot-password:
     post:
       tags:
-        - Authentication
+      - Authentication
       summary: Initiate password reset
       description: Send a password reset email to the user
       requestBody:
@@ -144,7 +293,7 @@ paths:
             schema:
               type: object
               required:
-                - email
+              - email
               properties:
                 email:
                   type: string
@@ -163,20 +312,105 @@ paths:
               schema:
                 type: object
                 properties:
-                  token:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
                     type: string
-                    description: Password reset token (if OTP verified)
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                        description: Password reset token (if OTP verified)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Bad request - Invalid email
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request - Invalid email
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '404':
           description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 404
+                  message:
+                    type: string
+                    description: User not found
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '500':
           description: Internal server error
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 500
+                  message:
+                    type: string
+                    description: Internal server error
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /auth/reset-password:
     post:
       tags:
-        - Authentication
+      - Authentication
       summary: Reset password with token
       description: Reset user's password using the token from the reset email
       requestBody:
@@ -186,8 +420,8 @@ paths:
             schema:
               type: object
               required:
-                - token
-                - password
+              - token
+              - password
               properties:
                 token:
                   type: string
@@ -204,16 +438,79 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Session'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/Session'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Bad request - Invalid token or password
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request - Invalid token or password
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '500':
           description: Internal server error
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 500
+                  message:
+                    type: string
+                    description: Internal server error
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /auth/prepare-verification:
     post:
       tags:
-        - Authentication
+      - Authentication
       summary: Prepare verification code
       description: Send a verification code to the user's email
       requestBody:
@@ -223,7 +520,7 @@ paths:
             schema:
               type: object
               required:
-                - email
+              - email
               properties:
                 email:
                   type: string
@@ -237,16 +534,79 @@ paths:
             application/json:
               schema:
                 type: object
-                additionalProperties: true
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: object
+                    additionalProperties: true
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '500':
           description: Internal server error
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 500
+                  message:
+                    type: string
+                    description: Internal server error
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /auth/attempt-verification:
     post:
       tags:
-        - Authentication
+      - Authentication
       summary: Verify code
       description: Verify the code sent to the user
       requestBody:
@@ -256,7 +616,7 @@ paths:
             schema:
               type: object
               required:
-                - verification_code
+              - verification_code
               properties:
                 verification_code:
                   type: string
@@ -268,16 +628,79 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Session'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/Session'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Invalid code
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Invalid code
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '500':
           description: Internal server error
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 500
+                  message:
+                    type: string
+                    description: Internal server error
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /auth/oauth2/init:
     post:
       tags:
-        - Authentication
+      - Authentication
       summary: Initialize OAuth2 flow
       description: Initialize OAuth2/OIDC authentication with external provider
       requestBody:
@@ -287,7 +710,7 @@ paths:
             schema:
               type: object
               required:
-                - provider
+              - provider
               properties:
                 provider:
                   type: string
@@ -306,53 +729,138 @@ paths:
               schema:
                 type: object
                 properties:
-                  oauth_url:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
                     type: string
-                    format: uri
-                    example: "https://accounts.google.com/o/oauth2/v2/auth?..."
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: object
+                    properties:
+                      oauth_url:
+                        type: string
+                        format: uri
+                        example: "https://accounts.google.com/o/oauth2/v2/auth?..."
+                      session:
+                        $ref: '#/components/schemas/Session'
                   session:
-                    $ref: '#/components/schemas/Session'
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Bad request - Invalid provider
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request - Invalid provider
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /auth/oauth2/callback:
     get:
       tags:
-        - Authentication
+      - Authentication
       summary: OAuth2 callback
       description: Handle OAuth2/OIDC callback from external provider
       parameters:
-        - name: code
-          in: query
-          description: OAuth2 authorization code
-          schema:
-            type: string
-        - name: state
-          in: query
-          description: OAuth2 state parameter
-          schema:
-            type: string
-        - name: provider
-          in: query
-          description: OAuth2 provider
-          schema:
-            type: string
+      - name: code
+        in: query
+        description: OAuth2 authorization code
+        schema:
+          type: string
+      - name: state
+        in: query
+        description: OAuth2 state parameter
+        schema:
+          type: string
+      - name: provider
+        in: query
+        description: OAuth2 provider
+        schema:
+          type: string
       responses:
         '302':
           description: Redirect to application
         '400':
           description: Bad request - Invalid callback
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request - Invalid callback
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized - Invalid OAuth credentials
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized - Invalid OAuth credentials
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /auth/complete-profile:
     post:
       tags:
-        - Authentication
+      - Authentication
       summary: Complete user profile
       description: Complete user profile during signup flow
       security:
-        - cookieAuth: []
+      - cookieAuth: []
       requestBody:
         required: true
         content:
@@ -375,31 +883,94 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Session'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/Session'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /auth/identifier-availability:
     get:
       tags:
-        - Authentication
+      - Authentication
       summary: Check identifier availability
       description: Check if username or email is available
       parameters:
-        - name: identifier
-          in: query
-          required: true
-          description: Username or email to check
-          schema:
-            type: string
-        - name: type
-          in: query
-          description: Type of identifier
-          schema:
-            type: string
-            enum: [username, email]
+      - name: identifier
+        in: query
+        required: true
+        description: Username or email to check
+        schema:
+          type: string
+      - name: type
+        in: query
+        description: Type of identifier
+        schema:
+          type: string
+          enum: [username, email]
       responses:
         '200':
           description: Availability status
@@ -408,43 +979,146 @@ paths:
               schema:
                 type: object
                 properties:
-                  exists:
-                    type: boolean
-                    description: Whether the identifier exists
-                    type: boolean
-                    example: true
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: object
+                    properties:
+                      exists:
+                        description: Whether the identifier exists
+                        type: boolean
+                        example: true
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Bad request
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /auth/verify-magic-link:
     get:
       tags:
-        - Authentication
+      - Authentication
       summary: Verify magic link
       description: Verify and consume a magic link authentication token
       parameters:
-        - name: token
-          in: query
-          required: true
-          description: Magic link token
-          schema:
-            type: string
+      - name: token
+        in: query
+        required: true
+        description: Magic link token
+        schema:
+          type: string
       responses:
         '200':
           description: Magic link verified
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Session'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/Session'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Invalid or expired token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Invalid or expired token
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /auth/identify:
     post:
       tags:
-        - Authentication
+      - Authentication
       summary: Identify user
       description: Identify user by email or username for passwordless auth
       requestBody:
@@ -454,7 +1128,7 @@ paths:
             schema:
               type: object
               required:
-                - identifier
+              - identifier
               properties:
                 identifier:
                   type: string
@@ -468,35 +1142,76 @@ paths:
               schema:
                 type: object
                 properties:
-                  strategy:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
                     type: string
-                    example: "password"
-                  connection_id:
-                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: object
+                    properties:
+                      strategy:
+                        type: string
+                        example: "password"
+                      connection_id:
+                        type: string
+                        nullable: true
+                      idp_url:
+                        type: string
+                        format: uri
+                        nullable: true
+                      provider:
+                        type: string
+                        nullable: true
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
                     nullable: true
-                  idp_url:
-                    type: string
-                    format: uri
-                    nullable: true
-                  provider:
-                    type: string
-                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: User not found
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: User not found
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /auth/sso/metadata:
     get:
       tags:
-        - Authentication
+      - Authentication
       summary: Get SSO metadata
       description: Get SAML/SP metadata for SSO configuration
       parameters:
-        - name: organization_id
-          in: query
-          description: Organization ID for SSO
-          schema:
-            type: string
-            format: uint64
+      - name: organization_id
+        in: query
+        description: Organization ID for SSO
+        schema:
+          type: string
+          format: uint64
       responses:
         '200':
           description: SSO metadata
@@ -507,25 +1222,47 @@ paths:
         '404':
           description: Organization not found
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 404
+                  message:
+                    type: string
+                    description: Organization not found
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /auth/sso/login:
     post:
       tags:
-        - Authentication
+      - Authentication
       summary: Initiate SSO login
       description: Initiate SAML SSO login flow
       parameters:
-        - name: connection_id
-          in: query
-          required: true
-          schema:
-            type: string
-            format: uint64
-        - name: redirect_uri
-          in: query
-          required: false
-          schema:
-            type: string
-            format: uri
+      - name: connection_id
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uint64
+      - name: redirect_uri
+        in: query
+        required: false
+        schema:
+          type: string
+          format: uri
       responses:
         '200':
           description: SSO login initiated
@@ -534,18 +1271,59 @@ paths:
               schema:
                 type: object
                 properties:
-                  sso_url:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
                     type: string
-                    format: uri
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: object
+                    properties:
+                      sso_url:
+                        type: string
+                        format: uri
+                      session:
+                        $ref: '#/components/schemas/Session'
                   session:
-                    $ref: '#/components/schemas/Session'
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Bad request
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /auth/sso/callback:
     post:
       tags:
-        - Authentication
+      - Authentication
       summary: SSO callback
       description: Handle SAML SSO response callback
       requestBody:
@@ -555,7 +1333,7 @@ paths:
             schema:
               type: object
               required:
-                - SAMLResponse
+              - SAMLResponse
               properties:
                 SAMLResponse:
                   type: string
@@ -569,41 +1347,126 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Session'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/Session'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Invalid SAML response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Invalid SAML response
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: SSO authentication failed
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: SSO authentication failed
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /auth/sso/oidc/callback:
     get:
       tags:
-        - Authentication
+      - Authentication
       summary: OIDC callback
       description: Handle OIDC/OAuth2 SSO callback from enterprise IdP
       parameters:
-        - name: code
-          in: query
-          schema:
-            type: string
-        - name: state
-          in: query
-          schema:
-            type: string
-        - name: connection_id
-          in: query
-          schema:
-            type: string
+      - name: code
+        in: query
+        schema:
+          type: string
+      - name: state
+        in: query
+        schema:
+          type: string
+      - name: connection_id
+        in: query
+        schema:
+          type: string
       responses:
         '302':
           description: Redirect to application
         '400':
           description: Invalid callback
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Invalid callback
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /auth/passkey/login/begin:
     post:
       tags:
-        - Authentication
+      - Authentication
       summary: Begin passkey login
       description: Initialize WebAuthn/passkey authentication flow
       requestBody:
@@ -613,7 +1476,7 @@ paths:
             schema:
               type: object
               required:
-                - identifier
+              - identifier
               properties:
                 identifier:
                   type: string
@@ -627,18 +1490,81 @@ paths:
               schema:
                 type: object
                 properties:
-                  options:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
                     type: object
-                    description: WebAuthn credential request options
+                    properties:
+                      options:
+                        type: object
+                        description: WebAuthn credential request options
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '404':
           description: User not found
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 404
+                  message:
+                    type: string
+                    description: User not found
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /auth/passkey/login/finish:
     post:
       tags:
-        - Authentication
+      - Authentication
       summary: Finish passkey login
       description: Complete WebAuthn/passkey authentication
       requestBody:
@@ -648,7 +1574,7 @@ paths:
             schema:
               type: object
               required:
-                - credential
+              - credential
               properties:
                 credential:
                   type: object
@@ -659,12 +1585,75 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Session'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    $ref: '#/components/schemas/Session'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Invalid credential
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Invalid credential
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Authentication failed
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Authentication failed
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
 components:
   schemas:
     Session:
@@ -751,14 +1740,31 @@ components:
           type: string
           format: date-time
 
-    Error:
+    SessionInfo:
+      type: object
+      description: Minimal session info included in every response
+      nullable: true
+      properties:
+        id:
+          type: string
+          description: Session ID
+          example: '123456789012345678'
+        created_at:
+          type: string
+          format: date-time
+          description: Session creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+          description: Session last update timestamp
+    ErrorDetail:
       type: object
       properties:
-        error:
-          type: string
-          description: Error message
-          example: "Invalid credentials"
         code:
           type: string
-          description: Error code
-          example: "INVALID_CREDENTIALS"
+          description: Machine-readable error code
+          example: INVALID_CREDENTIALS
+        message:
+          type: string
+          description: Human-readable error message
+          example: Invalid credentials. Please try again.

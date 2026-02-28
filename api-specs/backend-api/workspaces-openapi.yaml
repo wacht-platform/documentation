@@ -95,26 +95,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/WorkspaceWithOrganizationName'
-                  has_more:
-                    type: boolean
-                    description: Whether there are more results available
-                  limit:
-                    type: integer
-                    description: Number of items per page
-                    nullable: true
-                  offset:
-                    type: integer
-                    description: Number of items skipped
-                    nullable: true
-                required:
-                  - data
-                  - has_more
+                $ref: '#/components/schemas/PaginatedWorkspaces'
               examples:
                 success:
                   summary: Paginated workspaces
@@ -287,23 +268,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/DeploymentWorkspaceRole'
-                  has_more:
-                    type: boolean
-                  limit:
-                    type: integer
-                    nullable: true
-                  offset:
-                    type: integer
-                    nullable: true
-                required:
-                  - data
-                  - has_more
+                $ref: '#/components/schemas/PaginatedWorkspaceRoles'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
@@ -512,23 +477,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/WorkspaceMemberDetails'
-                  has_more:
-                    type: boolean
-                  limit:
-                    type: integer
-                    nullable: true
-                  offset:
-                    type: integer
-                    nullable: true
-                required:
-                  - data
-                  - has_more
+                $ref: '#/components/schemas/PaginatedWorkspaceMembers'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
@@ -695,14 +644,77 @@ components:
       description: API key authentication (Bearer token)
 
   schemas:
-    Error:
+    ErrorItem:
       type: object
       properties:
         message:
           type: string
-          description: Error message
+        code:
+          type: integer
       required:
         - message
+        - code
+
+    Error:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorItem'
+      required:
+        - errors
+
+    PaginatedResponse:
+      type: object
+      properties:
+        has_more:
+          type: boolean
+          description: Whether there are more results
+        limit:
+          type: integer
+          description: Page size
+          nullable: true
+        offset:
+          type: integer
+          description: Number of items skipped
+          nullable: true
+
+    PaginatedWorkspaces:
+      allOf:
+        - $ref: '#/components/schemas/PaginatedResponse'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/WorkspaceWithOrganizationName'
+          required:
+            - data
+
+    PaginatedWorkspaceMembers:
+      allOf:
+        - $ref: '#/components/schemas/PaginatedResponse'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/WorkspaceMemberDetails'
+          required:
+            - data
+
+    PaginatedWorkspaceRoles:
+      allOf:
+        - $ref: '#/components/schemas/PaginatedResponse'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/DeploymentWorkspaceRole'
+          required:
+            - data
 
     Workspace:
       type: object

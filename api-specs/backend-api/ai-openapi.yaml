@@ -46,14 +46,7 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/PaginatedResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/AiAgentWithDetails'
+                $ref: '#/components/schemas/PaginatedAiAgents'
               examples:
                 success:
                   value:
@@ -250,14 +243,7 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/PaginatedResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/AgentIntegrationWithUrl'
+                $ref: '#/components/schemas/PaginatedAgentIntegrations'
     post:
       summary: Create agent integration
       description: Create a new integration for an agent
@@ -363,6 +349,184 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /ai/agents/{agent_id}/sub-agents:
+    get:
+      summary: List agent sub-agents
+      description: Get all sub-agents associated with an agent
+      tags:
+        - AI Agents
+      parameters:
+        - $ref: '#/components/parameters/AgentId'
+      responses:
+        '200':
+          description: List of sub-agents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AiAgent'
+
+  /ai/agents/{agent_id}/sub-agents/{sub_agent_id}:
+    post:
+      summary: Attach sub-agent to agent
+      description: Associate a sub-agent with a parent agent
+      tags:
+        - AI Agents
+      parameters:
+        - $ref: '#/components/parameters/AgentId'
+        - name: sub_agent_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Sub-agent ID
+      responses:
+        '200':
+          description: Sub-agent attached
+    delete:
+      summary: Detach sub-agent from agent
+      description: Remove a sub-agent association from a parent agent
+      tags:
+        - AI Agents
+      parameters:
+        - $ref: '#/components/parameters/AgentId'
+        - name: sub_agent_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Sub-agent ID
+      responses:
+        '204':
+          description: Sub-agent detached
+
+  /ai/agents/{agent_id}/tools:
+    get:
+      summary: List agent tools
+      description: Get all tools associated with an agent
+      tags:
+        - AI Agents
+      parameters:
+        - $ref: '#/components/parameters/AgentId'
+      responses:
+        '200':
+          description: List of tools
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AiTool'
+
+  /ai/agents/{agent_id}/tools/{tool_id}:
+    post:
+      summary: Attach tool to agent
+      description: Associate a tool with an agent
+      tags:
+        - AI Agents
+      parameters:
+        - $ref: '#/components/parameters/AgentId'
+        - $ref: '#/components/parameters/ToolId'
+      responses:
+        '200':
+          description: Tool attached
+    delete:
+      summary: Detach tool from agent
+      description: Remove a tool association from an agent
+      tags:
+        - AI Agents
+      parameters:
+        - $ref: '#/components/parameters/AgentId'
+        - $ref: '#/components/parameters/ToolId'
+      responses:
+        '204':
+          description: Tool detached
+
+  /ai/agents/{agent_id}/knowledge-bases:
+    get:
+      summary: List agent knowledge bases
+      description: Get all knowledge bases associated with an agent
+      tags:
+        - AI Agents
+      parameters:
+        - $ref: '#/components/parameters/AgentId'
+      responses:
+        '200':
+          description: List of knowledge bases
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AiKnowledgeBase'
+
+  /ai/agents/{agent_id}/knowledge-bases/{kb_id}:
+    post:
+      summary: Attach knowledge base to agent
+      description: Associate a knowledge base with an agent
+      tags:
+        - AI Agents
+      parameters:
+        - $ref: '#/components/parameters/AgentId'
+        - $ref: '#/components/parameters/KnowledgeBaseId'
+      responses:
+        '200':
+          description: Knowledge base attached
+    delete:
+      summary: Detach knowledge base from agent
+      description: Remove a knowledge base association from an agent
+      tags:
+        - AI Agents
+      parameters:
+        - $ref: '#/components/parameters/AgentId'
+        - $ref: '#/components/parameters/KnowledgeBaseId'
+      responses:
+        '204':
+          description: Knowledge base detached
+
+  /ai/agents/{agent_id}/mcp-servers:
+    get:
+      summary: List agent MCP servers
+      description: Get all MCP servers associated with an agent
+      tags:
+        - AI Agents
+      parameters:
+        - $ref: '#/components/parameters/AgentId'
+      responses:
+        '200':
+          description: List of MCP servers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/McpServer'
+
+  /ai/agents/{agent_id}/mcp-servers/{mcp_server_id}:
+    post:
+      summary: Attach MCP server to agent
+      description: Associate an MCP server with an agent
+      tags:
+        - AI Agents
+      parameters:
+        - $ref: '#/components/parameters/AgentId'
+        - $ref: '#/components/parameters/McpServerId'
+      responses:
+        '200':
+          description: MCP server attached
+    delete:
+      summary: Detach MCP server from agent
+      description: Remove an MCP server association from an agent
+      tags:
+        - AI Agents
+      parameters:
+        - $ref: '#/components/parameters/AgentId'
+        - $ref: '#/components/parameters/McpServerId'
+      responses:
+        '204':
+          description: MCP server detached
+
   /ai/tools:
     get:
       summary: List AI tools
@@ -383,14 +547,7 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/PaginatedResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/AiToolWithDetails'
+                $ref: '#/components/schemas/PaginatedAiTools'
     post:
       summary: Create AI tool
       description: Create a new AI tool
@@ -516,7 +673,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/KnowledgeBaseResponse'
+                $ref: '#/components/schemas/PaginatedAiKnowledgeBases'
               examples:
                 success:
                   value:
@@ -654,14 +811,7 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/PaginatedResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/AiKnowledgeBaseDocument'
+                $ref: '#/components/schemas/PaginatedAiKnowledgeBaseDocuments'
     post:
       summary: Upload document to knowledge base
       description: Upload a document to a knowledge base (max 25MB)
@@ -702,24 +852,27 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                /ai/knowledge-bases/{kb_id}/documents/{document_id}:
+    get:
+      summary: Get document by ID
+      description: Retrieve a specific document
+      tags:
+        - AI Knowledge Bases
+      parameters:
+        - $ref: '#/components/parameters/KnowledgeBaseId'
+        - $ref: '#/components/parameters/DocumentId'
+      responses:
+        '200':
+          description: Document retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiKnowledgeBaseDocument'
         '404':
-          description: Knowledge base not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '413':
-          description: Payload too large (max 25MB)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /ai/knowledge-bases/{kb_id}/documents/{document_id}:
+          $ref: '#/components/responses/NotFound'
     delete:
-      summary: Delete knowledge base document
-      description: Remove a document from a knowledge base
+      summary: Delete document
+      description: Delete a document from a knowledge base
       tags:
         - AI Knowledge Bases
       parameters:
@@ -733,6 +886,129 @@ paths:
               schema: {}
         '404':
           $ref: '#/components/responses/NotFound'
+
+  /ai/mcp-servers:
+    get:
+      summary: List MCP servers
+      description: Get all MCP servers for the deployment
+      tags:
+        - AI MCP Servers
+      responses:
+        '200':
+          description: List of MCP servers
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedMcpServers'
+    post:
+      summary: Create MCP server
+      description: Add a new MCP server
+      tags:
+        - AI MCP Servers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - endpoint
+              properties:
+                name:
+                  type: string
+                endpoint:
+                  type: string
+                description:
+                  type: string
+                configuration:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '201':
+          description: MCP server created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/McpServer'
+
+  /ai/mcp-servers/{mcp_server_id}:
+    get:
+      summary: Get MCP server
+      description: Retrieve a specific MCP server
+      tags:
+        - AI MCP Servers
+      parameters:
+        - $ref: '#/components/parameters/McpServerId'
+      responses:
+        '200':
+          description: MCP server details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/McpServer'
+    patch:
+      summary: Update MCP server
+      description: Update an MCP server
+      tags:
+        - AI MCP Servers
+      parameters:
+        - $ref: '#/components/parameters/McpServerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                endpoint:
+                  type: string
+                description:
+                  type: string
+                configuration:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '200':
+          description: MCP server updated
+    delete:
+      summary: Delete MCP server
+      description: Remove an MCP server
+      tags:
+        - AI MCP Servers
+      parameters:
+        - $ref: '#/components/parameters/McpServerId'
+      responses:
+        '204':
+          description: MCP server deleted
+
+  /ai/mcp-servers/discover:
+    post:
+      summary: Discover MCP server auth
+      description: Discovery authentication details for an MCP server
+      tags:
+        - AI MCP Servers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - endpoint
+              properties:
+                endpoint:
+                  type: string
+      responses:
+        '200':
+          description: Discovery response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
 
   /ai/settings:
     get:
@@ -808,14 +1084,7 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/PaginatedResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/AgentExecutionContext'
+                $ref: '#/components/schemas/PaginatedAgentExecutionContexts'
     post:
       summary: Create execution context
       description: Create a new execution context for AI operations
@@ -978,6 +1247,15 @@ components:
       description: Execution Context ID
       example: "1234567890123456789"
 
+    McpServerId:
+      name: mcp_server_id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: MCP Server ID
+      example: "1234567890123456789"
+
     Limit:
       name: limit
       in: query
@@ -1008,31 +1286,65 @@ components:
             message: "Resource not found"
 
   schemas:
-    Error:
+    ErrorItem:
       type: object
       properties:
         message:
           type: string
-          description: Error message
+        code:
+          type: integer
+      required:
+        - message
+        - code
+
+    Error:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorItem'
+      required:
+        - errors
 
     PaginatedResponse:
       type: object
       properties:
-        data:
-          type: array
-          items: {}
-          description: Array of items
         has_more:
           type: boolean
           description: Whether there are more items
         limit:
           type: integer
-          description: Number of items returned per page
+          description: Optional page limit
           nullable: true
         offset:
           type: integer
-          description: Number of items skipped
+          description: Optional offset
           nullable: true
+
+    PaginatedAiAgents:
+      allOf:
+        - $ref: '#/components/schemas/PaginatedResponse'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/AiAgentWithDetails'
+          required:
+            - data
+
+    PaginatedAgentIntegrations:
+      allOf:
+        - $ref: '#/components/schemas/PaginatedResponse'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/AgentIntegrationWithUrl'
+          required:
+            - data
 
     # AI Agent Schemas
     AiAgent:
@@ -1599,6 +1911,47 @@ components:
       type: object
       required:
         - type
+
+    McpServer:
+      type: object
+      properties:
+        id:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        deployment_id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        endpoint:
+          type: string
+        configuration:
+          type: object
+          additionalProperties: true
+      required:
+        - id
+        - deployment_id
+        - name
+        - endpoint
+
+    PaginatedMcpServers:
+      allOf:
+        - $ref: '#/components/schemas/PaginatedResponse'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/McpServer'
+          required:
+            - data
         - agent_name
         - message
       properties:

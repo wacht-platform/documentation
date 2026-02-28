@@ -32,38 +32,33 @@ info:
   version: 1.0.0
 
 servers:
-  - url: https://api.wacht.dev
-    description: Production server
+- url: https://api.wacht.dev
+  description: Production server
 
 security:
-  - ApiKeyAuth: []
+- ApiKeyAuth: []
 
 tags:
-  - name: Users
-    description: User profile and authentication management
-  - name: User Emails
-    description: User email address management
-  - name: User Phones
-    description: User phone number management
-  - name: User Social Connections
-    description: Social account management
-  - name: Invitations
-    description: User invitation management
-  - name: Waitlist
-    description: Waitlist user management
-  - name: Session Tickets
-    description: Session ticket generation for backend authentication
+- name: Users
+  description: User profile and authentication management
+- name: User Emails
+  description: User email address management
+- name: User Phones
+  description: User phone number management
+- name: User Social Connections
+  description: Social account management
+- name: Invitations
+  description: User invitation management
+- name: Waitlist
+  description: Waitlist user management
+- name: Session Tickets
+  description: Session ticket generation for backend authentication
 
 paths:
   /users:
     get:
       summary: List users
-      description: |
-        Get a paginated list of active users in your deployment.
-
-        Returns users with basic profile information including primary email and phone.
-        Use `/users/{user_id}/details` to get complete user information.
-      operationId: listUsers
+      description: Get a paginated list of all active users in the deployment
       tags:
         - Users
       parameters:
@@ -86,7 +81,7 @@ paths:
           in: query
           schema:
             type: string
-            enum: [created_at, username, email, phone_number]
+            enum: [created_at, email, first_name, last_name]
             default: created_at
           description: Field to sort by
         - name: sort_order
@@ -95,390 +90,27 @@ paths:
             type: string
             enum: [asc, desc]
             default: desc
-          description: Sort order (ascending or descending)
+          description: Sort order
         - name: search
           in: query
           schema:
             type: string
-          description: Search query to filter results
+          description: Search by name or email
       responses:
         '200':
           description: List of users retrieved successfully
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/UserWithIdentifiers'
-                  has_more:
-                    type: boolean
-                    description: Whether there are more results available
-                  limit:
-                    type: integer
-                    description: Number of items per page
-                    nullable: true
-                  offset:
-                    type: integer
-                    description: Number of items skipped
-                    nullable: true
-                required:
-                  - data
-                  - has_more
-              examples:
-                success:
-                  summary: Paginated users
-                  value:
-                    data:
-                      - id: "1234567890"
-                        created_at: "2024-01-15T10:30:00Z"
-                        updated_at: "2024-01-20T15:45:00Z"
-                        first_name: John
-                        last_name: Doe
-                        username: johndoe
-                        profile_picture_url: "https://cdn.wacht.dev/deployments/123/users/456/profile.jpg"
-                        primary_email_address: john.doe@example.com
-                        primary_phone_number: "+1234567890"
-                    has_more: true
-                    limit: 10
-                    offset: 0
+                $ref: '#/components/schemas/PaginatedUsers'
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '500':
-          $ref: '#/components/responses/InternalError'
 
     post:
       summary: Create user
-      description: |
-        Create a new user in your deployment.
-
-        This endpoint accepts `multipart/form-data` to support profile image uploads.
-
-        ### Validation Rules
-
-        Fields are validated against your deployment's authentication settings:
-        - **first_name**: Required if enabled in deployment settings
-        - **last_name**: Required if enabled in deployment settings
-        - **email_address**: Required if email authentication is enabled
-        - **phone_number**: Required if phone authentication is enabled
-        - **username**: Required if username authentication is enabled
-        - **password**: Must meet minimum length requirements if enabled
-
-        ### Profile Image
-
-        Supported formats: JPEG, PNG, GIF, WEBP, ICO
-        Maximum file size: 25MB
-      operationId: createUser
+      description: Create a new user in the deployment
       tags:
         - Users
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              required:
-                - first_name
-                - last_name
-              properties:
-                first_name:
-                  type: string
-                  description: User's first name
-                last_name:
-                  type: string
-                  description: User's last name
-                email_address:
-                  type: string
-                  format: email
-                  description: User's email address
-                phone_number:
-                  type: string
-                  description: User's phone number
-                username:
-                  type: string
-                  description: User's username
-                password:
-                  type: string
-                  format: password
-                  description: User's password
-                skip_password_check:
-                  type: boolean
-                  description: Skip password validation
-                  default: false
-                profile_image:
-                  type: string
-                  format: binary
-                  description: Profile image file (JPEG, PNG, GIF, WEBP, or ICO)
-            encoding:
-              profile_image:
-                contentType: image/jpeg, image/png, image/gif, image/webp, image/x-icon, image/vnd.microsoft.icon
-      responses:
-        '200':
-          description: User created successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserWithIdentifiers'
-              examples:
-                success:
-                  summary: User created
-                  value:
-                    id: "1234567890"
-                    created_at: "2024-01-15T10:30:00Z"
-                    updated_at: "2024-01-15T10:30:00Z"
-                    first_name: John
-                    last_name: Doe
-                    username: johndoe
-                    profile_picture_url: "https://cdn.wacht.dev/deployments/123/users/456/profile.jpg"
-                    primary_email_address: john.doe@example.com
-                    primary_phone_number: null
-        '400':
-          description: Invalid request data
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-              examples:
-                validationError:
-                  summary: Validation failed
-                  value:
-                    message: "First name is required"
-                passwordTooShort:
-                  summary: Password too short
-                  value:
-                    message: "Password must be at least 8 characters"
-                invalidImage:
-                  summary: Invalid image format
-                  value:
-                    message: "Unsupported image format. Supported formats: JPEG, PNG, GIF, WEBP, ICO"
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '500':
-          $ref: '#/components/responses/InternalError'
-
-  /users/{user_id}/details:
-    get:
-      summary: Get user details
-      description: |
-        Get complete user information including all associated data.
-
-        Returns user details including:
-        - Basic profile information
-        - All email addresses
-        - All phone numbers
-        - Social connections
-        - Segment memberships
-        - Authentication status (has_password, has_backup_codes)
-      operationId: getUserDetails
-      tags:
-        - Users
-      parameters:
-        - name: user_id
-          in: path
-          required: true
-          schema:
-            type: string
-          description: User ID (integer as string)
-          example: "1234567890"
-      responses:
-        '200':
-          description: User details retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserDetails'
-              examples:
-                success:
-                  summary: Complete user details
-                  value:
-                    id: "1234567890"
-                    created_at: "2024-01-15T10:30:00Z"
-                    updated_at: "2024-01-20T15:45:00Z"
-                    first_name: John
-                    last_name: Doe
-                    username: johndoe
-                    profile_picture_url: "https://cdn.wacht.dev/deployments/123/users/456/profile.jpg"
-                    disabled: false
-                    schema_version: "v2"
-                    second_factor_policy: "disabled"
-                    availability: "available"
-                    last_password_reset_at: "2024-01-15T10:30:00Z"
-                    deployment_id: "1234567890"
-                    public_metadata: {}
-                    private_metadata: {}
-                    primary_email_address_id: "9876543210"
-                    primary_email_address: john.doe@example.com
-                    primary_phone_number_id: null
-                    primary_phone_number: null
-                    active_organization_membership_id: null
-                    active_workspace_membership_id: null
-                    has_password: true
-                    has_backup_codes: false
-                    email_addresses:
-                      - id: "9876543210"
-                        created_at: "2024-01-15T10:30:00Z"
-                        updated_at: "2024-01-15T10:30:00Z"
-                        deployment_id: "1234567890"
-                        user_id: "1234567890"
-                        email: john.doe@example.com
-                        is_primary: true
-                        verified: true
-                        verified_at: "2024-01-15T10:35:00Z"
-                        verification_strategy: otp
-                    phone_numbers: []
-                    social_connections: []
-                    segments: []
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalError'
-
-  /users/{user_id}:
-    patch:
-      summary: Update user
-      description: |
-        Update a user's profile information.
-
-        This endpoint accepts `multipart/form-data` to support profile image uploads.
-
-        ### Profile Image Handling
-
-        - Include a `profile_image` field to upload a new profile picture
-        - Set `remove_profile_image` to `true` to remove the existing profile picture
-        - Supported formats: JPEG, PNG, GIF, WEBP, ICO
-      operationId: updateUser
-      tags:
-        - Users
-      parameters:
-        - name: user_id
-          in: path
-          required: true
-          schema:
-            type: string
-          description: User ID (integer as string)
-          example: "1234567890"
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                first_name:
-                  type: string
-                  description: User's first name
-                last_name:
-                  type: string
-                  description: User's last name
-                username:
-                  type: string
-                  description: User's username
-                public_metadata:
-                  type: string
-                  description: JSON string of public metadata
-                  example: '{"plan": "premium"}'
-                private_metadata:
-                  type: string
-                  description: JSON string of private metadata
-                  example: '{"internal_id": "12345"}'
-                disabled:
-                  type: boolean
-                  description: Whether the user account is disabled
-                remove_profile_image:
-                  type: boolean
-                  description: Set to true to remove the profile image
-                  default: false
-                profile_image:
-                  type: string
-                  format: binary
-                  description: Profile image file (JPEG, PNG, GIF, WEBP, or ICO)
-            encoding:
-              profile_image:
-                contentType: image/jpeg, image/png, image/gif, image/webp, image/x-icon, image/vnd.microsoft.icon
-      responses:
-        '200':
-          description: User updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserDetails'
-        '400':
-          description: Invalid request data
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalError'
-
-    delete:
-      summary: Delete user
-      description: |
-        Permanently delete a user from your deployment.
-
-        **Warning**: This action cannot be undone. All user data including:
-        - Profile information
-        - Email addresses
-        - Phone numbers
-        - Social connections
-        - Segment memberships
-        - Authentication credentials
-
-        will be permanently deleted.
-      operationId: deleteUser
-      tags:
-        - Users
-      parameters:
-        - name: user_id
-          in: path
-          required: true
-          schema:
-            type: string
-          description: User ID (integer as string)
-          example: "1234567890"
-      responses:
-        '200':
-          description: User deleted successfully
-          content:
-            application/json:
-              schema: {}
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalError'
-
-  /users/{user_id}/password:
-    patch:
-      summary: Update user password
-      description: |
-        Update a user's password.
-
-        The new password must meet your deployment's password requirements:
-        - Minimum length (if configured)
-        - Password complexity rules (if configured)
-
-        Use `skip_password_check` to bypass validation (not recommended).
-      operationId: updateUserPassword
-      tags:
-        - Users
-      parameters:
-        - name: user_id
-          in: path
-          required: true
-          schema:
-            type: string
-          description: User ID (integer as string)
-          example: "1234567890"
       requestBody:
         required: true
         content:
@@ -486,49 +118,141 @@ paths:
             schema:
               type: object
               required:
-                - new_password
+                - email
+                - password
               properties:
-                new_password:
+                email:
                   type: string
-                  format: password
-                  description: New password
-                  example: newSecurePassword123
-                skip_password_check:
-                  type: boolean
-                  description: Skip password validation
-                  default: false
+                  format: email
+                password:
+                  type: string
+                first_name:
+                  type: string
+                last_name:
+                  type: string
+                phone_number:
+                  type: string
+                metadata:
+                  type: object
+                  additionalProperties: true
       responses:
-        '200':
-          description: Password updated successfully
-          content:
-            application/json:
-              schema: {}
-        '400':
-          description: Invalid request data
+        '201':
+          description: User created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-              examples:
-                passwordTooShort:
-                  summary: Password too short
-                  value:
-                    message: "Password must be at least 8 characters"
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /users/{user_id}:
+    patch:
+      summary: Update user
+      description: Update user profile information
+      tags:
+        - Users
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                last_name:
+                  type: string
+                metadata:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '200':
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
         '404':
           $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalError'
+
+    delete:
+      summary: Delete user
+      description: Permanently delete a user
+      tags:
+        - Users
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: User deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /users/{user_id}/details:
+    get:
+      summary: Get user details
+      description: Get detailed information about a user including emails, phones, and social connections
+      tags:
+        - Users
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserWithDetails'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /users/{user_id}/password:
+    patch:
+      summary: Update user password
+      description: Update a user's password
+      tags:
+        - Users
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - password
+              properties:
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Password updated successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /users/{user_id}/emails:
     post:
-      summary: Add email address
-      description: |
-        Add a new email address to a user's account.
-
-        The email will need to be verified before it can be used for authentication.
-      operationId: addUserEmail
+      summary: Add user email
+      description: Add a new email address to a user's profile
       tags:
         - User Emails
       parameters:
@@ -537,8 +261,6 @@ paths:
           required: true
           schema:
             type: string
-          description: User ID (integer as string)
-          example: "1234567890"
       requestBody:
         required: true
         content:
@@ -551,39 +273,19 @@ paths:
                 email:
                   type: string
                   format: email
-                  description: Email address to add
-                  example: jane.doe@example.com
-                verification_strategy:
-                  type: string
-                  enum: [otp, oauth_google, oauth_github, oauth_microsoft, oauth_facebook, oauth_linkedin, oauth_discord, oauth_apple]
-                  default: otp
-                  description: Verification strategy to use
+                is_primary:
+                  type: boolean
+                  default: false
       responses:
-        '200':
+        '201':
           description: Email added successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserEmailAddress'
-        '400':
-          description: Invalid request data
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalError'
 
   /users/{user_id}/emails/{email_id}:
     patch:
-      summary: Update email address
-      description: |
-        Update an existing email address or set it as primary.
-      operationId: updateUserEmail
+      summary: Update user email
+      description: Update email primary status or verification
       tags:
         - User Emails
       parameters:
@@ -592,15 +294,11 @@ paths:
           required: true
           schema:
             type: string
-          description: User ID (integer as string)
-          example: "1234567890"
         - name: email_id
           in: path
           required: true
           schema:
             type: string
-          description: Email ID (integer as string)
-          example: "9876543210"
       requestBody:
         required: true
         content:
@@ -608,42 +306,17 @@ paths:
             schema:
               type: object
               properties:
-                email:
-                  type: string
-                  format: email
-                  description: New email address
-                  example: jane.doe@example.com
                 is_primary:
                   type: boolean
-                  description: Set as primary email address
-                  example: true
       responses:
         '200':
           description: Email updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserEmailAddress'
-        '400':
-          description: Invalid request data
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalError'
 
     delete:
-      summary: Delete email address
-      description: |
-        Remove an email address from a user's account.
-
-        **Note**: You cannot delete the primary email address.
-      operationId: deleteUserEmail
+      summary: Delete user email
+      description: Remove an email address from a user's profile
       tags:
         - User Emails
       parameters:
@@ -652,47 +325,21 @@ paths:
           required: true
           schema:
             type: string
-          description: User ID (integer as string)
-          example: "1234567890"
         - name: email_id
           in: path
           required: true
           schema:
             type: string
-          description: Email ID (integer as string)
-          example: "9876543210"
       responses:
-        '200':
+        '204':
           description: Email deleted successfully
-          content:
-            application/json:
-              schema: {}
-        '400':
-          description: Cannot delete primary email
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-              examples:
-                primaryEmail:
-                  summary: Cannot delete primary email
-                  value:
-                    message: "Cannot delete primary email address"
-        '401':
-          $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalError'
 
   /users/{user_id}/phones:
     post:
-      summary: Add phone number
-      description: |
-        Add a new phone number to a user's account.
-
-        The phone will need to be verified before it can be used for authentication.
-      operationId: addUserPhone
+      summary: Add user phone
+      description: Add a new phone number to a user's profile
       tags:
         - User Phones
       parameters:
@@ -701,8 +348,6 @@ paths:
           required: true
           schema:
             type: string
-          description: User ID (integer as string)
-          example: "1234567890"
       requestBody:
         required: true
         content:
@@ -711,44 +356,22 @@ paths:
               type: object
               required:
                 - phone_number
-                - country_code
               properties:
                 phone_number:
                   type: string
-                  description: Phone number (without country code)
-                  example: "1234567890"
-                country_code:
-                  type: string
-                  description: Country code (with +)
-                  example: "+1"
+                is_primary:
+                  type: boolean
+                  default: false
       responses:
-        '200':
-          description: Phone number added successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserPhoneNumber'
-        '400':
-          description: Invalid request data
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+        '201':
+          description: Phone added successfully
         '404':
           $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalError'
 
   /users/{user_id}/phones/{phone_id}:
     patch:
-      summary: Update phone number
-      description: |
-        Update an existing phone number or set it as primary.
-
-        You can update the phone number, country code, verification status, or set it as the primary phone.
-      operationId: updateUserPhone
+      summary: Update user phone
+      description: Update phone primary status
       tags:
         - User Phones
       parameters:
@@ -757,15 +380,11 @@ paths:
           required: true
           schema:
             type: string
-          description: User ID (integer as string)
-          example: "1234567890"
         - name: phone_id
           in: path
           required: true
           schema:
             type: string
-          description: Phone ID (integer as string)
-          example: "1111111111"
       requestBody:
         required: true
         content:
@@ -773,49 +392,17 @@ paths:
             schema:
               type: object
               properties:
-                phone_number:
-                  type: string
-                  description: Phone number (without country code)
-                  example: "9876543210"
-                country_code:
-                  type: string
-                  description: Country code (with +)
-                  example: "+1"
-                verified:
-                  type: boolean
-                  description: Whether the phone number is verified
-                  example: true
                 is_primary:
                   type: boolean
-                  description: Set as primary phone number
-                  example: true
       responses:
         '200':
-          description: Phone number updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserPhoneNumber'
-        '400':
-          description: Invalid request data
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+          description: Phone updated successfully
         '404':
           $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalError'
 
     delete:
-      summary: Delete phone number
-      description: |
-        Remove a phone number from a user's account.
-
-        **Note**: You cannot delete the primary phone number.
-      operationId: deleteUserPhone
+      summary: Delete user phone
+      description: Remove a phone number from a user's profile
       tags:
         - User Phones
       parameters:
@@ -824,47 +411,21 @@ paths:
           required: true
           schema:
             type: string
-          description: User ID (integer as string)
-          example: "1234567890"
         - name: phone_id
           in: path
           required: true
           schema:
             type: string
-          description: Phone ID (integer as string)
-          example: "1111111111"
       responses:
-        '200':
-          description: Phone number deleted successfully
-          content:
-            application/json:
-              schema: {}
-        '400':
-          description: Cannot delete primary phone
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-              examples:
-                primaryPhone:
-                  summary: Cannot delete primary phone
-                  value:
-                    message: "Cannot delete primary phone number"
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+        '204':
+          description: Phone deleted successfully
         '404':
           $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalError'
 
   /users/{user_id}/social-connections/{connection_id}:
     delete:
-      summary: Delete social connection
-      description: |
-        Remove a social connection (OAuth) from a user's account.
-
-        This will disconnect the user's account from the specified social provider.
-      operationId: deleteUserSocialConnection
+      summary: Delete user social connection
+      description: Remove a social account connection from a user
       tags:
         - User Social Connections
       parameters:
@@ -873,27 +434,16 @@ paths:
           required: true
           schema:
             type: string
-          description: User ID (integer as string)
-          example: "1234567890"
         - name: connection_id
           in: path
           required: true
           schema:
             type: string
-          description: Social connection ID (integer as string)
-          example: "2222222222"
       responses:
-        '200':
-          description: Social connection deleted successfully
-          content:
-            application/json:
-              schema: {}
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+        '204':
+          description: Social connection removed successfully
         '404':
           $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalError'
 
   /invitations:
     get:
@@ -902,42 +452,42 @@ paths:
         Get a paginated list of pending user invitations.
       operationId: listInvitations
       tags:
-        - Invitations
+      - Invitations
       parameters:
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 100
-            default: 10
-          description: Number of items to return per page
-        - name: offset
-          in: query
-          schema:
-            type: integer
-            minimum: 0
-            default: 0
-          description: Number of items to skip
-        - name: sort_key
-          in: query
-          schema:
-            type: string
-            enum: [created_at, email]
-            default: created_at
-          description: Field to sort by
-        - name: sort_order
-          in: query
-          schema:
-            type: string
-            enum: [asc, desc]
-            default: desc
-          description: Sort order (ascending or descending)
-        - name: search
-          in: query
-          schema:
-            type: string
-          description: Search query to filter results
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 10
+        description: Number of items to return per page
+      - name: offset
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+        description: Number of items to skip
+      - name: sort_key
+        in: query
+        schema:
+          type: string
+          enum: [created_at, email]
+          default: created_at
+        description: Field to sort by
+      - name: sort_order
+        in: query
+        schema:
+          type: string
+          enum: [asc, desc]
+          default: desc
+        description: Sort order (ascending or descending)
+      - name: search
+        in: query
+        schema:
+          type: string
+        description: Search query to filter results
       responses:
         '200':
           description: List of invitations retrieved successfully
@@ -959,8 +509,8 @@ paths:
                     type: integer
                     nullable: true
                 required:
-                  - data
-                  - has_more
+                - data
+                - has_more
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
@@ -975,7 +525,7 @@ paths:
         The invitation expires after 7 days.
       operationId: inviteUser
       tags:
-        - Invitations
+      - Invitations
       requestBody:
         required: true
         content:
@@ -983,9 +533,9 @@ paths:
             schema:
               type: object
               required:
-                - first_name
-                - last_name
-                - email_address
+              - first_name
+              - last_name
+              - email_address
               properties:
                 first_name:
                   type: string
@@ -1040,15 +590,15 @@ paths:
         The invitation token will be invalidated and cannot be used for signup.
       operationId: deleteInvitation
       tags:
-        - Invitations
+      - Invitations
       parameters:
-        - name: invitation_id
-          in: path
-          required: true
-          schema:
-            type: string
-          description: Invitation ID (integer as string)
-          example: "1111111111"
+      - name: invitation_id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Invitation ID (integer as string)
+        example: "1111111111"
       responses:
         '200':
           description: Invitation deleted successfully
@@ -1069,42 +619,42 @@ paths:
         Get a paginated list of users on the waitlist.
       operationId: listWaitlist
       tags:
-        - Waitlist
+      - Waitlist
       parameters:
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 100
-            default: 10
-          description: Number of items to return per page
-        - name: offset
-          in: query
-          schema:
-            type: integer
-            minimum: 0
-            default: 0
-          description: Number of items to skip
-        - name: sort_key
-          in: query
-          schema:
-            type: string
-            enum: [created_at, email]
-            default: created_at
-          description: Field to sort by
-        - name: sort_order
-          in: query
-          schema:
-            type: string
-            enum: [asc, desc]
-            default: desc
-          description: Sort order (ascending or descending)
-        - name: search
-          in: query
-          schema:
-            type: string
-          description: Search query to filter results
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 10
+        description: Number of items to return per page
+      - name: offset
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+        description: Number of items to skip
+      - name: sort_key
+        in: query
+        schema:
+          type: string
+          enum: [created_at, email]
+          default: created_at
+        description: Field to sort by
+      - name: sort_order
+        in: query
+        schema:
+          type: string
+          enum: [asc, desc]
+          default: desc
+        description: Sort order (ascending or descending)
+      - name: search
+        in: query
+        schema:
+          type: string
+        description: Search query to filter results
       responses:
         '200':
           description: List of waitlist users retrieved successfully
@@ -1126,8 +676,8 @@ paths:
                     type: integer
                     nullable: true
                 required:
-                  - data
-                  - has_more
+                - data
+                - has_more
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
@@ -1142,15 +692,15 @@ paths:
         Creates an invitation for the waitlist user's email address.
       operationId: approveWaitlistUser
       tags:
-        - Waitlist
+      - Waitlist
       parameters:
-        - name: waitlist_user_id
-          in: path
-          required: true
-          schema:
-            type: string
-          description: Waitlist user ID (integer as string)
-          example: "3333333333"
+      - name: waitlist_user_id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Waitlist user ID (integer as string)
+        example: "3333333333"
       responses:
         '200':
           description: User approved and invitation sent
@@ -1182,7 +732,7 @@ paths:
         The ticket expires based on the `expires_in` parameter (default 5 minutes).
       operationId: createSessionTicket
       tags:
-        - Session Tickets
+      - Session Tickets
       requestBody:
         required: true
         content:
@@ -1190,7 +740,7 @@ paths:
             schema:
               type: object
               required:
-                - ticket_type
+              - ticket_type
               properties:
                 ticket_type:
                   type: string
@@ -1204,7 +754,8 @@ paths:
                   type: array
                   items:
                     type: string
-                  description: List of agent IDs (required for agent_access tickets)
+                  description: List of agent IDs (required for agent_access 
+                    tickets)
                   example: ["1111111111", "2222222222"]
                 context_group:
                   type: string
@@ -1265,14 +816,70 @@ components:
       description: API key authentication (Bearer token)
 
   schemas:
-    Error:
+
+    ErrorItem:
       type: object
       properties:
         message:
           type: string
-          description: Error message
+        code:
+          type: integer
       required:
         - message
+        - code
+
+    Error:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorItem'
+      required:
+        - errors
+
+    # =====================================================
+    # COMMON PAGINATED RESPONSES
+    # =====================================================
+
+    PaginatedResponse:
+      type: object
+      properties:
+        has_more:
+          type: boolean
+          description: Whether there are more results
+        limit:
+          type: integer
+          description: Page size
+          nullable: true
+        offset:
+          type: integer
+          description: Number of items skipped
+          nullable: true
+
+    PaginatedUsers:
+      allOf:
+        - $ref: '#/components/schemas/PaginatedResponse'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/UserWithIdentifiers'
+          required:
+            - data
+
+    PaginatedWaitlistUsers:
+      allOf:
+        - $ref: '#/components/schemas/PaginatedResponse'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/DeploymentWaitlistUser'
+          required:
+            - data
 
     UserWithIdentifiers:
       type: object
@@ -1319,12 +926,12 @@ components:
           nullable: true
           example: "+1234567890"
       required:
-        - id
-        - created_at
-        - updated_at
-        - first_name
-        - last_name
-        - profile_picture_url
+      - id
+      - created_at
+      - updated_at
+      - first_name
+      - last_name
+      - profile_picture_url
 
     UserDetails:
       type: object
@@ -1392,7 +999,8 @@ components:
           example: {}
         private_metadata:
           type: object
-          description: Private metadata (custom fields, only accessible via backend API)
+          description: Private metadata (custom fields, only accessible via 
+            backend API)
           example: {}
         primary_email_address_id:
           type: string
@@ -1454,15 +1062,15 @@ components:
           items:
             $ref: '#/components/schemas/Segment'
       required:
-        - id
-        - created_at
-        - updated_at
-        - first_name
-        - last_name
-        - profile_picture_url
-        - disabled
-        - has_password
-        - has_backup_codes
+      - id
+      - created_at
+      - updated_at
+      - first_name
+      - last_name
+      - profile_picture_url
+      - disabled
+      - has_password
+      - has_backup_codes
 
     UserEmailAddress:
       type: object
@@ -1510,19 +1118,20 @@ components:
         verification_strategy:
           type: string
           description: Verification method used
-          enum: [otp, oauth_google, oauth_github, oauth_microsoft, oauth_facebook, oauth_linkedin, oauth_discord, oauth_apple]
+          enum: [otp, oauth_google, oauth_github, oauth_microsoft, 
+              oauth_facebook, oauth_linkedin, oauth_discord, oauth_apple]
           example: otp
       required:
-        - id
-        - created_at
-        - updated_at
-        - deployment_id
-        - user_id
-        - email
-        - is_primary
-        - verified
-        - verified_at
-        - verification_strategy
+      - id
+      - created_at
+      - updated_at
+      - deployment_id
+      - user_id
+      - email
+      - is_primary
+      - verified
+      - verified_at
+      - verification_strategy
 
     UserPhoneNumber:
       type: object
@@ -1563,14 +1172,14 @@ components:
           description: Verification timestamp
           example: "2024-01-15T10:36:00Z"
       required:
-        - id
-        - created_at
-        - updated_at
-        - user_id
-        - phone_number
-        - country_code
-        - verified
-        - verified_at
+      - id
+      - created_at
+      - updated_at
+      - user_id
+      - phone_number
+      - country_code
+      - verified
+      - verified_at
 
     SocialConnection:
       type: object
@@ -1595,25 +1204,28 @@ components:
           example: "1234567890"
         user_email_address_id:
           type: string
-          description: Associated email address ID (integer serialized as string)
+          description: Associated email address ID (integer serialized as 
+            string)
           example: "9876543210"
         provider:
           type: string
           description: Social provider name
-          enum: [x_oauth, github_oauth, gitlab_oauth, google_oauth, facebook_oauth, microsoft_oauth, linkedin_oauth, discord_oauth, apple_oauth]
+          enum: [x_oauth, github_oauth, gitlab_oauth, google_oauth, 
+              facebook_oauth, microsoft_oauth, linkedin_oauth, discord_oauth, 
+              apple_oauth]
           example: google_oauth
         email_address:
           type: string
           description: Email address from the social provider
           example: user@gmail.com
       required:
-        - id
-        - created_at
-        - updated_at
-        - user_id
-        - user_email_address_id
-        - provider
-        - email_address
+      - id
+      - created_at
+      - updated_at
+      - user_id
+      - user_email_address_id
+      - provider
+      - email_address
 
     Segment:
       type: object
@@ -1639,7 +1251,7 @@ components:
           format: date-time
           nullable: true
           description: Deletion timestamp (if deleted)
-          example: null
+          example:
         deployment_id:
           type: string
           description: Deployment ID (integer serialized as string)
@@ -1654,10 +1266,10 @@ components:
           enum: [organization, workspace, user]
           example: user
       required:
-        - id
-        - deployment_id
-        - name
-        - type
+      - id
+      - deployment_id
+      - name
+      - type
 
     # Invitation & Waitlist Schemas
     DeploymentInvitation:
@@ -1702,15 +1314,15 @@ components:
           description: Invitation expiration timestamp
           example: "2024-01-22T10:30:00Z"
       required:
-        - id
-        - created_at
-        - updated_at
-        - deployment_id
-        - first_name
-        - last_name
-        - email_address
-        - token
-        - expiry
+      - id
+      - created_at
+      - updated_at
+      - deployment_id
+      - first_name
+      - last_name
+      - email_address
+      - token
+      - expiry
 
     DeploymentWaitlistUser:
       type: object
@@ -1747,11 +1359,11 @@ components:
           description: User's last name (optional)
           example: Doe
       required:
-        - id
-        - created_at
-        - updated_at
-        - deployment_id
-        - email_address
+      - id
+      - created_at
+      - updated_at
+      - deployment_id
+      - email_address
 
     # Impersonation & Session Tickets
     ImpersonationTokenResponse:
@@ -1766,8 +1378,8 @@ components:
           description: URL to redirect the user to for automatic sign-in
           example: "https://app.wacht.dev/auth/impersonate?token=wacht_imp_abc123xyz789..."
       required:
-        - token
-        - redirect_url
+      - token
+      - redirect_url
 
     SessionTicketResponse:
       type: object
@@ -1782,33 +1394,55 @@ components:
           description: Unix timestamp when the ticket expires
           example: 1705339200
       required:
-        - ticket
-        - expires_at
+      - ticket
+      - expires_at
 
-  responses:
-    Unauthorized:
-      description: Authentication failed
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            message: "Invalid or missing API key"
+  components:
+    schemas:
+      ErrorItem:
+        type: object
+        properties:
+          message:
+            type: string
+          code:
+            type: integer
+        required:
+          - message
+          - code
 
-    NotFound:
-      description: Resource not found
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            message: "User not found"
+      Error:
+        type: object
+        properties:
+          errors:
+            type: array
+            items:
+              $ref: '#/components/schemas/ErrorItem'
+        required:
+          - errors
 
-    InternalError:
-      description: Internal server error
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            message: "An unexpected error occurred"
+      PaginatedResponse:
+        type: object
+        properties:
+          has_more:
+            type: boolean
+            description: Whether there are more items
+          limit:
+            type: integer
+            description: Optional page limit
+            nullable: true
+          offset:
+            type: integer
+            description: Optional offset
+            nullable: true
+
+      PaginatedUsers:
+        allOf:
+          - $ref: '#/components/schemas/PaginatedResponse'
+          - type: object
+            properties:
+              data:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+            required:
+              - data

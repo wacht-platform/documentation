@@ -4,18 +4,18 @@ info:
   description: Waitlist signup endpoint
   version: 1.0.0
 servers:
-  - url: https://api.wacht.dev
-    description: Production server
+- url: https://api.wacht.dev
+  description: Production server
 
 tags:
-  - name: Waitlist
-    description: Waitlist management
+- name: Waitlist
+  description: Waitlist management
 
 paths:
   /waitlist/join:
     post:
       tags:
-        - Waitlist
+      - Waitlist
       summary: Join waitlist
       description: Add an email to the deployment waitlist
       requestBody:
@@ -25,7 +25,7 @@ paths:
             schema:
               type: object
               required:
-                - email
+              - email
               properties:
                 first_name:
                   type: string
@@ -48,30 +48,56 @@ paths:
               schema:
                 type: object
                 properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
                   message:
                     type: string
-                    example: "Successfully joined waitlist"
-                  entry:
-                    $ref: '#/components/schemas/WaitlistEntry'
+                    description: Response message (empty on success)
+                    example: ''
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: "Successfully joined waitlist"
+                      entry:
+                        $ref: '#/components/schemas/WaitlistEntry'
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    nullable: true
+                    description: Error details (null on success)
         '400':
           description: Bad request - Invalid email or already on waitlist
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request - Invalid email or already on waitlist
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
 components:
   schemas:
-    Error:
-      type: object
-      properties:
-        error:
-          type: string
-          example: "Invalid email address"
-        code:
-          type: string
-          example: "INVALID_EMAIL"
-
     WaitlistEntry:
       type: object
       properties:
@@ -95,3 +121,31 @@ components:
         updated_at:
           type: string
           format: date-time
+    SessionInfo:
+      type: object
+      description: Minimal session info included in every response
+      nullable: true
+      properties:
+        id:
+          type: string
+          description: Session ID
+          example: '123456789012345678'
+        created_at:
+          type: string
+          format: date-time
+          description: Session creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+          description: Session last update timestamp
+    ErrorDetail:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Machine-readable error code
+          example: INVALID_CREDENTIALS
+        message:
+          type: string
+          description: Human-readable error message
+          example: Invalid credentials. Please try again.

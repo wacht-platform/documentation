@@ -1,36 +1,37 @@
 openapi: 3.0.3
 info:
   title: Wacht Frontend API - SCIM 2.0
-  description: SCIM 2.0 (System for Cross-domain Identity Management) protocol endpoints for enterprise user provisioning
+  description: SCIM 2.0 (System for Cross-domain Identity Management) protocol endpoints for enterprise user 
+    provisioning
   version: "2.0"
 servers:
-  - url: https://api.wacht.dev
-    description: Production server
+- url: https://api.wacht.dev
+  description: Production server
 
 tags:
-  - name: SCIM Protocol
-    description: SCIM 2.0 protocol endpoints
-  - name: SCIM Users
-    description: User provisioning
-  - name: SCIM Groups
-    description: Group management
+- name: SCIM Protocol
+  description: SCIM 2.0 protocol endpoints
+- name: SCIM Users
+  description: User provisioning
+- name: SCIM Groups
+  description: Group management
 
 paths:
   /scim/v2/{connectionId}/ServiceProviderConfig:
     get:
       tags:
-        - SCIM Protocol
+      - SCIM Protocol
       summary: Get service provider config
       description: Retrieve SCIM service provider configuration
       security:
-        - bearerAuth: []
+      - bearerAuth: []
       parameters:
-        - name: connectionId
-          in: path
-          required: true
-          description: Enterprise connection ID
-          schema:
-            type: string
+      - name: connectionId
+        in: path
+        required: true
+        description: Enterprise connection ID
+        schema:
+          type: string
       responses:
         '200':
           description: Service provider configuration
@@ -40,23 +41,67 @@ paths:
                 $ref: '#/components/schemas/ServiceProviderConfig'
         '401':
           description: Unauthorized - Invalid SCIM token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized - Invalid SCIM token
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '404':
           description: Connection not found
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 404
+                  message:
+                    type: string
+                    description: Connection not found
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /scim/v2/{connectionId}/Schemas:
     get:
       tags:
-        - SCIM Protocol
+      - SCIM Protocol
       summary: Get schemas
       description: Retrieve available SCIM schemas
       security:
-        - bearerAuth: []
+      - bearerAuth: []
       parameters:
-        - name: connectionId
-          in: path
-          required: true
-          schema:
-            type: string
+      - name: connectionId
+        in: path
+        required: true
+        schema:
+          type: string
       responses:
         '200':
           description: Available schemas
@@ -80,20 +125,42 @@ paths:
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /scim/v2/{connectionId}/ResourceTypes:
     get:
       tags:
-        - SCIM Protocol
+      - SCIM Protocol
       summary: Get resource types
       description: Retrieve available SCIM resource types
       security:
-        - bearerAuth: []
+      - bearerAuth: []
       parameters:
-        - name: connectionId
-          in: path
-          required: true
-          schema:
-            type: string
+      - name: connectionId
+        in: path
+        required: true
+        schema:
+          type: string
       responses:
         '200':
           description: Available resource types
@@ -115,41 +182,63 @@ paths:
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /scim/v2/{connectionId}/Users:
     get:
       tags:
-        - SCIM Users
+      - SCIM Users
       summary: List users
       description: Retrieve all users with pagination (SCIM 2.0)
       security:
-        - bearerAuth: []
+      - bearerAuth: []
       parameters:
-        - name: connectionId
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: startIndex
-          in: query
-          description: 1-based index of the first result
-          schema:
-            type: integer
-            default: 1
-            minimum: 1
-        - name: count
-          in: query
-          description: Number of results per page
-          schema:
-            type: integer
-            default: 100
-            minimum: 1
-            maximum: 1000
-        - name: filter
-          in: query
-          description: SCIM filter expression
-          schema:
-            type: string
-            example: "userName eq \"john.doe\""
+      - name: connectionId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: startIndex
+        in: query
+        description: 1-based index of the first result
+        schema:
+          type: integer
+          default: 1
+          minimum: 1
+      - name: count
+        in: query
+        description: Number of results per page
+        schema:
+          type: integer
+          default: 100
+          minimum: 1
+          maximum: 1000
+      - name: filter
+        in: query
+        description: SCIM filter expression
+        schema:
+          type: string
+          example: "userName eq \"john.doe\""
       responses:
         '200':
           description: Users list
@@ -159,19 +248,41 @@ paths:
                 $ref: '#/components/schemas/UserListResponse'
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
     post:
       tags:
-        - SCIM Users
+      - SCIM Users
       summary: Create user
       description: Create a new user via SCIM provisioning
       security:
-        - bearerAuth: []
+      - bearerAuth: []
       parameters:
-        - name: connectionId
-          in: path
-          required: true
-          schema:
-            type: string
+      - name: connectionId
+        in: path
+        required: true
+        schema:
+          type: string
       requestBody:
         required: true
         content:
@@ -187,31 +298,97 @@ paths:
                 $ref: '#/components/schemas/User'
         '400':
           description: Bad request - Invalid SCIM data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request - Invalid SCIM data
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '409':
           description: Conflict - User already exists
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 409
+                  message:
+                    type: string
+                    description: Conflict - User already exists
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /scim/v2/{connectionId}/Users/{userId}:
     get:
       tags:
-        - SCIM Users
+      - SCIM Users
       summary: Get user
       description: Retrieve a specific user by SCIM ID
       security:
-        - bearerAuth: []
+      - bearerAuth: []
       parameters:
-        - name: connectionId
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: userId
-          in: path
-          required: true
-          description: SCIM user ID
-          schema:
-            type: string
+      - name: connectionId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: userId
+        in: path
+        required: true
+        description: SCIM user ID
+        schema:
+          type: string
       responses:
         '200':
           description: User details
@@ -221,26 +398,70 @@ paths:
                 $ref: '#/components/schemas/User'
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '404':
           description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 404
+                  message:
+                    type: string
+                    description: User not found
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
     put:
       tags:
-        - SCIM Users
+      - SCIM Users
       summary: Replace user
       description: Replace all attributes of a user
       security:
-        - bearerAuth: []
+      - bearerAuth: []
       parameters:
-        - name: connectionId
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
+      - name: connectionId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
       requestBody:
         required: true
         content:
@@ -256,28 +477,94 @@ paths:
                 $ref: '#/components/schemas/User'
         '400':
           description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '404':
           description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 404
+                  message:
+                    type: string
+                    description: User not found
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
     patch:
       tags:
-        - SCIM Users
+      - SCIM Users
       summary: Patch user
       description: Update specific attributes of a user
       security:
-        - bearerAuth: []
+      - bearerAuth: []
       parameters:
-        - name: connectionId
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
+      - name: connectionId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
       requestBody:
         required: true
         content:
@@ -293,64 +580,174 @@ paths:
                 $ref: '#/components/schemas/User'
         '400':
           description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '404':
           description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 404
+                  message:
+                    type: string
+                    description: User not found
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
     delete:
       tags:
-        - SCIM Users
+      - SCIM Users
       summary: Delete user
       description: Delete a user
       security:
-        - bearerAuth: []
+      - bearerAuth: []
       parameters:
-        - name: connectionId
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
+      - name: connectionId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
       responses:
         '204':
           description: User deleted
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '404':
           description: User not found
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 404
+                  message:
+                    type: string
+                    description: User not found
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /scim/v2/{connectionId}/Groups:
     get:
       tags:
-        - SCIM Groups
+      - SCIM Groups
       summary: List groups
       description: Retrieve all groups with pagination
       security:
-        - bearerAuth: []
+      - bearerAuth: []
       parameters:
-        - name: connectionId
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: startIndex
-          in: query
-          schema:
-            type: integer
-            default: 1
-        - name: count
-          in: query
-          schema:
-            type: integer
-            default: 100
-        - name: filter
-          in: query
-          schema:
-            type: string
+      - name: connectionId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: startIndex
+        in: query
+        schema:
+          type: integer
+          default: 1
+      - name: count
+        in: query
+        schema:
+          type: integer
+          default: 100
+      - name: filter
+        in: query
+        schema:
+          type: string
       responses:
         '200':
           description: Groups list
@@ -360,19 +757,41 @@ paths:
                 $ref: '#/components/schemas/GroupListResponse'
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
     post:
       tags:
-        - SCIM Groups
+      - SCIM Groups
       summary: Create group
       description: Create a new group
       security:
-        - bearerAuth: []
+      - bearerAuth: []
       parameters:
-        - name: connectionId
-          in: path
-          required: true
-          schema:
-            type: string
+      - name: connectionId
+        in: path
+        required: true
+        schema:
+          type: string
       requestBody:
         required: true
         content:
@@ -388,28 +807,72 @@ paths:
                 $ref: '#/components/schemas/Group'
         '400':
           description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
   /scim/v2/{connectionId}/Groups/{groupId}:
     get:
       tags:
-        - SCIM Groups
+      - SCIM Groups
       summary: Get group
       description: Retrieve a specific group
       security:
-        - bearerAuth: []
+      - bearerAuth: []
       parameters:
-        - name: connectionId
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: groupId
-          in: path
-          required: true
-          schema:
-            type: string
+      - name: connectionId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
       responses:
         '200':
           description: Group details
@@ -419,26 +882,70 @@ paths:
                 $ref: '#/components/schemas/Group'
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '404':
           description: Group not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 404
+                  message:
+                    type: string
+                    description: Group not found
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
     put:
       tags:
-        - SCIM Groups
+      - SCIM Groups
       summary: Replace group
       description: Replace all attributes of a group
       security:
-        - bearerAuth: []
+      - bearerAuth: []
       parameters:
-        - name: connectionId
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: groupId
-          in: path
-          required: true
-          schema:
-            type: string
+      - name: connectionId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
       requestBody:
         required: true
         content:
@@ -454,28 +961,94 @@ paths:
                 $ref: '#/components/schemas/Group'
         '400':
           description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '404':
           description: Group not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 404
+                  message:
+                    type: string
+                    description: Group not found
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
     patch:
       tags:
-        - SCIM Groups
+      - SCIM Groups
       summary: Patch group
       description: Update specific attributes of a group
       security:
-        - bearerAuth: []
+      - bearerAuth: []
       parameters:
-        - name: connectionId
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: groupId
-          in: path
-          required: true
-          schema:
-            type: string
+      - name: connectionId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
       requestBody:
         required: true
         content:
@@ -491,36 +1064,146 @@ paths:
                 $ref: '#/components/schemas/Group'
         '400':
           description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 400
+                  message:
+                    type: string
+                    description: Bad request
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '404':
           description: Group not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 404
+                  message:
+                    type: string
+                    description: Group not found
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
     delete:
       tags:
-        - SCIM Groups
+      - SCIM Groups
       summary: Delete group
       description: Delete a group
       security:
-        - bearerAuth: []
+      - bearerAuth: []
       parameters:
-        - name: connectionId
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: groupId
-          in: path
-          required: true
-          schema:
-            type: string
+      - name: connectionId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
       responses:
         '204':
           description: Group deleted
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 401
+                  message:
+                    type: string
+                    description: Unauthorized
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
         '404':
           description: Group not found
 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 404
+                  message:
+                    type: string
+                    description: Group not found
+                  data:
+                    nullable: true
+                    description: Additional error context (may be null)
+                  session:
+                    $ref: '#/components/schemas/SessionInfo'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ErrorDetail'
+                    description: Structured error details
 components:
   schemas:
     ServiceProviderConfig:
@@ -675,7 +1358,7 @@ components:
     UserCreate:
       type: object
       required:
-        - userName
+      - userName
       properties:
         schemas:
           type: array
@@ -764,7 +1447,7 @@ components:
     GroupCreate:
       type: object
       required:
-        - displayName
+      - displayName
       properties:
         schemas:
           type: array
@@ -843,6 +1526,34 @@ components:
           description: Error details
           example: "Invalid filter syntax"
 
+    SessionInfo:
+      type: object
+      description: Minimal session info included in every response
+      nullable: true
+      properties:
+        id:
+          type: string
+          description: Session ID
+          example: '123456789012345678'
+        created_at:
+          type: string
+          format: date-time
+          description: Session creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+          description: Session last update timestamp
+    ErrorDetail:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Machine-readable error code
+          example: INVALID_CREDENTIALS
+        message:
+          type: string
+          description: Human-readable error message
+          example: Invalid credentials. Please try again.
   securitySchemes:
     bearerAuth:
       type: http

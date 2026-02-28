@@ -351,11 +351,65 @@ components:
       description: 'API key authentication (format: Bearer {api_key})'
 
   schemas:
-    Error:
+    ErrorItem:
       type: object
       properties:
         message:
           type: string
+        code:
+          type: integer
+      required:
+        - message
+        - code
+
+    Error:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorItem'
+      required:
+        - errors
+
+    PaginatedResponse:
+      type: object
+      properties:
+        has_more:
+          type: boolean
+          description: Whether there are more items
+        limit:
+          type: integer
+          description: Optional page limit
+          nullable: true
+        offset:
+          type: integer
+          description: Optional offset
+          nullable: true
+
+    PaginatedSocialConnections:
+      allOf:
+        - $ref: '#/components/schemas/PaginatedResponse'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/DeploymentSocialConnection'
+          required:
+            - data
+
+    PaginatedJwtTemplates:
+      allOf:
+        - $ref: '#/components/schemas/PaginatedResponse'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/DeploymentJwtTemplate'
+          required:
+            - data
 
     # =====================================================
     # DEPLOYMENT SCHEMAS
@@ -844,6 +898,27 @@ components:
           type: array
           items:
             type: string
+        workspace_permission_catalog:
+          type: array
+          items:
+            $ref: '#/components/schemas/PermissionCatalogEntry'
+        organization_permission_catalog:
+          type: array
+          items:
+            $ref: '#/components/schemas/PermissionCatalogEntry'
+
+    PermissionCatalogEntry:
+      type: object
+      required:
+        - key
+        - archived
+      properties:
+        key:
+          type: string
+          description: Unique permission key
+        archived:
+          type: boolean
+          description: Whether the permission is archived
         ip_allowlist_per_workspace_enabled:
           type: boolean
         enforce_mfa_per_org_enabled:

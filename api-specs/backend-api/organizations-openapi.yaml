@@ -95,26 +95,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Organization'
-                  has_more:
-                    type: boolean
-                    description: Whether there are more results available
-                  limit:
-                    type: integer
-                    description: Number of items per page
-                    nullable: true
-                  offset:
-                    type: integer
-                    description: Number of items skipped
-                    nullable: true
-                required:
-                  - data
-                  - has_more
+                $ref: '#/components/schemas/PaginatedOrganizations'
               examples:
                 success:
                   summary: Paginated organizations
@@ -449,23 +430,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/OrganizationMemberDetails'
-                  has_more:
-                    type: boolean
-                  limit:
-                    type: integer
-                    nullable: true
-                  offset:
-                    type: integer
-                    nullable: true
-                required:
-                  - data
-                  - has_more
+                $ref: '#/components/schemas/PaginatedOrganizationMembers'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
@@ -638,23 +603,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/DeploymentOrganizationRole'
-                  has_more:
-                    type: boolean
-                  limit:
-                    type: integer
-                    nullable: true
-                  offset:
-                    type: integer
-                    nullable: true
-                required:
-                  - data
-                  - has_more
+                $ref: '#/components/schemas/PaginatedOrganizationRoles'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
@@ -819,14 +768,77 @@ components:
       description: API key authentication (Bearer token)
 
   schemas:
-    Error:
+    ErrorItem:
       type: object
       properties:
         message:
           type: string
-          description: Error message
+        code:
+          type: integer
       required:
         - message
+        - code
+
+    Error:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorItem'
+      required:
+        - errors
+
+    PaginatedResponse:
+      type: object
+      properties:
+        has_more:
+          type: boolean
+          description: Whether there are more results
+        limit:
+          type: integer
+          description: Page size
+          nullable: true
+        offset:
+          type: integer
+          description: Number of items skipped
+          nullable: true
+
+    PaginatedOrganizations:
+      allOf:
+        - $ref: '#/components/schemas/PaginatedResponse'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/Organization'
+          required:
+            - data
+
+    PaginatedOrganizationMembers:
+      allOf:
+        - $ref: '#/components/schemas/PaginatedResponse'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/OrganizationMemberDetails'
+          required:
+            - data
+
+    PaginatedOrganizationRoles:
+      allOf:
+        - $ref: '#/components/schemas/PaginatedResponse'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/DeploymentOrganizationRole'
+          required:
+            - data
 
     Organization:
       type: object

@@ -45,14 +45,7 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/PaginatedResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/WebhookApp'
+                $ref: '#/components/schemas/PaginatedWebhookApps'
     post:
       summary: Create webhook app
       description: Create a new webhook app
@@ -214,23 +207,17 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/PaginatedResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/WebhookEndpointWithSubscriptions'
+                $ref: '#/components/schemas/PaginatedWebhookEndpoints'
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /webhooks/endpoints:
     post:
       summary: Create webhook endpoint
-      description: Create a new webhook endpoint
+      description: Create a new webhook endpoint for a specific app
       tags:
         - Webhook Endpoints
+      parameters:
+        - $ref: '#/components/parameters/WebhookAppName'
       requestBody:
         required: true
         content:
@@ -238,14 +225,9 @@ paths:
             schema:
               type: object
               required:
-                - app_name
                 - url
                 - subscriptions
               properties:
-                app_name:
-                  type: string
-                  description: Webhook app name
-                  example: "my-webhook-app"
                 url:
                   type: string
                   format: uri
@@ -282,13 +264,14 @@ paths:
               schema:
                 $ref: '#/components/schemas/WebhookEndpoint'
 
-  /webhooks/endpoints/{endpoint_id}:
+  /webhooks/apps/{app_slug}/endpoints/{endpoint_id}:
     patch:
       summary: Update webhook endpoint
       description: Update a webhook endpoint
       tags:
         - Webhook Endpoints
       parameters:
+        - $ref: '#/components/parameters/WebhookAppName'
         - $ref: '#/components/parameters/EndpointId'
       requestBody:
         required: true
@@ -342,6 +325,7 @@ paths:
       tags:
         - Webhook Endpoints
       parameters:
+        - $ref: '#/components/parameters/WebhookAppName'
         - $ref: '#/components/parameters/EndpointId'
       responses:
         '200':
@@ -450,75 +434,21 @@ paths:
               schema:
                 $ref: '#/components/schemas/TriggerWebhookEventResponse'
 
-  /webhooks/apps/{app_slug}/trigger/batch:
-    post:
-      summary: Batch trigger webhook events
-      description: Trigger multiple webhook events at once
-      tags:
-        - Webhook Triggers
-      parameters:
-        - $ref: '#/components/parameters/WebhookAppName'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - app_name
-                - events
-              properties:
-                app_name:
-                  type: string
-                  description: Webhook app name
-                  example: "my-webhook-app"
-                events:
-                  type: array
-                  description: Events to trigger
-                  items:
-                    type: object
-                    required:
-                      - event_name
-                      - payload
-                    properties:
-                      event_name:
-                        type: string
-                        example: "user.created"
-                      payload:
-                        type: object
-                        additionalProperties: true
-                      filter_context:
-                        type: object
-                        additionalProperties: true
-      responses:
-        '200':
-          description: Events triggered
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/PaginatedResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/TriggerWebhookEventResponse'
-
-  /webhooks/deliveries/{delivery_id}:
+  /webhooks/apps/{app_slug}/deliveries/{delivery_id}:
     get:
       summary: Get webhook delivery details
-      description: Get detailed information about a webhook delivery
+      description: Get detailed information about a webhook delivery for a specific app
       tags:
         - Webhook Deliveries
       parameters:
+        - $ref: '#/components/parameters/WebhookAppName'
         - $ref: '#/components/parameters/DeliveryId'
         - name: status
           in: query
           schema:
             type: string
             enum: [pending]
-          description: Set to "pending" to check for active deliveries in PostgreSQL instead of ClickHouse
+          description: Set to "pending" to check for active deliveries
       responses:
         '200':
           description: Delivery details
@@ -526,14 +456,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/WebhookDeliveryDetails'
-        '400':
-          description: Invalid delivery ID
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
         '404':
           $ref: '#/components/responses/NotFound'
+
 
   /webhooks/apps/{app_slug}/deliveries:
     get:
@@ -566,14 +491,7 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/PaginatedResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/WebhookDeliveryListResponse'
+                $ref: '#/components/schemas/PaginatedWebhookDeliveries'
 
   /webhooks/apps/{app_slug}/deliveries/replay:
     get:
@@ -1011,20 +929,30 @@ components:
             message: "Resource not found"
 
   schemas:
-    Error:
+    ErrorItem:
       type: object
       properties:
         message:
           type: string
-          description: Error message
+        code:
+          type: integer
+      required:
+        - message
+        - code
+
+    Error:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorItem'
+      required:
+        - errors
 
     PaginatedResponse:
       type: object
       properties:
-        data:
-          type: array
-          items: {}
-          description: Array of items
         has_more:
           type: boolean
           description: Whether there are more items

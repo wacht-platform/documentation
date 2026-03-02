@@ -1,36 +1,34 @@
 ---
-title: 'Rust SDK'
-description: 'Type-safe Rust SDK for Wacht APIs, gateway auth checks, and optional Axum middleware.'
+title: 'Introduction'
+description: 'Build secure, scalable backend services with the Wacht Rust SDK.'
 ---
 
-The `wacht` crate provides Rust access to Wacht APIs and auth primitives.
+The `wacht` crate is the official Rust SDK for the Wacht platform. It provides a robust, type-safe interface for interacting with Wacht's backend APIs, performing gateway authorization checks, and integrating authentication middleware into your Rust web applications.
 
-## Main use cases
+Designed with performance and safety in mind, the SDK leverages `tokio` for asynchronous execution and integrates seamlessly with popular modern Rust web frameworks like `axum`.
 
-- **Typed API calls** with `WachtClient`
-- **Gateway authz checks** for API key and OAuth access token principals
-- **Axum middleware integration** for JWT auth and permission checks
+## Core Capabilities
 
-## Typical usage pattern
-
-1. Build a client from env/config.
-2. Use client-scoped APIs (`client.users()`, `client.webhooks()`, etc.).
-3. Use `client.gateway()` when validating machine principals.
-4. Add Axum auth layers when serving HTTP routes.
-
-## What this package provides
+The Rust SDK is designed to handle three primary backend workflows:
 
 <CardGroup cols={2}>
-  <Card title="Typed API client" icon="terminal">
-    Request/response model coverage for platform endpoints.
+  <Card title="Typed API Client" icon="code">
+    Interact with Wacht's platform APIs (Users, Webhooks, AI Agents, etc.) using strongly-typed Rust structs and asynchronous requests.
   </Card>
-  <Card title="Gateway principal auth" icon="lock">
-    Verify API keys and OAuth access tokens and resolve normalized principal context.
+  <Card title="Gateway Authorization" icon="shield-check">
+    Validate API keys and OAuth access tokens securely at your gateway layer to resolve normalized machine and user principal contexts.
   </Card>
-  <Card title="Axum auth middleware" icon="puzzle">
-    Optional `AuthLayer`, permission layers, and extractors.
+  <Card title="Axum Middleware" icon="server">
+    Drop-in `AuthLayer` middleware and extractors for `axum` routes to enforce JWT session authentication and verify permissions.
   </Card>
-  <Card title="Config flexibility" icon="tool">
-    Environment and programmatic setup, including publishable-key-based frontend host derivation.
+  <Card title="Environment Configuration" icon="gear">
+    Instantiate clients effortlessly using environment variables or explicit programmatic configuration.
   </Card>
 </CardGroup>
+
+## When to use the Rust SDK
+
+You should use the `wacht` crate when you are building:
+- **Backend APIs** in Rust that need to verify incoming session tokens from a frontend application.
+- **Machine-to-Machine (M2M) services** that require validation of API keys or OAuth credentials.
+- **Worker processes** or scheduled tasks that need to interact with Wacht's management APIs (e.g., fetching user details, dispatching webhooks).

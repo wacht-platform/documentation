@@ -1,0 +1,193 @@
+---
+title: Users API
+description: Manage user profiles, metadata, and authentication identifiers.
+---
+
+# Users API
+
+The `users` module allows you to interact with Wacht User records programmatically from your backend server.
+
+```typescript
+import { WachtClient } from "@wacht/backend";
+
+const client = new WachtClient({ apiKey: process.env.WACHT_API_KEY });
+```
+
+## Reading Users
+
+### `listUsers()`
+Retrieves a paginated list of all users in your workspace.
+
+```typescript
+const response = await client.users.listUsers({ 
+  limit: 10, 
+  offset: 0 
+});
+
+console.log(`Found ${response.data.length} users.`);
+```
+
+<ParamField path="options" type="ListUsersOptions">
+  <Expandable title="properties">
+    <ParamField path="limit" type="number">
+      The maximum number of users to return. Defaults to 10.
+    </ParamField>
+    <ParamField path="offset" type="number">
+      The number of users to skip for pagination.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### `getUser(userId)`
+Retrieves a single user by their unique identifier.
+
+```typescript
+const user = await client.users.getUser("usr_abc123");
+console.log(user.first_name);
+```
+
+<ParamField path="userId" type="string" required>
+  The unique ID of the user to fetch.
+</ParamField>
+
+### `getUserByEmail(email)`
+Retrieves a single user based on an exact email address match.
+
+```typescript
+const user = await client.users.getUserByEmail("alice@example.com");
+```
+
+<ParamField path="email" type="string" required>
+  The exact email address of the user.
+</ParamField>
+
+## Mutating Users
+
+### `createUser(request)`
+Provisions a new user into your workspace programmatically. This bypasses typical sign-up flows and automatically verifies specified identifiers if they are marked as such.
+
+```typescript
+const newUser = await client.users.createUser({
+  first_name: "Alice",
+  last_name: "Smith",
+  email_address: "alice@example.com",
+  password: "secure_placeholder",
+  public_metadata: { role: "superuser" }
+});
+```
+
+<ParamField path="request" type="CreateUserRequest" required>
+  <Expandable title="properties">
+    <ParamField path="first_name" type="string">
+      The user's first name.
+    </ParamField>
+    <ParamField path="last_name" type="string">
+      The user's last name.
+    </ParamField>
+    <ParamField path="email_address" type="string">
+      The user's primary email address.
+    </ParamField>
+    <ParamField path="password" type="string">
+      An explicit password to set for the user.
+    </ParamField>
+    <ParamField path="public_metadata" type="Record<string, unknown>">
+      Custom key-value metadata to attach to the user.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### `updateUser(userId, request)`
+Update a user's rudimentary properties or custom metadata.
+
+```typescript
+const updatedUser = await client.users.updateUser("usr_abc123", {
+  first_name: "Alicia",
+  private_metadata: { internal_crm_id: "crm_98765" }
+});
+```
+
+<ParamField path="userId" type="string" required>
+  The unique ID of the user.
+</ParamField>
+
+<ParamField path="request" type="UpdateUserRequest" required>
+  <Expandable title="properties">
+    <ParamField path="first_name" type="string">
+      The new first name.
+    </ParamField>
+    <ParamField path="last_name" type="string">
+      The new last name.
+    </ParamField>
+    <ParamField path="public_metadata" type="Record<string, unknown>">
+      Public metadata to update (merges with existing).
+    </ParamField>
+    <ParamField path="private_metadata" type="Record<string, unknown>">
+      Private metadata to update (merges with existing).
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### `deleteUser(userId)`
+Permanently removes a user and cascades the deletion to their associated sessions, identities, and social connections.
+
+```typescript
+await client.users.deleteUser("usr_abc123");
+```
+
+<ParamField path="userId" type="string" required>
+  The unique ID of the user to permanently delete.
+</ParamField>
+
+## Managing Identifiers
+
+Users in Wacht can have multiple email addresses and phone numbers. The `users` module exposes methods to manage these relational arrays.
+
+### Emails
+- `client.users.listEmails(userId)`
+- `client.users.addEmail(userId, request)`
+- `client.users.updateEmail(userId, emailId, request)`
+- `client.users.deleteEmail(userId, emailId)`
+
+### Phones
+- `client.users.listPhones(userId)`
+- `client.users.addPhone(userId, request)`
+- `client.users.updatePhone(userId, phoneId, request)`
+- `client.users.deletePhone(userId, phoneId)`
+
+## Authentication Management
+
+### `updatePassword(userId, request)`
+Force an administrative reset of a user's password.
+
+```typescript
+await client.users.updatePassword("usr_abc123", {
+  new_password: "NewSecurePassword123!"
+});
+```
+
+<ParamField path="userId" type="string" required>
+  The user ID.
+</ParamField>
+
+<ParamField path="request" type="UpdatePasswordRequest" required>
+  <Expandable title="properties">
+    <ParamField path="new_password" type="string" required>
+      The specific new password to force-set.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### `deleteSocialConnection(userId, connectionId)`
+Unlinks a connected OAuth provider (like Google or GitHub) from the user's profile.
+
+```typescript
+await client.users.deleteSocialConnection("usr_abc123", "conn_github_456");
+```
+
+<ParamField path="userId" type="string" required>
+  The user ID.
+</ParamField>
+
+<ParamField path="connectionId" type="string" required>
+  The connection identifier to unlink.
+</ParamField>

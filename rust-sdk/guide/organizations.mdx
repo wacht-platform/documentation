@@ -13,13 +13,12 @@ Learn how to manage organizations using the Wacht Rust SDK.
 Before using any API methods, you must initialize the SDK:
 
 ```rust
-use wacht::init_from_env;
+use wacht::WachtClient;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Initialize from environment variables
-    // Requires: WACHT_API_KEY and WACHT_FRONTEND_HOST
-    init_from_env().await?;
+    // Initialize the client with an API key
+    let client = WachtClient::new("wk_live_...");
 
     // Now you can use the API
     Ok(())
@@ -33,10 +32,8 @@ Retrieve a paginated list of organizations from your deployment.
 ### Basic List
 
 ```rust
-use wacht::api::organizations;
-
 // Fetch all organizations (default pagination)
-let orgs = organizations::fetch_organizations()
+let orgs = client.organizations().fetch_organizations()
     .send()
     .await?;
 
@@ -49,10 +46,8 @@ for org in orgs.data {
 ### With Pagination and Filters
 
 ```rust
-use wacht::api::organizations;
-
 // Fetch organizations with builder options
-let orgs = organizations::fetch_organizations()
+let orgs = client.organizations().fetch_organizations()
     .limit(50)
     .offset(0)
     .search("acme")
@@ -66,20 +61,28 @@ println!("Has more: {}", orgs.has_more);
 
 ### Builder Methods
 
-- `limit(i32)` - Number of results to return (max 100)
-- `offset(i32)` - Number of results to skip
-- `search(&str)` - Search query to filter results
-- `sort_key(&str)` - Field to sort by
-- `sort_order(&str)` - Sort order ("asc" or "desc")
+<ParamField path="limit" type="i32">
+  Number of results to return (max 100).
+</ParamField>
+<ParamField path="offset" type="i32">
+  Number of results to skip.
+</ParamField>
+<ParamField path="search" type="&str">
+  Search query to filter results.
+</ParamField>
+<ParamField path="sort_key" type="&str">
+  Field to sort by.
+</ParamField>
+<ParamField path="sort_order" type="&str">
+  Sort order ("asc" or "desc").
+</ParamField>
 
 ## Get Organization Details
 
 Retrieve complete information about an organization.
 
 ```rust
-use wacht::api::organizations;
-
-let details = organizations::fetch_organization_details("org_123")
+let details = client.organizations().fetch_organization_details("org_123")
     .send()
     .await?;
 
@@ -96,10 +99,9 @@ Create a new organization in your deployment.
 ### Basic Organization Creation
 
 ```rust
-use wacht::api::organizations;
 use wacht::models::CreateOrganizationRequest;
 
-let org = organizations::create_organization(
+let org = client.organizations().create_organization(
     CreateOrganizationRequest::new("Acme Corp".to_string())
 )
 .send()
@@ -111,7 +113,6 @@ println!("Created organization: {}", org.id);
 ### With Optional Fields
 
 ```rust
-use wacht::api::organizations;
 use wacht::models::CreateOrganizationRequest;
 
 let request = CreateOrganizationRequest {
@@ -127,31 +128,39 @@ let request = CreateOrganizationRequest {
     organization_image: None,
 };
 
-let org = organizations::create_organization(request)
+let org = client.organizations().create_organization(request)
     .send()
     .await?;
 ```
 
-### Required Fields
-
-- `name` (String) - Organization name
-
-### Optional Fields
-
-- `description` (Option&lt;String&gt;) - Organization description
-- `public_metadata` (Option&lt;serde_json::Value&gt;) - Public metadata
-- `private_metadata` (Option&lt;serde_json::Value&gt;) - Private metadata
-- `organization_image` (Option&lt;Vec&lt;u8&gt;&gt;) - Organization image data
+<ParamField path="request" type="CreateOrganizationRequest" required>
+  <Expandable title="properties">
+    <ParamField path="name" type="String" required>
+      Organization name.
+    </ParamField>
+    <ParamField path="description" type="Option<String>">
+      Organization description.
+    </ParamField>
+    <ParamField path="public_metadata" type="Option<serde_json::Value>">
+      Public metadata.
+    </ParamField>
+    <ParamField path="private_metadata" type="Option<serde_json::Value>">
+      Private metadata.
+    </ParamField>
+    <ParamField path="organization_image" type="Option<Vec<u8>>">
+      Organization logo or image byte data.
+    </ParamField>
+  </Expandable>
+</ParamField>
 
 ## Update Organization
 
 Update an existing organization's information. Only provided fields will be updated.
 
 ```rust
-use wacht::api::organizations;
 use wacht::models::UpdateOrganizationRequest;
 
-let updated = organizations::update_organization(
+let updated = client.organizations().update_organization(
     "org_123",
     UpdateOrganizationRequest {
         name: Some("Acme Corporation".to_string()),
@@ -166,22 +175,32 @@ let updated = organizations::update_organization(
 
 ### Available Update Fields
 
-All fields are optional - only include what you want to change:
-
-- `name` (Option&lt;String&gt;)
-- `description` (Option&lt;String&gt;)
-- `public_metadata` (Option&lt;serde_json::Value&gt;)
-- `private_metadata` (Option&lt;serde_json::Value&gt;)
-- `disabled` (Option&lt;bool&gt;)
+<ParamField path="request" type="UpdateOrganizationRequest" required>
+  <Expandable title="properties" defaultOpen>
+    <ParamField path="name" type="Option<String>">
+      The new display name.
+    </ParamField>
+    <ParamField path="description" type="Option<String>">
+      Updated description.
+    </ParamField>
+    <ParamField path="public_metadata" type="Option<serde_json::Value>">
+      Public metadata to merge.
+    </ParamField>
+    <ParamField path="private_metadata" type="Option<serde_json::Value>">
+      Private metadata to merge.
+    </ParamField>
+    <ParamField path="disabled" type="Option<bool>">
+      Set to true to disable the organization.
+    </ParamField>
+  </Expandable>
+</ParamField>
 
 ## Delete Organization
 
 Permanently delete an organization. This action cannot be undone.
 
 ```rust
-use wacht::api::organizations;
-
-organizations::delete_organization("org_123")
+client.organizations().delete_organization("org_123")
     .send()
     .await?;
 ```
@@ -191,9 +210,7 @@ organizations::delete_organization("org_123")
 ### List Members
 
 ```rust
-use wacht::api::organizations::members;
-
-let members = members::list_members("org_123")
+let members = client.organizations().members().list_members("org_123")
     .limit(50)
     .send()
     .await?;
@@ -206,15 +223,14 @@ for member in members.data {
 ### Add Member
 
 ```rust
-use wacht::api::organizations::members;
 use wacht::models::AddOrganizationMemberRequest;
 
 // First get available roles to find the role ID
-let roles = organizations::roles::list_roles("org_123")
+let roles = client.organizations().roles().list_roles("org_123")
     .send()
     .await?;
 
-let member = members::add_member(
+let member = client.organizations().members().add_member(
     "org_123",
     AddOrganizationMemberRequest {
         user_id: "user_456".to_string(),
@@ -230,10 +246,9 @@ println!("Added member: {}", member.user.first_name);
 ### Update Member Role
 
 ```rust
-use wacht::api::organizations::members;
 use wacht::models::UpdateMemberRoleRequest;
 
-let updated = members::update_member_role(
+let updated = client.organizations().members().update_member_role(
     "org_123",
     "member_789",
     UpdateMemberRoleRequest {
@@ -247,9 +262,7 @@ let updated = members::update_member_role(
 ### Remove Member
 
 ```rust
-use wacht::api::organizations::members;
-
-members::remove_member("org_123", "member_789")
+client.organizations().members().remove_member("org_123", "member_789")
     .send()
     .await?;
 ```
@@ -259,9 +272,7 @@ members::remove_member("org_123", "member_789")
 ### List Roles
 
 ```rust
-use wacht::api::organizations::roles;
-
-let roles = roles::list_roles("org_123")
+let roles = client.organizations().roles().list_roles("org_123")
     .send()
     .await?;
 
@@ -273,10 +284,9 @@ for role in roles.data {
 ### Create Role
 
 ```rust
-use wacht::api::organizations::roles;
 use wacht::models::CreateRoleRequest;
 
-let role = roles::create_role(
+let role = client.organizations().roles().create_role(
     "org_123",
     CreateRoleRequest {
         name: "Editor".to_string(),
@@ -296,10 +306,9 @@ println!("Created role: {}", role.name);
 ### Update Role
 
 ```rust
-use wacht::api::organizations::roles;
 use wacht::models::UpdateRoleRequest;
 
-let updated = roles::update_role(
+let updated = client.organizations().roles().update_role(
     "org_123",
     "role_456",
     UpdateRoleRequest {
@@ -319,9 +328,7 @@ let updated = roles::update_role(
 ### Delete Role
 
 ```rust
-use wacht::api::organizations::roles;
-
-roles::delete_role("org_123", "role_456")
+client.organizations().roles().delete_role("org_123", "role_456")
     .send()
     .await?;
 ```
@@ -331,9 +338,9 @@ roles::delete_role("org_123", "role_456")
 All SDK methods return a `Result<T, Error>`:
 
 ```rust
-use wacht::{Error, api::organizations};
+use wacht::Error;
 
-match organizations::fetch_organization_details("invalid_id").send().await {
+match client.organizations().fetch_organization_details("invalid_id").send().await {
     Ok(details) => println!("Organization: {}", details.name),
     Err(Error::Api { status, message, .. }) => {
         eprintln!("API Error {}: {}", status, message);

@@ -1,465 +1,181 @@
 ---
-title: useActiveOrganization
-description: Access and manage the currently active organization.
+title: 'useActiveOrganization()'
+description: 'A React hook that exposes the metadata and Role-Based Access Control (RBAC) permissions for the currently selected tenant.'
 ---
 
-# useActiveOrganization
+# `useActiveOrganization()`
 
-The `useActiveOrganization` hook provides access to the currently active organization and methods to manage it.
+The `useActiveOrganization()` hook is arguably the most critical hook for maintaining data isolation in a B2B application. It retrieves the specific `Organization` object that the user has currently selected within their session context.
 
-## Return Value
+It provides immediate access to the organization's unique ID, its custom metadata, and—most importantly—provides rigorous utility functions for enforcing authorization gates on the frontend.
 
-<ParamField path="activeOrganization" type="Organization | null">
-  The active organization object
-</ParamField>
+## Import
 
-<ParamField path="activeMembership" type="OrganizationMembership | null">
-  User's membership in active organization
-</ParamField>
+```tsx
+import { useActiveOrganization } from "@wacht/tanstack-router";
+```
 
-<ParamField path="loading" type="boolean">
-  Whether data is loading
-</ParamField>
+## Anatomy
 
-<ParamField path="error" type="Error | null">
-  Any error that occurred
-</ParamField>
+<ResponseField name="loading" type="boolean">
+  Boolean indicating SDK readiness.
+</ResponseField>
 
-<ParamField path="refetch">
-  <Expandable title="Refetch the active organization">
-    <ParamField path="returns" type="Promise&lt;void&gt;">
-      Resolves when the active organization is refetched
-    </ParamField>
+<ResponseField name="activeOrganization" type="Organization | null">
+  The complete initialized Organization profile of the currently active tenant.
+</ResponseField>
+
+<ResponseField name="activeMembership" type="OrganizationMembershipWithOrganization | null">
+  The current user's specific membership context within the active organization.
+</ResponseField>
+
+<ResponseField name="error" type="Error | null">
+  Any error encountered during organization initialization.
+</ResponseField>
+
+<ResponseField name="refetch" type="() => Promise<void>">
+  Manually triggers a re-fetch of the active organization and membership data.
+</ResponseField>
+
+<ResponseField name="Organization Management" type="Functions">
+  <Expandable title="Organization functions">
+    <ResponseField name="updateOrganization" type="(payload: OrganizationUpdate) => Promise<ApiResult<Organization>>">
+      Updates basic properties of the active organization.
+    </ResponseField>
+    <ResponseField name="leave" type="() => Promise<ApiResult<void>>">
+      Leaves the currently active organization.
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="updateOrganization">
-  <Expandable title="Update the active organization">
-    <ParamField path="params" type="Partial&lt;Organization&gt;">
-      Organization fields to update
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;Organization&gt;">
-      The updated organization
-    </ParamField>
+<ResponseField name="Member & Role Management" type="Functions">
+  <Expandable title="Member functions">
+    <ResponseField name="getMembers" type="(params?: { page: number; limit: number; search?: string }) => Promise<ApiResult<PaginatedResponse<OrganizationMembership[]>>>">
+      Fetches paginated list of members for the active organization.
+    </ResponseField>
+    <ResponseField name="removeMember" type="(member: OrganizationMembership) => Promise<void>">
+      Removes a member from the active organization.
+    </ResponseField>
+    <ResponseField name="getRoles" type="() => Promise<ApiResult<OrganizationRole[]>>">
+      Retrieves all roles available in the organization.
+    </ResponseField>
+    <ResponseField name="removeRole" type="(role: OrganizationRole) => Promise<void>">
+      Deletes a role from the active organization.
+    </ResponseField>
+    <ResponseField name="addMemberRole" type="(member: OrganizationMembership, role: OrganizationRole) => Promise<ApiResult<OrganizationMembership>>">
+      Assigns a role to a specific member within the active organization.
+    </ResponseField>
+    <ResponseField name="removeMemberRole" type="(member: OrganizationMembership, role: OrganizationRole) => Promise<ApiResult<OrganizationMembership>>">
+      Removes a role from a specific member.
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="getMembers">
-  <Expandable title="Get organization members">
-    <ParamField path="returns" type="Promise&lt;OrganizationMember[]&gt;">
-      List of organization members
-    </ParamField>
+<ResponseField name="Invitation Management" type="Functions">
+  <Expandable title="Invitation functions">
+    <ResponseField name="getInvitations" type="() => Promise<ApiResult<OrganizationInvitation[]>>">
+      Fetches pending invitations for the active organization.
+    </ResponseField>
+    <ResponseField name="inviteMember" type="(payload: OrganizationInvitationPayload) => Promise<ApiResult<OrganizationInvitation>>">
+      Invites a new member to the active organization via email.
+    </ResponseField>
+    <ResponseField name="resendInvitation" type="(invitation: OrganizationInvitation) => Promise<ApiResult<OrganizationInvitation>>">
+      Resends an outstanding invitation email.
+    </ResponseField>
+    <ResponseField name="discardInvitation" type="(invitation: OrganizationInvitation) => Promise<ApiResult<OrganizationInvitation>>">
+      Revokes a pending invitation.
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="getRoles">
-  <Expandable title="Get organization roles">
-    <ParamField path="returns" type="Promise&lt;OrganizationRole[]&gt;">
-      List of organization roles
-    </ParamField>
+<ResponseField name="Domain Management" type="Functions">
+  <Expandable title="Domain functions">
+    <ResponseField name="getDomains" type="() => Promise<ApiResult<OrganizationDomain[]>>">
+      Retrieves domains linked to the active organization.
+    </ResponseField>
+    <ResponseField name="addDomain" type="(domain: NewDomain) => Promise<ApiResult<OrganizationDomain>>">
+      Adds a new custom domain for organizational identity.
+    </ResponseField>
+    <ResponseField name="verifyDomain" type="(domain: OrganizationDomain) => Promise<ApiResult<OrganizationDomain>>">
+      Triggers DNS verification for an added domain.
+    </ResponseField>
+    <ResponseField name="removeDomain" type="(domain: OrganizationDomain) => Promise<ApiResult<OrganizationDomain>>">
+      Removes a custom domain.
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="getDomains">
-  <Expandable title="Get organization domains">
-    <ParamField path="returns" type="Promise&lt;OrganizationDomain[]&gt;">
-      List of organization domains
-    </ParamField>
+<ResponseField name="Enterprise Connections (SSO)" type="Functions">
+  <Expandable title="SSO functions">
+    <ResponseField name="getEnterpriseConnections" type="() => Promise<ApiResult<EnterpriseConnection[]>>">
+      Lists active SAML/OIDC enterprise connections for the active organization.
+    </ResponseField>
+    <ResponseField name="createEnterpriseConnection" type="(payload: CreateEnterpriseConnectionPayload) => Promise<ApiResult<EnterpriseConnection>>">
+      Establishes a new enterprise SSO connection.
+    </ResponseField>
+    <ResponseField name="updateEnterpriseConnection" type="(connectionId: string, payload: UpdateEnterpriseConnectionPayload) => Promise<ApiResult<EnterpriseConnection>>">
+      Updates enterprise SSO settings.
+    </ResponseField>
+    <ResponseField name="testEnterpriseConnectionConfig" type="(payload: TestPayload) => Promise<ApiResult<TestResult>>">
+      Tests SSO capabilities of a provided configuration.
+    </ResponseField>
+    <ResponseField name="testEnterpriseConnection" type="(connectionId: string) => Promise<ApiResult<TestResult>>">
+      Tests an existing enterprise connection.
+    </ResponseField>
+    <ResponseField name="deleteEnterpriseConnection" type="(connectionId: string) => Promise<void>">
+      Removes an enterprise connection.
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="addDomain">
-  <Expandable title="Add a domain to the organization">
-    <ParamField path="domain" type="string">
-      The domain to add
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;OrganizationDomain&gt;">
-      The added domain
-    </ParamField>
+<ResponseField name="SCIM Directory Sync" type="Functions">
+  <Expandable title="SCIM functions">
+    <ResponseField name="getSCIMToken" type="(connectionId: string) => Promise<ApiResult<SCIMTokenInfo>>">
+      Retrieves the active SCIM provisioning token information.
+    </ResponseField>
+    <ResponseField name="generateSCIMToken" type="(connectionId: string) => Promise<ApiResult<SCIMTokenInfo>>">
+      Generates a new SCIM provisioning token.
+    </ResponseField>
+    <ResponseField name="revokeSCIMToken" type="(connectionId: string) => Promise<void>">
+      Revokes the SCIM provisioning token instantly.
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="verifyDomain">
-  <Expandable title="Verify an organization domain">
-    <ParamField path="domainId" type="string">
-      The domain ID to verify
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;OrganizationDomain&gt;">
-      The verified domain
-    </ParamField>
-  </Expandable>
-</ParamField>
+## Usage: Accessing Basic Org Data
 
-<ParamField path="removeDomain">
-  <Expandable title="Remove a domain from the organization">
-    <ParamField path="domainId" type="string">
-      The domain ID to remove
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;void&gt;">
-      Resolves when the domain is removed
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="removeMember">
-  <Expandable title="Remove a member from the organization">
-    <ParamField path="memberId" type="string">
-      The member ID to remove
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;void&gt;">
-      Resolves when the member is removed
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="leave">
-  <Expandable title="Leave the active organization">
-    <ParamField path="returns" type="Promise&lt;void&gt;">
-      Resolves when the organization is left
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="removeRole">
-  <Expandable title="Remove a role from the organization">
-    <ParamField path="roleId" type="string">
-      The role ID to remove
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;void&gt;">
-      Resolves when the role is removed
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="addMemberRole">
-  <Expandable title="Add a role to an organization member">
-    <ParamField path="memberId" type="string">
-      The member ID
-    </ParamField>
-    <ParamField path="roleId" type="string">
-      The role ID to add
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;void&gt;">
-      Resolves when the role is added
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="removeMemberRole">
-  <Expandable title="Remove a role from an organization member">
-    <ParamField path="memberId" type="string">
-      The member ID
-    </ParamField>
-    <ParamField path="roleId" type="string">
-      The role ID to remove
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;void&gt;">
-      Resolves when the role is removed
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="inviteMember">
-  <Expandable title="Invite a member to the organization">
-    <ParamField path="invitation" type="OrganizationInvitationPayload">
-      The invitation details
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;Invitation | undefined&gt;">
-      The invitation if successful, undefined if no active organization
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="invitation.email" type="string" required>
-  Email address of the user to invite
-</ParamField>
-
-<ParamField path="invitation.organizationRole" type="OrganizationRole" required>
-  Organization role to assign to the invited user
-</ParamField>
-
-<ParamField path="invitation.workspace" type="Workspace">
-  Optional workspace to also invite the user to
-</ParamField>
-
-<ParamField path="invitation.workspaceRole" type="WorkspaceRole">
-  Optional workspace role to assign
-</ParamField>
-
-<ParamField path="discardInvitation">
-  <Expandable title="Discard an organization invitation">
-    <ParamField path="invitationId" type="string">
-      The invitation ID to discard
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;void&gt;">
-      Resolves when the invitation is discarded
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="resendInvitation">
-  <Expandable title="Resend an organization invitation">
-    <ParamField path="invitationId" type="string">
-      The invitation ID to resend
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;OrganizationInvitation&gt;">
-      The resent invitation
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="getInvitations">
-  <Expandable title="Get organization invitations">
-    <ParamField path="returns" type="Promise&lt;OrganizationInvitation[]&gt;">
-      List of organization invitations
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="getEnterpriseConnections">
-  <Expandable title="Get enterprise SSO connections">
-    <ParamField path="returns" type="Promise&lt;EnterpriseConnection[]&gt;">
-      List of enterprise SSO connections
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="createEnterpriseConnection">
-  <Expandable title="Create an enterprise SSO connection">
-    <ParamField path="config" type="EnterpriseConnectionConfig">
-      The SSO connection configuration
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;EnterpriseConnection&gt;">
-      The created connection
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="updateEnterpriseConnection">
-  <Expandable title="Update an enterprise SSO connection">
-    <ParamField path="connection" type="EnterpriseConnection">
-      The connection to update
-    </ParamField>
-    <ParamField path="config" type="Partial&lt;EnterpriseConnectionConfig&gt;">
-      The configuration updates
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;EnterpriseConnection&gt;">
-      The updated connection
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="deleteEnterpriseConnection">
-  <Expandable title="Delete an enterprise SSO connection">
-    <ParamField path="connectionId" type="string">
-      The connection ID to delete
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;void&gt;">
-      Resolves when the connection is deleted
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="testEnterpriseConnectionConfig">
-  <Expandable title="Test an enterprise SSO connection configuration">
-    <ParamField path="config" type="EnterpriseConnectionConfig">
-      The configuration to test
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;TestResult&gt;">
-      Test result with success status and checks
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="testEnterpriseConnection">
-  <Expandable title="Test an existing enterprise SSO connection">
-    <ParamField path="connectionId" type="string">
-      The connection ID to test
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;TestResult&gt;">
-      Test result with success status and checks
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="generateSCIMToken">
-  <Expandable title="Generate a SCIM token for an enterprise connection">
-    <ParamField path="connectionId" type="string">
-      The connection ID
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;SCIMTokenInfo&gt;">
-      The generated SCIM token information
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="getSCIMToken">
-  <Expandable title="Get the SCIM token for an enterprise connection">
-    <ParamField path="connectionId" type="string">
-      The connection ID
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;SCIMTokenInfo&gt;">
-      The SCIM token information
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="revokeSCIMToken">
-  <Expandable title="Revoke the SCIM token for an enterprise connection">
-    <ParamField path="connectionId" type="string">
-      The connection ID
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;void&gt;">
-      Resolves when the token is revoked
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-## Examples
-
-### Display Active Organization
+You can use the `organization` object to stamp your UI with tenant-specific branding.
 
 ```tsx
 import { useActiveOrganization } from "@wacht/tanstack-router";
 
-function OrgHeader() {
-  const { activeOrganization } = useActiveOrganization();
+export function TeamDashboardHeader() {
+  const { loading, activeOrganization } = useActiveOrganization();
+
+  if (loading) return null;
+
+  // Fallback UI if the user hasn't selected a team
+  if (!activeOrganization) {
+    return <h1>Personal Dashboard</h1>;
+  }
 
   return (
-    <header>
-      <h1>{activeOrganization?.name}</h1>
-      <p>{activeOrganization?.description}</p>
+    <header className="flex items-center gap-3">
+      {activeOrganization.image && (
+        <img src={activeOrganization.image as string} className="w-8 h-8 rounded-md" alt="Logo" />
+      )}
+      <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
+        {activeOrganization.name} Workspace
+      </h1>
     </header>
   );
 }
 ```
+## Client-Side Authorization (RBAC)
 
-### Update Organization
+When building complex interfaces, certain destructive actions (like deleting a project or changing billing details) should only be accessible to users with specific roles. 
 
-```tsx
-import { useActiveOrganization } from "@wacht/tanstack-router";
+You can leverage the `activeMembership.roles` array or the global JWT session permissions to evaluate a user's rights against the active organizational context.
 
-function OrgSettings() {
-  const { updateOrganization } = useActiveOrganization();
-
-  const handleUpdate = async () => {
-    await updateOrganization({
-      name: "Updated Name",
-      description: "Updated description",
-    });
-  };
-
-  return <button onClick={handleUpdate}>Update Organization</button>;
-}
-```
-
-### Get Members
-
-```tsx
-import { useActiveOrganization } from "@wacht/tanstack-router";
-
-function OrgMembers() {
-  const { getMembers } = useActiveOrganization();
-  const [members, setMembers] = useState([]);
-
-  useEffect(() => {
-    getMembers().then(setMembers);
-  }, [getMembers]);
-
-  return (
-    <ul>
-      {members.map((member) => (
-        <li key={member.id}>{member.user?.first_name}</li>
-      ))}
-    </ul>
-  );
-}
-```
-
-### Leave Organization
-
-```tsx
-import { useActiveOrganization } from "@wacht/tanstack-router";
-
-function LeaveOrgButton() {
-  const { leave } = useActiveOrganization();
-
-  return (
-    <button onClick={() => leave()}>
-      Leave Organization
-    </button>
-  );
-}
-```
-
-## Data Structures
-
-<ResponseField name="OrganizationInvitationPayload">
-
-<ResponseField name="email" type="string">
-  Email address of the user to invite
-</ResponseField>
-
-<ResponseField name="organizationRole" type="OrganizationRole">
-  Organization role to assign to the invited user
-</ResponseField>
-
-<ResponseField name="workspace" type="Workspace | null">
-  Optional workspace to also invite the user to
-</ResponseField>
-
-<ResponseField name="workspaceRole" type="WorkspaceRole | null">
-  Optional workspace role to assign
-</ResponseField>
-
-</ResponseField>
-
-<ResponseField name="OrganizationInvitation">
-
-<ResponseField name="id" type="string">
-  Unique identifier for the invitation
-</ResponseField>
-
-<ResponseField name="email" type="string">
-  Email address of the invited user
-</ResponseField>
-
-<ResponseField name="organization_id" type="string">
-  ID of the organization this invitation belongs to
-</ResponseField>
-
-<ResponseField name="initial_organization_role" type="OrganizationRole">
-  Initial organization role assigned
-</ResponseField>
-
-<ResponseField name="workspace" type="Workspace">
-  Associated workspace (if also invited to a workspace)
-</ResponseField>
-
-<ResponseField name="initial_workspace_role" type="WorkspaceRole">
-  Initial workspace role assigned
-</ResponseField>
-
-<ResponseField name="inviter" type="OrganizationMembership">
-  The user who sent this invitation
-</ResponseField>
-
-<ResponseField name="expired" type="boolean">
-  Whether the invitation has expired
-</ResponseField>
-
-<ResponseField name="created_at" type="string">
-  ISO 8601 timestamp when the invitation was created
-</ResponseField>
-
-<ResponseField name="updated_at" type="string">
-  ISO 8601 timestamp when the invitation was last updated
-</ResponseField>
-
-</ResponseField>
-
-## Related
-
-- [useOrganizationList](./use-organization-list) - Organization list management
-- [useOrganizationMemberships](./use-organization-memberships) - Memberships list
-- [OrganizationSwitcher](../components/organization-switcher) - Switcher component
+> [!WARNING]
+> Client-side RBAC checks are excellent for UI/UX (hiding buttons or panels), but they are **not** a secure barrier. You must always re-verify permissions on your backend server by executing `RequireAuth` before executing destructive mutations to the database.

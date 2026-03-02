@@ -1,73 +1,58 @@
 ---
-title: CreateOrganizationForm
-description: A form for creating a new organization with name, description, and image upload.
+title: '<CreateOrganizationForm />'
+description: 'A dedicated UI for provisioning new organizational tenants within your deployment.'
 ---
 
-# CreateOrganizationForm
+# `<CreateOrganizationForm />`
 
-Form for creating new organizations with image upload and validation.
+The `<CreateOrganizationForm />` provides a professional, out-of-the-box interface for users to establish a new organization (sometimes called a Team, Tenant, or Account in B2B applications). 
+
+When a user successfully creates an organization via this component, Wacht executes a complex lifecycle event:
+1. It provisions the new organization record in the database.
+2. It assigns the creating user as the organization's "Owner", instantly granting them maximum RBAC privileges for that tenant.
+3. Crucially, it automatically performs a context switch—updating the user's active session token so that their `activeOrganizationId` points to the newly minted organization.
+
+## Import
 
 ```tsx
 import { CreateOrganizationForm } from "@wacht/tanstack-router";
-
-export default function NewOrgPage() {
-  return <CreateOrganizationForm />;
-}
 ```
 
-## With Callbacks
+## Usage
+
+This component fits flawlessly into onboarding wizards, dedicated `/organizations/new` routes, or within modal dialogs in your application's settings area.
 
 ```tsx
 import { CreateOrganizationForm } from "@wacht/tanstack-router";
-import { useNavigate } from "react-router";
 
-export default function NewOrgPage() {
-  const navigate = useNavigate();
-
+export default function OrganizationSetupRoute() {
   return (
-    <CreateOrganizationForm
-      onSuccess={() => navigate("/dashboard")}
-      onCancel={() => navigate(-1)}
-    />
+    <div className="flex flex-col items-center justify-center min-h-[70vh] p-4 bg-zinc-50">
+      <div className="text-center mb-8">
+        <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900 mb-2">
+          Create your Team
+        </h2>
+        <p className="text-zinc-500 max-w-md mx-auto">
+          Establish an organization to collaborate with your team members, manage billing, and provision API keys.
+        </p>
+      </div>
+      
+      <div className="w-full max-w-md p-8 bg-white border border-zinc-200 rounded-2xl shadow-sm">
+        <CreateOrganizationForm />
+      </div>
+    </div>
   );
 }
 ```
 
-## In a Dialog
+## Handling Completion
+
+When a user successfully creates an organization, the component does not automatically redirect. Instead, you should utilize the `onSuccess` callback to route the user to their newly minted tenant dashboard.
 
 ```tsx
-import { CreateOrganizationForm } from "@wacht/tanstack-router";
-import { Dialog } from "@wacht/tanstack-router";
-
-export default function NewOrgDialog({ open, onClose }) {
-  return (
-    <Dialog isOpen={open} onClose={onClose}>
-      <CreateOrganizationForm
-        onSuccess={onClose}
-        onCancel={onClose}
-      />
-    </Dialog>
-  );
-}
+<CreateOrganizationForm 
+  onSuccess={(org) => {
+    navigate({ to: `/dashboard/${org.id}` });
+  }} 
+/>
 ```
-
-## Form Fields
-
-- **Organization Logo** - Image upload (max 2MB, PNG/JPEG/GIF)
-- **Organization Name** - Required, 2-100 characters
-- **Description** - Optional, max 500 characters
-
-## Params
-
-<ParamField path="onSuccess" type="(organization?: any) => void">
-Callback called after successful creation.
-</ParamField>
-
-<ParamField path="onCancel" type="() => void">
-Callback called when user cancels.
-</ParamField>
-
-## Related
-
-- [useOrganizationList](../hooks/use-organization-list) - Organization management hook
-- [ManageOrganization](./manage-organization) - Organization management dialog

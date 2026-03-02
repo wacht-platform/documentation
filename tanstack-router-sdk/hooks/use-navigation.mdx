@@ -1,102 +1,57 @@
 ---
-title: useNavigation
-description: Navigate between authentication pages and routes.
+title: 'useNavigation()'
+description: 'A universal hook to interface seamlessly with your chosen React routing engine.'
 ---
 
-# useNavigation
+# `useNavigation()`
 
-The `useNavigation` hook provides navigation utilities for moving between authentication pages and other routes.
+Modern React architectures are fragmented across several major routing libraries (Next.js App Router, React Router plugin, TanStack, etc.), each with vastly different imperative APIs for pushing or replacing routes.
 
-## Return Value
+The `useNavigation()` hook abstracts away this framework-level complexity. It exposes a universal, normalized interface for triggering client-side redirects that elegantly patches over whichever router configuration you happen to have active beneath the top-level Wacht `<DeploymentProvider />`.
 
-<ParamField path="navigate">
-  <Expandable title="Navigate to any path">
-    <ParamField path="to" type="string">
-      The path to navigate to
-    </ParamField>
-    <ParamField path="options" type="NavigateOptions">
-      Optional navigation options
-    </ParamField>
-    <ParamField path="returns" type="void">
-      No return value
-    </ParamField>
-  </Expandable>
-</ParamField>
+## Import
 
-<ParamField path="navigateToSignIn">
-  <Expandable title="Navigate to the sign-in page">
-    <ParamField path="redirectUri" type="string">
-      Optional URI to redirect to after sign-in
-    </ParamField>
-    <ParamField path="returns" type="void">
-      No return value
-    </ParamField>
-  </Expandable>
-</ParamField>
+```tsx
+import { useNavigation } from "@wacht/tanstack-router";
+```
 
-<ParamField path="navigateToAccountSelection">
-  <Expandable title="Navigate to the account selection page">
-    <ParamField path="redirectUri" type="string">
-      Optional URI to redirect to after account selection
-    </ParamField>
-    <ParamField path="returns" type="void">
-      No return value
-    </ParamField>
-  </Expandable>
-</ParamField>
+## Anatomy
 
-<ParamField path="navigateToSignUp">
-  <Expandable title="Navigate to the sign-up page">
-    <ParamField path="redirectUri" type="string">
-      Optional URI to redirect to after sign-up
-    </ParamField>
-    <ParamField path="returns" type="void">
-      No return value
-    </ParamField>
-  </Expandable>
-</ParamField>
+```tsx
+const {
+  push,     // Appends a new route to the browser's history stack
+  replace,  // Overwrites the current history entry
+  goBack    // Navigates one step backwards in the history stack
+} = useNavigation();
+```
 
-## Examples
+## Usage
 
-<RequestExample>
+This hook is incredibly valuable when authoring platform-agnostic UI libraries or when building complex custom components that need to defensively redirect out of invalid states.
 
-```tsx Custom Navigation Component
+```tsx
 import { useNavigation } from "@wacht/tanstack-router";
 
-function CustomNav() {
-  const { navigate } = useNavigation();
+export function CancelButton() {
+  const { replace, goBack } = useNavigation();
+
+  // Triggered when a user aborts an onboarding flow
+  const handleCancelClick = () => {
+    // Attempt to gracefully retreat one step logically
+    goBack();
+    
+    // In scenarios where goBack() might fail (e.g. they landed directly 
+    // on this nested page), you could alternatively enforce a hard replace:
+    // replace("/dashboard");
+  };
 
   return (
-    <nav>
-      <a onClick={() => navigate("/")}>Home</a>
-      <a onClick={() => navigate("/dashboard")}>Dashboard</a>
-      <a onClick={() => navigate("/settings")}>Settings</a>
-    </nav>
+    <button 
+      onClick={handleCancelClick}
+      className="text-zinc-600 hover:text-red-600 font-medium px-4 py-2"
+    >
+      Cancel and Return
+    </button>
   );
 }
 ```
-
-</RequestExample>
-
-<RequestExample>
-
-```tsx Protected Page with Redirect
-import { useNavigation } from "@wacht/tanstack-router";
-
-function ProtectedPage() {
-  const { navigateToSignIn } = useNavigation();
-
-  if (!isAuthenticated) {
-    navigateToSignIn(window.location.pathname);
-  }
-
-  return <div>Protected content</div>;
-}
-```
-
-</RequestExample>
-
-## Related
-
-- [NavigateToSignIn](../components/navigate-to-sign-in) - Component for navigation
-- [NavigateToSignUp](../components/navigate-to-sign-up) - Component for navigation

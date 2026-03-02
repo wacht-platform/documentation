@@ -18,7 +18,7 @@ tags:
   description: Agent execution and messaging
 
 paths:
-  /api/agent/session:
+  /agent/session:
     get:
       tags:
       - Agent Session
@@ -77,7 +77,7 @@ paths:
                     items:
                       $ref: '#/components/schemas/ErrorDetail'
                     description: Structured error details
-  /api/agent/contexts:
+  /agent/contexts:
     get:
       tags:
       - Agent Contexts
@@ -261,7 +261,7 @@ paths:
                     items:
                       $ref: '#/components/schemas/ErrorDetail'
                     description: Structured error details
-  /api/agent/contexts/{id}:
+  /agent/contexts/{id}:
     get:
       tags:
       - Agent Contexts
@@ -346,7 +346,7 @@ paths:
                     items:
                       $ref: '#/components/schemas/ErrorDetail'
                     description: Structured error details
-  /api/agent/contexts/{id}/update:
+  /agent/contexts/{id}/update:
     post:
       tags:
       - Agent Contexts
@@ -469,7 +469,7 @@ paths:
                     items:
                       $ref: '#/components/schemas/ErrorDetail'
                     description: Structured error details
-  /api/agent/contexts/{id}/delete:
+  /agent/contexts/{id}/delete:
     post:
       tags:
       - Agent Contexts
@@ -531,7 +531,7 @@ paths:
                     items:
                       $ref: '#/components/schemas/ErrorDetail'
                     description: Structured error details
-  /api/agent/contexts/{id}/messages:
+  /agent/contexts/{id}/messages:
     get:
       tags:
       - Agent Contexts
@@ -631,7 +631,7 @@ paths:
                     items:
                       $ref: '#/components/schemas/ErrorDetail'
                     description: Structured error details
-  /api/agent/contexts/{context_id}/files/{filename}:
+  /agent/contexts/{context_id}/files/{filename}:
     get:
       tags:
       - Agent Contexts
@@ -710,7 +710,7 @@ paths:
                     items:
                       $ref: '#/components/schemas/ErrorDetail'
                     description: Structured error details
-  /api/agent/contexts/{id}/execute:
+  /agent/contexts/{id}/execute:
     post:
       tags:
       - Agent Execution
@@ -862,7 +862,7 @@ paths:
                     items:
                       $ref: '#/components/schemas/ErrorDetail'
                     description: Structured error details
-  /api/agent/integrations:
+  /agent/integrations:
     get:
       tags:
       - Agent Integrations
@@ -923,7 +923,7 @@ paths:
                     items:
                       $ref: '#/components/schemas/ErrorDetail'
                     description: Structured error details
-  /api/agent/integrations/{integration_id}/remove:
+  /agent/integrations/{integration_id}/remove:
     post:
       tags:
       - Agent Integrations
@@ -991,7 +991,7 @@ paths:
                     items:
                       $ref: '#/components/schemas/ErrorDetail'
                     description: Structured error details
-  /api/agent/integrations/{integration_id}/consent-url:
+  /agent/integrations/{integration_id}/consent-url:
     post:
       tags:
       - Agent Integrations
@@ -1102,7 +1102,7 @@ paths:
                     items:
                       $ref: '#/components/schemas/ErrorDetail'
                     description: Structured error details
-  /api/agent/mcp-servers:
+  /agent/mcp-servers:
     get:
       tags:
       - Agent Integrations
@@ -1163,7 +1163,7 @@ paths:
                     items:
                       $ref: '#/components/schemas/ErrorDetail'
                     description: Structured error details
-  /api/agent/mcp-servers/{id}/connect:
+  /agent/mcp-servers/{id}/connect:
     post:
       tags:
       - Agent Integrations
@@ -1231,7 +1231,7 @@ paths:
                     items:
                       $ref: '#/components/schemas/ErrorDetail'
                     description: Structured error details
-  /api/agent/mcp-servers/{id}/disconnect:
+  /agent/mcp-servers/{id}/disconnect:
     post:
       tags:
       - Agent Integrations

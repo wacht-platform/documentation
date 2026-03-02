@@ -1,0 +1,109 @@
+---
+title: Server Authentication
+description: Secure your API routes using the getAuth() and requireAuth() primitives.
+---
+
+# Server Authentication
+
+When building API routes or server actions in applications authenticated by Wacht, you must independently verify the incoming request's session JWT to ensure the user is who they claim to be.
+
+The `@wacht/backend` SDK provides highly optimized verify-only primitives: `getAuth()` and `requireAuth()`. 
+
+These functions leverage the `jose` library to cryptographically verify the JWT locally using your **Public Signing Key**, completely avoiding network round-trips to the Wacht API for every request.
+
+## `getAuth()`
+
+`getAuth()` evaluates the `Authorization: Bearer <token>` header of a standard web `Request` object. It returns a `WachtAuth` object containing the session's claims and utility methods, regardless of whether the user is successfully authenticated.
+
+This makes it ideal for mixed-access routes where signed-out users see public content while signed-in users see personalized content.
+
+```typescript
+import { getAuth } from "@wacht/backend";
+
+export async function handleRequest(request: Request) {
+  const { userId, organizationId, has } = await getAuth(request);
+
+  if (!userId) {
+    return Response.json({ status: "public", message: "Welcome guest" });
+  }
+
+  // User is authenticated!
+  if (organizationId && has({ permission: "org:billing:read" })) {
+     console.log("User can view billing");
+  }
+
+  return Response.json({ status: "authenticated", userId });
+}
+```
+
+## `requireAuth()`
+
+`requireAuth()` works exactly like `getAuth()`, but it strictly enforces authentication. If the request does not contain a valid, unexpired session token, it immediately throws a `WachtAuthError` (HTTP 401).
+
+Use this for fully protected routes that strictly require an active user session.
+
+```typescript
+import { requireAuth } from "@wacht/backend";
+
+export async function createPost(request: Request) {
+  try {
+    // Throws WachtAuthError if unauthenticated
+    const auth = await requireAuth(request);
+
+    // Further enforce RBAC permissions
+    await auth.protect({ permission: "org:post:create" });
+
+    // Execute secure mutation
+    const data = await request.json();
+    return Response.json({ success: true, authorId: auth.userId });
+
+  } catch (error) {
+    if (error.name === "WachtAuthError") {
+      return new Response("Unauthorized", { status: error.status });
+    }
+    return new Response("Internal Error", { status: 500 });
+  }
+}
+```
+
+## The `WachtAuth` Object
+
+Both `getAuth()` and `requireAuth()` resolve to a `WachtAuth` object representing the current authenticated context. 
+
+### Properties
+
+| Property | Type | Description |
+|---|---|---|
+| `userId` | `string \| null` | The unique identifier of the authenticated user. |
+| `sessionId` | `string \| null` | The specific JWT session identifier. |
+| `organizationId` | `string \| null` | The ID of the currently active Organization. |
+| `workspaceId` | `string \| null` | The ID of the currently active Workspace. |
+| `organizationPermissions` | `string[]` | Array of all RBAC permissions the user holds in the active organization. |
+| `workspacePermissions` | `string[]` | Array of all RBAC permissions the user holds in the active workspace. |
+
+### Methods
+
+#### `has(options: PermissionCheck)`
+A synchronous boolean check to assert if the current session meets specific contextual requirements.
+
+```typescript
+const isOrgAdmin = auth.has({ 
+  organizationId: "org_123", 
+  permission: ["org:admin", "org:billing:manage"] 
+});
+```
+
+#### `protect(options?: ProtectOptions)`
+An asynchronous function that will throw a `WachtAuthError` (HTTP 403 Forbidden) if the specified conditions are not met.
+
+```typescript
+// Throws if the user doesn't have the 'org:delete' permission
+await auth.protect({ permission: "org:delete" });
+```
+
+## Framework Adapters
+
+While you can construct generic `Request` objects, Wacht provides dedicated SDKs tailored for specific frameworks that wrap these functions directly around the framework's native request/context pipelines:
+
+- **Next.js**: `@wacht/nextjs/server`
+- **React Router**: `@wacht/react-router/server`

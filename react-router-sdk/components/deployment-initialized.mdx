@@ -1,50 +1,49 @@
 ---
-title: DeploymentInitialized
-description: Renders children only after the deployment configuration has loaded.
+title: '<DeploymentInitialized />'
+description: 'A boundary component that delays rendering until the core SDK completes its initial boot sequence.'
 ---
 
-# DeploymentInitialized
+# `<DeploymentInitialized />`
 
-Renders its children only after the deployment configuration has been successfully loaded. Returns `null` during loading to prevent flash of unstyled content.
+The `<DeploymentInitialized />` component acts as a high-level gatekeeper for the Wacht SDK lifecycle. It actively blocks its React children from rendering until the global `<DeploymentProvider />` has successfully completed its initialization sequence—which includes parsing local cookies, checking the frontend API connection status, and fully resolving the active user session.
+
+## Import
 
 ```tsx
 import { DeploymentInitialized } from "@wacht/react-router";
+```
 
-export default function App() {
+## Why is this layout protection necessary?
+
+When a user initially loads your SPA (Single Page Application), the React tree mounts instantaneously. However, accurately evaluating their authentication state (reading encrypted browser cookies or fetching fresh metadata) takes a fraction of a second.
+
+If you attempt to evaluate a user's session in a critical layout *before* the SDK has fully initialized, your application's logic might falsely assume they are logged out. This causes the UI to briefly flash a login module or unauthorized error message, only to jolt them seconds later to the dashboard once the session data resolves. 
+
+Wrapping your core layouts and dashboards within the `<DeploymentInitialized />` component definitively eradicates this "UI flashing" and state jitter behavior.
+
+## Usage
+
+Place this component around the areas of your application that depend on accurate authentication data but shouldn't fail or redirect prematurely while loading.
+
+```tsx
+import { DeploymentInitialized } from "@wacht/react-router";
+import { Outlet } from "react-router";
+
+export default function AuthenticatedAppLayout() {
   return (
     <DeploymentInitialized>
-      <YourAppContent />
+      {/* 
+        Nothing inside this boundary mounts until Wacht's internal auth 
+        state guarantees determinism (either definitely logged in, 
+        or definitively anonymous). 
+      */}
+      <div className="flex h-screen overflow-hidden bg-white text-zinc-900">
+        <aside className="w-64 border-r bg-zinc-50" />
+        <main className="flex-1 overflow-y-auto p-8 border-l shadow-inner">
+          <Outlet />
+        </main>
+      </div>
     </DeploymentInitialized>
   );
 }
 ```
-
-## Prevent FOUC
-
-```tsx
-import { DeploymentInitialized, DeploymentInitializing } from "@wacht/react-router";
-
-export default function Root() {
-  return (
-    <>
-      <DeploymentInitializing>
-        <LoadingScreen />
-      </DeploymentInitializing>
-      <DeploymentInitialized>
-        <App />
-      </DeploymentInitialized>
-    </>
-  );
-}
-```
-
-## Params
-
-<ParamField path="children" type="ReactNode">
-Content to render after deployment loads.
-</ParamField>
-
-## Related
-
-- [DeploymentInitializing](./deployment-initializing) - Loading state component
-- [useDeployment](../hooks/use-deployment) - Deployment hook

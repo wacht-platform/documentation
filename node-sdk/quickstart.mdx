@@ -1,0 +1,80 @@
+---
+title: Quickstart
+description: Initialize the Wacht client and execute your first API request.
+---
+
+# Quickstart
+
+The `@wacht/backend` SDK provides both a global singleton and composable class instances, allowing you to integrate it into any architectural pattern.
+
+## Global Initialization (Recommended)
+
+For most applications, initializing a global client during your server's startup phase is the simplest approach.
+
+```typescript
+import { initClient, users } from "@wacht/backend";
+
+// 1. Initialize the singleton client once
+initClient({
+  apiKey: process.env.WACHT_API_KEY!
+});
+
+// 2. Import API modules elsewhere in your codebase and use them directly
+async function listRecentUsers() {
+  const userList = await users.listUsers({ limit: 10 });
+  console.log(userList.data);
+}
+```
+
+## Class Instantiation 
+
+If you are building a highly multi-tenant application or need to manage connections to multiple Wacht workspaces simultaneously, you can instantiate the `WachtClient` class directly.
+
+```typescript
+import { WachtClient } from "@wacht/backend";
+
+const devClient = new WachtClient({
+  apiKey: process.env.WACHT_DEV_API_KEY!
+});
+
+const prodClient = new WachtClient({
+  apiKey: process.env.WACHT_PROD_API_KEY!
+});
+
+// Use the bound API modules present on the instance
+const devUsers = await devClient.users.listUsers();
+```
+
+## Named Client Store
+
+If you prefer inversion of control, the SDK provides a `WachtClientStore` to manage multiple named active clients.
+
+```typescript
+import { createClientStore, WachtClient } from "@wacht/backend";
+
+const store = createClientStore();
+
+// Register a client with a specific name
+new WachtClient({ 
+  apiKey: "wk_live_abc123", 
+  name: "eu-workspace", 
+  store 
+});
+
+// Retrieve the client later in your request lifecycle
+const euClient = store.get("eu-workspace");
+const orgs = await euClient.organizations.listOrganizations();
+```
+
+## Next Steps
+
+Now that your client is initialized, learn how to secure your endpoints or explore the different API modules available.
+
+<CardGroup>
+  <Card title="Server Authentication" icon="shield-check" href="/node-sdk/auth/server-auth">
+    Learn how to use getAuth() to verify incoming requests.
+  </Card>
+  <Card title="User Management" icon="users" href="/node-sdk/api/users">
+    Create, update, and ban user profiles via the API.
+  </Card>
+</CardGroup>

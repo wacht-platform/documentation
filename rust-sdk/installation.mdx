@@ -1,31 +1,42 @@
 ---
 title: 'Installation'
-description: 'Install the Rust SDK and choose feature flags.'
+description: 'Install the Wacht Rust SDK and configure cargo features.'
 ---
 
-## Add dependency
+To use the Wacht Rust SDK, add the `wacht` crate to your project's dependencies. The SDK relies on the `tokio` asynchronous runtime.
+
+## Adding the Dependency
+
+You can add the SDK via the command line:
+
+```bash
+cargo add wacht
+```
+
+Or, add it directly to your `Cargo.toml`:
 
 <CodeGroup>
-
-```toml Cargo.toml
+```toml Standard Installation
 [dependencies]
 wacht = "0.1.0-beta.1"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 ```
 
-```toml With Axum middleware
+```toml With Axum Support
 [dependencies]
+# Enable the 'axum' feature flag for middleware and extractors
 wacht = { version = "0.1.0-beta.1", features = ["axum"] }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 ```
-
 </CodeGroup>
 
-## Features
+## Cargo Features
 
-- `axum` (default): enables `AuthLayer`, permission layers, and extractors.
+The `wacht` crate exposes optional features to keep your compile times fast and your binary size small. 
 
-## Minimum runtime expectations
+- `axum` (default): Enables compatibility with the `axum` web framework. This provides the `AuthLayer` middleware and various request extractors to authorize incoming HTTP requests automatically.
 
-- Rust stable toolchain
-- Tokio runtime
+## Requirements
+
+- **Rust Toolchain**: `stable` (edition 2021 recommended)
+- **Runtime**: `tokio` (requires the `rt-multi-thread` and `macros` features for standard usage)

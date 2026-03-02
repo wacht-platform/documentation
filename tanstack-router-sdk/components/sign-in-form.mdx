@@ -1,42 +1,67 @@
 ---
-title: SignInForm
-description: A complete sign-in form with email/password, OTP, magic link, passkey, and social authentication support.
+title: '<SignInForm />'
+description: 'A complete, drop-in authentication interface supporting passwords, passkeys, and social providers.'
 ---
 
-# SignInForm
+# `<SignInForm />`
 
-Complete sign-in interface supporting email/password, email OTP, phone OTP, magic links, passkeys, social OAuth, SSO, two-factor authentication, forgot password, and profile completion.
+Building a secure, robust authentication flow from scratch is notoriously difficult. The `<SignInForm />` component eliminates this complexity by providing a complete, drop-in user interface that handles the entire authentication lifecycle.
+
+Instead of wiring up complex state machines to manage passwords, magic links, WebAuthn (passkeys), and OAuth redirects, you can simply mount this single component. 
+
+The best part? It's fully dynamic. If you decide to toggle "Enable Passkeys" or add "Sign in with GitHub" in your Wacht Dashboard, the UI instantly adapts—no code changes required.
+
+## Import
 
 ```tsx
 import { SignInForm } from "@wacht/tanstack-router";
+```
 
-export default function SignInPage() {
-  return <SignInForm />;
+## Usage
+
+Drop the component into your dedicated sign-in component bound to a TanStack Router route.
+
+```tsx
+import { SignInForm } from "@wacht/tanstack-router";
+import { createFileRoute } from '@tanstack/react-router';
+
+export const Route = createFileRoute('/sign-in')({
+  component: SignInRoute,
+});
+
+function SignInRoute() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-zinc-50 p-4">
+      <div className="w-full max-w-md">
+        <SignInForm />
+      </div>
+    </div>
+  );
 }
 ```
 
-The form adapts based on your deployment's authentication settings:
+## How It Works Under the Hood
 
-1. **Identification Phase** - User enters email/username/phone
-2. **Strategy Detection** - System detects available authentication methods
-3. **Authentication Phase** - User completes authentication (password, OTP, etc.)
-4. **Verification Phase** - Email/phone verification if required
-5. **Second Factor** - 2FA if enabled
-6. **Profile Completion** - Additional profile info if required
-7. **Redirect** - User is redirected to the appropriate page
+When a user interacts with the `<SignInForm />`, it orchestrates a secure, multi-step state machine against the Wacht API:
 
-## Redirect Handling
+1. **Identification**: The user enters their initial identifier—whether that's an email address, username, or phone number.
+2. **Strategy Resolution**: The component securely queries the Wacht backend to determine which authentication strategies the user has enrolled in.
+3. **Primary Challenge**: The user completes their primary factor (e.g., verifying an email Magic Link, authenticating via a Passkey, or entering a traditional password).
+4. **Step-Up (2FA)**: If two-factor authentication is globally enforced for your deployment or enabled for this specific user, the component seamlessly surfaces a secondary challenge (like an SMS or Authenticator App OTP).
+5. **Session Promotion**: Upon successful verification, a secure, HTTP-only session is established.
 
-After successful sign-in, the user is redirected based on:
+## Routing & Redirection
 
-1. The `redirect_uri` query parameter (if present)
-2. The `after_signin_redirect_url` deployment setting
-3. The deployment's frontend host (fallback)
+Once authentication is complete, the user needs to be redirected into your application. Wacht intelligently evaluates the correct destination in this specific order of precedence:
 
-For example, `/signin?redirect_uri=/dashboard` will bring users to `/dashboard` after sign-in completes.
+1. **URL Query Parameter**: If the user was redirected to the sign-in page from a protected route, the URL might contain an explicit destination, e.g., `?redirect_uri=/dashboard/settings`.
+2. **Dashboard Configuration**: The **After Sign-In URL** configured in your deployment settings.
+3. **Fallback**: The root URL (`/`) of your application.
 
-## Related
+## Need to build a custom UI?
 
-- [SignUpForm](./sign-up-form) - Sign-up form component
-- [useSignIn](../hooks/use-sign-in) - Hook for custom sign-in flows
-- [useNavigation](../hooks/use-navigation) - Navigation utilities
+The `<SignInForm />` was designed to cover 95% of standard authentication use cases with a beautiful, secure default. However, if your design system strictly requires a highly bespoke layout (such as a multi-step modal flow deeply integrated into your app), you can bypass this pre-built component entirely.
+
+Instead, you can build your own interface and wire it directly into the Wacht state machine using our low-level React hooks:
+
+- [Read the `useSignIn` Hook Reference](../hooks/use-sign-in)

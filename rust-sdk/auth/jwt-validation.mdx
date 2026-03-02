@@ -1,317 +1,72 @@
 ---
 title: "JWT Validation"
-description: "Understanding JWT token validation in the Wacht Rust SDK"
+description: "Verify session tokens securely using the Wacht AuthLayer for Axum."
 ---
 
-## Overview
+If your backend is built in Rust using the `axum` web framework, you can use Wacht's pre-built `AuthLayer` to automatically validate incoming JSON Web Tokens (JWTs) attached to request headers.
 
-The Wacht Rust SDK provides JWT (JSON Web Token) validation for authenticating requests. The validation process ensures tokens are properly signed, not expired, and contain valid claims.
+This middleware ensures that every request hitting your protected routes is authenticated, untampered, and unexpired.
 
-## Validation Process
+## Setting up the AuthLayer
 
-### 1. Token Extraction
+To start validating tokens, add the `AuthLayer` to your Axum router. Ensure you have the `axum` feature enabled in your `Cargo.toml`.
 
-The SDK extracts tokens from the `Authorization` header:
+```rust
+use axum::{routing::get, Router};
+use wacht::middleware::{AuthLayer, RequireAuth};
 
-```http
-Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
-```
+async fn protected_endpoint(auth: RequireAuth) -> &'static str {
+    // If we reach this handler, the token was valid!
+    "You are authenticated."
+}
 
-### 2. Algorithm Detection
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // 1. Initialize the Wacht SDK from the environment
+    wacht::init_from_env().await?;
 
-The token header is decoded to determine the signing algorithm:
+    // 2. Attach the AuthLayer to the router
+    let app = Router::new()
+        .route("/protected", get(protected_endpoint))
+        .layer(AuthLayer::new());
 
-```json
-{
-  "alg": "RS256",
-  "typ": "JWT"
+    // 3. Serve the application
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await?;
+    axum::serve(listener, app).await?;
+    
+    Ok(())
 }
 ```
 
-### 3. Signature Verification
+## How the Validation Works
 
-Based on the algorithm, the appropriate verification method is used:
+When a request passes through the `AuthLayer`, the SDK performs the following checks in order:
 
-| Algorithm | Type | Key Type | Description |
-|-----------|------|----------|-------------|
-| HS256 | HMAC | Symmetric | HMAC with SHA-256 |
-| HS384 | HMAC | Symmetric | HMAC with SHA-384 |
-| HS512 | HMAC | Symmetric | HMAC with SHA-512 |
-| RS256 | RSA | Asymmetric | RSA Signature with SHA-256 |
-| RS384 | RSA | Asymmetric | RSA Signature with SHA-384 |
-| RS512 | RSA | Asymmetric | RSA Signature with SHA-512 |
-| ES256 | ECDSA | Asymmetric | ECDSA using P-256 and SHA-256 |
-| ES384 | ECDSA | Asymmetric | ECDSA using P-384 and SHA-384 |
+1. **Token Extraction**: The middleware looks for a Bearer token in the `Authorization` HTTP header (`Authorization: Bearer <token>`).
+2. **Signature Verification**: The token's signature is cryptographically verified against your deployment's JSON Web Key Set (JWKS). By default, the SDK dynamically fetches and caches these public keys directly from your Frontend API.
+3. **Expiration Check**: The token's `exp` (Expiration Time) claim is verified to ensure the session is still active. The `nbf` (Not Before) claim is also checked.
 
-### 4. Claims Validation
-
-The SDK validates standard JWT claims:
-
-- **exp** (Expiration Time) - Token must not be expired
-- **nbf** (Not Before) - Token must be valid for use
-- **iat** (Issued At) - Token issue time
-- **iss** (Issuer) - Optional issuer verification
+If any of these checks fail, the middleware immediately rejects the request with a `401 Unauthorized` status code, and your route handler is never executed.
 
 ## Configuration Options
 
+While `AuthLayer::new()` uses secure defaults, you can customize the validation behavior if necessary.
+
 ### Clock Skew Tolerance
 
-Allow for small time differences between servers:
-
-```rust
-let auth_layer = AuthLayer::new()
-    .allowed_clock_skew(10); // 10 seconds tolerance
-```
-
-### Disable Expiration Check
-
-For testing or special cases:
-
-```rust
-let auth_layer = AuthLayer::new()
-    .validate_exp(false); // Don't check expiration
-```
-
-### Require Specific Issuer
-
-Ensure tokens come from a trusted source:
-
-```rust
-let auth_layer = AuthLayer::new()
-    .required_issuer("https://wacht.io");
-```
-
-## Public Key Management
-
-### Automatic Fetching
-
-By default, the SDK fetches the public key from your deployment:
-
-```rust
-// Fetches from https://your-app.wacht.io/.well-known/jwk
-wacht::init_from_env().await?;
-```
-
-### Manual Configuration
-
-Provide the public key directly:
-
-```rust
-use wacht::{WachtConfig, init};
-
-let config = WachtConfig::new(
-    "api-key".to_string(),
-    "https://your-app.wacht.io".to_string()
-)
-.with_public_key("-----BEGIN PUBLIC KEY-----\nMIIBIjANBg...\n-----END PUBLIC KEY-----");
-
-init(config)?;
-```
-
-### Environment Variable
-
-Set via environment:
-
-```bash
-export WACHT_PUBLIC_SIGNING_KEY="-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA...
------END PUBLIC KEY-----"
-```
-
-## Token Structure
-
-### Header
-
-```json
-{
-  "alg": "RS256",
-  "typ": "JWT",
-  "kid": "key-id"
-}
-```
-
-### Payload (Claims)
-
-```json
-{
-  "iss": "https://wacht.io",
-  "sub": "52057194421551105",
-  "iat": 1699564800,
-  "exp": 1699568400,
-  "nbf": 1699564800,
-  "session_id": "session_abc123",
-  "organization": "org_123",
-  "organization_permissions": ["users:read", "users:write"],
-  "workspace": "ws_456",
-  "workspace_permissions": ["projects:manage"]
-}
-```
-
-## Validation Errors
-
-### Common Error Scenarios
-
-| Error | HTTP Status | Description |
-|-------|-------------|-------------|
-| Missing Authorization Header | 401 | No token provided |
-| Invalid Token Format | 401 | Not a valid JWT |
-| Expired Token | 401 | Token exp claim has passed |
-| Invalid Signature | 401 | Token signature doesn't match |
-| Unsupported Algorithm | 401 | Algorithm not in allowed list |
-| Invalid Public Key | 500 | Server configuration error |
-
-### Error Response Format
-
-```json
-{
-  "error": "Invalid token: ExpiredSignature",
-  "message": "Token has expired"
-}
-```
-
-Headers:
-- `X-Auth-Error: Invalid token: ExpiredSignature`
-- `WWW-Authenticate: Bearer`
-
-## Security Considerations
-
-### Algorithm Restrictions
-
-The SDK only accepts specific algorithms to prevent attacks:
-
-```rust
-// These algorithms are blocked:
-// - None (no signature)
-// - Weak algorithms
-// - Non-standard algorithms
-```
-
-### Key Validation
-
-Public keys are validated before use:
-
-```rust
-// RSA keys must be valid PEM format
-// EC keys must use supported curves
-// HMAC secrets must be provided as-is
-```
-
-### Time-Based Security
-
-```rust
-// Default configuration
-AuthConfig {
-    allowed_clock_skew: 5,    // 5 seconds
-    validate_exp: true,       // Check expiration
-    validate_nbf: true,       // Check not-before
-}
-```
-
-## Debugging JWT Issues
-
-### Enable Debug Logging
-
-```rust
-use tracing_subscriber;
-
-tracing_subscriber::fmt()
-    .with_env_filter("wacht=debug")
-    .init();
-```
-
-### Common Issues and Solutions
-
-<AccordionGroup>
-
-<Accordion title="Token Expired">
-**Error**: `Invalid token: ExpiredSignature`
-
-**Debug**:
-```bash
-# Decode token to check exp claim
-echo "your.jwt.token" | cut -d. -f2 | base64 -d | jq .
-```
-
-**Solution**: Request a new token or increase token lifetime
-</Accordion>
-
-<Accordion title="Invalid Signature">
-**Error**: `Invalid token: InvalidSignature`
-
-**Causes**:
-1. Wrong public key
-2. Token signed with different key
-3. Token tampered with
-
-**Debug**: Verify public key matches the signing key
-</Accordion>
-
-<Accordion title="Unsupported Algorithm">
-**Error**: `Unsupported algorithm`
-
-**Solution**: Ensure your token uses a supported algorithm (HS256/384/512, RS256/384/512, ES256/384)
-</Accordion>
-
-<Accordion title="Clock Skew">
-**Error**: Token validation fails intermittently
-
-**Solution**: Increase clock skew tolerance:
-```rust
-AuthLayer::new().allowed_clock_skew(30)
-```
-</Accordion>
-
-</AccordionGroup>
-
-## Testing JWT Validation
-
-### Create Test Tokens
-
-```rust
-use jsonwebtoken::{encode, Header, EncodingKey};
-use chrono::Utc;
-
-fn create_test_token() -> String {
-    let claims = TokenClaims {
-        iss: "test".to_string(),
-        sub: "user123".to_string(),
-        iat: Utc::now().timestamp(),
-        exp: Utc::now().timestamp() + 3600,
-        session_id: "session123".to_string(),
-        organization: Some("org123".to_string()),
-        organization_permissions: Some(vec!["read".to_string()]),
-        workspace: None,
-        workspace_permissions: None,
-        custom_claims: Default::default(),
-    };
-
-    let header = Header::new(Algorithm::RS256);
-    let key = EncodingKey::from_rsa_pem(PRIVATE_KEY.as_bytes()).unwrap();
-
-    encode(&header, &claims, &key).unwrap()
-}
-```
-
-### Validate Custom Tokens
+Due to minor differences in server clocks, it's common to allow a small buffer window when checking expiration tags. The SDK defaults to a 5-second tolerance.
 
 ```rust
 use wacht::middleware::AuthLayer;
 
-// Use custom public key for testing
-let auth_layer = AuthLayer::with_public_key(TEST_PUBLIC_KEY)
-    .validate_exp(false); // Disable expiration for tests
+// Increase clock skew tolerance to 15 seconds
+let auth_layer = AuthLayer::new().allowed_clock_skew(15);
 ```
 
-## Best Practices
+### Bypassing Expiration (Development Only)
 
-1. **Always Use HTTPS** - Tokens can be intercepted over HTTP
-2. **Short Token Lifetime** - Reduce window for compromised tokens
-3. **Validate All Claims** - Don't skip expiration or other checks
-4. **Secure Key Storage** - Protect private keys, rotate regularly
-5. **Monitor Failures** - Log and alert on validation failures
+If you are writing local tests and need to use mock tokens that have expired, you can disable the expiration check. **Never do this in production.**
 
-## Next Steps
-
-- [Token Claims](token-claims) - Understanding claim structure
-- [Auth Layer](../middleware/auth-layer) - Implementing authentication
-- [Error Handling](../error-handling) - Handling validation errors
+```rust
+let test_layer = AuthLayer::new().validate_exp(false);
+```

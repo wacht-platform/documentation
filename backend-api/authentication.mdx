@@ -1,91 +1,47 @@
 ---
-title: 'Authentication'
-description: 'Understanding authentication for the Wacht Backend API'
+title: "Backend API Authentication"
+description: "How to authenticate requests to the Wacht REST API."
 ---
 
-# Backend API Authentication
+All requests to the Wacht Backend API must be authenticated. Wacht uses standard HTTP `Authorization` headers with Bearer tokens.
 
-Overview of authentication mechanisms for the Wacht Platform Backend API.
+There are two distinct methods for authenticating against the Wacht API, depending on the context of the request.
 
-## Authentication Methods
+## Standard API Keys (Server-to-Server)
 
-The Wacht Platform Backend API supports multiple authentication methods:
+If your backend code is communicating with Wacht on behalf of your application (e.g., synchronizing users, validating organization state, fetching webhooks), you must use a Secret API Key.
 
-| Method | Use Case | Description |
-|--------|----------|-------------|
-| **API Keys** | Server-to-server | Bearer token authentication |
-| **JWT Tokens** | User sessions | Generated after signin/signup |
+Secret API Keys carry full administrative privileges for your deployment. **Never expose them in client-side code like React or React Native.** 
 
-## API Key Authentication
+### Providing the API Key
 
-Use API keys for backend-to-backend communication.
-
-### Getting an API Key
-
-1. Navigate to [wacht.dev](https://wacht.dev)
-2. Go to your deployment settings
-3. Navigate to **API Keys**
-4. Click **Generate New Key**
-5. Copy the key (starts with `sk_test_` or `sk_live_`)
-
-### Using API Keys
-
-Include the API key in the Authorization header:
-
-```http
-Authorization: Bearer sk_test_your_api_key_here
-X-Deployment-ID: depo_123
-```
-
-### cURL Example
+You must attach your API Key to every request via the `Authorization` header. You must also include the `X-Deployment-ID` header to specify which deployment you are targeting, as your API key may have access to multiple.
 
 ```bash
-curl -X GET "https://api.wacht.dev/deployments/depo_123/users" \
-  -H "Authorization: Bearer sk_test_your_api_key_here"
+curl -X GET "https://api.wacht.dev/v1/users" \
+  -H "Authorization: Bearer sk_live_xxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "X-Deployment-ID: depo_123456789"
 ```
 
-### Security Best Practices
+If you are using one of the official Wait SDKs (like `wacht-rs`), this header injection is handled automatically for you based on your environment configuration.
 
-- ✅ Store in environment variables
-- ✅ Use different keys for dev/staging/production
-- ✅ Rotate keys regularly
-- ❌ Never commit to git
-- ❌ Never expose in client-side code
+## JWT Session Tokens (Client-to-Server)
 
-## JWT Token Authentication
+If a user is communicating with your API (or directly with specific unprivileged Wacht endpoints) and providing a Wacht JWT, you can validate and use that JWT.
 
-After users authenticate, they receive a JWT token for subsequent requests.
-
-### Token Structure
-
-```json
-{
-  "sub": "user_123",
-  "iat": 1640995200,
-  "exp": 1641081600,
-  "deployment_id": "depo_123",
-  "organization_id": "org_456"
-}
-```
-
-### Using JWT Tokens
+When Wacht issues a JSON Web Token (JWT) to an authenticated client, the token contains specific claims about the user's identity (`sub`) and their active active session (`session_id`). 
 
 ```http
 Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
-## Error Handling
+While you will primarily use the Wacht SDKs to *validate* these JWTs locally, some Backend APIs (like the API Auth App and Webhook App frontend portals) require clients to pass these JWTs forward.
 
-### Common Authentication Errors
+## Status Codes
 
-| Error | Description | Solution |
-|-------|-------------|----------|
-| `UNAUTHORIZED` | Invalid API key | Check your API key |
-| `TOKEN_EXPIRED` | JWT token expired | Implement token refresh |
-| `MISSING_DEPLOYMENT_ID` | No deployment ID | Include X-Deployment-ID header |
+Failing to provide correct authentication credentials will result in standard HTTP error responses:
 
-## Next Steps
-
-- [Backend API Overview](/backend-api/overview) - Complete API guide
-- [Getting Started](/getting-started/quickstart) - Quickstart guide
-- [Rust SDK Installation](/rust-sdk/installation) - SDK setup
+| HTTP Status | Meaning | Resolution |
+|---|---|---|
+| `401 Unauthorized` | Missing or invalid Bearer token. | Ensure the `Authorization: Bearer <token>` header is present and the token is correct. |
+| `403 Forbidden` | The token is valid, but lacks the necessary permissions to access the resource. | Check the token's scope or organization permissions. |

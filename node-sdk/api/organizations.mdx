@@ -1,0 +1,225 @@
+---
+title: Organizations API
+description: Manage multi-tenant organizations, roles, and memberships.
+---
+
+# Organizations API
+
+The `organizations` module exposes programmatic access to Wacht's multi-tenancy models. It allows B2B applications to create independent organizations and manage the users (members) within them.
+
+```typescript
+import { WachtClient } from "@wacht/backend";
+
+const client = new WachtClient({ apiKey: process.env.WACHT_API_KEY });
+```
+
+## Reading Organizations
+
+### `listOrganizations()`
+Retrieves a paginated list of all organizations.
+
+```typescript
+const response = await client.organizations.listOrganizations({ limit: 100 });
+console.log(response.data);
+```
+
+<ParamField path="options" type="ListOrganizationsOptions">
+  <Expandable title="properties">
+    <ParamField path="limit" type="number">
+      Number of items to return.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### `getOrganization(organizationId)`
+Retrieves a single organization by its ID.
+
+```typescript
+const org = await client.organizations.getOrganization("org_abc123");
+```
+
+<ParamField path="organizationId" type="string" required>
+  The unique ID of the organization to retrieve.
+</ParamField>
+
+## Mutating Organizations
+
+### `createOrganization(request)`
+Programmatically provision a new organization.
+
+```typescript
+const newOrg = await client.organizations.createOrganization({
+  name: "Acme Corp",
+  slug: "acme-corp",
+  created_by: "usr_xyz789" // The founder's ID
+});
+```
+
+<ParamField path="request" type="CreateOrganizationRequest" required>
+  <Expandable title="properties">
+    <ParamField path="name" type="string" required>
+      Display name for the organization.
+    </ParamField>
+    <ParamField path="slug" type="string" required>
+      URL-friendly identifier. Must be unique.
+    </ParamField>
+    <ParamField path="created_by" type="string">
+      The User ID of the founder who is automatically granted the admin role.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### `updateOrganization(organizationId, request)`
+Modify an organization's profile, including metadata.
+
+```typescript
+const updatedOrg = await client.organizations.updateOrganization("org_abc123", {
+  name: "Acme Corporation Global",
+  public_metadata: { tier: "enterprise" }
+});
+```
+
+<ParamField path="organizationId" type="string" required>
+  The unique ID of the organization.
+</ParamField>
+
+<ParamField path="request" type="UpdateOrganizationRequest" required>
+  <Expandable title="properties">
+    <ParamField path="name" type="string">
+      The new display name for the organization.
+    </ParamField>
+    <ParamField path="public_metadata" type="Record<string, unknown>">
+      Public metadata to merge recursively.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### `deleteOrganization(organizationId)`
+Permanently deletes an organization and all of its associated memberships and roles.
+
+```typescript
+await client.organizations.deleteOrganization("org_abc123");
+```
+
+<ParamField path="organizationId" type="string" required>
+  The unique ID of the organization.
+</ParamField>
+
+## Memberships
+
+Organizations are collections of Users. You can assign users to an organization by adding them as members and granting them specific roles.
+
+### `listOrganizationMembers(organizationId)`
+Get all users actively belonging to the organization.
+
+```typescript
+const members = await client.organizations.listOrganizationMembers("org_abc123");
+```
+
+<ParamField path="organizationId" type="string" required>
+  The target organization's ID.
+</ParamField>
+
+### `addOrganizationMember(organizationId, request)`
+Force-add a user into an organization, bypassing the standard invitation mechanisms.
+
+```typescript
+const membership = await client.organizations.addOrganizationMember("org_abc123", {
+  user_id: "usr_xyz789",
+  role: "org:admin"
+});
+```
+
+<ParamField path="organizationId" type="string" required>
+  The ID of the organization.
+</ParamField>
+
+<ParamField path="request" type="AddOrganizationMemberRequest" required>
+  <Expandable title="properties">
+    <ParamField path="user_id" type="string" required>
+      The specific User ID to add to the organization.
+    </ParamField>
+    <ParamField path="role" type="string" required>
+      The exact role key to assign (e.g., `org:admin`, `org:member`).
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### `updateOrganizationMember(organizationId, memberId, request)`
+Change a member's role within the organization.
+
+```typescript
+await client.organizations.updateOrganizationMember("org_abc123", "mem_123", {
+  role: "org:member"
+});
+```
+
+<ParamField path="organizationId" type="string" required>
+  The exact organization ID.
+</ParamField>
+
+<ParamField path="memberId" type="string" required>
+  The unique ID of the membership record inside the organization.
+</ParamField>
+
+<ParamField path="request" type="UpdateOrganizationMemberRequest" required>
+  <Expandable title="properties">
+    <ParamField path="role" type="string" required>
+      The new precise role key.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### `removeOrganizationMember(organizationId, memberId)`
+Evict a user from the organization.
+
+```typescript
+await client.organizations.removeOrganizationMember("org_abc123", "mem_123");
+```
+
+<ParamField path="organizationId" type="string" required>
+  The exact organization ID.
+</ParamField>
+
+<ParamField path="memberId" type="string" required>
+  The exact ID of the member to evict.
+</ParamField>
+
+## Custom RBAC Roles
+
+Wacht allows you to provision custom Roles with specific permissions directly via the API.
+
+- `client.organizations.listOrganizationRoles(organizationId)`
+- `client.organizations.createOrganizationRole(organizationId, request)`
+- `client.organizations.updateOrganizationRole(organizationId, roleId, request)`
+- `client.organizations.deleteOrganizationRole(organizationId, roleId)`
+
+```typescript
+await client.organizations.createOrganizationRole("org_abc123", {
+  name: "Billing Manager",
+  key: "org:billing_manager",
+  description: "Can view and modify invoices",
+  permissions: ["org:billing:read", "org:billing:write"]
+});
+```
+
+<ParamField path="organizationId" type="string" required>
+  The exact organization target for the role.
+</ParamField>
+
+<ParamField path="request" type="CreateOrganizationRoleRequest" required>
+  <Expandable title="properties">
+    <ParamField path="name" type="string" required>
+      Human-readable display name.
+    </ParamField>
+    <ParamField path="key" type="string" required>
+      Machine-readable identifier.
+    </ParamField>
+    <ParamField path="description" type="string">
+      Brief summary of the role.
+    </ParamField>
+    <ParamField path="permissions" type="string[]">
+      Array of granular permission scopes.
+    </ParamField>
+  </Expandable>
+</ParamField>

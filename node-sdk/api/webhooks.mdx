@@ -1,0 +1,175 @@
+---
+title: Webhooks API
+description: Configure endpoints and replay failed deliveries.
+---
+
+# Webhooks API
+
+The `webhooks` module gives you programmatic control over Webhook Apps, Endpoints, and Event Deliveries.
+
+While normally configured via your application dashboard, this module is incredibly powerful for applications that provision webhooks dynamically on behalf of their users.
+
+```typescript
+import { WachtClient } from "@wacht/backend";
+
+const client = new WachtClient({ apiKey: process.env.WACHT_API_KEY });
+```
+
+## Webhook Apps
+
+Apps represent a logical grouping of events.
+
+### `createWebhookApp(request)`
+Define a new broadcast channel.
+
+```typescript
+const app = await client.webhooks.createWebhookApp({
+  name: "Payments Integration",
+  slug: "payments-int",
+  description: "Fires when invoices are paid."
+});
+```
+
+<ParamField path="request" type="CreateWebhookAppRequest" required>
+  <Expandable title="properties">
+    <ParamField path="name" type="string" required>
+      A friendly display name for the new webhook app.
+    </ParamField>
+    <ParamField path="slug" type="string" required>
+      A URL-friendly deterministic identifier.
+    </ParamField>
+    <ParamField path="description" type="string">
+      A description tracking internal justification.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+- `client.webhooks.listWebhookApps(options)`
+- `client.webhooks.getWebhookApp(appSlug)`
+- `client.webhooks.updateWebhookApp(appSlug, request)`
+- `client.webhooks.deleteWebhookApp(appSlug)`
+- `client.webhooks.rotateWebhookSecret(appSlug)`
+
+## Endpoint Management
+
+Endpoints define *where* Wacht sends the events triggered by an App.
+
+### `createWebhookEndpoint(appSlug, request)`
+Bind a listener to an App.
+
+```typescript
+await client.webhooks.createWebhookEndpoint("payments-int", {
+  url: "https://my-backend.com/webhooks/receive",
+  description: "Primary Production Listener",
+  events: ["invoice.paid", "invoice.past_due"]
+});
+```
+
+<ParamField path="appSlug" type="string" required>
+  The unique slug indentifier of the target Webhook App.
+</ParamField>
+
+<ParamField path="request" type="CreateWebhookEndpointRequest" required>
+  <Expandable title="properties">
+    <ParamField path="url" type="string" required>
+      The HTTPS destination URL.
+    </ParamField>
+    <ParamField path="description" type="string">
+      Information describing the endpoint consumer.
+    </ParamField>
+    <ParamField path="events" type="string[]">
+      An explicit list of Wacht Webhook event topics this listener should receive.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+- `client.webhooks.listWebhookEndpoints(appSlug, options)`
+- `client.webhooks.updateWebhookEndpoint(appSlug, endpointId, request)`
+- `client.webhooks.deleteWebhookEndpoint(appSlug, endpointId)`
+- `client.webhooks.testWebhookEndpoint(appSlug, endpointId, request)`
+- `client.webhooks.reactivateWebhookEndpoint(endpointId)`
+
+## Event Deliveries
+
+Wacht meticulously tracks the success and failure states of every webhook delivery. You can query this data programmatically.
+
+### `listWebhookDeliveries(appSlug, options)`
+Retrieve a historical log of events sent to an app.
+
+```typescript
+const deliveries = await client.webhooks.listWebhookDeliveries("payments-int", {
+  status: "failed", // Only find failed deliveries
+  limit: 25
+});
+```
+
+<ParamField path="appSlug" type="string" required>
+  The app identifier.
+</ParamField>
+
+<ParamField path="options" type="ListWebhookDeliveriesOptions">
+  <Expandable title="properties">
+    <ParamField path="status" type="string">
+      Filter delivery logs by status (e.g., `failed`, `success`).
+    </ParamField>
+    <ParamField path="limit" type="number">
+      Limit the number of results returned in a single pull.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### `replayWebhookDelivery(appSlug, deliveryId)`
+Manually force a failed payload to be re-transmitted to its endpoint.
+
+```typescript
+await client.webhooks.replayWebhookDelivery("payments-int", "del_abc123");
+```
+
+<ParamField path="appSlug" type="string" required>
+  The target app identifier.
+</ParamField>
+
+<ParamField path="deliveryId" type="string" required>
+  The specific delivery ID tracking token to manually resend.
+</ParamField>
+
+- `client.webhooks.getWebhookDelivery(appSlug, deliveryId)`
+- `client.webhooks.replayWebhookDeliveries(appSlug, request)`
+
+## Triggering Custom Events
+
+You can use Wacht as a generic event bus to emit custom events to registered endpoints.
+
+```typescript
+await client.webhooks.triggerWebhook("payments-int", {
+  event_name: "custom.billing.processed",
+  payload: {
+     amount: 5000,
+     currency: "USD",
+     customer: "Alice"
+  }
+});
+```
+
+<ParamField path="appSlug" type="string" required>
+  The app broadcasting the new custom event.
+</ParamField>
+
+<ParamField path="request" type="TriggerWebhookRequest" required>
+  <Expandable title="properties">
+    <ParamField path="event_name" type="string" required>
+      Namespaced string identifying your custom event metric structure (e.g. `billing.processed`).
+    </ParamField>
+    <ParamField path="payload" type="Record<string, unknown>">
+      The complete, unmarshalled arbitrary JSON payload that will be pushed to listeners.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+## Analytics
+
+Fetch delivery performance statistics.
+
+- `client.webhooks.getWebhookStats(appSlug)`
+- `client.webhooks.getWebhookAnalytics(appSlug, options)`
+- `client.webhooks.getWebhookTimeseries(appSlug, options)`

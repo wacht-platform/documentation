@@ -1014,22 +1014,6 @@ components:
           type: string
           description: JWT signing algorithm (e.g., RS256, HS256)
 
-    PaginatedJwtTemplates:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/DeploymentJwtTemplate'
-        has_more:
-          type: boolean
-        limit:
-          type: integer
-          nullable: true
-        offset:
-          type: integer
-          nullable: true
-
     # =====================================================
     # SOCIAL CONNECTIONS
     # =====================================================
@@ -1081,22 +1065,6 @@ components:
           type: array
           items:
             type: string
-
-    PaginatedSocialConnections:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/DeploymentSocialConnection'
-        has_more:
-          type: boolean
-        limit:
-          type: integer
-          nullable: true
-        offset:
-          type: integer
-          nullable: true
 
     # =====================================================
     # SMTP CONFIG

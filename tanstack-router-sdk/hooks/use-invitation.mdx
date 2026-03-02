@@ -9,36 +9,36 @@ The `useInvitation` hook handles accepting organization and workspace invitation
 
 ## Return Value
 
-<ParamField path="acceptInvitation">
+<ResponseField name="acceptInvitation" type="(token: string) => Promise<AcceptInvitationResponse>">
   <Expandable title="Accept an invitation with the given token">
-    <ParamField path="token" type="string">
+    <ParamField path="token" type="string" required>
       The invitation token
     </ParamField>
-    <ParamField path="returns" type="Promise<AcceptInvitationResponse>">
+    <ResponseField name="returns" type="Promise<AcceptInvitationResponse>">
       The invitation response data
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="invitationData" type="AcceptInvitationResponse | null">
+<ResponseField name="invitationData" type="AcceptInvitationResponse | null">
   The invitation data after acceptance
-</ParamField>
+</ResponseField>
 
-<ParamField path="loading" type="boolean">
+<ResponseField name="loading" type="boolean">
   Whether the invitation is being processed
-</ParamField>
+</ResponseField>
 
-<ParamField path="error" type="string | null">
+<ResponseField name="error" type="string | null">
   Any error that occurred during processing
-</ParamField>
+</ResponseField>
 
-<ParamField path="reset">
+<ResponseField name="reset" type="() => void">
   <Expandable title="Reset the invitation state">
-    <ParamField path="returns" type="void">
+    <ResponseField name="returns" type="void">
       No return value
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
 ```tsx
 import { useInvitation } from "@wacht/tanstack-router";

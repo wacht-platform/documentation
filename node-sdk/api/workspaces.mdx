@@ -1,0 +1,171 @@
+---
+title: Workspaces API
+description: Manage deeply-nested workspaces within organizations.
+---
+
+# Workspaces API
+
+While `organizations` represent standard B2B tenants, Wacht also supports a deeper layer of hierarchy called **Workspaces**. Workspaces typically exist *within* an Organization (e.g., an Organization is a "Company", and Workspaces are "Projects" or "Departments").
+
+```typescript
+import { WachtClient } from "@wacht/backend";
+
+const client = new WachtClient({ apiKey: process.env.WACHT_API_KEY });
+```
+
+## Reading Workspaces
+
+### `listWorkspaces()`
+Retrieves a paginated list of all workspaces across your entire application.
+
+```typescript
+const response = await client.workspaces.listWorkspaces({ limit: 100 });
+```
+
+<ParamField path="options" type="ListWorkspacesOptions">
+  <Expandable title="properties">
+    <ParamField path="limit" type="number">
+      The integer limit representing how many workspaces to pull back in one request.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### `getWorkspace(workspaceId)`
+Retrieves a specific workspace by ID.
+
+```typescript
+const db = await client.workspaces.getWorkspace("ws_abc123");
+```
+
+<ParamField path="workspaceId" type="string" required>
+  The unique ID of the workspace you wish to resolve.
+</ParamField>
+
+## Mutating Workspaces
+
+_Note: The primary entry hook to create a workspace is normally executed via `client.organizations.createWorkspaceForOrganization()`, tying the workspace to a parent organization._
+
+### `updateWorkspace(workspaceId, request)`
+Modify a workspace's settings or metadata.
+
+```typescript
+const updated = await client.workspaces.updateWorkspace("ws_abc123", {
+  name: "Project Phoenix - Q3",
+  public_metadata: { status: "active" }
+});
+```
+
+<ParamField path="workspaceId" type="string" required>
+  The ID of the target workspace.
+</ParamField>
+
+<ParamField path="request" type="UpdateWorkspaceRequest" required>
+  <Expandable title="properties">
+    <ParamField path="name" type="string">
+      The updated name for the workspace.
+    </ParamField>
+    <ParamField path="public_metadata" type="Record<string, unknown>">
+      Publicly readable metadata attributes.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### `deleteWorkspace(workspaceId)`
+Permanently destroy a workspace.
+
+```typescript
+await client.workspaces.deleteWorkspace("ws_abc123");
+```
+
+<ParamField path="workspaceId" type="string" required>
+  The target workspace ID.
+</ParamField>
+
+## Workspace Memberships
+
+Just like Organizations, Workspaces have independent access control lists (ACLs) and Memberships.
+
+### `listWorkspaceMembers(workspaceId)`
+Retrieve all users who have explicit access to this workspace.
+
+```typescript
+const members = await client.workspaces.listWorkspaceMembers("ws_abc123");
+```
+
+<ParamField path="workspaceId" type="string" required>
+  The target workspace ID.
+</ParamField>
+
+### `addWorkspaceMember(workspaceId, request)`
+Grant a user access to the workspace.
+
+```typescript
+await client.workspaces.addWorkspaceMember("ws_abc123", {
+  user_id: "usr_frontend_dev",
+  role: "workspace:editor"
+});
+```
+
+<ParamField path="workspaceId" type="string" required>
+  The ID of the workspace.
+</ParamField>
+
+<ParamField path="request" type="AddWorkspaceMemberRequest" required>
+  <Expandable title="properties">
+    <ParamField path="user_id" type="string" required>
+      The ID of the user requesting access.
+    </ParamField>
+    <ParamField path="role" type="string" required>
+      The workspace role key (e.g., `workspace:editor`, `workspace:viewer`).
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### `updateWorkspaceMember(workspaceId, memberId, request)`
+Change a user's role exclusively within the context of this workspace.
+
+```typescript
+await client.workspaces.updateWorkspaceMember("ws_abc123", "mem_456", {
+  role: "workspace:viewer"
+});
+```
+
+<ParamField path="workspaceId" type="string" required>
+  The ID of the workspace.
+</ParamField>
+
+<ParamField path="memberId" type="string" required>
+  The target membership record ID.
+</ParamField>
+
+<ParamField path="request" type="UpdateWorkspaceMemberRequest" required>
+  <Expandable title="properties">
+    <ParamField path="role" type="string" required>
+      The newly assigned workspace role key.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### `removeWorkspaceMember(workspaceId, memberId)`
+Revoke a user's explicit access to the workspace.
+
+```typescript
+await client.workspaces.removeWorkspaceMember("ws_abc123", "mem_456");
+```
+
+<ParamField path="workspaceId" type="string" required>
+  The ID of the workspace.
+</ParamField>
+
+<ParamField path="memberId" type="string" required>
+  The target membership record ID.
+</ParamField>
+
+## Custom Workspace Roles
+
+Workspaces maintain their own discrete set of RBAC Roles and Permissions, isolated from organizational roles. 
+
+- `client.workspaces.listWorkspaceRoles(workspaceId)`
+- `client.workspaces.createWorkspaceRole(workspaceId, request)`
+- `client.workspaces.updateWorkspaceRole(workspaceId, roleId, request)`
+- `client.workspaces.deleteWorkspaceRole(workspaceId, roleId)`

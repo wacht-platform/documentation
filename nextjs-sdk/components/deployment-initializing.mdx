@@ -1,53 +1,52 @@
 ---
-title: DeploymentInitializing
-description: Renders children only while the deployment configuration is loading.
+title: '<DeploymentInitializing />'
+description: 'A render boundary specifically designed to display elegant loading states while the SDK resolves identity.'
 ---
 
-# DeploymentInitializing
+# `<DeploymentInitializing />`
 
-Renders its children only while the deployment configuration is loading. Returns `null` once loaded.
+The `<DeploymentInitializing />` component is the structural inverse of `<DeploymentInitialized />`. It mounts its React children **exclusivey** while the core Wacht `<DeploymentProvider />` is actively booting up and attempting to resolve the user's encrypted session state.
+
+The exact millisecond the SDK finishes its initialization sequence, this component unmounts its children seamlessly.
+
+## Import
 
 ```tsx
 import { DeploymentInitializing } from "@wacht/nextjs";
-
-export default function App() {
-  return (
-    <DeploymentInitializing>
-      <LoadingSpinner />
-    </DeploymentInitializing>
-  );
-}
 ```
 
-## Loading Screen
+## Usage
+
+This component was engineered specifically to allow developers to render cohesive, overarching application skeletons, spinners, or splash screens on initial page load. 
+
+It forms a perfect pair with `<DeploymentInitialized />` to guarantee that users never see unstyled HTML nodes, unpopulated data grids, or brief flashes of incorrect layouts during the millisecond gap before session resolution completes.
 
 ```tsx
 import { DeploymentInitializing, DeploymentInitialized } from "@wacht/nextjs";
 
-export default function Root() {
+export default function RootApplicationLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
+      {/* 
+        1. Mounts instantly on pure page load. We render a spinner.
+      */}
       <DeploymentInitializing>
-        <div className="loading-screen">
-          <Spinner />
-          <p>Loading...</p>
+        <div className="flex h-screen w-full items-center justify-center bg-zinc-50">
+          <div className="flex flex-col items-center gap-4">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-zinc-900 border-t-transparent shadow-md" />
+            <p className="text-zinc-500 font-medium tracking-tight text-sm">Securely connecting...</p>
+          </div>
         </div>
       </DeploymentInitializing>
+      
+      {/* 
+        2. Mounts the exact moment step 1 unmounts. 
+           Safe to load heavy dashboard graphs and data.
+      */}
       <DeploymentInitialized>
-        <App />
+        <div className="dashboard-layout">{children}</div>
       </DeploymentInitialized>
     </>
   );
 }
 ```
-
-## Params
-
-<ParamField path="children" type="ReactNode">
-Content to render during loading.
-</ParamField>
-
-## Related
-
-- [DeploymentInitialized](./deployment-initialized) - Loaded state component
-- [useDeployment](../hooks/use-deployment) - Deployment hook

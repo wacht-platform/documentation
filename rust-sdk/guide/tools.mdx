@@ -13,13 +13,12 @@ Learn how to manage AI tools using the Wacht Rust SDK.
 Before using any API methods, you must initialize the SDK:
 
 ```rust
-use wacht::init_from_env;
+use wacht::WachtClient;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Initialize from environment variables
-    // Requires: WACHT_API_KEY and WACHT_FRONTEND_HOST
-    init_from_env().await?;
+    // Initialize the client with an API key
+    let client = WachtClient::new("wk_live_...");
 
     // Now you can use the API
     Ok(())
@@ -33,10 +32,12 @@ Get all AI tools in your deployment.
 ### Basic List
 
 ```rust
-use wacht::api::ai;
+use wacht::WachtClient;
+
+let client = WachtClient::new("wk_live_...");
 
 // Fetch all tools (default pagination)
-let tools = ai::list_tools()
+let tools = client.ai().list_tools()
     .send()
     .await?;
 
@@ -48,10 +49,12 @@ for tool in tools.data {
 ### With Filters
 
 ```rust
-use wacht::api::ai;
+use wacht::WachtClient;
+
+let client = WachtClient::new("wk_live_...");
 
 // Fetch active tools with pagination
-let tools = ai::list_tools()
+let tools = client.ai().list_tools()
     .limit(50)
     .offset(0)
     .is_active(true)
@@ -69,9 +72,12 @@ for tool in tools.data {
 Retrieve a specific AI tool by ID.
 
 ```rust
-use wacht::api::ai;
+use wacht::WachtClient;
 
-let tool = ai::fetch_tool("tool_123")
+let client = WachtClient::new("wk_live_...");
+
+let tool = client.ai().fetch_tool()
+    .tool_id("tool_123")
     .send()
     .await?;
 
@@ -87,24 +93,27 @@ Create a new AI tool with custom configuration.
 ### API Tool Creation
 
 ```rust
-use wacht::api::ai;
+use wacht::WachtClient;
 use wacht::models::{CreateAiToolRequest, AiToolConfiguration, ApiToolConfiguration, HttpMethod};
 
-let tool = ai::create_tool(CreateAiToolRequest {
-    name: "weather-api".to_string(),
-    description: Some("Fetch weather information".to_string()),
-    tool_type: "api".to_string(),
-    configuration: AiToolConfiguration::Api(ApiToolConfiguration {
-        endpoint: "https://api.weather.com".to_string(),
-        method: HttpMethod::Get,
-        authorization: None,
-        request_body_schema: None,
-        url_params_schema: None,
-        timeout_seconds: Some(30),
-    }),
-})
-.send()
-.await?;
+let client = WachtClient::new("wk_live_...");
+
+let tool = client.ai().create_tool()
+    .request(CreateAiToolRequest {
+        name: "weather-api".to_string(),
+        description: Some("Fetch weather information".to_string()),
+        tool_type: "api".to_string(),
+        configuration: AiToolConfiguration::Api(ApiToolConfiguration {
+            endpoint: "https://api.weather.com".to_string(),
+            method: HttpMethod::Get,
+            authorization: None,
+            request_body_schema: None,
+            url_params_schema: None,
+            timeout_seconds: Some(30),
+        }),
+    })
+    .send()
+    .await?;
 
 println!("Created tool: {}", tool.id);
 ```
@@ -112,31 +121,34 @@ println!("Created tool: {}", tool.id);
 ### Platform Function Tool
 
 ```rust
-use wacht::api::ai;
+use wacht::WachtClient;
 use wacht::models::{CreateAiToolRequest, AiToolConfiguration, PlatformFunctionToolConfiguration, SchemaField};
 
-let tool = ai::create_tool(CreateAiToolRequest {
-    name: "user-lookup".to_string(),
-    description: Some("Look up user information".to_string()),
-    tool_type: "platform_function".to_string(),
-    configuration: AiToolConfiguration::PlatformFunction(PlatformFunctionToolConfiguration {
-        function_name: "get_user".to_string(),
-        function_description: Some("Retrieve user details".to_string()),
-        input_schema: Some(vec![
-            SchemaField {
-                name: "user_id".to_string(),
-                field_type: "string".to_string(),
-                required: true,
-                description: Some("User ID to look up".to_string()),
-                items_type: None,
-            }
-        ]),
-        output_schema: None,
-        is_overridable: true,
-    }),
-})
-.send()
-.await?;
+let client = WachtClient::new("wk_live_...");
+
+let tool = client.ai().create_tool()
+    .request(CreateAiToolRequest {
+        name: "user-lookup".to_string(),
+        description: Some("Look up user information".to_string()),
+        tool_type: "platform_function".to_string(),
+        configuration: AiToolConfiguration::PlatformFunction(PlatformFunctionToolConfiguration {
+            function_name: "get_user".to_string(),
+            function_description: Some("Retrieve user details".to_string()),
+            input_schema: Some(vec![
+                SchemaField {
+                    name: "user_id".to_string(),
+                    field_type: "string".to_string(),
+                    required: true,
+                    description: Some("User ID to look up".to_string()),
+                    items_type: None,
+                }
+            ]),
+            output_schema: None,
+            is_overridable: true,
+        }),
+    })
+    .send()
+    .await?;
 ```
 
 ## Update AI Tool
@@ -144,19 +156,20 @@ let tool = ai::create_tool(CreateAiToolRequest {
 Modify an existing AI tool's configuration.
 
 ```rust
-use wacht::api::ai;
+use wacht::WachtClient;
 use wacht::models::UpdateAiToolRequest;
 
-let updated = ai::update_tool(
-    "tool_123",
-    UpdateAiToolRequest {
+let client = WachtClient::new("wk_live_...");
+
+let updated = client.ai().update_tool()
+    .tool_id("tool_123")
+    .request(UpdateAiToolRequest {
         name: Some("weather-api-v2".to_string()),
         description: Some("Enhanced weather tool".to_string()),
         ..Default::default()
-    }
-)
-.send()
-.await?;
+    })
+    .send()
+    .await?;
 ```
 
 ## Delete AI Tool
@@ -164,9 +177,12 @@ let updated = ai::update_tool(
 Permanently delete an AI tool.
 
 ```rust
-use wacht::api::ai;
+use wacht::WachtClient;
 
-ai::delete_tool("tool_123")
+let client = WachtClient::new("wk_live_...");
+
+client.ai().delete_tool()
+    .tool_id("tool_123")
     .send()
     .await?;
 ```
@@ -182,27 +198,51 @@ ai::delete_tool("tool_123")
 
 ## Request Models
 
-### CreateAiToolRequest
+<ParamField path="request" type="CreateAiToolRequest" required>
+  <Expandable title="properties">
+    <ParamField path="name" type="String" required>
+      Tool name.
+    </ParamField>
+    <ParamField path="tool_type" type="String" required>
+      Type of tool (e.g., "api", "platform_function").
+    </ParamField>
+    <ParamField path="configuration" type="AiToolConfiguration" required>
+      Tool-specific configuration.
+    </ParamField>
+  </Expandable>
+</ParamField>
 
-- `name` (String) - Tool name (required)
-- `tool_type` (String) - Type of tool (required, e.g., "function", "retrieval")
-- `configuration` (AiToolConfiguration) - Tool configuration (required)
-
-### UpdateAiToolRequest
-
-All fields are optional - only include what you want to change:
-
-- `name` (Option&lt;String&gt;)
-- `description` (Option&lt;String&gt;)
-- `configuration` (Option&lt;serde_json::Value&gt;)
+<ParamField path="request" type="UpdateAiToolRequest">
+  <Expandable title="properties">
+    <ParamField path="name" type="Option<String>">
+      Tool name.
+    </ParamField>
+    <ParamField path="description" type="Option<String>">
+      Tool description.
+    </ParamField>
+    <ParamField path="configuration" type="Option<serde_json::Value>">
+      Updated tool configuration payload.
+    </ParamField>
+  </Expandable>
+</ParamField>
 
 ### AiToolConfiguration
 
-- `description` (Option&lt;String&gt;) - Tool description
-- `parameters` (Option&lt;serde_json::Value&gt;) - Function parameters schema
-- `endpoint` (Option&lt;String&gt;) - API endpoint URL
-- `method` (Option&lt;String&gt;) - HTTP method
-- `headers` (Option&lt;serde_json::Value&gt;) - HTTP headers
+<ParamField path="description" type="Option<String>">
+  Tool description.
+</ParamField>
+<ParamField path="parameters" type="Option<serde_json::Value>">
+  Function parameters schema JSON.
+</ParamField>
+<ParamField path="endpoint" type="Option<String>">
+  API endpoint URL.
+</ParamField>
+<ParamField path="method" type="Option<String>">
+  HTTP method.
+</ParamField>
+<ParamField path="headers" type="Option<serde_json::Value>">
+  HTTP headers.
+</ParamField>
 
 ## Tool Types
 
@@ -261,9 +301,12 @@ AiToolConfiguration {
 All SDK methods return a `Result<T, Error>`:
 
 ```rust
-use wacht::{Error, api::ai};
+use wacht::WachtClient;
+use wacht::Error;
 
-match ai::fetch_tool("invalid_id").send().await {
+let client = WachtClient::new("wk_live_...");
+
+match client.ai().fetch_tool("invalid_id").send().await {
     Ok(tool) => println!("Tool: {}", tool.name),
     Err(Error::Api { status, message, .. }) => {
         eprintln!("API Error {}: {}", status, message);

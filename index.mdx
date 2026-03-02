@@ -1,64 +1,67 @@
 ---
 title: 'Wacht Documentation'
-description: 'Start here: quickstarts, SDK references, API docs, and feature guides.'
+description: 'Build secure, scalable identity and AI-powered applications with Wacht.'
 ---
 
-# Wacht Documentation
+Welcome to the Wacht platform documentation. 
 
-Wacht provides authentication, organizations/workspaces, user management, API authorization, and AI primitives.
-This page is the entry point to quickstarts, framework SDKs, backend APIs, and deeper implementation guides.
+Wacht is a comprehensive infrastructure tailored for modern developers, providing everything you need to build scalable, multi-tenant applications. We offer robust primitives for authentication, organization management, API authorization, and embedded AI agents.
 
-## Quickstarts & setup
+Whether you are building a new React application from scratch or integrating powerful backend services with Rust, our SDKs and APIs are designed to be fast, secure, and developer-friendly.
 
-- [Getting Started Quickstart](/getting-started/quickstart)
-- [Next.js Quickstart](/nextjs-sdk/quickstart)
-- [React Router Quickstart](/react-router-sdk/quickstart)
-- [TanStack Router Quickstart](/tanstack-router-sdk/quickstart)
-- [Rust SDK Quickstart](/rust-sdk/quickstart)
+## Getting Started
 
-## SDK reference
+Start integrating Wacht into your application within minutes. Choose your preferred framework to begin:
 
-- [Next.js SDK](/nextjs-sdk/introduction)
-- [React Router SDK](/react-router-sdk/introduction)
-- [TanStack Router SDK](/tanstack-router-sdk/introduction)
-- [Rust SDK](/rust-sdk/introduction)
+<CardGroup cols={2}>
+  <Card title="Next.js" icon="react" href="/nextjs-sdk/quickstart">
+    Integrate Wacht into your Next.js App Router applications.
+  </Card>
+  <Card title="React Router" icon="react" href="/react-router-sdk/quickstart">
+    Build heavily protected SPAs and SSR apps with React Router (v7).
+  </Card>
+  <Card title="TanStack Router" icon="react" href="/tanstack-router-sdk/quickstart">
+    Type-safe routing and auth integration for TanStack Router.
+  </Card>
+  <Card title="Rust (Backend)" icon="rust" href="/rust-sdk/quickstart">
+    Secure backend services, token validation, and API integrations with Rust.
+  </Card>
+</CardGroup>
 
-## Explore by feature
+## Core Features
 
-### Authentication & identity
+Explore Wacht's powerful primitives designed for modern SaaS and enterprise applications.
+
+### Identity & Access Management
+Secure your application with out-of-the-box authentication and session management.
 - [Authentication API](/backend-api/authentication)
-- [User APIs](/backend-api/users)
-- [Session/JWT validation (Rust)](/rust-sdk/auth/jwt-validation)
+- [User Management](/backend-api/users)
+- [JWT Validation (Rust)](/rust-sdk/guide/jwt-validation)
 
-### Organizations & workspaces
+### Multi-Tenancy
+Build complex B2B applications with our nested organizational structures.
+- [Organizations Concept](/backend-api/organizations)
+- [Workspaces Concept](/backend-api/workspaces)
+- [Organization Management in Rust](/rust-sdk/guide/organizations)
+
+### Developer Tools & Webhooks
+Enable seamless integrations between your services and your users.
+- [API Keys & App Auth](/backend-api/api-keys)
+- [Webhook Integrations](/backend-api/webhooks)
+- [Managing Webhooks in Rust](/rust-sdk/guide/webhooks)
+
+### AI Primitives
+Embed autonomous, stateful agents directly into your products.
+- [Agents API Overview](/backend-api/agents)
+- [Knowledge Bases](/rust-sdk/guide/knowledge-bases)
+
+## API Reference
+Wacht is built API-first. You can interface with all functionality programmatically.
+- [Users API](/backend-api/users)
 - [Organizations API](/backend-api/organizations)
-- [Workspaces API](/backend-api/workspaces)
-- [Rust guide: Organizations](/rust-sdk/guide/organizations)
-- [Rust guide: Workspaces](/rust-sdk/guide/workspaces)
+- [Webhooks API](/backend-api/webhooks)
+- [AI Agents API](/backend-api/agents)
 
-### API authorization & webhooks
-- [API keys/API auth apps](/backend-api/api-keys)
-- [Webhook APIs](/backend-api/webhooks)
-- [Webhook apps](/backend-api/webhook-app)
-- [Rust guide: API keys](/rust-sdk/guide/api-keys)
-- [Rust guide: Webhooks](/rust-sdk/guide/webhooks)
-
-### AI features
-- [Agents API](/backend-api/agents)
-- [Rust guide: Agents](/rust-sdk/guide/agents)
-- [Rust guide: Knowledge bases](/rust-sdk/guide/knowledge-bases)
-- [Rust guide: Tools](/rust-sdk/guide/tools)
-- [Rust guide: Execution context](/rust-sdk/guide/execution-context)
-
-### Configuration, analytics, notifications
-- [Settings API](/backend-api/settings)
-- [Analytics API](/backend-api/analytics)
-- [Notifications API](/backend-api/notifications)
-- [Rust guide: Settings](/rust-sdk/guide/settings)
-- [Rust guide: Analytics](/rust-sdk/guide/analytics)
-- [Rust guide: Notifications](/rust-sdk/guide/notifications)
-
-## Need help?
-
-- GitHub: [github.com/wacht-platform](https://github.com/wacht-platform/)
-- Start with [Quickstart](/getting-started/quickstart), then move into your framework SDK docs.
+## Help & Support
+- Open source: [github.com/wacht-platform](https://github.com/wacht-platform/)
+- For enterprise support, contact us at `support@wacht.dev`.

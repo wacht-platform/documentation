@@ -13,13 +13,12 @@ Learn how to retrieve analytics and insights using the Wacht Rust SDK.
 Before using any API methods, you must initialize the SDK:
 
 ```rust
-use wacht::init_from_env;
+use wacht::WachtClient;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Initialize from environment variables
-    // Requires: WACHT_API_KEY and WACHT_FRONTEND_HOST
-    init_from_env().await?;
+async fn main() -> Result<(), Box<dyn std::error.Error>> {
+    // Initialize the client with an API key
+    let client = WachtClient::new("wk_live_...");
 
     // Now you can use the API
     Ok(())
@@ -33,10 +32,12 @@ Get overall statistics for your deployment with optional date filtering.
 ### Basic Statistics
 
 ```rust
-use wacht::api::analytics;
+use wacht::WachtClient;
+
+let client = WachtClient::new("wk_live_...");
 
 // Get all-time statistics
-let stats = analytics::fetch_stats()
+let stats = client.analytics().fetch_stats()
     .send()
     .await?;
 
@@ -49,12 +50,14 @@ println!("Workspaces Created: {}", stats.workspaces_created);
 ### With Date Range
 
 ```rust
-use wacht::api::analytics;
+use wacht::WachtClient;
 use chrono::{Utc, Duration};
-use wacht::api::analytics::AnalyticsStatsOptions;
+use wacht::models::AnalyticsStatsOptions;
+
+let client = WachtClient::new("wk_live_...");
 
 // Get statistics for the last 30 days
-let stats = analytics::fetch_stats()
+let stats = client.analytics().fetch_stats()
     .options(AnalyticsStatsOptions {
         from: Utc::now() - Duration::days(30),
         to: Utc::now(),
@@ -77,10 +80,12 @@ Retrieve the most recent user registrations.
 ### Basic List
 
 ```rust
-use wacht::api::analytics;
+use wacht::WachtClient;
+
+let client = WachtClient::new("wk_live_...");
 
 // Get default number of recent signups
-let recent = analytics::fetch_recent_signups()
+let recent = client.analytics().fetch_recent_signups()
     .send()
     .await?;
 
@@ -92,10 +97,12 @@ for signup in recent.signups {
 ### With Limit
 
 ```rust
-use wacht::api::analytics;
+use wacht::WachtClient;
+
+let client = WachtClient::new("wk_live_...");
 
 // Get last 50 recent signups
-let recent = analytics::fetch_recent_signups()
+let recent = client.analytics().fetch_recent_signups()
     .limit(50)
     .send()
     .await?;
@@ -110,10 +117,12 @@ Retrieve the most recent user authentication events.
 ### Basic List
 
 ```rust
-use wacht::api::analytics;
+use wacht::WachtClient;
+
+let client = WachtClient::new("wk_live_...");
 
 // Get default number of recent sign-ins
-let recent = analytics::fetch_recent_signins()
+let recent = client.analytics().fetch_recent_signins()
     .send()
     .await?;
 
@@ -125,10 +134,12 @@ for signin in recent.signups {
 ### With Limit
 
 ```rust
-use wacht::api::analytics;
+use wacht::WachtClient;
+
+let client = WachtClient::new("wk_live_...");
 
 // Get last 100 recent sign-ins
-let recent = analytics::fetch_recent_signins()
+let recent = client.analytics().fetch_recent_signins()
     .limit(100)
     .send()
     .await?;
@@ -140,47 +151,95 @@ println!("Recent sign-ins: {}", recent.signups.len());
 
 ### AnalyticsStatsResponse Fields
 
-- `signups` (i64) - Number of new sign-ups in the period
-- `unique_signins` (i64) - Number of unique sign-ins in the period
-- `organizations_created` (i64) - Number of organizations created in the period
-- `workspaces_created` (i64) - Number of workspaces created in the period
-- `total_signups` (i64) - Total sign-ups all time
-- `signups_change` (Option&lt;f64&gt;) - Percentage change from previous period
-- `unique_signins_change` (Option&lt;f64&gt;) - Percentage change from previous period
-- `organizations_created_change` (Option&lt;f64&gt;) - Percentage change from previous period
-- `workspaces_created_change` (Option&lt;f64&gt;) - Percentage change from previous period
+<ParamField path="signups" type="i64">
+  Number of new sign-ups in the period.
+</ParamField>
+<ParamField path="unique_signins" type="i64">
+  Number of unique sign-ins in the period.
+</ParamField>
+<ParamField path="organizations_created" type="i64">
+  Number of organizations created in the period.
+</ParamField>
+<ParamField path="workspaces_created" type="i64">
+  Number of workspaces created in the period.
+</ParamField>
+<ParamField path="total_signups" type="i64">
+  Total sign-ups all time.
+</ParamField>
+<ParamField path="signups_change" type="Option<f64>">
+  Percentage change from previous period.
+</ParamField>
+<ParamField path="unique_signins_change" type="Option<f64>">
+  Percentage change from previous period.
+</ParamField>
+<ParamField path="organizations_created_change" type="Option<f64>">
+  Percentage change from previous period.
+</ParamField>
+<ParamField path="workspaces_created_change" type="Option<f64>">
+  Percentage change from previous period.
+</ParamField>
 
 ### RecentSignup Fields
 
-- `user_id` (String) - User ID
-- `email` (String) - User email
-- `first_name` (String) - User first name
-- `last_name` (String) - User last name
-- `signed_up_at` (String) - Sign-up timestamp (ISO 8601)
-- `method` (String) - Sign-up method (e.g., "password", "oauth")
+<ParamField path="user_id" type="String">
+  User ID.
+</ParamField>
+<ParamField path="email" type="String">
+  User email.
+</ParamField>
+<ParamField path="first_name" type="String">
+  User first name.
+</ParamField>
+<ParamField path="last_name" type="String">
+  User last name.
+</ParamField>
+<ParamField path="signed_up_at" type="String">
+  Sign-up timestamp (ISO 8601).
+</ParamField>
+<ParamField path="method" type="String">
+  Sign-up method (e.g., "password", "oauth").
+</ParamField>
 
 ### RecentSignin Fields
 
-- `user_id` (String) - User ID
-- `user_email` (String) - User email
-- `signed_in_at` (String) - Sign-in timestamp (ISO 8601)
-- `method` (String) - Sign-in method (e.g., "password", "otp", "oauth")
-- `ip_address` (String) - IP address of the sign-in
-- `user_agent` (String) - User agent string
+<ParamField path="user_id" type="String">
+  User ID.
+</ParamField>
+<ParamField path="user_email" type="String">
+  User email.
+</ParamField>
+<ParamField path="signed_in_at" type="String">
+  Sign-in timestamp (ISO 8601).
+</ParamField>
+<ParamField path="method" type="String">
+  Sign-in method (e.g., "password", "otp", "oauth").
+</ParamField>
+<ParamField path="ip_address" type="String">
+  IP address of the sign-in.
+</ParamField>
+<ParamField path="user_agent" type="String">
+  User agent string.
+</ParamField>
 
 ## Builder Methods
 
 ### FetchStatsBuilder
 
-- `options(AnalyticsStatsOptions)` - Set date range for statistics
+<ParamField path="options" type="AnalyticsStatsOptions">
+  Set date range for statistics.
+</ParamField>
 
 ### FetchRecentSignupsBuilder
 
-- `limit(u32)` - Number of results to return (max 100)
+<ParamField path="limit" type="u32">
+  Number of results to return (max 100).
+</ParamField>
 
 ### FetchRecentSigninsBuilder
 
-- `limit(u32)` - Number of results to return (max 100)
+<ParamField path="limit" type="u32">
+  Number of results to return (max 100).
+</ParamField>
 
 ## Error Handling
 

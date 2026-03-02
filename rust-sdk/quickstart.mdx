@@ -1,51 +1,70 @@
 ---
-title: 'Quick Start'
-description: 'Make API calls, run gateway checks, and add Axum auth middleware.'
+title: "Quick Start"
+description: "Start protecting your backend and making API calls with Wacht."
 ---
 
-## 1. Initialize a client
+The Wacht Rust SDK consists of two primary components:
+1. `WachtClient`: The typed HTTP client for interacting with the Wacht backend API (e.g., retrieving users, creating organizations).
+2. `AuthLayer` & `RequireAuth`: The Axum middleware and extractors for validating incoming requests.
+
+## 1. Configure the Environment
+
+The `from_env()` initializer expects two environment variables:
+
+```bash
+# Your Wacht API key (do NOT expose this to the frontend)
+WACHT_SECRET_API_KEY=wk_test_...
+
+# Your Wacht deployment domain
+WACHT_FRONTEND_API_URL=https://auth.yourdomain.com
+```
+
+## 2. Initialize the Client
 
 ```rust
 use wacht::WachtClient;
 
-let client = WachtClient::from_env().await?;
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // This fetches public keys and initializes the connection pool
+    let client = WachtClient::from_env().await?;
+    
+    // You can now make API calls:
+    // let user = client.users().user_id_get("user_123").send().await?;
+    
+    Ok(())
+}
 ```
 
-## 2. Call a backend API
+## 3. Protect an Axum Route
+
+If you are building an API, use the `AuthLayer` to validate session tokens and attach the `RequireAuth` extractor to handlers that need the user's identity.
 
 ```rust
-let apps = client.webhooks().list_webhook_apps().send().await?;
-println!("{} apps", apps.len());
-```
+use axum::{Router, routing::get, Json};
+use wacht::middleware::{AuthLayer, RequireAuth};
+use serde_json::json;
 
-## 3. Run gateway authz checks
+// This handler will ONLY run if the request has a valid Wacht Bearer token
+async fn get_profile(auth: RequireAuth) -> Json<serde_json::Value> {
+    Json(json!({
+        "message": format!("Hello, {}!", auth.user_id),
+        "session": auth.session_id
+    }))
+}
 
-```rust
-use wacht::gateway::GatewayPrincipalType;
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Initialize global configuration and fetch public signing keys
+    wacht::init_from_env().await?;
 
-let authz = client
-    .gateway()
-    .verify_request_with_principal_type(
-        GatewayPrincipalType::ApiKey,
-        "wk_live_xxx",
-        "GET",
-        "/v1/private",
-    )
-    .await?;
+    let app = Router::new()
+        .route("/profile", get(get_profile))
+        .layer(AuthLayer::new());
 
-let principal = authz.resolve_principal_context();
-println!("app_slug={}", principal.identity.app_slug);
-```
-
-## 4. Add Axum middleware (optional)
-
-```rust
-use axum::{routing::get, Router};
-use wacht::middleware::AuthLayer;
-
-async fn protected() -> &'static str { "ok" }
-
-let app = Router::new()
-    .route("/protected", get(protected))
-    .layer(AuthLayer::new());
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await?;
+    axum::serve(listener, app).await?;
+    
+    Ok(())
+}
 ```

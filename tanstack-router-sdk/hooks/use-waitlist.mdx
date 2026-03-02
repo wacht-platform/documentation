@@ -9,26 +9,26 @@ The `useWaitlist` hook provides methods for adding users to a waitlist when your
 
 ## Return Value
 
-<ParamField path="loading" type="boolean">
+<ResponseField name="loading" type="boolean">
   Whether the join operation is in progress
-</ParamField>
+</ResponseField>
 
-<ParamField path="joinWaitlist">
+<ResponseField name="joinWaitlist" type="(params: { first_name?: string; last_name?: string; email: string }) => Promise<ActionResult>">
   <Expandable title="Adds a user to the waitlist">
-    <ParamField path="params.first_name" type="string">
+    <ParamField path="first_name" type="string">
       User's first name
     </ParamField>
-    <ParamField path="params.last_name" type="string">
+    <ParamField path="last_name" type="string">
       User's last name
     </ParamField>
-    <ParamField path="params.email" type="string">
+    <ParamField path="email" type="string" required>
       User's email address
     </ParamField>
-    <ParamField path="returns" type="Promise<ActionResult>">
+    <ResponseField name="returns" type="Promise<ActionResult>">
       Result indicating success or error
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
 ```tsx
 import { useWaitlist } from "@wacht/tanstack-router";

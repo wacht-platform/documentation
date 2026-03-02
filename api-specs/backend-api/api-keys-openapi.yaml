@@ -545,8 +545,6 @@ components:
           description: Optional offset
           nullable: true
 
-    PaginatedApiAuthApps:
-      allOf:
     ListApiAuthAppsResponse:
       type: object
       properties:

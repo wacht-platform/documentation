@@ -1,203 +1,164 @@
 ---
-title: useSession
-description: Access and manage the current user session.
+title: 'useSession()'
+description: 'A React hook that exposes the current authentication state and the low-level Session object.'
 ---
 
-# useSession
+# `useSession()`
 
-The `useSession` hook provides access to the current user session and methods for session management including switching organizations/workspaces and signing out.
+The `useSession()` hook is one of the most frequently utilized primitives in the Wacht React SDK. It provides synchronous access to the active user's authentication context, the raw Session object, and utilities for fetching secure API tokens.
 
-## Return Value
+## Import
 
-<ParamField path="session" type="Session | null">
-  The current session object
-</ParamField>
+```tsx
+import { useSession } from "@wacht/react-router";
+```
 
-<ParamField path="loading" type="boolean">
-  Whether session data is loading
-</ParamField>
+## Anatomy
 
-<ParamField path="error" type="Error | null">
-  Any error that occurred
-</ParamField>
+<ResponseField name="loading" type="boolean">
+  Boolean indicating if the SDK is currently making a network request or loading state.
+</ResponseField>
 
-<ParamField path="refetch">
-  <Expandable title="Refetch session data from server">
-    <ParamField path="returns" type="Promise&lt;void&gt;">
-      Resolves when session data is refetched
+<ResponseField name="session" type="Session | null">
+  The current Session object (or null if unauthenticated).
+</ResponseField>
+
+<ResponseField name="error" type="Error | null">
+  Any error that occurred during session fetching or manipulation.
+</ResponseField>
+
+<ResponseField name="getToken" type="(template?: string) => Promise<string>">
+  <Expandable title="Get Token">
+    <ParamField path="template" type="string">
+      Optional JWT template name to use when minting the token.
+    </ParamField>
+    <ResponseField name="returns" type="Promise<string>">
+      The raw JWT string.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="signOut" type="(signInId?: string) => Promise<void>">
+  <Expandable title="Sign Out">
+    <ParamField path="signInId" type="string">
+      Optional ID of a specific sign-in session to terminate. If omitted, signs out the active session.
     </ParamField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="switchSignIn">
-  <Expandable title="Switch to a different sign-in (multi-session)">
-    <ParamField path="signinId" type="string">
-      The sign-in ID to switch to
-    </ParamField>
-    <ParamField path="returns" type="Promise<void>">
-      Resolves when the sign-in is switched
+<ResponseField name="switchSignIn" type="(signInId: string) => Promise<void>">
+  <Expandable title="Switch Sign-In">
+    <ParamField path="signInId" type="string" required>
+      The ID of the session to switch to.
     </ParamField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="signOut">
-  <Expandable title="Sign out (all or specific session)">
-    <ParamField path="options" type="{ signInId?: string; all?: boolean }">
-      Optional sign-in ID or sign out from all sessions
-    </ParamField>
-    <ParamField path="returns" type="Promise<void>">
-      Resolves when signed out
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="getToken">
-  <Expandable title="Get a session token (optionally for a specific token template)">
-    <ParamField path="tokenTemplate" type="string">
-      Optional token template name
-    </ParamField>
-    <ParamField path="returns" type="Promise<string>">
-      The session token
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="switchOrganization">
-  <Expandable title="Switch active organization">
+<ResponseField name="switchOrganization" type="(organizationId?: string) => Promise<void>">
+  <Expandable title="Switch Organization">
     <ParamField path="organizationId" type="string">
-      The organization ID to switch to
-    </ParamField>
-    <ParamField path="returns" type="Promise<void>">
-      Resolves when the organization is switched
+      The ID of the organization to switch to. Omit to clear the active organization context.
     </ParamField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="switchWorkspace">
-  <Expandable title="Switch active workspace">
-    <ParamField path="workspaceId" type="string">
-      The workspace ID to switch to
-    </ParamField>
-    <ParamField path="returns" type="Promise<void>">
-      Resolves when the workspace is switched
+<ResponseField name="switchWorkspace" type="(workspaceId: string) => Promise<void>">
+  <Expandable title="Switch Workspace">
+    <ParamField path="workspaceId" type="string" required>
+      The ID of the workspace to switch to.
     </ParamField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="exchangeTicket">
-  <Expandable title="Exchange an impersonation ticket">
-    <ParamField path="ticket" type="string">
-      The ticket token to exchange
-    </ParamField>
-    <ParamField path="returns" type="Promise<Session>">
-      The session after ticket exchange
+<ResponseField name="exchangeTicket" type="(ticket: string) => Promise<void>">
+  <Expandable title="Exchange Ticket">
+    <ParamField path="ticket" type="string" required>
+      The single-use authentication ticket to exchange for a session.
     </ParamField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-## Session Object
+<ResponseField name="refetch" type="() => Promise<void>">
+  Manually triggers a re-fetch of the session data from the server.
+</ResponseField>
 
-```typescript
-interface Session {
-  signins: SigninAttempt[];
-  active_signin: {
-    id: string;
-    user: {
-      id: string;
-      first_name: string;
-      last_name: string;
-      username?: string;
-      primary_email_address: EmailAddress;
-      profile_picture_url?: string;
-      has_passkeys: boolean;
-    };
-    active_organization_membership_id?: string;
-    active_workspace_membership_id?: string;
-  };
-}
-```
+## Usage: Conditional Rendering
 
-## Examples
+The most common use case for `useSession()` is gating UI elements based on authentication status when laying out complex, stateful pages.
 
-<RequestExample>
-
-```tsx Get Session Data
+```tsx
 import { useSession } from "@wacht/react-router";
 
-function UserInfo() {
-  const { session } = useSession();
-  const user = session?.active_signin?.user;
+export function DashboardHeader() {
+  const { loading, session } = useSession();
+
+  // Always handle the loading state first to prevent hydration errors or UI flashes
+  if (loading) {
+    return <div className="h-16 bg-zinc-100 animate-pulse w-full border-b" />;
+  }
 
   return (
-    <div>
-      <p>Name: {user?.first_name} {user?.last_name}</p>
-      <p>Email: {user?.primary_email_address?.email}</p>
-    </div>
+    <header className="flex items-center justify-between p-4 border-b">
+      <h1 className="text-xl font-bold">Acme Corp</h1>
+      
+      {session ? (
+        <span className="text-sm font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded">
+          Status: Authenticated
+        </span>
+      ) : (
+        <a href="/login" className="text-sm font-medium text-zinc-600 hover:text-zinc-900">
+          Sign In
+        </a>
+      )}
+    </header>
   );
 }
 ```
 
-</RequestExample>
+## Usage: Fetching Secure JWTs
 
-<RequestExample>
+If you are communicating with your own backend servers, you must attach a secure Bearer token to your API requests to prove the user's identity. 
 
-```tsx Sign Out
+You can retrieve a fresh `.getToken()` method directly from the `useSession` hook.
+
+```tsx
 import { useSession } from "@wacht/react-router";
+import { useEffect, useState } from "react";
 
-function SignOutButton() {
-  const { signOut } = useSession();
+export function DataFetcher() {
+  const { session, getToken } = useSession();
+  const [data, setData] = useState(null);
 
-  return (
-    <button onClick={() => signOut()}>
-      Sign Out
-    </button>
-  );
+  useEffect(() => {
+    async function fetchData() {
+      // 1. Ensure a session exists before fetching
+      if (!session) return;
+
+      try {
+        // 2. Await the minting of a short-lived JWT
+        const token = await getToken();
+
+        // 3. Attach it to your Authorization header
+        const res = await fetch("https://api.yourdomain.com/v1/protected-data", {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        
+        const json = await res.json();
+        setData(json);
+      } catch (err) {
+        console.error("Failed to fetch secure data", err);
+      }
+    }
+
+    fetchData();
+  }, [session, getToken]);
+
+  return <pre>{JSON.stringify(data, null, 2)}</pre>;
 }
 ```
 
-</RequestExample>
+## Session Expiration
 
-<RequestExample>
-
-```tsx Switch Organization
-import { useSession } from "@wacht/react-router";
-
-function OrgSwitcher() {
-  const { session, switchOrganization } = useSession();
-
-  const handleSwitch = async (orgId: string) => {
-    await switchOrganization(orgId);
-  };
-
-  return <button onClick={() => handleSwitch("org_123")}>
-    Switch Organization
-  </button>;
-}
-```
-
-</RequestExample>
-
-<RequestExample>
-
-```tsx Get Bearer Token for API Requests
-import { useSession } from "@wacht/react-router";
-
-async function fetchWithAuth(url: string) {
-  const { getToken } = useSession();
-  const token = await getToken();
-
-  return fetch(url, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-}
-```
-
-</RequestExample>
-
-## Related
-
-- [useSignIn](./use-sign-in) - Sign-in management
-- [useSignUp](./use-sign-up) - Sign-up management
-- [useUser](./use-user) - User profile management
+The `session` object will automatically become `null` if the user's session expires, if they are logged out remotely (via the Wacht API), or if their session is forcefully revoked. Because React state automatically invalidates, any component using `useSession()` will instantly re-render to reflect the logged-out state.

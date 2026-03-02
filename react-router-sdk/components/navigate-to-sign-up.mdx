@@ -1,48 +1,46 @@
 ---
-title: NavigateToSignUp
-description: Automatically navigates to the sign-up page when rendered.
+title: '<NavigateToSignUp />'
+description: 'A utility component that triggers an immediate client-side redirect to your designated Sign Up route.'
 ---
 
-# NavigateToSignUp
+# `<NavigateToSignUp />`
 
-Automatically navigates the user to the sign-up page when rendered. Uses the `navigateToSignUp` function from `useNavigation` and respects the `redirect_uri` query parameter if present.
+The `<NavigateToSignUp />` component is a functional utility designed exclusively for routing. Instead of generating DOM nodes or user interface elements, the exact moment it mounts into your React application it orchestrates an immediate, client-side redirect.
+
+This securely routes the user straight to the Sign Up page designated in your deployment settings.
+
+## Import
 
 ```tsx
 import { NavigateToSignUp } from "@wacht/react-router";
-
-export default function RegisterPage() {
-  return <NavigateToSignUp />;
-}
 ```
 
-## Protected Route
+## Usage
+
+This component is primarily utilized to shuttle inbound, unauthenticated organic traffic away from application boundaries and directly into your onboarding registration funnel.
 
 ```tsx
-import { SignedIn, NavigateToSignUp } from "@wacht/react-router";
+import { NavigateToSignUp, useSession } from "@wacht/react-router";
 
-export default function Onboarding() {
+// E.g. A user organically navigates to a promotional landing page URL
+// for a free tool that actually requires an account to function.
+export default function FreeToolGate() {
+  const { loading, session } = useSession();
+
+  if (loading) return null;
+
+  // If they aren't logged in, redirect them immediately to register.
+  // We use the component instead of imperative router hooks to ensure
+  // the transition happens deterministically during the render phase.
+  if (!session) {
+    return <NavigateToSignUp />;
+  }
+
   return (
-    <>
-      <SignedIn>
-        <OnboardingContent />
-      </SignedIn>
-      <NavigateToSignUp />
-    </>
+    <div>
+      <h1>Advanced Metric Analyzer</h1>
+      {/* Tool UI... */}
+    </div>
   );
 }
 ```
-
-## Redirect URL
-
-After successful sign-up, the user is redirected to:
-
-1. The URL specified in `redirect_uri` query parameter (if present)
-2. The `after_signup_redirect_url` deployment setting
-3. The deployment's frontend host (fallback)
-
-The `redirect_uri` parameter allows you to control where users land after completing sign-up. For example, navigating to `/signup?redirect_uri=/onboarding` will bring users to `/onboarding` after sign-up completes.
-
-## Related
-
-- [NavigateToSignIn](./navigate-to-sign-in) - Navigate to sign-in
-- [useNavigation](../hooks/use-navigation) - Navigation utilities

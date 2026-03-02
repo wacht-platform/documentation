@@ -1,132 +1,147 @@
 ---
-title: useSignUp
-description: Manage user registration and sign-up flows.
+title: 'useSignUp()'
+description: 'A headless registration hook for architecting entirely custom onboarding and verification flows.'
 ---
 
-# useSignUp
+# `useSignUp()`
 
-The `useSignUp` hook provides methods for user registration with support for email verification, phone verification, and profile completion.
+The `useSignUp()` hook gives you direct programmatic access to the Wacht registration engine. It bypasses the built-in `<SignUpForm />` UI component while still guaranteeing the same robust cryptography, data structure validation, and server-side safety logic.
 
-## Return Value
+You will typically reach for this hook when you need to embed account creation seamlessly into an existing multi-step onboarding wizard, or when your design system strictly prohibits injecting 3rd-party UI nodes.
 
-<ParamField path="loading" type="boolean">
-  Whether a sign-up operation is in progress
-</ParamField>
+## Import
 
-<ParamField path="signUp" type="object">
-  Object containing all sign-up methods
-</ParamField>
-
-<ParamField path="signupAttempt" type="SignupAttempt | null">
-  The current state of the sign-up flow
-</ParamField>
-
-<ParamField path="discardSignupAttempt">
-  <Expandable title="Discards the current sign-up attempt">
-    <ParamField path="returns" type="void">
-      No return value
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-## Examples
-
-<RequestExample>
-
-```tsx Email/Password Sign-up Form
+```tsx
 import { useSignUp } from "@wacht/tanstack-router";
-
-function EmailPasswordForm() {
-  const { signUp, loading } = useSignUp();
-
-  const handleSubmit = async (data: SignUpParams) => {
-    await signUp.create(data);
-  };
-
-  return <form onSubmit={handleSubmit}>
-    {/* Form fields */}
-  </form>;
-}
 ```
 
-</RequestExample>
+## Architecture
 
-<RequestExample>
+Creating a secure user record is intrinsically a multi-phased operation. The `useSignUp` hook reflects this securely.
 
-```tsx Email OTP Sign-up Flow
+<ResponseField name="loading" type="boolean">
+  Indicates if the SDK is actively managing a request state.
+</ResponseField>
+
+<ResponseField name="signUp" type="SignUpFunction">
+  <Expandable title="SignUp object methods">
+    <ResponseField name="create" type="(params: SignUpParams) => Promise<ApiResult<unknown, ErrorInterface>>">
+      <Expandable title="Create Registration">
+        <ParamField path="params" type="SignUpParams" required>
+          The initialization parameters for the user (e.g., `email`, `password`, `first_name`).
+        </ParamField>
+        <ResponseField name="returns" type="Promise<ApiResult<unknown, ErrorInterface>>">
+          The result of creating the initialization record.
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+    <ResponseField name="prepareVerification" type="(params: SignupVerificationParams) => Promise<ApiResult<PrepareVerificationResponse>>">
+      <Expandable title="Prepare Verification">
+        <ParamField path="params" type="SignupVerificationParams" required>
+          The strategy to use to verify the user's identifier (e.g., `email_otp`, `phone_otp`).
+        </ParamField>
+        <ResponseField name="returns" type="Promise<ApiResult<PrepareVerificationResponse>>">
+          The result of dispatching the verification code.
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+    <ResponseField name="completeVerification" type="(verificationCode: string) => Promise<ApiResult<Session>>">
+      <Expandable title="Complete Verification">
+        <ParamField path="verificationCode" type="string" required>
+          The code provided by the user to verify their identifier.
+        </ParamField>
+        <ResponseField name="returns" type="Promise<ApiResult<Session>>">
+          A successful user session.
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+    <ResponseField name="validateDeploymentInvitation" type="(token: string) => Promise<DeploymentInvitationData>">
+      <Expandable title="Validate Deployment Invitation">
+        <ParamField path="token" type="string" required>
+          The invitation token to validate.
+        </ParamField>
+        <ResponseField name="returns" type="Promise<DeploymentInvitationData>">
+          Information about the validity of the invitation.
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="signupAttempt" type="SignupAttempt | null">
+  The current state of the registration attempt.
+</ResponseField>
+
+<ResponseField name="discardSignupAttempt" type="() => void">
+  Clears the current registration attempt state.
+</ResponseField>
+
+## Constructing a Custom Verification Flow
+
+In modern identity systems, you cannot create an account simply by transmitting an email and password to the database. You must verify that the user fundamentally owns the contact identifier they supplied.
+
+Here is an example of using the hook to initiate registration and verify an email via an OTP (One-Time Passcode):
+
+```tsx
 import { useSignUp } from "@wacht/tanstack-router";
+import { useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 
-function EmailOtpFlow() {
-  const { signUp, loading, signupAttempt } = useSignUp();
+export default function CustomSignUp() {
+  const { loading, signUp } = useSignUp();
+  const navigate = useNavigate();
 
-  const handleSubmit = async (email: string, password: string) => {
-    await signUp.create({ email, password });
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [pendingVerification, setPendingVerification] = useState(false);
+  const [code, setCode] = useState("");
+
+  if (loading) return null;
+
+  // Phase 1: Submit initial credentials
+  const handleRegistration = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await signUp.create({ email, password });
+      
+      // Dispatch an OTP to the provided email address
+      await signUp.prepareVerification({ strategy: "email_otp" });
+      
+      // Transition our local UI state to show the OTP input
+      setPendingVerification(true);
+    } catch (err: any) {
+      console.error(err);
+    }
   };
 
-  const sendOtp = async () => {
-    await signUp.prepareVerification({ strategy: "email_otp" });
+  // Phase 2: Verify the OTP and establish session
+  const handleVerification = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await signUp.completeVerification(code);
+      
+      // The user is fully verified and an HTTP-only session cookie is set natively.
+      navigate({ to: "/dashboard" });
+    } catch (err: any) {
+      console.error(err);
+    }
   };
 
-  const verifyOtp = async (verificationCode: string) => {
-    await signUp.completeVerification(verificationCode);
-  };
+  if (pendingVerification) {
+    return (
+      <form onSubmit={handleVerification}>
+        <input value={code} placeholder="Enter Code..." onChange={(e) => setCode(e.target.value)} />
+        <button type="submit">Verify Email</button>
+      </form>
+    );
+  }
 
   return (
-    <>
-      {!signupAttempt && (
-        <form onSubmit={() => handleSubmit(email, password)}>
-          {/* Initial form */}
-        </form>
-      )}
-      {signupAttempt && (
-        <form onSubmit={() => verifyOtp(code)}>
-          {/* OTP verification */}
-          <button type="button" onClick={sendOtp}>Resend Code</button>
-        </form>
-      )}
-    </>
+    <form onSubmit={handleRegistration}>
+      <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+      <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+      <button type="submit">Register</button>
+    </form>
   );
 }
 ```
-
-</RequestExample>
-
-<RequestExample>
-
-```tsx Sign-up with Invitation
-import { useSignUp } from "@wacht/tanstack-router";
-
-function InviteFlow() {
-  const { signUp } = useSignUp();
-  const [inviteToken] = useState("token_from_url");
-
-  useEffect(() => {
-    signUp.validateDeploymentInvitation(inviteToken).then((result) => {
-      if (result.valid) {
-        // Pre-fill form
-        setFormData({
-          email: result.email,
-          first_name: result.first_name,
-          last_name: result.last_name,
-        });
-      }
-    });
-  }, []);
-
-  const handleSignUp = async (data: SignUpParams) => {
-    await signUp.create({
-      ...data,
-      invite_token: inviteToken,
-    });
-  };
-
-  return <form onSubmit={handleSignUp}>{/* Form */}</form>;
-}
-```
-
-</RequestExample>
-
-## Related
-
-- [useSignIn](./use-sign-in) - Sign-in management
-- [SignUpForm](../components/sign-up-form) - Pre-built sign-up form

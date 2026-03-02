@@ -1,181 +1,91 @@
-# API Auth App (Frontend API)
+---
+title: "API Auth Apps"
+description: "Enable your users to generate API Keys to programmatically access your platform."
+---
 
-The API Auth App endpoints allow authenticated users to manage API keys and view audit logs for their API auth app sessions. These endpoints require an active API auth app session obtained via session ticket exchange.
+While you use Wacht's backend Secret API keys to authenticate your own services, you often need to issue API keys to *your* users so they can interact programmatically with your application.
 
-## Overview
+Wacht provides **API Auth Apps** to handle this completely out-of-the-box. An API Auth App represents a designated surface area of your API that your customers can generate keys for.
 
-API Auth Apps provide a way to issue and manage API keys for programmatic access. The frontend API endpoints allow users with an active session to:
+## Core Concepts
 
-- View their current API auth app session
-- List, create, rotate, and revoke API keys
-- View audit logs and analytics
+When you create an API Auth App within a Wacht deployment, Wacht automatically handles:
+- **Key Generation & Storage**: Wacht securely generates, hashes, and stores the keys. You only ever see the prefix and suffix after creation.
+- **Revocation & Rotation**: Wacht provides endpoints for rotating and revoking compromised keys.
+- **Rate Limiting**: You can associate custom rate-limits with an API App, and Wacht will enforce them automatically at the Gateway.
+- **Audit Logging**: Every time an API key is used, Wacht can log its usage, providing usage metrics back to the end-user.
 
-## Authentication
+## Implementing an API Key Portal
 
-All endpoints require:
-1. An active user session (cookie-based)
-2. An active API auth app session (obtained via `POST /session/ticket/exchange` with an `api_auth_access` ticket)
+To allow your users to generate API Keys, they must authenticate with your application (thereby establishing a Wacht session token). 
 
-## Endpoints
+Because managing API Keys requires elevated privileges, your frontend cannot mint API keys directly. Instead, you use a [Session Ticket Exchange](/backend-api/session-tickets) pattern:
 
-### Session
+1. The User requests access to the API Key Portal in your frontend UI.
+2. Your frontend sends the request to your backend.
+3. Your backend validates the user's permissions, and if authorized, requests a `api_auth_access` Ticket from Wacht using its Secret API Key.
+4. Your backend passes this short-lived Ticket back to your frontend.
+5. Your frontend "exchanges" the ticket with the Wacht Frontend API to receive an elevated session, allowing it to interface directly with the API Auth App endpoints shown below.
 
-#### Get Current Session
+This pattern ensures your backend remains the ultimate source of permission, while offloading the complexity of key management UI entirely to Wacht.
 
-```
-GET /api-auth/session
-```
+## Frontend API Endpoints
 
-Returns information about the current API auth app session.
+Once the frontend has exchanged a ticket for an elevated session, it can directly query the Wacht Frontend API (`https://api.wacht.dev/v1/api-auth`) on behalf of the user to manage their keys. 
 
-**Response**
+*Note: These endpoints are intended to be called by the browser, not your backend.*
 
-```json
-{
-  "session_id": "123456789012345678",
-  "api_auth_app": {
-    "id": "111111111111111111",
-    "app_slug": "mobile-app",
-    "name": "Mobile Application",
-    "key_prefix": "wacht_mobile_",
-    "description": "API keys for mobile apps",
-    "is_active": true,
-    "rate_limits": [...]
-  }
-}
+### Listing API Keys
+
+```http
+GET /api-auth/keys?status=active
 ```
 
-### API Keys
+Returns a list of the user's generated API Keys. Due to security, the `key` field is never returned in list responses—only metadata such as `name`, `key_prefix`, and `expires_at`.
 
-#### List Keys
+### Creating an API Key
 
-```
-GET /api-auth/keys
-```
-
-**Query Parameters**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `status` | string | Filter by status: `active`, `revoked`, `expired` |
-| `include_inactive` | boolean | Include inactive keys (default: false) |
-
-#### Create Key
-
-```
+```http
 POST /api-auth/keys
 ```
 
-**Form Parameters**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `name` | string | Yes | Key name |
-| `expires_at` | string | No | Expiration timestamp (RFC3339) |
-
-**Response**
-
-Returns the full API key (only shown once):
-
 ```json
 {
-  "id": "123456789012345678",
-  "name": "Production Server",
-  "key": "wacht_mobile_sk_live_abcdefghijklmnopqrstuvwxyz",
-  "key_prefix": "wacht_mobile_",
-  "key_suffix": "wxyz",
-  "expires_at": null,
-  "created_at": "2024-01-15T10:30:00Z"
+  "name": "Production Server Key",
+  "expires_at": "2024-12-31T23:59:59Z" // Optional
 }
 ```
 
-#### Rotate Key
+This is the **only** time the full `key` string will be returned. Make sure to instruct your user to copy it immediately.
 
-```
+### Rotating an API Key
+
+```http
 POST /api-auth/keys/{id}/rotate
 ```
 
-Generates a new key value while keeping the same key ID and metadata.
+Generates a new underlying secret for the key while preserving its metadata, permissions, and ID. This invalidates the old secret immediately.
 
-#### Revoke Key
+### Revoking an API Key
 
-```
+```http
 POST /api-auth/keys/{id}/revoke
 ```
 
-**Form Parameters**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `reason` | string | Optional reason for revocation |
-
-### Audit Logs
-
-#### Get Audit Logs
-
-```
-GET /api-auth/audit/logs
+```json
+{
+  "reason": "Compromised by accidental github commit"
+}
 ```
 
-**Query Parameters**
+Instantly invalidates the API Key. All subsequent requests using this key will be rejected at the Wacht Gateway.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `limit` | integer | Max results (default: 100, max: 1000) |
-| `offset` | integer | Number to skip |
-| `cursor` | string | Base64-encoded pagination cursor |
-| `outcome` | string | Filter by: `success`, `blocked`, `error` |
-| `key_id` | string | Filter by key ID |
-| `start_date` | string | Start date (RFC3339) |
-| `end_date` | string | End date (RFC3339) |
+## Analytics & Audit Logs
 
-#### Get Analytics
+Wacht tracks every request made using an API key generated through an API Auth App. Your frontend can query these logs to provide a dashboard to your users.
 
-```
+```http
 GET /api-auth/audit/analytics
 ```
 
-**Query Parameters**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `start_date` | string | Start date (RFC3339) |
-| `end_date` | string | End date (RFC3339) |
-| `key_id` | string | Filter by key ID |
-| `include_top_keys` | boolean | Include top keys by usage |
-| `include_top_paths` | boolean | Include top paths by usage |
-| `include_blocked_reasons` | boolean | Include blocked reasons breakdown |
-| `include_rate_limits` | boolean | Include rate limit hit stats |
-| `top_limit` | integer | Limit for top items (max: 50) |
-
-#### Get Timeseries
-
-```
-GET /api-auth/audit/timeseries
-```
-
-**Query Parameters**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `start_date` | string | Start date (RFC3339) |
-| `end_date` | string | End date (RFC3339) |
-| `interval` | string | Grouping: `minute`, `hour`, `day`, `week` |
-| `key_id` | string | Filter by key ID |
-
-## Rate Limiting
-
-API Auth Apps support configurable rate limits:
-
-| Mode | Description |
-|------|-------------|
-| `per_key` | Limits per API key |
-| `per_ip` | Limits per IP address |
-| `per_key_and_ip` | Combined key + IP limits |
-| `per_app` | Limits across all keys |
-| `per_app_and_ip` | App-wide limits per IP |
-
-## Related
-
-- [Session Tickets](/backend-api/session-tickets) - Creating API auth access tickets
-- [API Keys (Backend API)](/backend-api/api-keys) - Server-side API key management
+This endpoint returns total request volumes, success rates, top paths accessed, and rate-limit hits, allowing you to easily build rich usage visualizations for your B2B customers.

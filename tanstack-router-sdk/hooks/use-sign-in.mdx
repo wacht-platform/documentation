@@ -1,147 +1,168 @@
 ---
-title: useSignIn
-description: Manage user authentication with multiple strategies.
+title: 'useSignIn()'
+description: 'A headless hook that provides low-level, programatic access to the Wacht authentication state machine.'
 ---
 
-# useSignIn
+# `useSignIn()`
 
-The `useSignIn` hook provides methods for authenticating users with various strategies including email/password, OTP, magic links, passkeys, and OAuth.
+The `useSignIn()` hook exposes the underlying authentication primitives that power Wacht's pre-built `<SignInForm />`. 
 
-## Return Value
+If your organization's design system mandates pixel-perfect control over every input field, transition, and error state—or if you need to build a bespoke multi-step login modal—this hook provides the raw engine you need without forcing any UI upon you.
 
-<ParamField path="loading" type="boolean">
-  Whether a sign-in operation is in progress
-</ParamField>
+## Import
 
-<ParamField path="signIn" type="object">
-  Object containing all sign-in methods
-</ParamField>
-
-<ParamField path="signinAttempt" type="SigninAttempt | null">
-  The current state of the sign-in flow
-</ParamField>
-
-<ParamField path="discardSignInAttempt">
-  <Expandable title="Discards the current sign-in attempt">
-    <ParamField path="returns" type="void">
-      No return value
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="setSignInAttempt">
-  <Expandable title="Sets the current sign-in attempt">
-    <ParamField path="attempt" type="SigninAttempt | null">
-      The sign-in attempt to set
-    </ParamField>
-    <ParamField path="returns" type="void">
-      No return value
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-## Strategies
-
-| Strategy | Description |
-|----------|-------------|
-| `email` | Email with password |
-| `username` | Username with password |
-| `email_otp` | Email OTP |
-| `phone` | Phone OTP |
-| `magic_link` | Magic link sent to email |
-| `oauth` | OAuth provider sign-in |
-| `passkey` | Passkey/WebAuthn sign-in |
-| `generic` | Generic with any parameters |
-
-## Examples
-
-<RequestExample>
-
-```tsx Email/Password Sign-in Form
+```tsx
 import { useSignIn } from "@wacht/tanstack-router";
-
-function EmailPasswordForm() {
-  const { signIn, loading } = useSignIn();
-
-  const handleSubmit = async (email: string, password: string) => {
-    const emailSignIn = signIn.createStrategy("email");
-    await emailSignIn({ email, password });
-  };
-
-  return <form onSubmit={(e) => {
-    e.preventDefault();
-    handleSubmit(email, password);
-  }}>
-    {/* Form fields */}
-  </form>;
-}
 ```
 
-</RequestExample>
+## Anatomy
 
-<RequestExample>
+Calling the hook returns an object containing the current `status` of the sign-in attempt, the active `strategy`, and the primary programmatic functions to progress the state machine.
 
-```tsx Email OTP Sign-in Flow
+<ResponseField name="loading" type="boolean">
+  Indicates whether the SDK is actively managing a request state.
+</ResponseField>
+
+<ResponseField name="signIn" type="SignIn">
+  <Expandable title="SignIn object methods">
+    <ResponseField name="createStrategy" type="(strategy: SignInStrategy) => SignInFunction">
+      <Expandable title="Create Strategy">
+        <ParamField path="strategy" type="string" required>
+          The auth strategy to strictly infer types (e.g., `'email'`, `'oauth'`, `'passkey'`).
+        </ParamField>
+        <ResponseField name="returns" type="SignInFunction">
+          A properly typed function to execute the chosen strategy.
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+    <ResponseField name="prepareVerification" type="(params: VerificationParams) => Promise<ApiResult<PrepareVerificationResponse>>">
+      <Expandable title="Prepare Verification">
+        <ParamField path="params" type="VerificationParams" required>
+          Configuration object specifying the strategy (`'email_otp'`, `'phone_otp'`, `'magic_link'`) and related redirect URIs.
+        </ParamField>
+        <ResponseField name="returns" type="Promise<ApiResult<PrepareVerificationResponse>>">
+          The result of dispatching the verification vector.
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+    <ResponseField name="completeVerification" type="(verificationCode: string) => Promise<Session>">
+      <Expandable title="Complete Verification">
+        <ParamField path="verificationCode" type="string" required>
+          The One-Time Password or code supplied by the user.
+        </ParamField>
+        <ResponseField name="returns" type="Promise<Session>">
+          A successful authentication session.
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+    <ResponseField name="completeProfile" type="(data: ProfileCompletionData) => Promise<Session>">
+      <Expandable title="Complete Profile">
+        <ParamField path="data" type="ProfileCompletionData" required>
+          The remaining profile information needed to finalize registration.
+        </ParamField>
+        <ResponseField name="returns" type="Promise<Session>">
+          A successful authentication session.
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+    <ResponseField name="identify" type="(identifier: string) => Promise<IdentifyResult>">
+      <Expandable title="Identify">
+        <ParamField path="identifier" type="string" required>
+          The user's email address or identifier.
+        </ParamField>
+        <ResponseField name="returns" type="Promise<IdentifyResult>">
+          Details about the authentication flows available for this user (`sso`, `social`, `password`).
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+    <ResponseField name="initEnterpriseSso" type="(connectionId: string, redirectUri?: string) => Promise<{ sso_url: string; session: Session }>">
+      <Expandable title="Initialize Enterprise SSO">
+        <ParamField path="connectionId" type="string" required>
+          The ID of the Enterprise SSO connection.
+        </ParamField>
+        <ParamField path="redirectUri" type="string">
+          Optional URL to redirect the user back to after SAML/OIDC authentication.
+        </ParamField>
+        <ResponseField name="returns" type="Promise<{ sso_url: string; session: Session }>">
+          The URL to the IdP, or a hydrated session if instantly resolved.
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="signinAttempt" type="SigninAttempt | null">
+  The current state of the sign-in attempt.
+</ResponseField>
+
+<ResponseField name="discardSignInAttempt" type="() => void">
+  Clears the current sign-in attempt state.
+</ResponseField>
+
+<ResponseField name="setSignInAttempt" type="(attempt: SigninAttempt | null) => void">
+  Setter function to manually override the sign-in attempt state.
+</ResponseField>
+
+## Building a Custom Email / Password Flow
+
+Here is a simplified example demonstrating how to construct a custom login form by leveraging the `signIn` object returned by the hook.
+
+```tsx
 import { useSignIn } from "@wacht/tanstack-router";
+import { useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 
-function EmailOtpForm() {
-  const { signIn, loading, signinAttempt } = useSignIn();
+export default function CustomSignIn() {
+  const { loading, signIn } = useSignIn();
+  const navigate = useNavigate();
+  
+  const [emailAddress, setEmailAddress] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-  const startSignIn = async (email: string) => {
-    await signIn.identify(email);
-    await signIn.prepareVerification({ strategy: "email_otp" });
-  };
+  if (loading) return <div>Loading...</div>;
 
-  const verifyCode = async (code: string) => {
-    await signIn.completeVerification(code);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    try {
+      // 1. Submit the credentials to the Wacht API
+      // Since Wacht uses HTTP-only cookies, the session is established transparently
+      // by the backend upon success. No `setActive` is required.
+      const strategy = signIn.createStrategy("email");
+      await strategy({
+        email: emailAddress,
+        password,
+      });
+
+      // 2. Redirect the user on success
+      navigate({ to: "/dashboard" });
+
+    } catch (err: any) {
+      setError(err.message || "Authentication failed");
+    }
   };
 
   return (
-    <>
-      {!signinAttempt && (
-        <form onSubmit={(e) => {
-          e.preventDefault();
-          startSignIn(email);
-        }}>
-          {/* Email input */}
-        </form>
-      )}
-      {signinAttempt && (
-        <form onSubmit={(e) => {
-          e.preventDefault();
-          verifyCode(code);
-        }}>
-          {/* OTP input */}
-        </form>
-      )}
-    </>
+    <form onSubmit={handleSubmit}>
+      {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
+      <input 
+        type="email" 
+        value={emailAddress} 
+        onChange={(e) => setEmailAddress(e.target.value)} 
+      />
+      <input 
+        type="password" 
+        value={password} 
+        onChange={(e) => setPassword(e.target.value)} 
+      />
+      <button type="submit">Sign In</button>
+    </form>
   );
 }
 ```
 
-</RequestExample>
+## Security Warning
 
-<RequestExample>
-
-```tsx SSO Sign-in Button
-import { useSignIn } from "@wacht/tanstack-router";
-
-function SsoButton() {
-  const { signIn } = useSignIn();
-
-  const handleSso = async () => {
-    const result = await signIn.initEnterpriseSso("conn_123");
-    window.location.href = result.sso_url;
-  };
-
-  return <button onClick={handleSso}>Sign in with SSO</button>;
-}
-```
-
-</RequestExample>
-
-## Related
-
-- [useSignUp](./use-sign-up) - Sign-up management
-- [useSession](./use-session) - Session management
-- [SignInForm](../components/sign-in-form) - Pre-built sign-in form
+When bypassing the pre-built `<SignInForm />` to build a custom implementation using `useSignIn()`, you take full responsibility for handling brute-force lockouts, rendering specific API error messages (like `invalid_password`), and orchestrating secondary authentication factors.

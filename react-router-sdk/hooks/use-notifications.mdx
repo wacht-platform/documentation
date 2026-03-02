@@ -9,97 +9,97 @@ The `useNotifications` hook provides access to user notifications with support f
 
 ## Return Value
 
-<ParamField path="loading" type="boolean">
+<ResponseField name="loading" type="boolean">
   Whether notifications are loading
-</ParamField>
+</ResponseField>
 
-<ParamField path="notifications" type="Notification[]">
+<ResponseField name="notifications" type="Notification[]">
   List of notifications
-</ParamField>
+</ResponseField>
 
-<ParamField path="hasMore" type="boolean">
+<ResponseField name="hasMore" type="boolean">
   Whether there are more notifications to load
-</ParamField>
+</ResponseField>
 
-<ParamField path="error" type="Error | null">
+<ResponseField name="error" type="Error | null">
   Any error that occurred
-</ParamField>
+</ResponseField>
 
-<ParamField path="refetch">
+<ResponseField name="refetch" type="() => Promise<void>">
   <Expandable title="Refetch the notifications list">
-    <ParamField path="returns" type="Promise&lt;void&gt;">
+    <ResponseField name="returns" type="Promise<void>">
       Resolves when the notifications list is refetched
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="loadMore">
+<ResponseField name="loadMore" type="() => Promise<void>">
   <Expandable title="Load more notifications">
-    <ParamField path="returns" type="Promise&lt;void&gt;">
+    <ResponseField name="returns" type="Promise<void>">
       Resolves when more notifications are loaded
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="markAsRead">
+<ResponseField name="markAsRead" type="(notificationId: string) => Promise<void>">
   <Expandable title="Mark a notification as read">
     <ParamField path="notificationId" type="string">
       The ID of the notification to mark as read
     </ParamField>
-    <ParamField path="returns" type="Promise<void>">
+    <ResponseField name="returns" type="Promise<void>">
       Resolves when the notification is marked as read
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="markAsUnread">
+<ResponseField name="markAsUnread" type="(notificationId: string) => Promise<void>">
   <Expandable title="Mark a notification as unread">
     <ParamField path="notificationId" type="string">
       The ID of the notification to mark as unread
     </ParamField>
-    <ParamField path="returns" type="Promise<void>">
+    <ResponseField name="returns" type="Promise<void>">
       Resolves when the notification is marked as unread
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="markAllAsRead">
+<ResponseField name="markAllAsRead" type="() => Promise<void>">
   <Expandable title="Mark all notifications as read">
-    <ParamField path="returns" type="Promise&lt;void&gt;">
+    <ResponseField name="returns" type="Promise<void>">
       Resolves when all notifications are marked as read
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="archiveAllRead">
+<ResponseField name="archiveAllRead" type="() => Promise<void>">
   <Expandable title="Archive all read notifications">
-    <ParamField path="returns" type="Promise&lt;void&gt;">
+    <ResponseField name="returns" type="Promise<void>">
       Resolves when all read notifications are archived
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="archiveNotification">
+<ResponseField name="archiveNotification" type="(notificationId: string) => Promise<void>">
   <Expandable title="Archive a notification">
     <ParamField path="notificationId" type="string">
       The ID of the notification to archive
     </ParamField>
-    <ParamField path="returns" type="Promise<void>">
+    <ResponseField name="returns" type="Promise<void>">
       Resolves when the notification is archived
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="starNotification">
+<ResponseField name="starNotification" type="(notificationId: string) => Promise<void>">
   <Expandable title="Star a notification">
     <ParamField path="notificationId" type="string">
       The ID of the notification to star
     </ParamField>
-    <ParamField path="returns" type="Promise<void>">
+    <ResponseField name="returns" type="Promise<void>">
       Resolves when the notification is starred
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
 ```tsx
 import { useNotifications } from "@wacht/react-router";

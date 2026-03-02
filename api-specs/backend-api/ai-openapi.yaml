@@ -852,7 +852,9 @@ paths:
           content:
             application/json:
               schema:
-                /ai/knowledge-bases/{kb_id}/documents/{document_id}:
+                type: object
+
+  /ai/knowledge-bases/{kb_id}/documents/{document_id}:
     get:
       summary: Get document by ID
       description: Retrieve a specific document
@@ -1911,6 +1913,26 @@ components:
       type: object
       required:
         - type
+        - agent_name
+        - message
+      properties:
+        type:
+          type: string
+          enum: [new_message]
+        agent_name:
+          type: string
+          description: Name of the agent to execute
+          example: "customer-support-agent"
+        message:
+          type: string
+          description: User message to send
+          example: "I need help with my account"
+        files:
+          type: array
+          description: Optional file attachments
+          items:
+            type: object
+            additionalProperties: true
 
     McpServer:
       type: object
@@ -1952,26 +1974,6 @@ components:
                 $ref: '#/components/schemas/McpServer'
           required:
             - data
-        - agent_name
-        - message
-      properties:
-        type:
-          type: string
-          enum: [new_message]
-        agent_name:
-          type: string
-          description: Name of the agent to execute
-          example: "customer-support-agent"
-        message:
-          type: string
-          description: User message to send
-          example: "I need help with my account"
-        files:
-          type: array
-          description: Optional file attachments
-          items:
-            type: object
-            additionalProperties: true
 
     ExecuteAgentUserInputResponse:
       type: object

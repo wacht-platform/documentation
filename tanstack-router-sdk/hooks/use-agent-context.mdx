@@ -9,55 +9,55 @@ The `useAgentContext` hook manages real-time AI agent chat sessions using Server
 
 ## Return Value
 
-<ParamField path="messages" type="ConversationMessage[]">
+<ResponseField name="messages" type="ConversationMessage[]">
   List of conversation messages
-</ParamField>
+</ResponseField>
 
-<ParamField path="quickQuestions" type="string[]">
+<ResponseField name="quickQuestions" type="string[]">
   Suggested quick questions the user can ask
-</ParamField>
+</ResponseField>
 
-<ParamField path="pendingMessage" type="string | null">
+<ResponseField name="pendingMessage" type="string | null">
   The message currently being generated
-</ParamField>
+</ResponseField>
 
-<ParamField path="pendingImages" type="ImageData[] | null">
+<ResponseField name="pendingImages" type="ImageData[] | null">
   Images currently being processed
-</ParamField>
+</ResponseField>
 
-<ParamField path="pendingFiles" type="File[] | null">
+<ResponseField name="pendingFiles" type="File[] | null">
   Files currently being processed
-</ParamField>
+</ResponseField>
 
-<ParamField path="connectionState" type="ConnectionState">
+<ResponseField name="connectionState" type="ConnectionState">
   The current connection state
-</ParamField>
+</ResponseField>
 
-<ParamField path="isConnected" type="boolean">
+<ResponseField name="isConnected" type="boolean">
   Whether the SSE connection is active
-</ParamField>
+</ResponseField>
 
-<ParamField path="isExecuting" type="boolean">
+<ResponseField name="isExecuting" type="boolean">
   Whether the agent is currently executing
-</ParamField>
+</ResponseField>
 
-<ParamField path="executionStatus" type="FrontendStatus">
+<ResponseField name="executionStatus" type="FrontendStatus">
   The current execution status
-</ParamField>
+</ResponseField>
 
-<ParamField path="isWaitingForInput" type="boolean">
+<ResponseField name="isWaitingForInput" type="boolean">
   Whether the agent is waiting for user input
-</ParamField>
+</ResponseField>
 
-<ParamField path="hasMoreMessages" type="boolean">
+<ResponseField name="hasMoreMessages" type="boolean">
   Whether there are more messages to load
-</ParamField>
+</ResponseField>
 
-<ParamField path="isLoadingMore" type="boolean">
+<ResponseField name="isLoadingMore" type="boolean">
   Whether more messages are being loaded
-</ParamField>
+</ResponseField>
 
-<ParamField path="sendMessage">
+<ResponseField name="sendMessage" type="(message: string, attachments?: MessageAttachment[], files?: File[]) => Promise<void>">
   <Expandable title="Send a message to the agent">
     <ParamField path="message" type="string">
       The message content to send
@@ -68,62 +68,62 @@ The `useAgentContext` hook manages real-time AI agent chat sessions using Server
     <ParamField path="files" type="File[]">
       Optional file uploads
     </ParamField>
-    <ParamField path="returns" type="Promise<void>">
+    <ResponseField name="returns" type="Promise<void>">
       Resolves when the message is sent
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="submitUserInput">
+<ResponseField name="submitUserInput" type="(input: string) => Promise<void>">
   <Expandable title="Submit user input when requested">
     <ParamField path="input" type="string">
       The user input value
     </ParamField>
-    <ParamField path="returns" type="Promise<void>">
+    <ResponseField name="returns" type="Promise<void>">
       Resolves when the input is submitted
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="clearMessages">
+<ResponseField name="clearMessages" type="() => void">
   <Expandable title="Clear all messages">
-    <ParamField path="returns" type="void">
+    <ResponseField name="returns" type="void">
       No return value
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="loadMoreMessages">
+<ResponseField name="loadMoreMessages" type="() => Promise<void>">
   <Expandable title="Load more messages from history">
-    <ParamField path="returns" type="Promise&lt;void&gt;">
+    <ResponseField name="returns" type="Promise<void>">
       Resolves when more messages are loaded
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="cancelExecution">
+<ResponseField name="cancelExecution" type="() => Promise<void>">
   <Expandable title="Cancel the current execution">
-    <ParamField path="returns" type="Promise&lt;void&gt;">
+    <ResponseField name="returns" type="Promise<void>">
       Resolves when the execution is cancelled
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="connect">
+<ResponseField name="connect" type="() => void">
   <Expandable title="Manually connect the SSE stream">
-    <ParamField path="returns" type="void">
+    <ResponseField name="returns" type="void">
       No return value
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="disconnect">
+<ResponseField name="disconnect" type="() => void">
   <Expandable title="Manually disconnect the SSE stream">
-    <ParamField path="returns" type="void">
+    <ResponseField name="returns" type="void">
       No return value
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
 ```tsx
 import { useAgentContext } from "@wacht/tanstack-router";
@@ -344,5 +344,4 @@ Features:
 
 ## Related
 
-- [useAgentSession](./use-agent-session) - Agent session management
 - [useAgentIntegrations](./use-agent-integrations) - Agent integrations

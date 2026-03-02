@@ -1,49 +1,63 @@
 ---
 title: 'Configuration'
-description: 'Environment and programmatic configuration for wacht-rs.'
+description: 'Set up the WachtClient using environment variables or programmatic configuration.'
 ---
 
-## Environment-driven config
+The Wacht SDK requires configuration to connect to your specific deployment and authenticate its requests. This includes your Secret API Key and your Frontend API URL (which can usually be derived automatically).
 
-`WachtConfig::from_env()` requires:
+You can configure the SDK using environment variables (recommended for most server applications) or by explicitly constructing the configuration in code.
 
-- `WACHT_API_KEY`
-- one of:
-  - `WACHT_FRONTEND_HOST`
-  - `WACHT_PUBLISHABLE_KEY` (derived automatically)
+## Environment-Based Configuration
 
-Optional:
-
-- `WACHT_PUBLIC_SIGNING_KEY`
-
-## Programmatic config
-
-```rust
-use wacht::{WachtClient, WachtConfig};
-
-let config = WachtConfig::new(
-    "wk_live_xxx",
-    "https://your-deployment.fapi.trywacht.xyz",
-);
-
-let client = WachtClient::new(config)?;
-```
-
-## Environment config example
+The easiest way to initialize the `WachtClient` is to use `from_env()`. This method reads the standard Wacht environment variables and builds the client automatically.
 
 ```rust
 use wacht::WachtClient;
 
-let client = WachtClient::from_env().await?;
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Automatically reads WACHT_API_KEY and WACHT_PUBLISHABLE_KEY from the environment
+    let client = WachtClient::from_env().await?;
+    
+    // The client is now ready to use
+    let webhooks = client.webhooks().list_webhook_apps().send().await?;
+    
+    Ok(())
+}
 ```
 
-## Public key behavior
+When using `from_env()`, the SDK expects the following environment variables to be set:
 
-- If `WACHT_PUBLIC_SIGNING_KEY` is present, it is used directly.
-- Otherwise `load_public_key()` can fetch from `/.well-known/jwk` on the frontend host.
+1. `WACHT_API_KEY` (Required): Your secret backend API key, starting with `wk_test_` or `wk_live_`.
+2. `WACHT_PUBLISHABLE_KEY` (Required): Your publishable key, starting with `pk_test_` or `pk_live_`. The SDK uses this to automatically derive your Frontend API URL.
+   * *Alternatively, you can provide `WACHT_FRONTEND_HOST` directly.*
+
+## Programmatic Configuration
+
+If you manage your secrets using a vault, a configuration manager, or you need to instantiate multiple clients for different deployments, you can construct the `WachtConfig` explicitly.
 
 ```rust
-use wacht::WachtConfig;
+use wacht::{WachtClient, WachtConfig};
 
-let config = WachtConfig::from_env()?.load_public_key().await?;
+fn setup_client(api_key: &str, publishable_key: &str) -> Result<WachtClient, Box<dyn std::error::Error>> {
+    // Manually construct the configuration
+    let config = WachtConfig::new(api_key, publishable_key);
+    
+    // Initialize the client
+    let client = WachtClient::new(config)?;
+    
+    Ok(client)
+}
 ```
+
+## Public Key Verification
+
+When verifying JWT session tokens (e.g., in a middleware layer), the SDK needs the deployment's public signing key. 
+
+By default, the `WachtClient` will lazily fetch and cache the JSON Web Key Set (JWKS) from your Frontend Host (`/.well-known/jwks.json`) the first time it needs to verify a token.
+
+### Hardcoding the Public Key
+
+In serverless environments or if you want to avoid the initial HTTP request to fetch the JWKS, you can provide the public key ahead of time using the `WACHT_PUBLIC_SIGNING_KEY` environment variable.
+
+If `WACHT_PUBLIC_SIGNING_KEY` is present in the environment (formatted as a PEM key), `WachtClient::from_env()` will automatically load and use it for all token verifications, completely bypassing the network fetch.

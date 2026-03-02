@@ -1,46 +1,65 @@
 ---
-title: OrganizationSwitcher
-description: A dropdown component for switching between organizations and workspaces.
+title: '<OrganizationSwitcher />'
+description: 'An interactive dropdown enabling users to seamlessly switch between their active organizations.'
 ---
 
-# OrganizationSwitcher
+# `<OrganizationSwitcher />`
 
-Dropdown menu for switching between organizations and workspaces. Also allows creating new organizations and workspaces.
+The `<OrganizationSwitcher />` is the cornerstone UI component for any B2B, multi-tenant application built on Wacht. It provides users with a clean, interactive dropdown menu to rapidly switch their active context between different organizations they belong to.
+
+Additionally, it serves as an intuitive portal for users to create brand new organizations or accept pending group invites directly from the interface.
+
+## Import
 
 ```tsx
 import { OrganizationSwitcher } from "@wacht/nextjs";
+```
 
-export default function Layout() {
+## Usage
+
+You will typically place this component adjacent to the `<UserButton />` in your application's primary navigation header.
+
+```tsx
+import { OrganizationSwitcher, UserButton } from "@wacht/nextjs";
+
+export function NavigationBar() {
   return (
-    <header>
-      <OrganizationSwitcher />
-    </header>
+    <nav className="flex items-center gap-4 py-3 px-6 bg-white border-b border-zinc-200 shadow-sm">
+      <div className="flex-1 font-bold tracking-tight text-zinc-900">
+        Acme SaaS
+      </div>
+      
+      <div className="flex items-center gap-3">
+        {/* Controls the active B2B tenant for the session */}
+        <OrganizationSwitcher />
+        
+        {/* Manages the individual user identity */}
+        <UserButton />
+      </div>
+    </nav>
   );
 }
 ```
 
-## Hide Personal Account
+## The "Context Switch" Architecture
 
-```tsx
-<OrganizationSwitcher showPersonal={false} />
-```
+When a user selects a different organization from the dropdown, it isn't just updating a piece of state—Wacht executes a highly complex "Context Switch" behind the scenes:
 
-## Features
+1. **Session Update**: The global Wacht session locally updates the `activeOrganizationId`.
+2. **Token Minting**: The SDK immediately connects to the Wacht backend to fetch a fresh JWT session token. This new token contains the user's specific RBAC (Role-Based Access Control) permissions strictly scoped to the *newly* selected organization.
+3. **Reactivity**: Any React components or data-fetching libraries (like SWR or Apollo) that hook into Wacht's session state will automatically re-render or re-validate. This guarantees that your application never accidentally bleeds data between tenants.
 
-- Organization and workspace lists with active indicators
-- Create organization and workspace options
-- Manage and leave organization options
-- Eligibility restriction warnings
+## Conditional Rendering
 
-## Params
+The `<OrganizationSwitcher />` is intelligent. If the currently authenticated user is not a member of *any* organizations, the component gracefully declines to mount and remains invisible. 
 
-<ParamField path="showPersonal" type="boolean" default="true">
-Whether to show the "Personal account" option.
-</ParamField>
+Because of this, you should ensure you provide a dedicated onboarding pathway—such as rendering a `<CreateOrganizationForm />` on an empty dashboard—so brand new users can establish their first organizational context.
 
-## Related
+## Building a Custom Switcher Interface
 
-- [CreateOrganizationForm](./create-organization-form) - Create organization form
-- [CreateWorkspaceForm](./create-workspace-form) - Create workspace form
-- [useOrganizationList](../hooks/use-organization-list) - Organization list hook
-- [useActiveOrganization](../hooks/use-active-organization) - Active organization hook
+If you are a power user utilizing advanced UI libraries (like Radix UI or shadcn/ui) and need deeper control over the dropdown animations, items, or layout, you can bypass this pre-built component entirely.
+
+Instead, interface directly with our underlying tenency hooks:
+
+- [Read the `useOrganizationList` Hook Reference](../hooks/use-organization-list)
+- [Read the `useActiveOrganization` Hook Reference](../hooks/use-active-organization)

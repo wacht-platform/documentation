@@ -1,49 +1,42 @@
 ---
-title: NavigateToSignIn
-description: Automatically navigates to the sign-in page when rendered.
+title: '<NavigateToSignIn />'
+description: 'A utility component that triggers an immediate client-side redirect to your designated Sign In route.'
 ---
 
-# NavigateToSignIn
+# `<NavigateToSignIn />`
 
-Automatically navigates the user to the sign-in page when rendered. Uses the `navigateToSignIn` function from `useNavigation` and respects the `redirect_uri` query parameter if present.
+The `<NavigateToSignIn />` component is a functional utility designed exclusively for routing. It does not render any visible user interface or DOM elements. 
+
+The exact moment this component is mounted into your React tree, it executes an immediate, client-side redirect, shuttling the user to the specific Sign In page configured in your deployment settings.
+
+## Import
 
 ```tsx
 import { NavigateToSignIn } from "@wacht/tanstack-router";
-
-export default function ProtectedPage() {
-  return <NavigateToSignIn />;
-}
 ```
 
-## Protected Route
+## Usage
+
+This utility is exceptionally useful as a "fallback" return value inside deeply nested layout boundaries, or when you need to forcibly clear an invalid session without writing tedious, imperative `useEffect` routing logic.
 
 ```tsx
-import { SignedIn, NavigateToSignIn } from "@wacht/tanstack-router";
+import { NavigateToSignIn, useSession } from "@wacht/tanstack-router";
 
-export default function Dashboard() {
-  return (
-    <>
-      <SignedIn>
-        <DashboardContent />
-      </SignedIn>
-      <NavigateToSignIn />
-    </>
-  );
+export function GuardedAdminDashboard({ children }: { children: React.ReactNode }) {
+  const { loading, session } = useSession();
+
+  // 1. Wait for the SDK to parse the HTTP cookies natively
+  if (loading) {
+    return <div className="animate-pulse h-screen w-full bg-zinc-100 flex items-center justify-center">Loading...</div>;
+  }
+  
+  // 2. If the user isn't authenticated, trigger the redirect instantly 
+  // simply by returning this component instead of the page markup.
+  if (!session) {
+    return <NavigateToSignIn />;
+  }
+
+  // 3. User is authenticated, safe to render the dashboard
+  return <div className="dashboard-layout">{children}</div>;
 }
 ```
-
-## Redirect URL
-
-After successful sign-in, the user is redirected to:
-
-1. The URL specified in `redirect_uri` query parameter (if present)
-2. The `after_signin_redirect_url` deployment setting
-3. The deployment's frontend host (fallback)
-
-The `redirect_uri` parameter allows you to control where users land after completing sign-in. For example, navigating to `/signin?redirect_uri=/dashboard` will bring users to `/dashboard` after sign-in completes.
-
-## Related
-
-- [NavigateToSignUp](./navigate-to-sign-up) - Navigate to sign-up
-- [useNavigation](../hooks/use-navigation) - Navigation utilities
-- [SignedIn](./signed-in) - Conditional rendering

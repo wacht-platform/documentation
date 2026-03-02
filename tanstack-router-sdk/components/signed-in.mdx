@@ -1,50 +1,63 @@
 ---
-title: SignedIn
-description: Conditionally render children only when the user is signed in.
+title: '<SignedIn />'
+description: 'A declarative render boundary that exclusively mounts its children for authenticated users.'
 ---
 
-# SignedIn
+# `<SignedIn />`
 
-Conditionally renders its children only when a user is authenticated. Returns `null` during loading or if no active session exists.
+The `<SignedIn />` component offers a clean, declarative abstraction over session state. It acts strictly as a structural render boundary: it completely prevents its React children from mounting into the DOM unless the current user has a valid, active session.
+
+## Import
 
 ```tsx
 import { SignedIn } from "@wacht/tanstack-router";
-
-export default function Dashboard() {
-  return (
-    <SignedIn>
-      <h1>Welcome!</h1>
-      <p>This content is only visible to signed-in users.</p>
-    </SignedIn>
-  );
-}
 ```
 
-## Protected Route
+## Usage
+
+You should utilize `<SignedIn />` in global layouts, headers, or marketing pages where specific UI elements—like the `<UserButton />`, a "Go to Dashboard" link, or premium features—should only be visible to logged-in users. 
+
+Using this component is vastly cleaner and more readable than writing verbose ternary operators by manually inspecting the `useSession` hook.
 
 ```tsx
-import { SignedIn, NavigateToSignIn } from "@wacht/tanstack-router";
+import { SignedIn, SignedOut, UserButton } from "@wacht/tanstack-router";
+import { Link } from "@tanstack/react-router";
 
-export default function ProtectedPage() {
+export function TopNav() {
   return (
-    <>
-      <SignedIn>
-        <ProtectedContent />
-      </SignedIn>
-      <NavigateToSignIn />
-    </>
+    <nav className="flex justify-between items-center p-4 border-b border-zinc-200">
+      <div className="font-bold tracking-tight text-xl">Acme</div>
+      
+      <div className="flex gap-4 items-center">
+        {/* 
+          These elements ONLY mount if the user is authenticated.
+        */}
+        <SignedIn>
+          <Link to="/dashboard" className="text-sm font-medium hover:underline text-zinc-700">
+            Dashboard
+          </Link>
+          <UserButton />
+        </SignedIn>
+        
+        {/* 
+          These elements ONLY mount if the user is anonymous.
+        */}
+        <SignedOut>
+          <Link to="/sign-in" className="px-4 py-2 border rounded-md hover:bg-zinc-50 font-medium">
+            Log in
+          </Link>
+          <Link to="/sign-up" className="px-4 py-2 bg-zinc-900 text-white rounded-md hover:bg-zinc-800 font-medium tracking-wide">
+            Get Started
+          </Link>
+        </SignedOut>
+      </div>
+    </nav>
   );
 }
 ```
 
-## Params
+## Security Note
 
-<ParamField path="children" type="ReactNode">
-Content to render when signed in.
-</ParamField>
+The `<SignedIn />` component is specifically designed for UI manipulation and visual decluttering. **It is not a security gateway.** 
 
-## Related
-
-- [SignedOut](./signed-out) - Render when user is signed out
-- [useSession](../hooks/use-session) - Access session data
-- [NavigateToSignIn](./navigate-to-sign-in) - Auto-navigate to sign-in
+To secure sensitive dashboard routes, you must still configure route protection at the router configuration boundary or implement explicit server-side authorization checks using Wacht's backend SDK. Never rely solely on client-side rendering boundaries to protect sensitive data.

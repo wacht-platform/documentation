@@ -1,76 +1,53 @@
 ---
-title: CreateWorkspaceForm
-description: A form for creating a new workspace within an organization.
+title: '<CreateWorkspaceForm />'
+description: 'A clean UI interface for creating Workspaces—isolated sub-environments nested within an Organization.'
 ---
 
-# CreateWorkspaceForm
+# `<CreateWorkspaceForm />`
 
-Form for creating new workspaces with organization selection and image upload support.
+The `<CreateWorkspaceForm />` provides an intuitive interface for users to generate "Workspaces". 
+
+In Wacht's architecture, Workspaces represent the second, deeper level of multi-tenancy. They are strictly bound to a parent Organization. They are designed for segmenting distinct projects, deployment environments (e.g., separating "Staging" from "Production" resources), or isolating internal departmental domains for a single B2B customer.
+
+## Import
 
 ```tsx
 import { CreateWorkspaceForm } from "@wacht/nextjs";
-
-export default function NewWorkspacePage() {
-  return <CreateWorkspaceForm />;
-}
 ```
 
-## With Pre-selected Organization
+## Important: Organizational Dependency
+
+Because Workspaces are innately nested underneath Organizations, **this component requires an active organization to be set in the user's session context**. 
+
+If an organization is not currently active, rendering this component will intentionally throw a runtime error. This design prevents the creation of "orphaned" workspaces that lack a parent entity.
+
+## Usage
+
+Wrap the component in a guardrail (like `<RequireActiveTenancy />`) to guarantee it only mounts when a valid parent organization is present in the session.
 
 ```tsx
-import { CreateWorkspaceForm } from "@wacht/nextjs";
+import { CreateWorkspaceForm, RequireActiveTenancy } from "@wacht/nextjs";
 
-export default function NewWorkspacePage() {
-  return <CreateWorkspaceForm organizationId="org_123" />;
-}
-```
-
-## With Callbacks
-
-```tsx
-import { CreateWorkspaceForm } from "@wacht/nextjs";
-import { useNavigate } from "react-router";
-
-export default function NewWorkspacePage() {
-  const navigate = useNavigate();
-
+export default function NewProjectModal() {
   return (
-    <CreateWorkspaceForm
-      onSuccess={() => navigate("/workspaces")}
-      onCancel={() => navigate(-1)}
-    />
+    <div className="p-8 bg-white border border-zinc-200 rounded-2xl shadow-xl max-w-lg w-full">
+      <div className="mb-6 border-b pb-4">
+        <h3 className="text-xl font-bold text-zinc-900 tracking-tight">Initialize Workspace</h3>
+        <p className="text-sm text-zinc-500 mt-1">Create an isolated environment for your project resources.</p>
+      </div>
+      
+      {/* 
+        Strict boundary: the fallback UI renders if the user 
+        somehow bypassed selecting an organization.
+      */}
+      <RequireActiveTenancy fallback={
+        <div className="p-4 bg-amber-50 text-amber-800 rounded-lg text-sm font-medium">
+          You must select an organization before creating a workspace.
+        </div>
+      }>
+        <CreateWorkspaceForm />
+      </RequireActiveTenancy>
+    </div>
   );
 }
 ```
-
-## Form Fields
-
-- **Organization Selector** - Dropdown to select organization (required if not pre-selected)
-- **Workspace Logo** - Image upload (max 2MB, PNG/JPEG/GIF)
-- **Workspace Name** - Required, 2-100 characters
-- **Description** - Optional, max 500 characters
-
-The organization dropdown shows all organizations the user is a member of (with restricted ones disabled) plus a "Create new organization" option.
-
-## Params
-
-<ParamField path="organizationId" type="string">
-Pre-selected organization ID.
-</ParamField>
-
-<ParamField path="onSuccess" type="(workspace?: any) => void">
-Callback called after successful creation.
-</ParamField>
-
-<ParamField path="onCancel" type="() => void">
-Callback called when user cancels.
-</ParamField>
-
-<ParamField path="onCreateOrganization" type="() => void">
-Callback when user clicks "Create new organization".
-</ParamField>
-
-## Related
-
-- [useWorkspaceList](../hooks/use-workspace-list) - Workspace management hook
-- [CreateOrganizationForm](./create-organization-form) - Create organization form

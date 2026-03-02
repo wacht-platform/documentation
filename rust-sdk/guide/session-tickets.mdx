@@ -12,13 +12,12 @@ Session tickets provide a secure way to grant temporary access for impersonation
 Before using any API methods, you must initialize the SDK:
 
 ```rust
-use wacht::init_from_env;
+use wacht::WachtClient;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Initialize from environment variables
-    // Requires: WACHT_API_KEY and WACHT_FRONTEND_HOST
-    init_from_env().await?;
+    // Initialize the client with an API key
+    let client = WachtClient::new("wk_live_...");
 
     // Now you can use the API
     Ok(())
@@ -43,10 +42,12 @@ The SDK supports four ticket types:
 Allow an admin to impersonate another user:
 
 ```rust
-use wacht::api::session::{create, TicketType};
-use wacht::models::CreateSessionTicketRequest;
+use wacht::WachtClient;
+use wacht::models::{CreateSessionTicketRequest, TicketType};
 
-let response = create(
+let client = WachtClient::new("wk_live_...");
+
+let response = client.session().create(
     CreateSessionTicketRequest::impersonation("user_123")
 )
 .send()
@@ -61,10 +62,12 @@ println!("Expires at: {}", response.expires_at);
 Grant access to specific AI agents with a context group:
 
 ```rust
-use wacht::api::session::{create, TicketType};
-use wacht::models::CreateSessionTicketRequest;
+use wacht::WachtClient;
+use wacht::models::{CreateSessionTicketRequest, TicketType};
 
-let response = create(
+let client = WachtClient::new("wk_live_...");
+
+let response = client.session().create(
     CreateSessionTicketRequest::agent_access(
         vec!["agent_1".to_string(), "agent_2".to_string()],
         "support-agents"
@@ -81,10 +84,12 @@ println!("Ticket: {}", response.ticket);
 Grant access to a webhook app:
 
 ```rust
-use wacht::api::session::{create, TicketType};
-use wacht::models::CreateSessionTicketRequest;
+use wacht::WachtClient;
+use wacht::models::{CreateSessionTicketRequest, TicketType};
 
-let response = create(
+let client = WachtClient::new("wk_live_...");
+
+let response = client.session().create(
     CreateSessionTicketRequest::webhook_app_access("payment-webhooks")
 )
 .send()
@@ -98,10 +103,12 @@ println!("Ticket: {}", response.ticket);
 Grant access to an API auth app:
 
 ```rust
-use wacht::api::session::{create, TicketType};
-use wacht::models::CreateSessionTicketRequest;
+use wacht::WachtClient;
+use wacht::models::{CreateSessionTicketRequest, TicketType};
 
-let response = create(
+let client = WachtClient::new("wk_live_...");
+
+let response = client.session().create(
     CreateSessionTicketRequest::api_auth_access("mobile-app")
 )
 .send()
@@ -115,16 +122,18 @@ println!("Ticket: {}", response.ticket);
 Set a custom expiration timestamp (Unix timestamp):
 
 ```rust
-use wacht::api::session::{create, TicketType};
-use wacht::models::CreateSessionTicketRequest;
+use wacht::WachtClient;
+use wacht::models::{CreateSessionTicketRequest, TicketType};
 use std::time::{SystemTime, UNIX_EPOCH};
 
+let client = WachtClient::new("wk_live_...");
+
 let expires_at = SystemTime::now()
-    .duration_since(UNIX_EPOCH)
+    .duration_since(UNIX_POCH)
     .unwrap()
     .as_secs() as i64 + 3600; // 1 hour from now
 
-let response = create(
+let response = client.session().create(
     CreateSessionTicketRequest::impersonation("user_123")
         .expires_at(expires_at)
 )
@@ -222,10 +231,12 @@ The response varies by ticket type:
 ## Error Handling
 
 ```rust
-use wacht::{Error, api::session};
-use wacht::models::CreateSessionTicketRequest;
+use wacht::{Error, WachtClient};
+use wacht::models::{CreateSessionTicketRequest, TicketType};
 
-match session::create(
+let client = WachtClient::new("wk_live_...");
+
+match client.session().create(
     CreateSessionTicketRequest::impersonation("invalid_user")
 )
 .send()

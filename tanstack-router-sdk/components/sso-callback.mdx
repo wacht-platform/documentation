@@ -1,53 +1,54 @@
 ---
-title: SSOCallback
-description: Handles OAuth/SSO callbacks from external identity providers.
+title: '<SSOCallback />'
+description: 'A required utility component that securely processes OAuth and SAML redirects.'
 ---
 
-# SSOCallback
+# `<SSOCallback />`
 
-Handles OAuth and SSO callbacks from external identity providers like Google, GitHub, and enterprise SAML providers.
+The `<SSOCallback />` component is the crucial final puzzle piece of any social OAuth (Google, GitHub) or enterprise SAML Single Sign-On flow. 
 
-Create a route for the OAuth callback that matches your redirect URI configured in the Wacht dashboard:
+When a user initiates a login via a third-party Identity Provider (IdP), they are temporarily redirected away from your application to authenticate. Upon success, that provider deflects them back to a specific route in your application, appending a highly sensitive, short-lived authorization code into the URL parameters. 
+
+This component's entire job is to capture that temporary code, cryptographically verify it directly with the Wacht backend, and securely establish the browser session.
+
+## Import
 
 ```tsx
 import { SSOCallback } from "@wacht/tanstack-router";
+```
 
-export default function SSOCallbackPage() {
-  return <SSOCallback />;
+## Usage
+
+You **must** mount this component on the exact, dedicated route that you have configured as your "OAuth Callback URI" within the Wacht Dashboard. For the vast majority of applications, this is simply `/sso-callback`.
+
+While the component is actively processing the network requests (which typically takes ~500ms depending on network latency), it automatically renders a sleek, centered loading spinner to assure the user that work is happening.
+
+```tsx
+import { SSOCallback } from "@wacht/tanstack-router";
+import { createFileRoute } from '@tanstack/react-router';
+
+export const Route = createFileRoute('/sso-callback')({
+  component: CallbackRoute,
+});
+
+function CallbackRoute() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-zinc-50">
+      {/* 
+        This component natively parses the ?code= or ?state= URL params.
+        No manual useEffect data fetching is required.
+      */}
+      <SSOCallback />
+    </div>
+  );
 }
 ```
 
-## Behavior
+## Internal Mechanism
 
-1. Reads OAuth callback parameters from the URL (`code`, `state`, `error`)
-2. Validates the OAuth state parameter
-3. Calls the appropriate backend endpoint to complete the flow
-4. Handles errors (access denied, invalid state, etc.) with an error message banner
-5. Redirects to the appropriate page after completion
+It is helpful to understand what is happening under the hood when this component mounts on the client:
 
-The state parameter supports:
-- **sign_in** - Standard sign-in flow
-- **connect_social** - Connecting a social account to an existing user
-
-## Query Parameters
-
-<ParamField path="code" type="string">
-OAuth authorization code.
-</ParamField>
-
-<ParamField path="state" type="string">
-OAuth state parameter (base64 encoded).
-</ParamField>
-
-<ParamField path="error" type="string">
-OAuth error code.
-</ParamField>
-
-<ParamField path="error_description" type="string">
-OAuth error description.
-</ParamField>
-
-## Related
-
-- [useSSOCallback](../hooks/use-sso-callback) - SSO callback hook
-- [SignInForm](./sign-in-form) - Sign-in form with social login
+1. **Parameter Extraction**: It parses the `?code=`, `?state=`, or `?token=` parameters cleanly from the `window.location`.
+2. **Key Exchange**: It initiates a secure POST request to the Wacht Frontend API to exchange the short-lived credential for a long-lived JWT session token.
+3. **Session Establishment**: It provisions a first-party HTTP cookie locally.
+4. **Deflection**: It executes a seamless client-side redirect back to the application dashboard (or wherever the `?redirect_uri=` pointed).

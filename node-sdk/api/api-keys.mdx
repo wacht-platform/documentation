@@ -1,0 +1,149 @@
+---
+title: API Keys API
+description: Provision and manage programmatic API Keys for external developers and B2B integrations.
+---
+
+# API Keys API
+
+The `apiKeys` module allows your backend to act as an identity provider for *other* applications. Using this module, you can programmatically provision and manage API Keys that your users can then use to authenticate against your own public APIs.
+
+*Note: These are keys you issue to your customers, not the key you use to authenticate the `@wacht/backend` SDK.*
+
+```typescript
+import { WachtClient } from "@wacht/backend";
+
+const client = new WachtClient({ apiKey: process.env.WACHT_API_KEY });
+```
+
+## API Auth Apps
+
+Before you can issue API Keys, you must define an **API Auth App**. An App defines the capabilities, rate limits, and contextual boundaries for the keys issued underneath it.
+
+### `createApiAuthApp(request)`
+Create a new category of API keys.
+
+```typescript
+const app = await client.apiKeys.createApiAuthApp({
+  name: "Acme public API V2",
+  slug: "acme-v2",
+  permissions: ["read:data", "write:data"],
+  rate_limit_scheme_slug: "standard_tier",
+  organization_id: "org_abc123" // Keys will be scoped to this org
+});
+```
+
+<ParamField path="request" type="CreateApiAuthAppRequest" required>
+  <Expandable title="properties">
+    <ParamField path="name" type="string" required>
+      The functional display name of the Auth App.
+    </ParamField>
+    <ParamField path="slug" type="string" required>
+      A URL-friendly identifier.
+    </ParamField>
+    <ParamField path="permissions" type="string[]">
+      A list of RBAC permission scopes available to these keys.
+    </ParamField>
+    <ParamField path="rate_limit_scheme_slug" type="string">
+      The specific rate-limit configuration scheme allocated to these keys.
+    </ParamField>
+    <ParamField path="organization_id" type="string">
+      An optional organization bound to this app.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+
+### `listApiAuthApps()`
+List the active API configurations in your environment.
+
+```typescript
+const apps = await client.apiKeys.listApiAuthApps();
+```
+
+- `client.apiKeys.getApiAuthApp(appName)`
+- `client.apiKeys.updateApiAuthApp(appName, request)`
+- `client.apiKeys.deleteApiAuthApp(appName)`
+
+## Provisioning Keys
+
+API Keys are provisions *underneath* a specific App. 
+
+### `createApiKey(appName, request)`
+Generates a new secure API key. **This is the only time the full secret key (`wk_live_...`) is returned.** Record it carefully.
+
+```typescript
+const keyRecord = await client.apiKeys.createApiKey("acme-v2", {
+  name: "Production Backend Key",
+  owner_user_id: "usr_abc123" // The developer who owns this key
+});
+
+// Send this once to the user to store in their .env
+console.log(keyRecord.secret); 
+```
+
+<ParamField path="appName" type="string" required>
+  The parent API Auth App's name or slug.
+</ParamField>
+
+<ParamField path="request" type="CreateApiKeyRequest" required>
+  <Expandable title="properties">
+    <ParamField path="name" type="string" required>
+      A friendly display name for the individual API key.
+    </ParamField>
+    <ParamField path="owner_user_id" type="string" required>
+      The developer User ID inheriting ownership of this programmatic key.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### `listApiKeys(appName)`
+Retrieve metadata about all keys provisioned under an app (but never the secrets themselves).
+
+```typescript
+const keys = await client.apiKeys.listApiKeys("acme-v2");
+```
+
+<ParamField path="appName" type="string" required>
+  The parent App slug whose keys you wish to list.
+</ParamField>
+
+## Rotating and Revoking
+
+API Keys are critical security credentials. If a customer accidentally leaks a key, it must be neutralized.
+
+### `revokeApiKey(request)`
+Instantly invalidates the key. Any requests made to your API (validated via `gateway.verifyApiKeyRequest`) using this key will immediately return HTTP 403.
+
+```typescript
+await client.apiKeys.revokeApiKey({
+  api_key_id: "key_xyz789"
+});
+```
+
+<ParamField path="request" type="RevokeApiKeyRequest" required>
+  <Expandable title="properties">
+    <ParamField path="api_key_id" type="string" required>
+      The tracking string ID targeting the leaked access key.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### `rotateApiKey(request)`
+Generates a new secret for an existing key identity, instantly invalidating the old one.
+
+```typescript
+const rotated = await client.apiKeys.rotateApiKey({
+  api_key_id: "key_xyz789"
+});
+
+// Provide the new secret to the developer
+console.log(rotated.secret);
+```
+
+<ParamField path="request" type="RotateApiKeyRequest" required>
+  <Expandable title="properties">
+    <ParamField path="api_key_id" type="string" required>
+      The tracking string ID targeting the compromised access key to regenerate.
+    </ParamField>
+  </Expandable>
+</ParamField>

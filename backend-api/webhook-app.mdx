@@ -1,361 +1,80 @@
-# Webhook App (Frontend API)
+---
+title: "Webhook Apps"
+description: "Allow your users to subscribe to webhook events emitted by your platform."
+---
 
-The Webhook App endpoints allow authenticated users to manage webhook endpoints, view deliveries, and access analytics. These endpoints require an active webhook app session obtained via session ticket exchange.
+Just as you subscribe to Wacht's webhooks (e.g., to know when a new user signs up), your own B2B customers likely want to subscribe to *your* webhooks (e.g., when a project completes processing).
 
-## Overview
+Wacht provides **Webhook Apps** to act as a robust, fully-managed outward webhook dispatcher for your platform. Wacht handles endpoint management, payload signing, retries with exponential backoff, and delivery analytics.
 
-Webhook Apps provide a way to send webhooks to external systems. The frontend API endpoints allow users with an active session to:
+## Core Concepts
 
-- View their current webhook app session
-- Manage webhook endpoints (CRUD operations)
-- View and replay webhook deliveries
-- Access analytics and statistics
+When you create a Webhook App within a Wacht deployment, it acts as a container for your customers' endpoints. 
 
-## Authentication
+1. **You define a Catalog**: Using the Wacht backend, you declare a static list of events your platform can emit (e.g., `invoice.paid`, `report.generated`).
+2. **Customers create Endpoints**: Customers provide destination URLs and subscribe to specific events from your catalog.
+3. **You dispatch Events**: Your backend sends a single API call to Wacht containing the event data.
+4. **Wacht handles Delivery**: Wacht fans out the webhook to all subscribed endpoints, applying HMAC signatures and managing failure retries automatically.
 
-All endpoints require:
-1. An active user session (cookie-based)
-2. An active webhook app session (obtained via `POST /session/ticket/exchange` with a `webhook_app_access` ticket)
+## Implementing a Webhook Portal
 
-## Endpoints
+Allowing your users to manage their webhook endpoints requires a secure handoff mechanism so your frontend can communicate with Wacht on the user's behalf. 
 
-### Session
+Similar to API Keys, Wacht handles this using a [Session Ticket Exchange](/backend-api/session-tickets):
 
-#### Get Current Session
+1. The User wants to manage their Webhook endpoints in your frontend UI.
+2. Your frontend requests an access ticket from your backend.
+3. Your backend creates a `webhook_app_access` Ticket using its Secret API Key and passes it back.
+4. Your frontend "exchanges" the ticket with the Wacht Frontend API to receive an elevated session.
 
-```
-GET /webhook/session
-```
+With this elevated session, your frontend interface can query Wacht directly to create, read, update, and delete the user's webhook endpoints without proxying the requests through your own backend.
 
-Returns information about the current webhook app session.
+## Frontend API Highlights
 
-**Response**
+The Wacht Frontend API (`https://api.wacht.dev/v1/webhook`) provides full endpoint management for the user's browser.
 
-```json
-{
-  "session_id": "123456789012345678",
-  "webhook_app": {
-    "deployment_id": "111111111111111111",
-    "app_slug": "payment-webhooks",
-    "name": "Payment Webhooks",
-    "description": "Webhooks for payment events",
-    "signing_secret": "whsec_xxxxxxxxxxxxx",
-    "is_active": true,
-    "created_at": "2024-01-15T10:30:00Z",
-    "updated_at": "2024-01-15T10:30:00Z"
-  }
-}
-```
+### Managing Endpoints
 
-### Endpoints
+Users can configure URLs, add custom headers (like their own authorization strings), and select event subscriptions.
 
-#### List Endpoints
-
-```
-GET /webhook/endpoints
-```
-
-Returns all webhook endpoints for the current app.
-
-#### Create Endpoint
-
-```
+```http
 POST /webhook/endpoints
 ```
-
-**Request Body**
-
 ```json
 {
-  "url": "https://example.com/webhooks",
-  "description": "Production webhook endpoint",
-  "headers": {
-    "X-Custom-Header": "value"
-  },
-  "is_active": true,
-  "max_retries": 5,
-  "timeout_seconds": 30,
-  "subscriptions": ["user.created", "user.updated", "payment.completed"]
+  "url": "https://customer-api.com/incoming-hooks",
+  "description": "Payment Sync",
+  "subscriptions": ["invoice.paid", "invoice.failed"]
 }
 ```
 
-**Parameters**
+Endpoint deliveries automatically fail over. If an endpoint fails to return a `2xx` response code for 10 consecutive attempts (across the exponential backoff curve), Wacht will gracefully disable the endpoint. 
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `url` | string | Yes | Endpoint URL (must be HTTPS) |
-| `description` | string | No | Optional description |
-| `headers` | object | No | Custom headers to send |
-| `is_active` | boolean | No | Enable endpoint (default: true) |
-| `max_retries` | integer | No | Max retry attempts (default: 5) |
-| `timeout_seconds` | integer | No | Request timeout (default: 30) |
-| `subscriptions` | array | No | Event names to subscribe to |
+### Delivery Inspection & Replay
 
-#### Update Endpoint
+Wacht logs every delivery attempt, including the exact headers and bodies sent and received. The frontend API allows your users to inspect these logs to debug their own integrations.
 
-```
-PUT /webhook/endpoints/{id}
-```
+Users can also initiate bulk replays if their target system experienced an outage:
 
-Updates an existing endpoint. All fields are optional.
-
-#### Delete Endpoint
-
-```
-DELETE /webhook/endpoints/{id}
-```
-
-Permanently deletes an endpoint.
-
-#### Test Endpoint
-
-```
-POST /webhook/endpoints/{id}/test
-```
-
-Sends a test payload to the endpoint.
-
-**Request Body**
-
-```json
-{
-  "event_name": "user.created",
-  "payload": "{\"user_id\": \"123\", \"email\": \"test@example.com\"}"
-}
-```
-
-**Response**
-
-```json
-{
-  "success": true,
-  "status_code": 200,
-  "response_body": "{\"received\": true}",
-  "duration_ms": 245
-}
-```
-
-### Events
-
-#### List Event Subscriptions
-
-```
-GET /webhook/events
-```
-
-Returns all event subscriptions across endpoints.
-
-#### Get Event Catalog
-
-```
-GET /webhook/catalog
-```
-
-Returns the available event types and their schemas.
-
-### Deliveries
-
-#### List Deliveries
-
-```
-GET /webhook/deliveries
-```
-
-**Query Parameters**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `limit` | integer | Max results (default: 50) |
-| `offset` | integer | Number to skip |
-| `cursor` | string | Base64-encoded pagination cursor |
-| `status` | string | Filter: `pending`, `success`, `failed`, `retrying` |
-| `event_name` | string | Filter by event name |
-| `endpoint_id` | string | Filter by endpoint ID |
-
-#### Get Delivery Details
-
-```
-GET /webhook/deliveries/{id}
-```
-
-Returns full delivery details including payload and attempt history.
-
-#### Replay Deliveries
-
-```
+```http
 POST /webhook/deliveries/replay
 ```
-
-Creates a task to resend webhook deliveries.
-
-**Request Body**
-
 ```json
 {
-  "delivery_ids": ["123", "456"],
   "start_date": "2024-01-01T00:00:00Z",
-  "end_date": "2024-01-31T23:59:59Z",
-  "event_names": ["user.created"],
-  "endpoint_id": "123456789",
+  "end_date": "2024-01-02T00:00:00Z",
   "status": "failed"
 }
 ```
 
-**Parameters**
+## Security & Payload Verification
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `delivery_ids` | array | Specific delivery IDs to replay |
-| `start_date` | string | Start date for bulk replay |
-| `end_date` | string | End date for bulk replay |
-| `event_names` | array | Filter by event names |
-| `endpoint_id` | string | Filter by endpoint ID |
-| `status` | string | Filter: `failed` or `all` (default: `failed`) |
+When Wacht delivers a webhook to your customer's endpoint, it signs the payload using HMAC-SHA256 based on the unique `signing_secret` assigned to the Webhook App. 
 
-#### List Replay Tasks
+Your customers can verify the signature by inspecting the Wacht signature headers. Users can trigger a secret rotation at any time via the frontend API if they believe their secret has been compromised.
 
-```
-GET /webhook/deliveries/replay
-```
-
-Returns all replay tasks for the webhook app.
-
-#### Get Replay Task Status
-
-```
-GET /webhook/deliveries/replay/{task_id}
-```
-
-Returns the status of a specific replay task.
-
-#### Cancel Replay Task
-
-```
-POST /webhook/deliveries/replay/{task_id}/cancel
-```
-
-Cancels an ongoing replay task.
-
-### Analytics
-
-#### Get Analytics
-
-```
-GET /webhook/analytics
-```
-
-**Query Parameters**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `start_date` | string | Start date (RFC3339) |
-| `end_date` | string | End date (RFC3339) |
-| `endpoint_id` | string | Filter by endpoint ID |
-| `fields` | string | Comma-separated fields to include |
-
-**Response**
-
-```json
-{
-  "total_deliveries": 15000,
-  "successful_deliveries": 14500,
-  "failed_deliveries": 300,
-  "pending_deliveries": 200,
-  "success_rate": 96.67,
-  "avg_delivery_time_ms": 245.5,
-  "deliveries_by_event": {
-    "user.created": 5000,
-    "user.updated": 3000,
-    "payment.completed": 7000
-  }
-}
-```
-
-#### Get Timeseries
-
-```
-GET /webhook/analytics/timeseries
-```
-
-**Query Parameters**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `start_date` | string | Start date (RFC3339) |
-| `end_date` | string | End date (RFC3339) |
-| `interval` | string | Grouping: `minute`, `hour`, `day`, `week` |
-| `endpoint_id` | string | Filter by endpoint ID |
-
-#### Get Stats
-
-```
-GET /webhook/stats
-```
-
-Returns quick stats for the webhook app.
-
-**Response**
-
-```json
-{
-  "total_endpoints": 5,
-  "active_endpoints": 4,
-  "total_deliveries_24h": 1250,
-  "success_rate_24h": 98.5,
-  "pending_deliveries": 15,
-  "failed_deliveries_24h": 18
-}
-```
-
-### Security
-
-#### Rotate Signing Secret
-
-```
+```http
 POST /webhook/rotate-secret
 ```
 
-Generates a new signing secret. The old secret will stop working immediately.
-
-**Response**
-
-Returns the updated webhook app with the new signing secret.
-
-## Webhook Signature Verification
-
-Webhooks are signed using HMAC-SHA256. Verify the signature using the `signing_secret`:
-
-```javascript
-const crypto = require('crypto');
-
-function verifySignature(payload, signature, secret) {
-  const expectedSignature = crypto
-    .createHmac('sha256', secret)
-    .update(payload)
-    .digest('hex');
-
-  return crypto.timingSafeEqual(
-    Buffer.from(signature),
-    Buffer.from(expectedSignature)
-  );
-}
-```
-
-## Retry Behavior
-
-Failed deliveries are automatically retried with exponential backoff:
-
-| Attempt | Delay |
-|---------|-------|
-| 1 | Immediate |
-| 2 | 1 minute |
-| 3 | 5 minutes |
-| 4 | 15 minutes |
-| 5 | 1 hour |
-
-Endpoints are auto-disabled after 10 consecutive failures.
-
-## Related
-
-- [Session Tickets](/backend-api/session-tickets) - Creating webhook app access tickets
-- [Webhooks (Backend API)](/backend-api/webhooks) - Server-side webhook configuration
+This immediately invalidates the old secret and begins signing all new deliveries with the generated secret.

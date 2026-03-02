@@ -1,35 +1,49 @@
 ---
-title: WaitlistForm
-description: A waitlist signup form for when your deployment uses waitlist mode for sign-ups.
+title: '<WaitlistForm />'
+description: 'A seamless email capture interface for Deployments operating in restricted Waitlist Mode.'
 ---
 
-# WaitlistForm
+# `<WaitlistForm />`
 
-Allows users to join a waitlist when your deployment has `sign_up_mode` set to `"waitlist"`. Users without an invitation token are redirected to this form.
+If your application is in a private beta, or if you simply need to temporarily halt new public registrations, you can place your Wacht deployment into **Waitlist Mode** directly from your Wacht Dashboard. 
+
+When this mode is active, the standard `<SignUpForm />` will block new users. Instead, you can utilize the `<WaitlistForm />` to construct a beautiful, friction-free email capture interface that drops prospective users straight into your built-in Wacht CRM waitlist queue.
+
+## Import
+
+```tsx
+import { WaitlistForm } from "@wacht/nextjs";
+```
+
+## Usage
+
+You should prominently drop this component onto your public marketing landing page, or swap it into your `/sign-up` route when operating in closed beta.
 
 ```tsx
 import { WaitlistForm } from "@wacht/nextjs";
 
-export default function WaitlistPage() {
-  return <WaitlistForm />;
+export default function LandingPageHero() {
+  return (
+    <section className="bg-zinc-950 text-white min-h-[70vh] flex flex-col items-center justify-center text-center p-6">
+      <h1 className="text-5xl font-extrabold tracking-tight mb-6 mt-12">
+        The future of infrastructure.
+      </h1>
+      <p className="text-xl text-zinc-400 mb-12 max-w-2xl mx-auto font-medium">
+        We are currently operating in a closed, invite-only beta. Ensure you request access below to secure your spot in line.
+      </p>
+      
+      <div className="w-full max-w-sm mx-auto shadow-2xl rounded-xl border border-zinc-800 bg-zinc-900 p-2">
+        <WaitlistForm />
+      </div>
+    </section>
+  );
 }
 ```
 
-## Form Fields
+## The Magic of Instant Conversion
 
-```typescript
-interface WaitlistParams {
-  first_name?: string;
-  last_name?: string;
-  email: string;
-}
-```
+The true power of utilizing this built-in React component instead of a 3rd-party form provider lies in automatic conversion tracking and onboarding.
 
-First and last name are optional based on deployment settings. Email is always required.
+When you are ready to admit a cohort of users into your application, you can approve them directly from the Wacht Dashboard. The system will automatically dispatch a branded welcome email containing a highly secure, one-time Magic Link. 
 
-After successful submission, shows a success message with confirmation that notification will be sent to the provided email.
-
-## Related
-
-- [SignUpForm](./sign-up-form) - Full sign-up form
-- [useWaitlist](../hooks/use-waitlist) - Waitlist hook
+When the prospective user clicks that link, their waitlist entry is seamlessly converted into a fully verified, authenticated user account—granting them instant access without ever forcing them through a tedious password-creation flow.

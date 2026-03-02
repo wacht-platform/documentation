@@ -9,88 +9,113 @@ The `useActiveWorkspace` hook provides access to the currently active workspace 
 
 ## Return Value
 
-<ParamField path="activeWorkspace" type="Workspace | null">
+<ResponseField name="activeWorkspace" type="Workspace | null">
   The active workspace object
-</ParamField>
+</ResponseField>
 
-<ParamField path="activeMembership" type="WorkspaceMembership | null">
+<ResponseField name="activeMembership" type="WorkspaceMembership | null">
   User's membership in active workspace
-</ParamField>
+</ResponseField>
 
-<ParamField path="loading" type="boolean">
+<ResponseField name="loading" type="boolean">
   Whether data is loading
-</ParamField>
+</ResponseField>
 
-<ParamField path="error" type="Error | null">
+<ResponseField name="error" type="Error | null">
   Any error that occurred
-</ParamField>
+</ResponseField>
 
-<ParamField path="refetch">
+<ResponseField name="refetch" type="() => Promise<void>">
   <Expandable title="Refetch the active workspace">
-    <ParamField path="returns" type="Promise&lt;void&gt;">
+    <ResponseField name="returns" type="Promise<void>">
       Resolves when the active workspace is refetched
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="updateWorkspace">
+<ResponseField name="updateWorkspace" type="(params: Partial<Workspace>) => Promise<Workspace>">
   <Expandable title="Update the active workspace">
-    <ParamField path="params" type="Partial&lt;Workspace&gt;">
+    <ParamField path="params" type="Partial<Workspace>">
       Workspace fields to update
     </ParamField>
-    <ParamField path="returns" type="Promise&lt;Workspace&gt;">
+    <ResponseField name="returns" type="Promise<Workspace>">
       The updated workspace
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="getMembers">
+<ResponseField name="getMembers" type="(options: { page?: number; limit?: number }) => Promise<{ data: WorkspaceMember[]; total: number }>">
   <Expandable title="Get workspace members">
     <ParamField path="options" type="{ page?: number; limit?: number }">
       Pagination options
     </ParamField>
-    <ParamField path="returns" type="Promise&lt;{ data: WorkspaceMember[]; total: number }&gt;">
+    <ResponseField name="returns" type="Promise<{ data: WorkspaceMember[]; total: number }>">
       Paginated list of workspace members
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="getRoles">
+<ResponseField name="getRoles" type="() => Promise<WorkspaceRole[]>">
   <Expandable title="Get workspace roles">
-    <ParamField path="returns" type="Promise<WorkspaceRole[]>">
+    <ResponseField name="returns" type="Promise<WorkspaceRole[]>">
       List of workspace roles
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="leave">
+<ResponseField name="createRole" type="(name: string, permissions: string[]) => Promise<WorkspaceRole>">
+  <Expandable title="Create a workspace role">
+    <ParamField path="name" type="string">
+      The role name
+    </ParamField>
+    <ParamField path="permissions" type="string[]">
+      List of permissions for this role
+    </ParamField>
+    <ResponseField name="returns" type="Promise<WorkspaceRole>">
+      The created role
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="deleteRole" type="(role: WorkspaceRole) => Promise<void>">
+  <Expandable title="Delete a workspace role">
+    <ParamField path="role" type="WorkspaceRole">
+      The role to delete
+    </ParamField>
+    <ResponseField name="returns" type="Promise<void>">
+      Resolves when the role is deleted
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="leave" type="() => Promise<void>">
   <Expandable title="Leave the active workspace">
-    <ParamField path="returns" type="Promise<void>">
+    <ResponseField name="returns" type="Promise<void>">
       Resolves when the user has left the workspace
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="deleteWorkspace">
+<ResponseField name="deleteWorkspace" type="() => Promise<void>">
   <Expandable title="Delete the active workspace">
-    <ParamField path="returns" type="Promise<void>">
+    <ResponseField name="returns" type="Promise<void>">
       Resolves when the workspace is deleted
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="removeMember">
+<ResponseField name="removeMember" type="(memberId: string) => Promise<void>">
   <Expandable title="Remove a member from the workspace">
     <ParamField path="memberId" type="string">
       The member ID to remove
     </ParamField>
-    <ParamField path="returns" type="Promise&lt;void&gt;">
+    <ResponseField name="returns" type="Promise<void>">
       Resolves when the member is removed
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="addMemberRole">
+<ResponseField name="addMemberRole" type="(memberId: string, roleId: string) => Promise<void>">
   <Expandable title="Add a role to a workspace member">
     <ParamField path="memberId" type="string">
       The member ID
@@ -98,13 +123,13 @@ The `useActiveWorkspace` hook provides access to the currently active workspace 
     <ParamField path="roleId" type="string">
       The role ID to add
     </ParamField>
-    <ParamField path="returns" type="Promise&lt;void&gt;">
+    <ResponseField name="returns" type="Promise<void>">
       Resolves when the role is added
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="removeMemberRole">
+<ResponseField name="removeMemberRole" type="(memberId: string, roleId: string) => Promise<void>">
   <Expandable title="Remove a role from a workspace member">
     <ParamField path="memberId" type="string">
       The member ID
@@ -112,13 +137,13 @@ The `useActiveWorkspace` hook provides access to the currently active workspace 
     <ParamField path="roleId" type="string">
       The role ID to remove
     </ParamField>
-    <ParamField path="returns" type="Promise&lt;void&gt;">
+    <ResponseField name="returns" type="Promise<void>">
       Resolves when the role is removed
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="inviteMember">
+<ResponseField name="inviteMember" type="(params: { email: string, workspaceRoleId?: string }) => Promise<Invitation | undefined>">
   <Expandable title="Invite a member to the workspace">
 
     <ParamField path="params.email" type="string" required>
@@ -129,12 +154,12 @@ The `useActiveWorkspace` hook provides access to the currently active workspace 
       Optional workspace role ID to assign
     </ParamField>
 
-    <ParamField path="returns" type="Invitation | undefined">
+    <ResponseField name="returns" type="Invitation | undefined">
       The invitation object if successful, or undefined if no active workspace
-    </ParamField>
+    </ResponseField>
 
   </Expandable>
-</ParamField>
+</ResponseField>
 
 ## Return Types
 
@@ -190,35 +215,35 @@ The `useActiveWorkspace` hook provides access to the currently active workspace 
   </Expandable>
 </ResponseField>
 
-<ParamField path="getInvitations">
+<ResponseField name="getInvitations" type="() => Promise<Invitation[]>">
   <Expandable title="Get workspace invitations">
-    <ParamField path="returns" type="Promise&lt;Invitation[]&gt;">
+    <ResponseField name="returns" type="Promise<Invitation[]>">
       List of workspace invitations
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="discardInvitation">
+<ResponseField name="discardInvitation" type="(invitationId: string) => Promise<void>">
   <Expandable title="Discard a workspace invitation">
     <ParamField path="invitationId" type="string">
       The invitation ID to discard
     </ParamField>
-    <ParamField path="returns" type="Promise&lt;void&gt;">
+    <ResponseField name="returns" type="Promise<void>">
       Resolves when the invitation is discarded
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="resendInvitation">
+<ResponseField name="resendInvitation" type="(invitationId: string) => Promise<Invitation>">
   <Expandable title="Resend a workspace invitation">
     <ParamField path="invitationId" type="string">
       The invitation ID to resend
     </ParamField>
-    <ParamField path="returns" type="Promise&lt;Invitation&gt;">
+    <ResponseField name="returns" type="Promise<Invitation>">
       The resent invitation
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
 ## Examples
 

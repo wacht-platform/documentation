@@ -389,53 +389,115 @@ let analytics = webhooks::get_webhook_analytics("my-app")
 No additional methods beyond `send()`
 
 ### CreateWebhookAppBuilder
-- `description(&str)` - Set app description
-- `is_active(bool)` - Set active status
-- `events(Vec<WebhookEventDefinition>)` - Set all events
-- `add_event(WebhookEventDefinition)` - Add a single event
+<ParamField path="description" type="&str">
+  Set app description.
+</ParamField>
+<ParamField path="is_active" type="bool">
+  Set active status.
+</ParamField>
+<ParamField path="events" type="Vec<WebhookEventDefinition>">
+  Set all events.
+</ParamField>
+<ParamField path="add_event" type="WebhookEventDefinition">
+  Add a single event.
+</ParamField>
 
 ### UpdateWebhookAppBuilder
-- `description(Option<String>)` - Update description
-- `is_active(Option<bool>)` - Update active status
+<ParamField path="description" type="Option<String>">
+  Update description.
+</ParamField>
+<ParamField path="is_active" type="Option<bool>">
+  Update active status.
+</ParamField>
 
 ### ListWebhookEndpointsBuilder
-- `limit(i32)` - Set maximum results
-- `offset(i32)` - Set offset for pagination
-- `include_inactive(bool)` - Include inactive endpoints
+<ParamField path="limit" type="i32">
+  Set maximum results.
+</ParamField>
+<ParamField path="offset" type="i32">
+  Set offset for pagination.
+</ParamField>
+<ParamField path="include_inactive" type="bool">
+  Include inactive endpoints.
+</ParamField>
 
 ### CreateWebhookEndpointBuilder
-- `description(Option<String>)` - Set description
-- `headers(Option<Value>)` - Set HTTP headers
-- `subscriptions(Vec<EventSubscription>)` - Set event subscriptions
-- `max_retries(i32)` - Set maximum retry attempts
-- `timeout_seconds(i32)` - Set request timeout
+<ParamField path="description" type="Option<String>">
+  Set description.
+</ParamField>
+<ParamField path="headers" type="Option<Value>">
+  Set HTTP headers.
+</ParamField>
+<ParamField path="subscriptions" type="Vec<EventSubscription>">
+  Set event subscriptions.
+</ParamField>
+<ParamField path="max_retries" type="i32">
+  Set maximum retry attempts.
+</ParamField>
+<ParamField path="timeout_seconds" type="i32">
+  Set request timeout.
+</ParamField>
 
 ### TriggerWebhookEventBuilder
-- `filter_context(Value)` - Set filter context for event
+<ParamField path="filter_context" type="Value">
+  Set filter context for event.
+</ParamField>
 
 ### ListWebhookDeliveriesBuilder
-- `endpoint_id(Option<String>)` - Filter by endpoint
-- `event_name(Option<String>)` - Filter by event name
-- `status(Option<String>)` - Filter by status
-- `limit(i32)` - Set maximum results
-- `offset(i32)` - Set offset for pagination
-- `since(Option<String>)` - Filter by start date
-- `until(Option<String>)` - Filter by end date
+<ParamField path="endpoint_id" type="Option<String>">
+  Filter by endpoint.
+</ParamField>
+<ParamField path="event_name" type="Option<String>">
+  Filter by event name.
+</ParamField>
+<ParamField path="status" type="Option<String>">
+  Filter by status.
+</ParamField>
+<ParamField path="limit" type="i32">
+  Set maximum results.
+</ParamField>
+<ParamField path="offset" type="i32">
+  Set offset for pagination.
+</ParamField>
+<ParamField path="since" type="Option<String>">
+  Filter by start date.
+</ParamField>
+<ParamField path="until" type="Option<String>">
+  Filter by end date.
+</ParamField>
 
 ### ReplayWebhookDeliveriesBuilder
-- `endpoint_id(Option<String>)` - Filter by endpoint
-- `event_name(Option<String>)` - Filter by event name
-- `status(Option<String>)` - Filter by status
+<ParamField path="endpoint_id" type="Option<String>">
+  Filter by endpoint.
+</ParamField>
+<ParamField path="event_name" type="Option<String>">
+  Filter by event name.
+</ParamField>
+<ParamField path="status" type="Option<String>">
+  Filter by status.
+</ParamField>
 
 ### GetWebhookTimeseriesBuilder
-- `endpoint_id(Option<i64>)` - Filter by endpoint
-- `start_date(Option<String>)` - Set start date
-- `end_date(Option<String>)` - Set end date
+<ParamField path="endpoint_id" type="Option<i64>">
+  Filter by endpoint.
+</ParamField>
+<ParamField path="start_date" type="Option<String>">
+  Set start date.
+</ParamField>
+<ParamField path="end_date" type="Option<String>">
+  Set end date.
+</ParamField>
 
 ### GetWebhookAnalyticsBuilder
-- `endpoint_id(Option<i64>)` - Filter by endpoint
-- `start_date(Option<String>)` - Set start date
-- `end_date(Option<String>)` - Set end date
+<ParamField path="endpoint_id" type="Option<i64>">
+  Filter by endpoint.
+</ParamField>
+<ParamField path="start_date" type="Option<String>">
+  Set start date.
+</ParamField>
+<ParamField path="end_date" type="Option<String>">
+  Set end date.
+</ParamField>
 
 ## Error Handling
 

@@ -13,13 +13,12 @@ Learn how to manage AI execution contexts using the Wacht Rust SDK. Execution co
 Before using any API methods, you must initialize the SDK:
 
 ```rust
-use wacht::init_from_env;
+use wacht::WachtClient;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Initialize from environment variables
-    // Requires: WACHT_API_KEY and WACHT_FRONTEND_HOST
-    init_from_env().await?;
+    // Initialize the client with an API key
+    let client = WachtClient::new("wk_live_...");
 
     // Now you can use the API
     Ok(())
@@ -33,10 +32,12 @@ Get all execution contexts in your deployment.
 ### Basic List
 
 ```rust
-use wacht::api::ai;
+use wacht::WachtClient;
+
+let client = WachtClient::new("wk_live_...");
 
 // Fetch all contexts (default pagination)
-let contexts = ai::fetch_execution_contexts(None)
+let contexts = client.ai().fetch_execution_contexts(None)
     .await?;
 
 for ctx in contexts.data {
@@ -47,10 +48,12 @@ for ctx in contexts.data {
 ### With Filters
 
 ```rust
-use wacht::api::ai;
+use wacht::WachtClient;
+
+let client = WachtClient::new("wk_live_...");
 
 // Fetch contexts with builder pattern
-let contexts = ai::list_execution_contexts()
+let contexts = client.ai().list_execution_contexts()
     .limit(50)
     .offset(0)
     .status("active")
@@ -68,10 +71,12 @@ for ctx in contexts.data {
 Create a new execution context for AI operations.
 
 ```rust
-use wacht::api::ai;
+use wacht::WachtClient;
 use wacht::models::CreateAiExecutionContextRequest;
 
-let context = ai::create_execution_context(CreateAiExecutionContextRequest {
+let client = WachtClient::new("wk_live_...");
+
+let context = client.ai().create_execution_context(CreateAiExecutionContextRequest {
     title: "Customer Support Context".to_string(),
     system_instructions: Some("You are a helpful customer support assistant.".to_string()),
     context_group: Some("support".to_string()),
@@ -87,9 +92,11 @@ println!("Created context: {}", context.id);
 Modify an existing execution context.
 
 ```rust
-use wacht::api::ai;
+use wacht::WachtClient;
 
-let context = ai::update_execution_context_builder("ctx_123")
+let client = WachtClient::new("wk_live_...");
+
+let context = client.ai().update_execution_context("ctx_123")
     .with_title("Updated Support Context")
     .with_system_instructions("You are a senior customer support specialist.")
     .with_status("active")
@@ -102,10 +109,12 @@ let context = ai::update_execution_context_builder("ctx_123")
 Run an AI agent within a specific execution context.
 
 ```rust
-use wacht::api::ai;
-use wacht::models::ExecuteAgentRequest;
+use wacht::WachtClient;
+use wacht::models::{ExecuteAgentRequest, ExecuteAgentRequestType};
 
-let result = ai::execute_agent_builder(
+let client = WachtClient::new("wk_live_...");
+
+let result = client.ai().execute_agent(
     "ctx_123",
     ExecuteAgentRequest {
         agent_name: "support-bot".to_string(),
@@ -139,25 +148,41 @@ println!("Agent response: {:?}", result.response);
 
 ## Request Models
 
-### CreateAiExecutionContextRequest
+<ParamField path="request" type="CreateAiExecutionContextRequest" required>
+  <Expandable title="properties">
+    <ParamField path="title" type="String" required>
+      Context title.
+    </ParamField>
+    <ParamField path="system_instructions" type="Option<String>">
+      System instructions for the AI.
+    </ParamField>
+    <ParamField path="context_group" type="Option<String>">
+      Group identifier for the context.
+    </ParamField>
+    <ParamField path="status" type="Option<String>">
+      Context status (e.g., "active", "inactive").
+    </ParamField>
+  </Expandable>
+</ParamField>
 
-- `title` (String) - Context title (required)
-- `system_instructions` (Option&lt;String&gt;) - System instructions for the AI
-- `context_group` (Option&lt;String&gt;) - Group identifier for the context
-- `status` (Option&lt;String&gt;) - Context status (e.g., "active", "inactive")
-
-### ExecuteAgentRequest
-
-- `agent_name` (String) - Name of the agent to execute (required)
-- `execution_type` (ExecuteAgentRequestType) - Type of execution (required)
+<ParamField path="request" type="ExecuteAgentRequest" required>
+  <Expandable title="properties">
+    <ParamField path="agent_name" type="String" required>
+      Name of the agent to execute.
+    </ParamField>
+    <ParamField path="execution_type" type="ExecuteAgentRequestType" required>
+      Type of execution configuration.
+    </ParamField>
+  </Expandable>
+</ParamField>
 
 ### ExecuteAgentRequestType
 
 Variants for different execution types:
 
-- `NewMessage { message: String, files: Option&lt;Vec&lt;String&gt;&gt; }` - Execute with a new message
-- `Continue { files: Option&lt;Vec&lt;String&gt;&gt; }` - Continue previous conversation
-- `Stream { message: String, files: Option&lt;Vec&lt;String&gt;&gt; }` - Stream response
+- `NewMessage { message: String, files: Option<Vec<String>> }` - Execute with a new message
+- `Continue { files: Option<Vec<String>> }` - Continue previous conversation
+- `Stream { message: String, files: Option<Vec<String>> }` - Stream response
 
 ## Context States
 
@@ -189,15 +214,20 @@ CreateAiExecutionContextRequest {
 Context groups help organize related execution contexts:
 
 ```rust
+use wacht::WachtClient;
+use wacht::models::CreateAiExecutionContextRequest;
+
+let client = WachtClient::new("wk_live_...");
+
 // Create contexts for different departments
-let sales_context = ai::create_execution_context(CreateAiExecutionContextRequest {
+let sales_context = client.ai().create_execution_context(CreateAiExecutionContextRequest {
     title: "Sales Context".to_string(),
     system_instructions: Some("You are a sales assistant.".to_string()),
     context_group: Some("sales".to_string()),
     status: Some("active".to_string()),
 }).await?;
 
-let support_context = ai::create_execution_context(CreateAiExecutionContextRequest {
+let support_context = client.ai().create_execution_context(CreateAiExecutionContextRequest {
     title: "Support Context".to_string(),
     system_instructions: Some("You are a support assistant.".to_string()),
     context_group: Some("support".to_string()),
@@ -210,9 +240,11 @@ let support_context = ai::create_execution_context(CreateAiExecutionContextReque
 All SDK methods return a `Result<T, Error>`:
 
 ```rust
-use wacht::{Error, api::ai};
+use wacht::{Error, WachtClient};
 
-match ai::fetch_execution_contexts(None).await {
+let client = WachtClient::new("wk_live_...");
+
+match client.ai().fetch_execution_contexts(None).await {
     Ok(contexts) => {
         for ctx in contexts.data {
             println!("Context: {}", ctx.title);

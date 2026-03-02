@@ -9,29 +9,29 @@ The `useNotificationStream` hook connects to the real-time notification stream v
 
 ## Return Value
 
-<ParamField path="isConnected" type="boolean">
+<ResponseField name="isConnected" type="boolean">
   Whether the WebSocket connection is active
-</ParamField>
+</ResponseField>
 
-<ParamField path="connectionError" type="string | null">
+<ResponseField name="connectionError" type="string | null">
   Any connection error that occurred
-</ParamField>
+</ResponseField>
 
-<ParamField path="disconnect">
+<ResponseField name="disconnect" type="() => void">
   <Expandable title="Manually disconnect the WebSocket">
-    <ParamField path="returns" type="void">
+    <ResponseField name="returns" type="void">
       No return value
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="reconnect">
+<ResponseField name="reconnect" type="() => void">
   <Expandable title="Manually reconnect the WebSocket">
-    <ParamField path="returns" type="void">
+    <ResponseField name="returns" type="void">
       No return value
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
 ```tsx
 import { useNotificationStream } from "@wacht/react-router";

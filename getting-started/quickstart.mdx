@@ -1,69 +1,64 @@
 ---
-title: 'Quickstart'
-description: 'Install the right Wacht SDK package for your framework and ship the first protected route.'
+title: 'Global Quickstart'
+description: 'A high-level overview of installing and configuring Wacht across different environments.'
 ---
 
-## 1. Install the SDK package
+This guide provides a universal overview of installing the Wacht SDKs and protecting your first application route. For a more detailed, framework-specific guide, we highly recommend reading the quickstart dedicated to your stack (e.g., Next.js, React Router, TanStack Router, or Rust).
+
+## 1. Install the SDK
+
+Install the core Wacht package that corresponds to your framework. Our SDKs are split into specific, framework-native packages to ensure lean bundle sizes and precise API boundaries.
 
 <CodeGroup>
-
 ```bash Next.js
 pnpm add @wacht/nextjs @wacht/jsx @wacht/types
 ```
-
 ```bash React Router
 pnpm add @wacht/react-router @wacht/jsx @wacht/types react-router
 ```
-
 ```bash TanStack Router
 pnpm add @wacht/tanstack-router @wacht/jsx @wacht/types @tanstack/react-router
 ```
-
 ```bash Rust
 cargo add wacht-rs
 cargo add tokio --features full
 ```
-
 </CodeGroup>
 
-## 2. Add environment variables
+## 2. Configure Environment Variables
+
+Wacht requires specific environment variables to securely identify your application deployment. Your **Publishable Key** is safe to expose in frontend (browser) environments, while your **API Key** (Secret Key) must remain strictly on your backend servers.
 
 <CodeGroup>
-
-```bash Next.js
+```bash Next.js 
+# .env.local
 NEXT_PUBLIC_WACHT_PUBLISHABLE_KEY=pk_test_xxx
-# Optional, only for backend API calls from server code
-WACHT_API_KEY=wk_live_xxx
-```
 
-```bash React Router / TanStack Router
-# Browser
+# Required only if operating server-side mutations or admin capabilities
+WACHT_API_KEY=wk_test_xxx
+```
+```bash React / SPAs
+# .env (e.g., Vite)
 VITE_WACHT_PUBLISHABLE_KEY=pk_test_xxx
-
-# Server helpers
-WACHT_PUBLISHABLE_KEY=pk_test_xxx
-# Optional, only for backend API calls from server code
-WACHT_API_KEY=wk_live_xxx
 ```
-
-```bash Rust
-WACHT_API_KEY=wk_live_xxx
-# Optional if you do not use WACHT_PUBLISHABLE_KEY fallback
-WACHT_FRONTEND_API_URL=https://<deployment>.fapi.trywacht.xyz
+```bash Rust (Backend)
+# .env
+WACHT_API_KEY=wk_test_xxx
+WACHT_FRONTEND_API_URL=https://<your-deployment-id>.fapi.wacht.dev
 ```
-
 </CodeGroup>
 
-## 3. Mount provider in your app
+## 3. Initialize the Provider
+
+Wrap your application tree in our `DeploymentProvider`. This component establishes the global React context required for authentication, organization state, and Wacht UI components to function accurately.
 
 <CodeGroup>
-
 ```tsx Next.js (app/layout.tsx)
 import { DeploymentProvider } from '@wacht/nextjs'
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html>
+    <html lang="en">
       <body>
         <DeploymentProvider publicKey={process.env.NEXT_PUBLIC_WACHT_PUBLISHABLE_KEY!}>
           {children}
@@ -73,7 +68,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   )
 }
 ```
-
 ```tsx React Router
 import { BrowserRouter } from 'react-router'
 import { DeploymentProvider } from '@wacht/react-router'
@@ -81,12 +75,13 @@ import { DeploymentProvider } from '@wacht/react-router'
 export function App() {
   return (
     <DeploymentProvider publicKey={import.meta.env.VITE_WACHT_PUBLISHABLE_KEY}>
-      <BrowserRouter>{/* routes */}</BrowserRouter>
+      <BrowserRouter>
+        {/* Your application route tree */}
+      </BrowserRouter>
     </DeploymentProvider>
   )
 }
 ```
-
 ```tsx TanStack Router
 import { createRouter, RouterProvider } from '@tanstack/react-router'
 import { DeploymentProvider } from '@wacht/tanstack-router'
@@ -102,79 +97,72 @@ export function App() {
   )
 }
 ```
-
 </CodeGroup>
 
-## 4. Protect a server-side request
+## 4. Protect Server Routes
+
+Ensure that your backend services and API routes correctly validate incoming Wacht session tokens. Wacht provides robust middleware and zero-configuration authentication functions for edge runtimes and backend frameworks.
 
 <CodeGroup>
-
-```ts Next.js (proxy.ts)
+```ts Next.js (Middleware)
 import { NextResponse } from 'next/server'
 import { createRouteMatcher, wachtMiddleware } from '@wacht/nextjs/server'
 
+// Define which routes require authentication
 const isProtected = createRouteMatcher(['/dashboard(.*)', '/api/private(.*)'])
 
 export default wachtMiddleware(async (auth, req) => {
-  if (!isProtected(req)) return NextResponse.next()
-  await auth.protect()
+  if (isProtected(req)) {
+    // protect() throws an error and redirects to /sign-in if unauthenticated
+    await auth.protect() 
+  }
   return NextResponse.next()
 })
-```
 
-```ts React Router (loader)
+export const config = {
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+}
+```
+```ts React Router (Loader)
 import { json, redirect, type LoaderFunctionArgs } from 'react-router'
 import { authenticateRequest } from '@wacht/react-router/server'
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  // Validate the incoming request session
   const { auth, headers } = await authenticateRequest(request, {
     publishableKey: process.env.WACHT_PUBLISHABLE_KEY,
   })
 
-  if (!auth.userId) throw redirect('/sign-in', { headers })
+  // Enforce authentication
+  if (!auth.userId) {
+    throw redirect('/sign-in', { headers })
+  }
+
   return json({ userId: auth.userId }, { headers })
 }
 ```
-
-```ts TanStack Router (server function/loader)
-import { authenticateRequest } from '@wacht/tanstack-router/server'
-
-export async function getDashboardData(request: Request) {
-  const { auth, headers } = await authenticateRequest(request, {
-    publishableKey: process.env.WACHT_PUBLISHABLE_KEY,
-  })
-
-  if (!auth.userId) {
-    return new Response(null, {
-      status: 302,
-      headers: {
-        ...Object.fromEntries(headers.entries()),
-        Location: '/sign-in',
-      },
-    })
-  }
-
-  return Response.json({ userId: auth.userId }, { headers })
-}
-```
-
-```rust Rust (service client)
+```rust Rust (Backend / Async Runtime)
 use wacht_rs::WachtClient;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Initialize the Rust client from the environment securely
     let client = WachtClient::from_env()?;
+    
+    // Server-side action example: Fetch a list of all users
     let users = client.users().list_users(10, 0).await?;
-    println!("users: {}", users.data.len());
+    println!("Total users fetched: {}", users.data.len());
+    
     Ok(())
 }
 ```
-
 </CodeGroup>
 
-## Next
+## Next Steps
 
-- Next.js details: `/nextjs-sdk/quickstart`
-- React Router details: `/react-router-sdk/quickstart`
-- TanStack Router details: `/tanstack-router-sdk/quickstart`
-- Rust details: `/rust-sdk/quickstart`
+Now that Wacht is installed successfully, dive into the specific framework documentation to fully integrate custom UI components and hooks:
+
+- [Next.js SDK Reference](/nextjs-sdk/introduction)
+- [React Router SDK Reference](/react-router-sdk/introduction)
+- [TanStack Router SDK Reference](/tanstack-router-sdk/introduction)
+- [Rust SDK Reference](/rust-sdk/introduction)

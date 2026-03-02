@@ -13,13 +13,12 @@ Learn how to manage deployment settings using the Wacht Rust SDK. This includes 
 Before using any API methods, you must initialize the SDK:
 
 ```rust
-use wacht::init_from_env;
+use wacht::WachtClient;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Initialize from environment variables
-    // Requires: WACHT_API_KEY and WACHT_FRONTEND_HOST
-    init_from_env().await?;
+    // Initialize the client with an API key
+    let client = WachtClient::new("wk_live_...");
 
     // Now you can use the API
     Ok(())
@@ -31,9 +30,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 Get the current configuration for your deployment.
 
 ```rust
-use wacht::api::settings;
+use wacht::WachtClient;
 
-let settings = settings::fetch_deployment_settings()
+let client = WachtClient::new("wk_live_...");
+
+let settings = client.settings().fetch_deployment_settings()
     .send()
     .await?;
 
@@ -47,10 +48,12 @@ println!("Frontend Host: {}", settings.frontend_host);
 Configure authentication methods and security settings.
 
 ```rust
-use wacht::api::settings;
+use wacht::WachtClient;
 use wacht::models::AuthenticationSettings;
 
-settings::update_authentication_settings(AuthenticationSettings {
+let client = WachtClient::new("wk_live_...");
+
+client.settings().update_authentication_settings(AuthenticationSettings {
     enabled_methods: vec!["email_password".to_string(), "otp".to_string()],
     password_min_length: Some(8),
     require_mfa: Some(false),
@@ -65,10 +68,12 @@ settings::update_authentication_settings(AuthenticationSettings {
 Customize the appearance of your authentication pages.
 
 ```rust
-use wacht::api::settings;
+use wacht::WachtClient;
 use wacht::models::DisplaySettings;
 
-settings::update_display_settings(DisplaySettings {
+let client = WachtClient::new("wk_live_...");
+
+client.settings().update_display_settings(DisplaySettings {
     theme: Some("light".to_string()),
     primary_color: Some("#16A34A".to_string()),
     logo_url: Some("https://example.com/logo.png".to_string()),
@@ -83,13 +88,15 @@ settings::update_display_settings(DisplaySettings {
 Configure organization and workspace features.
 
 ```rust
-use wacht::api::settings;
-use wacht::models::B2BSettings;
+use wacht::WachtClient;
+use wacht::models::DeploymentB2bSettingsUpdates;
 
-settings::update_b2b_settings(B2BSettings {
-    enabled: true,
-    allow_organizations: true,
-    allow_workspaces: true,
+let client = WachtClient::new("wk_live_...");
+
+client.settings().update_b2b_settings(DeploymentB2bSettingsUpdates {
+    enabled: Some(true),
+    allow_organizations: Some(true),
+    allow_workspaces: Some(true),
     ..Default::default()
 })
 .send()
@@ -127,9 +134,11 @@ The SDK model incorrectly uses: `allowed_email_domains`, `blocked_email_domains`
 Get all JWT templates in your deployment.
 
 ```rust
-use wacht::api::settings;
+use wacht::WachtClient;
 
-let templates = settings::fetch_jwt_templates()
+let client = WachtClient::new("wk_live_...");
+
+let templates = client.settings().fetch_jwt_templates()
     .send()
     .await?;
 
@@ -143,10 +152,12 @@ for template in templates.data {
 Create a new JWT template for token customization.
 
 ```rust
-use wacht::api::settings;
+use wacht::WachtClient;
 use wacht::models::CreateJwtTemplateRequest;
 
-let template = settings::create_jwt_template(CreateJwtTemplateRequest {
+let client = WachtClient::new("wk_live_...");
+
+let template = client.settings().create_jwt_template(CreateJwtTemplateRequest {
     name: "custom-token".to_string(),
     description: Some("Custom JWT for integration".to_string()),
     lifetime_minutes: 60,
@@ -161,10 +172,12 @@ let template = settings::create_jwt_template(CreateJwtTemplateRequest {
 Modify an existing JWT template.
 
 ```rust
-use wacht::api::settings;
+use wacht::WachtClient;
 use wacht::models::UpdateJwtTemplateRequest;
 
-let template = settings::update_jwt_template(
+let client = WachtClient::new("wk_live_...");
+
+let template = client.settings().update_jwt_template(
     "template_id",
     UpdateJwtTemplateRequest {
         name: Some("updated-token".to_string()),
@@ -181,9 +194,11 @@ let template = settings::update_jwt_template(
 Remove a JWT template.
 
 ```rust
-use wacht::api::settings;
+use wacht::WachtClient;
 
-settings::delete_jwt_template("template_id")
+let client = WachtClient::new("wk_live_...");
+
+client.settings().delete_jwt_template("template_id")
     .send()
     .await?;
 ```
@@ -195,10 +210,12 @@ settings::delete_jwt_template("template_id")
 Configure custom email delivery.
 
 ```rust
-use wacht::api::settings;
+use wacht::WachtClient;
 use wacht::models::SmtpConfigRequest;
 
-let config = settings::update_smtp_config(SmtpConfigRequest {
+let client = WachtClient::new("wk_live_...");
+
+let config = client.settings().update_smtp_config(SmtpConfigRequest {
     host: "smtp.example.com".to_string(),
     port: 587,
     username: "user@example.com".to_string(),
@@ -215,10 +232,12 @@ let config = settings::update_smtp_config(SmtpConfigRequest {
 Test your SMTP configuration before saving.
 
 ```rust
-use wacht::api::settings;
+use wacht::WachtClient;
 use wacht::models::SmtpConfigRequest;
 
-let result = settings::verify_smtp_connection(SmtpConfigRequest {
+let client = WachtClient::new("wk_live_...");
+
+let result = client.settings().verify_smtp_connection(SmtpConfigRequest {
     host: "smtp.example.com".to_string(),
     port: 587,
     username: "user@example.com".to_string(),
@@ -229,7 +248,7 @@ let result = settings::verify_smtp_connection(SmtpConfigRequest {
 .send()
 .await?;
 
-println!("SMTP connection: {}", result.success);
+println!("SMTP connection: {}", result.success); // SmtpVerifyResponse structure assumes `success` exists
 ```
 
 ### Remove SMTP Configuration
@@ -237,9 +256,11 @@ println!("SMTP connection: {}", result.success);
 Revert to using the default email service.
 
 ```rust
-use wacht::api::settings;
+use wacht::WachtClient;
 
-settings::remove_smtp_config()
+let client = WachtClient::new("wk_live_...");
+
+client.settings().remove_smtp_config()
     .send()
     .await?;
 ```
@@ -251,9 +272,11 @@ settings::remove_smtp_config()
 Get the current configuration for an email template.
 
 ```rust
-use wacht::api::settings;
+use wacht::WachtClient;
 
-let template = settings::fetch_email_template("email_verification")
+let client = WachtClient::new("wk_live_...");
+
+let template = client.settings().fetch_email_template("email_verification")
     .send()
     .await?;
 
@@ -265,10 +288,12 @@ println!("Subject: {}", template.subject);
 Customize an email template content.
 
 ```rust
-use wacht::api::settings;
+use wacht::WachtClient;
 use wacht::models::EmailTemplate;
 
-settings::update_email_template("email_verification", EmailTemplate {
+let client = WachtClient::new("wk_live_...");
+
+client.settings().update_email_template("email_verification", EmailTemplate {
     subject: "Verify your email".to_string(),
     body_html: Some("<h1>Welcome!</h1>".to_string()),
     body_text: Some("Welcome to Wacht!".to_string()),
@@ -285,9 +310,11 @@ settings::update_email_template("email_verification", EmailTemplate {
 Get all configured social login providers.
 
 ```rust
-use wacht::api::settings;
+use wacht::WachtClient;
 
-let connections = settings::fetch_social_connections()
+let client = WachtClient::new("wk_live_...");
+
+let connections = client.settings().fetch_social_connections()
     .send()
     .await?;
 
@@ -301,10 +328,12 @@ for conn in connections.data {
 Add or update a social login provider.
 
 ```rust
-use wacht::api::settings;
+use wacht::WachtClient;
 use wacht::models::SocialConnection;
 
-let connection = settings::upsert_social_connection(SocialConnection {
+let client = WachtClient::new("wk_live_...");
+
+let connection = client.settings().upsert_social_connection(SocialConnection {
     provider: "google".to_string(),
     display_name: Some("Google".to_string()),
     enabled: true,
@@ -321,12 +350,14 @@ let connection = settings::upsert_social_connection(SocialConnection {
 Upload logos, icons, and other images for your deployment.
 
 ```rust
-use wacht::api::settings;
+use wacht::WachtClient;
 use std::fs;
+
+let client = WachtClient::new("wk_live_...");
 
 let image_data = fs::read("logo.png")?;
 
-let result = settings::upload_image("logo", image_data, "logo.png".to_string())
+let result = client.settings().upload_image("logo", image_data, "logo.png".to_string())
     .send()
     .await?;
 
@@ -346,9 +377,11 @@ println!("Image URL: {}", result.url);
 All SDK methods return a `Result<T, Error>`:
 
 ```rust
-use wacht::{Error, api::settings};
+use wacht::{Error, WachtClient};
 
-match settings::fetch_deployment_settings().send().await {
+let client = WachtClient::new("wk_live_...");
+
+match client.settings().fetch_deployment_settings().send().await {
     Ok(settings) => println!("Mode: {}", settings.mode),
     Err(Error::Api { status, message, .. }) => {
         eprintln!("API Error {}: {}", status, message);

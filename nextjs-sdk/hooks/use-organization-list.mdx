@@ -1,469 +1,186 @@
 ---
-title: useOrganizationList
-description: Manage organizations, members, invitations, domains, and enterprise connections.
+title: 'useOrganizationList()'
+description: 'A headless hook for retrieving and managing the array of organizations a user belongs to.'
 ---
 
-# useOrganizationList
+# `useOrganizationList()`
 
-The `useOrganizationList` hook provides methods for managing organizations the user is a member of, including creating, updating, deleting organizations, and managing members, roles, invitations, and domains.
+In B2B applications, a single user profile often belongs to multiple distinct tenants (organizations). The `useOrganizationList()` hook provides a straightforward, paginated interface to fetch, list, and interact with every organization the current user has access to.
 
-## Return Value
+It exposes the exact primitives required to build a bespoke `<OrganizationSwitcher />` dropdown or an "Accept Invitations" dashboard page.
 
-<ParamField path="organizations" type="Organization[]">
-  List of organizations the user is a member of
-</ParamField>
+## Import
 
-<ParamField path="loading" type="boolean">
-  Whether data is loading
-</ParamField>
-
-<ParamField path="error" type="Error | null">
-  Any error that occurred
-</ParamField>
-
-<ParamField path="refetch">
-  <Expandable title="Refetch the organizations list">
-    <ParamField path="returns" type="Promise&lt;void&gt;">
-      Resolves when the organizations list is refetched
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="leaveOrganization">
-  <Expandable title="Leave an organization">
-    <ParamField path="organization" type="Organization">
-      The organization to leave
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;void&gt;">
-      Resolves when the organization is left
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="createOrganization">
-  <Expandable title="Create a new organization">
-    <ParamField path="params" type="{ name: string; description?: string; image?: File }">
-      Organization creation parameters
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;Organization&gt;">
-      The created organization
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="updateOrganization">
-  <Expandable title="Update an existing organization">
-    <ParamField path="organization" type="Organization">
-      The organization to update
-    </ParamField>
-    <ParamField path="params" type="Partial&lt;{ name: string; description?: string; image?: File }&gt;">
-      Organization fields to update
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;Organization&gt;">
-      The updated organization
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="deleteOrganization">
-  <Expandable title="Delete an organization">
-    <ParamField path="organization" type="Organization">
-      The organization to delete
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;void&gt;">
-      Resolves when the organization is deleted
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="getOrganizationMembers">
-  <Expandable title="Get organization members">
-    <ParamField path="organization" type="Organization">
-      The organization
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;OrganizationMember[]&gt;">
-      List of organization members
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="removeOrganizationMember">
-  <Expandable title="Remove an organization member">
-    <ParamField path="organization" type="Organization">
-      The organization
-    </ParamField>
-    <ParamField path="member" type="OrganizationMembership">
-      The member to remove
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;void&gt;">
-      Resolves when the member is removed
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="getOrganizationRoles">
-  <Expandable title="Get organization roles">
-    <ParamField path="organization" type="Organization">
-      The organization
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;OrganizationRole[]&gt;">
-      List of organization roles
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="addRoleToOrganizationMember">
-  <Expandable title="Add a role to an organization member">
-    <ParamField path="organization" type="Organization">
-      The organization
-    </ParamField>
-    <ParamField path="member" type="OrganizationMembership">
-      The member
-    </ParamField>
-    <ParamField path="role" type="OrganizationRole">
-      The role to add
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;void&gt;">
-      Resolves when the role is added
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="removeRoleFromOrganizationMember">
-  <Expandable title="Remove a role from an organization member">
-    <ParamField path="organization" type="Organization">
-      The organization
-    </ParamField>
-    <ParamField path="member" type="OrganizationMembership">
-      The member
-    </ParamField>
-    <ParamField path="role" type="OrganizationRole">
-      The role to remove
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;void&gt;">
-      Resolves when the role is removed
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="getOrganizationInvitations">
-  <Expandable title="Get organization invitations">
-    <ParamField path="organization" type="Organization">
-      The organization
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;OrganizationInvitation[]&gt;">
-      List of organization invitations
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="inviteOrganizationMember">
-  <Expandable title="Invite a user to an organization">
-    <ParamField path="organization" type="Organization">
-      The organization
-    </ParamField>
-    <ParamField path="invitation" type="OrganizationInvitationPayload">
-      The invitation details
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;OrganizationInvitation&gt;">
-      The created invitation
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="discardOrganizationInvitation">
-  <Expandable title="Discard an organization invitation">
-    <ParamField path="organization" type="Organization">
-      The organization
-    </ParamField>
-    <ParamField path="invitation" type="OrganizationInvitation">
-      The invitation to discard
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;void&gt;">
-      Resolves when the invitation is discarded
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="resendOrganizationInvitation">
-  <Expandable title="Resend an organization invitation">
-    <ParamField path="organization" type="Organization">
-      The organization
-    </ParamField>
-    <ParamField path="invitation" type="OrganizationInvitation">
-      The invitation to resend
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;OrganizationInvitation&gt;">
-      The resent invitation
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="getOrganizationDomains">
-  <Expandable title="Get organization domains">
-    <ParamField path="organization" type="Organization">
-      The organization
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;OrganizationDomain[]&gt;">
-      List of organization domains
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="addOrganizationDomain">
-  <Expandable title="Add a domain to an organization">
-    <ParamField path="organization" type="Organization">
-      The organization
-    </ParamField>
-    <ParamField path="domain" type="string">
-      The domain to add
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;OrganizationDomain&gt;">
-      The added domain
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="verifyOrganizationDomain">
-  <Expandable title="Verify an organization domain">
-    <ParamField path="organization" type="Organization">
-      The organization
-    </ParamField>
-    <ParamField path="domain" type="OrganizationDomain">
-      The domain to verify
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;OrganizationDomain&gt;">
-      The verified domain
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="removeOrganizationDomain">
-  <Expandable title="Remove a domain from an organization">
-    <ParamField path="organization" type="Organization">
-      The organization
-    </ParamField>
-    <ParamField path="domain" type="OrganizationDomain">
-      The domain to remove
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;void&gt;">
-      Resolves when the domain is removed
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="getEnterpriseConnections">
-  <Expandable title="Get enterprise SSO connections">
-    <ParamField path="organization" type="Organization">
-      The organization
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;EnterpriseConnection[]&gt;">
-      List of enterprise SSO connections
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="createEnterpriseConnection">
-  <Expandable title="Create an enterprise SSO connection">
-    <ParamField path="organization" type="Organization">
-      The organization
-    </ParamField>
-    <ParamField path="config" type="EnterpriseConnectionConfig">
-      The SSO connection configuration
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;EnterpriseConnection&gt;">
-      The created connection
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="updateEnterpriseConnection">
-  <Expandable title="Update an enterprise SSO connection">
-    <ParamField path="organization" type="Organization">
-      The organization
-    </ParamField>
-    <ParamField path="connection" type="EnterpriseConnection">
-      The connection to update
-    </ParamField>
-    <ParamField path="config" type="Partial&lt;EnterpriseConnectionConfig&gt;">
-      The configuration updates
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;EnterpriseConnection&gt;">
-      The updated connection
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="deleteEnterpriseConnection">
-  <Expandable title="Delete an enterprise SSO connection">
-    <ParamField path="organization" type="Organization">
-      The organization
-    </ParamField>
-    <ParamField path="connection" type="EnterpriseConnection">
-      The connection to delete
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;void&gt;">
-      Resolves when the connection is deleted
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField path="testEnterpriseConnection">
-  <Expandable title="Test an enterprise SSO connection">
-    <ParamField path="organization" type="Organization">
-      The organization
-    </ParamField>
-    <ParamField path="connection" type="EnterpriseConnection">
-      The connection to test
-    </ParamField>
-    <ParamField path="returns" type="Promise&lt;TestResult&gt;">
-      Test result with success status and checks
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-## Data Structures
-
-<Expandable title="Organization">
-
-```typescript
-interface Organization {
-  id: string;
-  name: string;
-  image_url: string;
-  description: string;
-  member_count: number;
-  public_metadata: Record<string, unknown>;
-  private_metadata: Record<string, unknown>;
-  enforce_mfa: boolean;
-  enable_ip_restriction: boolean;
-  whitelisted_ips: string[];
-  auto_assigned_workspace_id: string;
-  created_at: string;
-  updated_at: string;
-  segments: Segment[];
-}
+```tsx
+import { useOrganizationList } from "@wacht/nextjs";
 ```
 
-</Expandable>
+## Anatomy
 
-## Examples
+<ResponseField name="loading" type="boolean">
+  Boolean indicating network boundary readiness.
+</ResponseField>
 
-### Basic Organization List
+<ResponseField name="organizations" type="Organization[]">
+  List of actual Wacht Organization objects the user is a member of.
+</ResponseField>
+
+<ResponseField name="error" type="Error | null">
+  Any error encountered during fetching.
+</ResponseField>
+
+<ResponseField name="refetch" type="() => Promise<void>">
+  Manually triggers a re-fetch of the organization list from the server.
+</ResponseField>
+
+<ResponseField name="Organization Management" type="Functions">
+  <Expandable title="Organization functions">
+    <ResponseField name="createOrganization" type="(payload: NewOrganization) => Promise<ApiResult<unknown>>">
+      Creates a new organization.
+    </ResponseField>
+    <ResponseField name="updateOrganization" type="(org: Organization, payload: OrganizationUpdate) => Promise<ApiResult<Organization>>">
+      Updates basic properties of a specific organization.
+    </ResponseField>
+    <ResponseField name="deleteOrganization" type="(org: Organization) => Promise<ApiResult<void>>">
+      Deletes an organization completely.
+    </ResponseField>
+    <ResponseField name="leaveOrganization" type="(org: Organization) => Promise<ApiResult<void>>">
+      Leaves a specific organization.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="Member & Role Management" type="Functions">
+  <Expandable title="Member functions">
+    <ResponseField name="getOrganizationMembers" type="(org: Organization, params?: { page: number; limit: number; search?: string }) => Promise<ApiResult<PaginatedResponse<OrganizationMembership[]>>>">
+      Fetches paginated list of members for an organization.
+    </ResponseField>
+    <ResponseField name="removeOrganizationMember" type="(org: Organization, member: OrganizationMembership) => Promise<void>">
+      Removes a member from the organization.
+    </ResponseField>
+    <ResponseField name="getOrganizationRoles" type="(org: Organization) => Promise<ApiResult<OrganizationRole[]>>">
+      Retrieves all roles available in the organization.
+    </ResponseField>
+    <ResponseField name="addRole" type="(org: Organization, role: RoleCreate) => Promise<ApiResult<OrganizationRole>>">
+      Creates a new custom role in the organization.
+    </ResponseField>
+    <ResponseField name="removeOrganizationRoles" type="(org: Organization, role: OrganizationRole) => Promise<void>">
+      Deletes a role from the organization.
+    </ResponseField>
+    <ResponseField name="addRoleToOrganizationMember" type="(org: Organization, member: OrganizationMembership, role: OrganizationRole) => Promise<ApiResult<OrganizationMembership>>">
+      Assigns a role to a specific member.
+    </ResponseField>
+    <ResponseField name="removeRoleFromOrganizationMember" type="(org: Organization, member: OrganizationMembership, role: OrganizationRole) => Promise<ApiResult<OrganizationMembership>>">
+      Removes a role from a specific member.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="Invitation Management" type="Functions">
+  <Expandable title="Invitation functions">
+    <ResponseField name="getOrganizationInvitations" type="(org: Organization) => Promise<ApiResult<OrganizationInvitation[]>>">
+      Fetches pending invitations for an organization.
+    </ResponseField>
+    <ResponseField name="inviteOrganizationMember" type="(org: Organization, payload: OrganizationInvitationPayload) => Promise<ApiResult<OrganizationInvitation>>">
+      Invites a new member to the organization via email.
+    </ResponseField>
+    <ResponseField name="resendOrganizationInvitation" type="(org: Organization, invitation: OrganizationInvitation) => Promise<ApiResult<OrganizationInvitation>>">
+      Resends an outstanding invitation email.
+    </ResponseField>
+    <ResponseField name="discardOrganizationInvitation" type="(org: Organization, invitation: OrganizationInvitation) => Promise<ApiResult<OrganizationInvitation>>">
+      Revokes a pending invitation.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="Domain Management" type="Functions">
+  <Expandable title="Domain functions">
+    <ResponseField name="getOrganizationDomains" type="(org: Organization) => Promise<ApiResult<OrganizationDomain[]>>">
+      Retrieves domains linked to the organization.
+    </ResponseField>
+    <ResponseField name="addOrganizationDomain" type="(org: Organization, domain: NewDomain) => Promise<ApiResult<OrganizationDomain>>">
+      Adds a new custom domain for organizational identity.
+    </ResponseField>
+    <ResponseField name="verifyOrganizationDomain" type="(org: Organization, domain: OrganizationDomain) => Promise<ApiResult<OrganizationDomain>>">
+      Triggers DNS verification for an added domain.
+    </ResponseField>
+    <ResponseField name="removeOrganizationDomain" type="(org: Organization, domain: OrganizationDomain) => Promise<ApiResult<OrganizationDomain>>">
+      Removes a custom domain.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="Enterprise Connections (SSO)" type="Functions">
+  <Expandable title="SSO functions">
+    <ResponseField name="getEnterpriseConnections" type="(org: Organization) => Promise<ApiResult<EnterpriseConnection[]>>">
+      Lists active SAML/OIDC enterprise connections.
+    </ResponseField>
+    <ResponseField name="createEnterpriseConnection" type="(org: Organization, payload: CreateEnterpriseConnectionPayload) => Promise<ApiResult<EnterpriseConnection>>">
+      Establishes a new enterprise SSO connection.
+    </ResponseField>
+    <ResponseField name="updateEnterpriseConnection" type="(org: Organization, connectionId: string, payload: UpdateEnterpriseConnectionPayload) => Promise<ApiResult<EnterpriseConnection>>">
+      Updates enterprise SSO settings.
+    </ResponseField>
+    <ResponseField name="testEnterpriseConnectionConfig" type="(org: Organization, payload: TestPayload) => Promise<ApiResult<TestResult>>">
+      Tests SSO capabilities of a provided configuration.
+    </ResponseField>
+    <ResponseField name="testEnterpriseConnection" type="(org: Organization, connectionId: string) => Promise<ApiResult<TestResult>>">
+      Tests an existing enterprise connection.
+    </ResponseField>
+    <ResponseField name="deleteEnterpriseConnection" type="(org: Organization, connectionId: string) => Promise<void>">
+      Removes an enterprise connection.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="SCIM Directory Sync" type="Functions">
+  <Expandable title="SCIM functions">
+    <ResponseField name="getSCIMToken" type="(org: Organization, connectionId: string) => Promise<ApiResult<SCIMTokenInfo>>">
+      Retrieves the active SCIM provisioning token information.
+    </ResponseField>
+    <ResponseField name="generateSCIMToken" type="(org: Organization, connectionId: string) => Promise<ApiResult<SCIMTokenInfo>>">
+      Generates a new SCIM provisioning token.
+    </ResponseField>
+    <ResponseField name="revokeSCIMToken" type="(org: Organization, connectionId: string) => Promise<void>">
+      Revokes the SCIM provisioning token instantly.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Usage: Building an Invites Page
+
+One of the most powerful uses of this hook is constructing an interface to let users view and accept their pending invitations to join other teams.
 
 ```tsx
 import { useOrganizationList } from "@wacht/nextjs";
 
-function OrganizationsPage() {
-  const { organizations, loading, createOrganization } = useOrganizationList();
+export function UserOrganizations() {
+  const { loading, organizations } = useOrganizationList();
 
-  const handleCreate = async () => {
-    await createOrganization({
-      name: "Acme Inc",
-      description: "My company",
-    });
-  };
+  if (loading) return <div>Loading organizations...</div>;
+
+  if (!organizations || organizations.length === 0) {
+    return <p>You have no active organizations.</p>;
+  }
 
   return (
-    <div>
+    <ul className="divide-y divide-zinc-200">
       {organizations.map((org) => (
-        <div key={org.id}>{org.name}</div>
+        <li key={org.id} className="py-4 flex items-center justify-between">
+          <p className="font-medium text-zinc-900">
+            {org.name}
+          </p>
+        </li>
       ))}
-      <button onClick={handleCreate}>Create Organization</button>
-    </div>
+    </ul>
   );
 }
 ```
 
-### CRUD Operations
+## Interacting With Organizations
 
-#### Create Organization
-
-```tsx
-await createOrganization({
-  name: "Acme Inc",
-  description: "My company description",
-  image: file, // Optional File object
-});
-```
-
-#### Update Organization
-
-```tsx
-await updateOrganization(organization, {
-  name: "New Name",
-  description: "New description",
-  image: file,
-});
-```
-
-#### Delete Organization
-
-```tsx
-await deleteOrganization(organization);
-```
-
-#### Leave Organization
-
-```tsx
-await leaveOrganization(organization);
-```
-
-#### Invite Member
-
-```tsx
-await inviteOrganizationMember(organization, {
-  email: "user@example.com",
-  organizationRole: { id: "role_id" },
-  workspace: { id: "workspace_id" },
-  workspaceRole: { id: "workspace_role_id" },
-});
-```
-
-### Enterprise SSO
-
-#### Create SSO Connection
-
-```tsx
-await createEnterpriseConnection(organization, {
-  protocol: "saml",
-  idp_entity_id: "https://idp.example.com/entity_id",
-  idp_sso_url: "https://idp.example.com/sso",
-  idp_certificate: "-----BEGIN CERTIFICATE-----\n...",
-  jit_enabled: true,
-});
-```
-
-#### Test SSO Connection
-
-```tsx
-const result = await testEnterpriseConnectionConfig(organization, {
-  protocol: "saml",
-  idp_entity_id: "https://idp.example.com/entity_id",
-  idp_sso_url: "https://idp.example.com/sso",
-  idp_certificate: "-----BEGIN CERTIFICATE-----\n...",
-});
-
-// result.success: boolean
-// result.checks: { [key: string]: boolean }
-// result.errors?: { [key: string]: string }
-```
-
-#### SCIM Token Management
-
-```tsx
-// Generate SCIM token
-const tokenInfo = await generateSCIMToken(organization, connectionId);
-
-// Get SCIM token
-const tokenInfo = await getSCIMToken(organization, connectionId);
-
-// Revoke SCIM token
-await revokeSCIMToken(organization, connectionId);
-```
-
-## Related
-
-- [useActiveOrganization](./use-active-organization) - Active organization
-- [useOrganizationMemberships](./use-organization-memberships) - Memberships list
-- [CreateOrganizationForm](../components/create-organization-form) - Create org form
+The hook provides numerous functions to manipulate organizations if the user holds required permissions, such as:
+- `createOrganization(payload)`
+- `updateOrganization(org, payload)`
+- `leaveOrganization(org)`
+- `getOrganizationMembers(org)`

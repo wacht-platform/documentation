@@ -9,29 +9,29 @@ The `useSSOCallback` hook handles OAuth and SSO callbacks from external identity
 
 ## Return Value
 
-<ParamField path="loading" type="boolean">
+<ResponseField name="loading" type="boolean">
   Whether the callback is being processed
-</ParamField>
+</ResponseField>
 
-<ParamField path="error" type="Error | null">
+<ResponseField name="error" type="Error | null">
   Any error that occurred during processing
-</ParamField>
+</ResponseField>
 
-<ParamField path="session" type="Session | null">
+<ResponseField name="session" type="Session | null">
   The session after successful sign-in
-</ParamField>
+</ResponseField>
 
-<ParamField path="redirectUri" type="string | null">
+<ResponseField name="redirectUri" type="string | null">
   The URI to redirect to after processing
-</ParamField>
+</ResponseField>
 
-<ParamField path="processed" type="boolean">
+<ResponseField name="processed" type="boolean">
   Whether the callback has been processed
-</ParamField>
+</ResponseField>
 
-<ParamField path="signinAttempt" type="SigninAttempt | null">
+<ResponseField name="signinAttempt" type="SigninAttempt | null">
   The current sign-in attempt state
-</ParamField>
+</ResponseField>
 
 ```tsx
 import { useSSOCallback } from "@wacht/react-router";

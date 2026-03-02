@@ -1,58 +1,57 @@
 ---
-title: SignUpForm
-description: A complete sign-up form with field validation, social authentication, and support for invitation tokens.
+title: '<SignUpForm />'
+description: 'A complete registration interface with built-in email and phone verification flows.'
 ---
 
-# SignUpForm
+# `<SignUpForm />`
 
-Complete user registration interface with field validation, email/phone verification, social authentication, invitation support, and redirect handling.
+The `<SignUpForm />` component provides a frictionless onboarding experience for new users. 
+
+In modern identity systems, a secure registration flow is significantly more complex than simply saving a password to a database. You must cryptographically verify a user's contact information *before* granting them access to your application. This component handles that entire lifecycle—from initial credential collection to verification and session establishment—safely and automatically.
+
+## Import
 
 ```tsx
 import { SignUpForm } from "@wacht/tanstack-router";
-
-export default function SignUpPage() {
-  return <SignUpForm />;
-}
 ```
 
-## Form Fields
+## Usage
 
-```typescript
-interface SignUpParams {
-  first_name?: string;
-  last_name?: string;
-  username?: string;
-  email?: string;
-  phone_number?: string;
-  password?: string;
-  phone_country_code?: string;
-  invite_token?: string;
-}
-```
-
-## Invitation Tokens
-
-Pass an invitation token via URL to pre-fill fields and handle organization/workspace invitations:
+Place the component on a dedicated public registration route. It will automatically render input fields based on the required attributes configured in your Wacht Dashboard. For example, if you require a user to provide a "First Name" and "Last Name", those fields are instantly rendered with full validation.
 
 ```tsx
-// User will be pre-filled and added to the organization after sign-up
-/signup?invite_token=abc123
+import { SignUpForm } from "@wacht/tanstack-router";
+import { createFileRoute } from '@tanstack/react-router';
+
+export const Route = createFileRoute('/sign-up')({
+  component: SignUpRoute,
+});
+
+function SignUpRoute() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-zinc-50 p-4">
+      <div className="w-full max-w-md bg-white rounded-xl shadow-sm border border-zinc-200 p-6">
+        <SignUpForm />
+      </div>
+    </div>
+  );
+}
 ```
 
-If your deployment has `sign_up_mode` set to `"waitlist"`, users without an invitation token will be redirected to the waitlist page. If set to `"restricted"`, new registrations are blocked.
+## The Verification Lifecycle
 
-## Redirect Handling
+Unlike legacy sign-ups, modern identity platforms require strict contact verification to prevent spam and account takeover. Here is exactly what happens when a user registers via the `<SignUpForm />`:
 
-After successful sign-up, the user is redirected based on:
+1. **Collection**: The user inputs their desired identifier (email address or phone number) alongside a strong password. If social providers (Google, GitHub) are enabled, they are prominently displayed as 1-click alternatives.
+2. **Pre-Registration**: Wacht securely creates an unverified "staged" user record in the backend.
+3. **Delivery**: If the user chose to sign up via email or phone, an OTP (One-Time Passcode) or Magic Link is immediately dispatched to their device.
+4. **The Challenge**: The component orchestrates a seamless UI transition to a verification modal, prompting the user for the code.
+5. **Promotion**: Once the code is verified cryptographically, Wacht promotes the staged record to an active User, establishes a secure HTTP-only browser session, and issues a redirect back into your application dashboard.
 
-1. The `redirect_uri` query parameter (if present)
-2. The `after_signup_redirect_url` deployment setting
-3. The deployment's frontend host (fallback)
+## Need absolute design control?
 
-For example, `/signup?redirect_uri=/onboarding` will bring users to `/onboarding` after sign-up completes.
+If you are building a deeply immersive, multi-step onboarding wizard and need absolute, pixel-perfect control over every transition and generic input field, we recommend bypassing this pre-built component.
 
-## Related
+Instead, utilize our primitive headless hooks to power your custom UI state:
 
-- [SignInForm](./sign-in-form) - Sign-in form component
-- [useSignUp](../hooks/use-sign-up) - Hook for custom sign-up flows
-- [WaitlistForm](./waitlist-form) - Waitlist signup form
+- [Read the `useSignUp` Hook Reference](../hooks/use-sign-up)

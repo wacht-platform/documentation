@@ -9,27 +9,27 @@ The `useWorkspaceList` hook provides methods for managing workspaces the user ha
 
 ## Return Value
 
-<ParamField path="workspaces" type="WorkspaceWithOrganization[]">
+<ResponseField name="workspaces" type="WorkspaceWithOrganization[]">
   List of workspaces the user has access to
-</ParamField>
+</ResponseField>
 
-<ParamField path="loading" type="boolean">
+<ResponseField name="loading" type="boolean">
   Whether data is loading
-</ParamField>
+</ResponseField>
 
-<ParamField path="error" type="Error | null">
+<ResponseField name="error" type="Error | null">
   Any error that occurred
-</ParamField>
+</ResponseField>
 
-<ParamField path="refetch">
+<ResponseField name="refetch" type="() => Promise<void>">
   <Expandable title="Refetch the workspaces list">
-    <ParamField path="returns" type="Promise&lt;void&gt;">
+    <ResponseField name="returns" type="Promise<void>">
       Resolves when the workspaces list is refetched
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="leaveWorkspace">
+<ResponseField name="leaveWorkspace" type="(workspace: Workspace, userId: string) => Promise<void>">
   <Expandable title="Leave a workspace">
     <ParamField path="workspace" type="Workspace">
       The workspace to leave
@@ -37,13 +37,13 @@ The `useWorkspaceList` hook provides methods for managing workspaces the user ha
     <ParamField path="userId" type="string">
       The user ID to remove
     </ParamField>
-    <ParamField path="returns" type="Promise&lt;void&gt;">
+    <ResponseField name="returns" type="Promise<void>">
       Resolves when the workspace is left
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="createWorkspace">
+<ResponseField name="createWorkspace" type="(organizationId: string, name: string, image?: File, description?: string) => Promise<Workspace>">
   <Expandable title="Create a new workspace">
     <ParamField path="organizationId" type="string">
       The organization ID to create the workspace in
@@ -57,38 +57,38 @@ The `useWorkspaceList` hook provides methods for managing workspaces the user ha
     <ParamField path="description" type="string">
       Optional workspace description
     </ParamField>
-    <ParamField path="returns" type="Promise&lt;Workspace&gt;">
+    <ResponseField name="returns" type="Promise<Workspace>">
       The created workspace
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="updateWorkspace">
+<ResponseField name="updateWorkspace" type="(workspace: Workspace, params: Partial<Workspace>) => Promise<Workspace>">
   <Expandable title="Update a workspace">
     <ParamField path="workspace" type="Workspace">
       The workspace to update
     </ParamField>
-    <ParamField path="params" type="Partial&lt;Workspace&gt;">
+    <ParamField path="params" type="Partial<Workspace>">
       Workspace fields to update
     </ParamField>
-    <ParamField path="returns" type="Promise&lt;Workspace&gt;">
+    <ResponseField name="returns" type="Promise<Workspace>">
       The updated workspace
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="deleteWorkspace">
+<ResponseField name="deleteWorkspace" type="(workspace: Workspace) => Promise<void>">
   <Expandable title="Delete a workspace">
     <ParamField path="workspace" type="Workspace">
       The workspace to delete
     </ParamField>
-    <ParamField path="returns" type="Promise&lt;void&gt;">
+    <ResponseField name="returns" type="Promise<void>">
       Resolves when the workspace is deleted
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="getWorkspaceMembers">
+<ResponseField name="getWorkspaceMembers" type="(workspace: Workspace, options?: { page?: number; limit?: number }) => Promise<{ data: WorkspaceMember[]; total: number }>">
   <Expandable title="Get workspace members">
     <ParamField path="workspace" type="Workspace">
       The workspace
@@ -96,13 +96,13 @@ The `useWorkspaceList` hook provides methods for managing workspaces the user ha
     <ParamField path="options" type="{ page?: number; limit?: number }">
       Pagination options
     </ParamField>
-    <ParamField path="returns" type="Promise&lt;{ data: WorkspaceMember[]; total: number }&gt;">
+    <ResponseField name="returns" type="Promise<{ data: WorkspaceMember[]; total: number }>">
       Paginated list of workspace members
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="removeWorkspaceMember">
+<ResponseField name="removeWorkspaceMember" type="(workspace: Workspace, member: WorkspaceMembership) => Promise<void>">
   <Expandable title="Remove a workspace member">
     <ParamField path="workspace" type="Workspace">
       The workspace
@@ -110,13 +110,13 @@ The `useWorkspaceList` hook provides methods for managing workspaces the user ha
     <ParamField path="member" type="WorkspaceMembership">
       The member to remove
     </ParamField>
-    <ParamField path="returns" type="Promise&lt;void&gt;">
+    <ResponseField name="returns" type="Promise<void>">
       Resolves when the member is removed
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="addWorkspaceMemberRole">
+<ResponseField name="addWorkspaceMemberRole" type="(workspace: Workspace, member: WorkspaceMembership, role: WorkspaceRole) => Promise<void>">
   <Expandable title="Add a role to a workspace member">
     <ParamField path="workspace" type="Workspace">
       The workspace
@@ -127,13 +127,13 @@ The `useWorkspaceList` hook provides methods for managing workspaces the user ha
     <ParamField path="role" type="WorkspaceRole">
       The role to add
     </ParamField>
-    <ParamField path="returns" type="Promise&lt;void&gt;">
+    <ResponseField name="returns" type="Promise<void>">
       Resolves when the role is added
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="removeWorkspaceMemberRole">
+<ResponseField name="removeWorkspaceMemberRole" type="(workspace: Workspace, member: WorkspaceMembership, role: WorkspaceRole) => Promise<void>">
   <Expandable title="Remove a role from a workspace member">
     <ParamField path="workspace" type="Workspace">
       The workspace
@@ -144,24 +144,24 @@ The `useWorkspaceList` hook provides methods for managing workspaces the user ha
     <ParamField path="role" type="WorkspaceRole">
       The role to remove
     </ParamField>
-    <ParamField path="returns" type="Promise&lt;void&gt;">
+    <ResponseField name="returns" type="Promise<void>">
       Resolves when the role is removed
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="getWorkspaceRoles">
+<ResponseField name="getWorkspaceRoles" type="(workspace: Workspace) => Promise<WorkspaceRole[]>">
   <Expandable title="Get workspace roles">
     <ParamField path="workspace" type="Workspace">
       The workspace
     </ParamField>
-    <ParamField path="returns" type="Promise&lt;WorkspaceRole[]&gt;">
+    <ResponseField name="returns" type="Promise<WorkspaceRole[]>">
       List of workspace roles
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="createWorkspaceRole">
+<ResponseField name="createWorkspaceRole" type="(workspace: Workspace, name: string, permissions: string[]) => Promise<WorkspaceRole>">
   <Expandable title="Create a workspace role">
     <ParamField path="workspace" type="Workspace">
       The workspace
@@ -172,13 +172,13 @@ The `useWorkspaceList` hook provides methods for managing workspaces the user ha
     <ParamField path="permissions" type="string[]">
       List of permissions for this role
     </ParamField>
-    <ParamField path="returns" type="Promise&lt;WorkspaceRole&gt;">
+    <ResponseField name="returns" type="Promise<WorkspaceRole>">
       The created role
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="deleteWorkspaceRole">
+<ResponseField name="deleteWorkspaceRole" type="(workspace: Workspace, role: WorkspaceRole) => Promise<void>">
   <Expandable title="Delete a workspace role">
     <ParamField path="workspace" type="Workspace">
       The workspace
@@ -186,24 +186,24 @@ The `useWorkspaceList` hook provides methods for managing workspaces the user ha
     <ParamField path="role" type="WorkspaceRole">
       The role to delete
     </ParamField>
-    <ParamField path="returns" type="Promise&lt;void&gt;">
+    <ResponseField name="returns" type="Promise<void>">
       Resolves when the role is deleted
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="getWorkspaceInvitations">
+<ResponseField name="getWorkspaceInvitations" type="(workspace: Workspace) => Promise<Invitation[]>">
   <Expandable title="Get workspace invitations">
     <ParamField path="workspace" type="Workspace">
       The workspace
     </ParamField>
-    <ParamField path="returns" type="Promise&lt;Invitation[]&gt;">
+    <ResponseField name="returns" type="Promise<Invitation[]>">
       List of workspace invitations
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="createWorkspaceInvitation">
+<ResponseField name="createWorkspaceInvitation" type="(workspace: Workspace, email: string, workspaceRoleId?: string) => Promise<Invitation>">
   <Expandable title="Create a workspace invitation">
     <ParamField path="workspace" type="Workspace">
       The workspace
@@ -214,13 +214,13 @@ The `useWorkspaceList` hook provides methods for managing workspaces the user ha
     <ParamField path="workspaceRoleId" type="string">
       Optional workspace role ID to assign
     </ParamField>
-    <ParamField path="returns" type="Promise&lt;Invitation&gt;">
+    <ResponseField name="returns" type="Promise<Invitation>">
       The created invitation
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="discardWorkspaceInvitation">
+<ResponseField name="discardWorkspaceInvitation" type="(workspace: Workspace, invitation: Invitation) => Promise<void>">
   <Expandable title="Discard a workspace invitation">
     <ParamField path="workspace" type="Workspace">
       The workspace
@@ -228,13 +228,13 @@ The `useWorkspaceList` hook provides methods for managing workspaces the user ha
     <ParamField path="invitation" type="Invitation">
       The invitation to discard
     </ParamField>
-    <ParamField path="returns" type="Promise&lt;void&gt;">
+    <ResponseField name="returns" type="Promise<void>">
       Resolves when the invitation is discarded
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="resendWorkspaceInvitation">
+<ResponseField name="resendWorkspaceInvitation" type="(workspace: Workspace, invitation: Invitation) => Promise<Invitation>">
   <Expandable title="Resend a workspace invitation">
     <ParamField path="workspace" type="Workspace">
       The workspace
@@ -242,11 +242,11 @@ The `useWorkspaceList` hook provides methods for managing workspaces the user ha
     <ParamField path="invitation" type="Invitation">
       The invitation to resend
     </ParamField>
-    <ParamField path="returns" type="Promise&lt;Invitation&gt;">
+    <ResponseField name="returns" type="Promise<Invitation>">
       The resent invitation
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
 ```tsx
 import { useWorkspaceList } from "@wacht/tanstack-router";

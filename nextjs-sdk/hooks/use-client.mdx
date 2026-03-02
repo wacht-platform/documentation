@@ -9,7 +9,7 @@ The `useClient` hook provides access to the configured HTTP client for making au
 
 ## Return Value
 
-<ParamField path="client">
+<ResponseField name="client" type="(url: string, options?: RequestInit) => Promise<Response>">
   <Expandable title="The HTTP client function for making authenticated requests">
     <ParamField path="url" type="string">
       The API endpoint URL
@@ -17,15 +17,15 @@ The `useClient` hook provides access to the configured HTTP client for making au
     <ParamField path="options" type="RequestInit">
       Optional request options (method, headers, body, etc.)
     </ParamField>
-    <ParamField path="returns" type="Promise<Response>">
+    <ResponseField name="returns" type="Promise<Response>">
       The fetch Response object
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="loading" type="boolean">
+<ResponseField name="loading" type="boolean">
   Whether the client is being initialized
-</ParamField>
+</ResponseField>
 
 ```tsx
 import { useClient } from "@wacht/nextjs";

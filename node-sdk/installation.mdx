@@ -1,0 +1,41 @@
+---
+title: Installation
+description: Install the Wacht Node.js SDK into your project.
+---
+
+# Installation
+
+The Wacht backend SDK is published on NPM as `@wacht/backend`. It is designed to be installed in your secure server environments, not bundled into frontend client applications.
+
+<CodeGroup>
+```bash npm
+npm install @wacht/backend
+```
+
+```bash yarn
+yarn add @wacht/backend
+```
+
+```bash pnpm
+pnpm add @wacht/backend
+```
+</CodeGroup>
+
+## Environment Variables
+
+The backend SDK requires your **Secret API Key** to interact with the Wacht API, and your **Public Signing Key** to securely verify session tokens locally without making network requests.
+
+Add the following to your environment configuration (e.g., your `.env` file):
+
+```bash .env
+# Required for making API module requests (creating users, orgs, etc.)
+WACHT_API_KEY="wk_live_..."
+
+# Required for local JWT session verification using getAuth()
+WACHT_PUBLIC_SIGNING_KEY="YOUR_PUBLIC_KEY" 
+```
+
+> [!WARNING]
+> Your `WACHT_API_KEY` provides privileged access to your entire workspace. **Never** expose this key to the browser or commit it to version control.
+
+Retrieve these credentials from the **API Keys** section of your Wacht Dashboard.

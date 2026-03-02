@@ -15,47 +15,47 @@ The `useAgentIntegrations` hook manages third-party integrations (like Google Dr
 
 ## Return Value
 
-<ParamField path="integrations" type="AgentIntegration[]">
+<ResponseField name="integrations" type="AgentIntegration[]">
   List of available integrations for the agent
-</ParamField>
+</ResponseField>
 
-<ParamField path="loading" type="boolean">
+<ResponseField name="loading" type="boolean">
   Whether integrations are loading
-</ParamField>
+</ResponseField>
 
-<ParamField path="error" type="Error | null">
+<ResponseField name="error" type="Error | null">
   Any error that occurred
-</ParamField>
+</ResponseField>
 
-<ParamField path="generateConsentURL">
+<ResponseField name="generateConsentURL" type="(integrationId: string) => Promise<ConsentURLResponse>">
   <Expandable title="Generate an OAuth consent URL for connecting an integration">
     <ParamField path="integrationId" type="string">
       The integration ID to generate a consent URL for
     </ParamField>
-    <ParamField path="returns" type="Promise<ConsentURLResponse>">
+    <ResponseField name="returns" type="Promise<ConsentURLResponse>">
       The consent URL response containing the URL and state
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="removeIntegration">
+<ResponseField name="removeIntegration" type="(integrationId: string) => Promise<void>">
   <Expandable title="Disconnect and remove an integration">
     <ParamField path="integrationId" type="string">
       The integration ID to remove
     </ParamField>
-    <ParamField path="returns" type="Promise<void>">
+    <ResponseField name="returns" type="Promise<void>">
       Resolves when the integration is removed
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
-<ParamField path="refetch">
+<ResponseField name="refetch" type="() => Promise<void>">
   <Expandable title="Refetch the integrations list">
-    <ParamField path="returns" type="Promise&lt;void&gt;">
+    <ResponseField name="returns" type="Promise<void>">
       Resolves when the integrations list is refetched
-    </ParamField>
+    </ResponseField>
   </Expandable>
-</ParamField>
+</ResponseField>
 
 ## Data Structures
 

@@ -13,13 +13,12 @@ Learn how to create and manage notifications using the Wacht Rust SDK.
 Before using any API methods, you must initialize the SDK:
 
 ```rust
-use wacht::init_from_env;
+use wacht::WachtClient;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Initialize from environment variables
-    // Requires: WACHT_API_KEY and WACHT_FRONTEND_HOST
-    init_from_env().await?;
+    // Initialize the client with an API key
+    let client = WachtClient::new("wk_live_...");
 
     // Now you can use the API
     Ok(())
@@ -33,10 +32,12 @@ Send a notification to a specific user.
 ### Basic Notification
 
 ```rust
-use wacht::api::notifications;
+use wacht::WachtClient;
 use wacht::models::CreateNotificationRequest;
 
-let notification = notifications::create(
+let client = WachtClient::new("wk_live_...");
+
+let notification = client.notifications().create(
     CreateNotificationRequest::new(
         "user_123".to_string(),
         "Welcome to Wacht!".to_string(),
@@ -52,10 +53,12 @@ println!("Created notification: {}", notification.id);
 ### Notification with Action Button
 
 ```rust
-use wacht::api::notifications;
+use wacht::WachtClient;
 use wacht::models::CreateNotificationRequest;
 
-let notification = notifications::create(
+let client = WachtClient::new("wk_live_...");
+
+let notification = client.notifications().create(
     CreateNotificationRequest::new(
         "user_123".to_string(),
         "New Feature Available".to_string(),
@@ -70,10 +73,12 @@ let notification = notifications::create(
 ### Notification with Severity
 
 ```rust
-use wacht::api::notifications;
+use wacht::WachtClient;
 use wacht::models::{CreateNotificationRequest, NotificationSeverity};
 
-let notification = notifications::create(
+let client = WachtClient::new("wk_live_...");
+
+let notification = client.notifications().create(
     CreateNotificationRequest::new(
         "user_123".to_string(),
         "Security Alert".to_string(),
@@ -88,15 +93,17 @@ let notification = notifications::create(
 ### Notification with Metadata and Expiry
 
 ```rust
-use wacht::api::notifications;
+use wacht::WachtClient;
 use wacht::models::CreateNotificationRequest;
 use std::collections::HashMap;
+
+let client = WachtClient::new("wk_live_...");
 
 let mut metadata = HashMap::new();
 metadata.insert("category".to_string(), serde_json::json!("security"));
 metadata.insert("priority".to_string(), serde_json::json!("high"));
 
-let notification = notifications::create(
+let notification = client.notifications().create(
     CreateNotificationRequest::new(
         "user_123".to_string(),
         "Important Update".to_string(),
@@ -112,10 +119,12 @@ let notification = notifications::create(
 ### Notification with Custom CTAs
 
 ```rust
-use wacht::api::notifications;
+use wacht::WachtClient;
 use wacht::models::{CreateNotificationRequest, CallToAction};
 
-let notification = notifications::create(
+let client = WachtClient::new("wk_live_...");
+
+let notification = client.notifications().create(
     CreateNotificationRequest::new(
         "user_123".to_string(),
         "Complete Your Profile".to_string(),
@@ -138,22 +147,37 @@ let notification = notifications::create(
 .await?;
 ```
 
-## CreateNotificationRequest Fields
-
-### Required Fields
-
-- `user_id` (String) - User ID to send notification to
-- `title` (String) - Notification title
-- `body` (String) - Notification message content
-
-### Optional Fields (via Builder Methods)
-
-- `action_url` (Option&lt;String&gt;) - URL for the action button
-- `action_label` (Option&lt;String&gt;) - Label for the action button
-- `ctas` (Option&lt;Vec&lt;CallToAction&gt;&gt;) - Multiple call-to-action buttons
-- `severity` (Option&lt;String&gt;) - Notification severity level
-- `metadata` (Option&lt;HashMap&lt;String, serde_json::Value&gt;&gt;) - Additional metadata
-- `expires_hours` (Option&lt;i64&gt;) - Expiry time in hours
+<ParamField path="request" type="CreateNotificationRequest" required>
+  <Expandable title="properties">
+    <ParamField path="user_id" type="String" required>
+      User ID to send notification to.
+    </ParamField>
+    <ParamField path="title" type="String" required>
+      Notification title.
+    </ParamField>
+    <ParamField path="body" type="String" required>
+      Notification message content.
+    </ParamField>
+    <ParamField path="action_url" type="Option<String>">
+      URL for the action button.
+    </ParamField>
+    <ParamField path="action_label" type="Option<String>">
+      Label for the action button.
+    </ParamField>
+    <ParamField path="ctas" type="Option<Vec<CallToAction>>">
+      Multiple call-to-action buttons.
+    </ParamField>
+    <ParamField path="severity" type="Option<String>">
+      Notification severity level.
+    </ParamField>
+    <ParamField path="metadata" type="Option<HashMap<String, serde_json::Value>>">
+      Additional metadata.
+    </ParamField>
+    <ParamField path="expires_hours" type="Option<i64>">
+      Expiry time in hours.
+    </ParamField>
+  </Expandable>
+</ParamField>
 
 ## Severity Levels
 
@@ -187,10 +211,12 @@ CallToAction {
 All SDK methods return a `Result<T, Error>`:
 
 ```rust
-use wacht::{Error, api::notifications};
+use wacht::{Error, WachtClient};
 use wacht::models::CreateNotificationRequest;
 
-match notifications::create(
+let client = WachtClient::new("wk_live_...");
+
+match client.notifications().create(
     CreateNotificationRequest::new(
         "invalid_user".to_string(),
         "Test".to_string(),

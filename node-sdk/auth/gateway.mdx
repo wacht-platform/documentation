@@ -1,0 +1,134 @@
+---
+title: Gateway Authz
+description: Verify API Keys and machine-to-machine OAuth tokens using the Gateway Module.
+---
+
+# Gateway Authz
+
+While `getAuth()` is designed exclusively for verifying lightweight frontend JWT user sessions, B2B applications also frequently need to authenticate programmatic API requests. These typically come in two forms:
+
+1. **API Keys**: Static, long-lived generic tokens prefixed with `wk_live_...`
+2. **OAuth Access Tokens**: Short-lived, scoped tokens generated via machine-to-machine OAuth flows.
+
+The `@wacht/backend` SDK provides the `gateway` module to verify these tokens against the Wacht Authz Engine. 
+
+Unlike session JWTs which are verified locally, **Gateway assertions require a network roundtrip** because API Keys can be revoked instantly and their permissions modified dynamically.
+
+## Verifying an API Key
+
+When a developer integrates with your custom API, they will pass an API Key in the `Authorization: Bearer <api_key>` header. You can extract that key and verify it using `gateway.verifyApiKeyRequest`.
+
+```typescript
+import { gateway } from "@wacht/backend";
+
+export async function myPublicApiEndpoint(request: Request) {
+  // 1. Extract the raw API Key from the header
+  const authHeader = request.headers.get("authorization");
+  const apiKey = authHeader?.split("Bearer ")[1];
+
+  if (!apiKey) return new Response("Missing API Key", { status: 401 });
+
+  try {
+    // 2. Transmit the key to the Wacht Gateway for evaluation
+    const authz = await gateway.verifyApiKeyRequest(
+      apiKey, 
+      request.method,
+      new URL(request.url).pathname, // The resource requested
+      {
+        clientIp: request.headers.get("x-forwarded-for") || undefined,
+        userAgent: request.headers.get("user-agent") || undefined
+      }
+    );
+
+    // 3. Optional: Parse the response into a structured principal context
+    const principal = gateway.resolveGatewayPrincipalContext(authz);
+    
+    // Process the request...
+    return Response.json({ activeWorkspace: principal?.workspaceId });
+
+  } catch (error) {
+    // Errant keys, inadequate permission scopes, or rate limits throw WachtErrors
+    return new Response(error.message, { status: 403 });
+  }
+}
+```
+
+<ParamField path="apiKey" type="string" required>
+  The extracted raw API Key string (`wk_live_...`).
+</ParamField>
+
+<ParamField path="method" type="string" required>
+  The HTTP Method representing the action (e.g. `GET`, `POST`).
+</ParamField>
+
+<ParamField path="pathname" type="string" required>
+  The specific URL path resource being requested.
+</ParamField>
+
+<ParamField path="options" type="VerifyApiKeyOptions">
+  <Expandable title="properties">
+    <ParamField path="clientIp" type="string">
+      The request's originating IP Address (checked against geographic access restrictions).
+    </ParamField>
+    <ParamField path="userAgent" type="string">
+      The User-Agent string from the client.
+    </ParamField>
+    <ParamField path="requiredPermissions" type="string[]">
+      Scopes specifically required to fulfill this endpoint.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+## Enforcing Specific Permissions
+
+API Keys natively inherit the Role-Based Access Control (RBAC) permissions of the roles they are assigned within a Workspace or Organization. You can instruct the gateway to decline the request automatically if the key lacks required permissions.
+
+```typescript
+const authz = await gateway.verifyApiKeyRequest(
+  apiKey,
+  "DELETE",
+  "/v1/projects/proj_abc",
+  {
+    requiredPermissions: ["workspace:project:delete"]
+  }
+);
+```
+
+If the key does not possess the `workspace:project:delete` permission, `verifyApiKeyRequest` will throw a 403 `AuthorizationError`.
+
+## Verifying OAuth Tokens
+
+If your application operates as an OAuth Resource Server accepting access tokens generated via standard OIDC grants (like `client_credentials`), verify them using `verifyOauthAccessTokenRequest`.
+
+The signature is identical to API Key verification:
+
+```typescript
+const authz = await gateway.verifyOauthAccessTokenRequest(
+  oauthToken,
+  request.method,
+  "/v1/secure-data",
+  {
+    requiredPermissions: ["read:data"] // Asserts scopes attached to the token
+  }
+);
+```
+
+<ParamField path="oauthToken" type="string" required>
+  The extracted short-lived OAuth Bearer token.
+</ParamField>
+
+<ParamField path="method" type="string" required>
+  The evaluated HTTP action method.
+</ParamField>
+
+<ParamField path="pathname" type="string" required>
+  The target evaluation path.
+</ParamField>
+
+<ParamField path="options" type="VerifyOauthAccessTokenOptions">
+  <Expandable title="properties">
+    <ParamField path="requiredPermissions" type="string[]">
+      Enforces required scopes to be present on the OAuth access token.
+    </ParamField>
+  </Expandable>
+</ParamField>

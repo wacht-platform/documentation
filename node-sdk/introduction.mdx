@@ -1,0 +1,37 @@
+---
+title: Introduction
+description: Welcome to the Wacht Node.js (Backend) SDK documentation.
+---
+
+# Introduction
+
+The Wacht Node.js SDK (`@wacht/backend`) provides a runtime-agnostic interface for interacting with the Wacht backend API and executing critical server-side authentication operations.
+
+Whether you are building a traditional Express server, utilizing edge compute environments like Cloudflare Workers, or integrating within a meta-framework, the Node.js SDK is designed to be universally compatible.
+
+## Core Capabilities
+
+The backend SDK is responsible for two major domains:
+
+1. **Authentication & Authorization**: High-performance primitives like `getAuth()` and `requireAuth()` to validate session JWTs, verify role-based access control (RBAC), and handle Gateway API Key authentication.
+2. **API Interaction**: Full typescript bindings to interact with Wacht's backend REST APIs, allowing you to create organizations, manage users, provision API keys, or execute AI agents programmatically from your server.
+
+## Runtime Compatibility 
+
+`@wacht/backend` relies solely on standard Web APIs (like `fetch` and `crypto`) and uses the lightweight `jose` library for JWT handling. It does **not** rely on Node-specific built-ins like `fs` or `net`.
+
+This means it functions seamlessly out of the box in:
+- Node.js (18+)
+- Cloudflare Workers
+- Vercel Edge Functions
+- Deno
+- Bun
+
+<CardGroup>
+  <Card title="Installation" icon="download" href="/node-sdk/installation">
+    Install the package and retrieve your API keys.
+  </Card>
+  <Card title="Quickstart" icon="bolt" href="/node-sdk/quickstart">
+    Initialize the client and make your first API request.
+  </Card>
+</CardGroup>

@@ -1,42 +1,61 @@
 ---
-title: RequireActiveTenancy
-description: Ensures a valid organization/workspace is selected before rendering children.
+title: '<RequireActiveTenancy />'
+description: 'A structural guardrail component that prevents rendering unless a valid B2B tenancy is active.'
 ---
 
-# RequireActiveTenancy
+# `<RequireActiveTenancy />`
 
-Ensures that a valid organization and workspace (if enabled) are selected before rendering its children. If no valid tenancy exists, shows an organization/workspace selector dialog.
+The `<RequireActiveTenancy />` component acts as a strict structural gatekeeper for your component tree. It guarantees that its React children will *exclusively* mount if the authenticated user has explicitly selected an active Organization (and optionally, an active Workspace) within their current session.
+
+## Import
 
 ```tsx
 import { RequireActiveTenancy } from "@wacht/react-router";
+```
 
-export default function App() {
+## Why is this critical?
+
+In B2B, multi-tenant applications, your entire application architecture revolves around context. When fetching data from your backend APIs, you frequently rely on passing an `org_id` in the header or path. 
+
+If a user logs in to your app but hasn't created or explicitly selected an organization to view, your data loaders might fire with a `null` or `undefined` organization ID. This often leads to catastrophic backend crashes, malformed database queries, or bizarre, unrecoverable UI states.
+
+Wrapping your core dashboard layout in `<RequireActiveTenancy />` entirely eliminates this class of bugs at the boundary level.
+
+## Usage
+
+You should wrap the specific routes, layouts, or data-heavy tables that absolutely require multi-tenant context to function safely.
+
+```tsx
+import { RequireActiveTenancy } from "@wacht/react-router";
+import { CreateOrganizationForm } from "./CreateOrganizationForm"; // Assume this is your UI
+import { Sidebar } from "./Sidebar";
+import { Outlet } from "react-router";
+
+export default function DashboardLayout() {
+  // If no organizational context is active, we render an onboarding 
+  // prompt INSTEAD of crashing the dashboard.
+  const fallbackUI = (
+    <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
+      <h2 className="font-extrabold text-3xl mb-4 text-zinc-900">Welcome to Acme</h2>
+      <p className="mb-8 text-zinc-500">Please create an organization to access your dashboard metrics.</p>
+      
+      <div className="w-full max-w-sm">
+        <CreateOrganizationForm />
+      </div>
+    </div>
+  );
+
   return (
-    <RequireActiveTenancy>
-      <YourProtectedApp />
+    <RequireActiveTenancy fallback={fallbackUI}>
+      {/* 
+        Everything rendered inside this closure is mathematically guaranteed 
+        by Wacht to have an active organization ID available in the session.
+      */}
+      <div className="flex h-screen bg-zinc-50">
+        <Sidebar />
+        <main className="flex-1 overflow-y-auto p-8"><Outlet /></main>
+      </div>
     </RequireActiveTenancy>
   );
 }
 ```
-
-## Validation
-
-Returns `null` while loading. Checks for:
-
-- Active organization selected (if organizations enabled)
-- Active workspace selected (if workspaces enabled)
-- No eligibility restrictions on current memberships
-
-When validation fails, shows a dialog with organization selector, workspace selector (if applicable), and create options.
-
-## Params
-
-<ParamField path="children" type="ReactNode">
-Content to render when tenancy is valid.
-</ParamField>
-
-## Related
-
-- [OrganizationSwitcher](./organization-switcher) - Organization switcher
-- [useActiveOrganization](../hooks/use-active-organization) - Active organization hook
-- [useActiveWorkspace](../hooks/use-active-workspace) - Active workspace hook

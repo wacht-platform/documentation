@@ -1,56 +1,43 @@
 ---
-title: SignedOut
-description: Conditionally render children only when the user is signed out.
+title: '<SignedOut />'
+description: 'A declarative boundary that mounts its children only for anonymous, unauthenticated visitors.'
 ---
 
-# SignedOut
+# `<SignedOut />`
 
-Conditionally renders its children only when no user is authenticated. Returns `null` during loading or if an active sign-in exists.
+The `<SignedOut />` component is the declarative inverse of the `<SignedIn />` component. It acts as a structural boundary that guarantees its React children will **only** mount if there is currently no active session in the user's browser (i.e., they are totally anonymous).
+
+## Import
+
+```tsx
+import { SignedOut } from "@wacht/tanstack-router";
+```
+
+## Usage
+
+This component is most powerful when paired alongside the `<SignedIn />` component to orchestrate smart, conditional layouts on public-facing pages without the boilerplate of manually inspecting internal session hooks.
 
 ```tsx
 import { SignedOut } from "@wacht/tanstack-router";
 
-export default function HomePage() {
+export function CallToActionSection() {
   return (
     <SignedOut>
-      <div>
-        <h1>Welcome to our app!</h1>
-        <a href="/signin">Sign In</a>
-        <a href="/signup">Sign Up</a>
+      {/* 
+        This aggressive promotional hero and sign-up button only shows to 
+        logged-out visitors. If an active user visits the marketing page, 
+        they logically will not see this upsell. 
+      */}
+      <div className="bg-zinc-950 text-white rounded-2xl p-12 text-center mt-20 shadow-2xl">
+        <h2 className="text-4xl font-extrabold tracking-tight mb-4">Start building today.</h2>
+        <p className="text-zinc-400 mb-8 max-w-xl mx-auto text-lg">
+          Join thousands of developers building secure, robust applications with Wacht.
+        </p>
+        <a href="/sign-up" className="bg-white text-zinc-900 px-8 py-4 rounded-lg font-bold shadow-sm hover:bg-zinc-100 transition">
+          Create a free account
+        </a>
       </div>
     </SignedOut>
   );
 }
 ```
-
-## CTA When Signed Out
-
-```tsx
-import { SignedOut, SignedIn, UserButton } from "@wacht/tanstack-router";
-
-export default function Navbar() {
-  return (
-    <nav>
-      <h1>My App</h1>
-      <SignedOut>
-        <a href="/signin">Sign In</a>
-        <a href="/signup">Sign Up</a>
-      </SignedOut>
-      <SignedIn>
-        <UserButton />
-      </SignedIn>
-    </nav>
-  );
-}
-```
-
-## Params
-
-<ParamField path="children" type="ReactNode">
-Content to render when signed out.
-</ParamField>
-
-## Related
-
-- [SignedIn](./signed-in) - Render when user is signed in
-- [useSession](../hooks/use-session) - Access session data

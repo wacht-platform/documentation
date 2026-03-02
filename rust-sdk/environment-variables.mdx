@@ -1,41 +1,44 @@
 ---
 title: 'Environment Variables'
-description: 'Reference for wacht-rs runtime configuration.'
+description: 'Reference guide for Wacht SDK environment variables.'
 ---
 
-## Required
+The Wacht Rust SDK, as well as the underlying Node and React SDKs, rely on a standard set of environment variables to configure authentication and API communication securely.
+
+## Required Variables
+
+You must provide your Secret Key and at least one way to resolve your Frontend API URL (usually via the Publishable Key).
 
 <ParamField path="WACHT_API_KEY" type="string" required>
-API key used for backend API authentication.
-</ParamField>
-
-<ParamField path="WACHT_FRONTEND_HOST" type="string">
-Frontend host used for session/JWK related flows.
-Optional when `WACHT_PUBLISHABLE_KEY` is provided.
+Your Secret API Key (`wk_test_...` or `wk_live_...`). This key grants full administrative access to your deployment's backend APIs (`api.wacht.dev`). **Never expose this key to the frontend.**
 </ParamField>
 
 <ParamField path="WACHT_PUBLISHABLE_KEY" type="string">
-Publishable key (`pk_test_...` or `pk_live_...`).
-When set, SDK derives frontend host automatically.
+Your Publishable Key (`pk_test_...` or `pk_live_...`). When provided, the SDK uses this key to automatically derive your normalized `WACHT_FRONTEND_HOST` behind the scenes.
 </ParamField>
 
-## Optional
+<ParamField path="WACHT_FRONTEND_HOST" type="string">
+The base URL of your Wacht Frontend API. If you have provided `WACHT_PUBLISHABLE_KEY`, this variable is purely optional and takes precedence if set. Use this if you are using a custom domain for your frontend API.
+</ParamField>
+
+
+## Optional Variables
 
 <ParamField path="WACHT_PUBLIC_SIGNING_KEY" type="string">
-PEM public key override for token validation.
+A static PEM-encoded RSA public key used to verify JWT session tokens. 
+
+By default, the SDK dynamically fetches your deployment's JSON Web Key Set (JWKS) via an HTTP request. Providing this environment variable tells the SDK to use the static key instead, eliminating the network request. This is highly recommended for serverless or edge environments where cold start times matter.
 </ParamField>
 
-## Resolution order for frontend host
+## Example `.env` File
 
-1. `WACHT_FRONTEND_HOST` (if present)
-2. Derived from `WACHT_PUBLISHABLE_KEY`
-3. Error if neither exists
+```bash .env
+# Required for Backend API access
+WACHT_API_KEY=wk_test_...
 
-## Example
+# Required to resolve the Frontend API URL
+WACHT_PUBLISHABLE_KEY=pk_test_...
 
-```bash
-WACHT_API_KEY=wk_live_xxx
-WACHT_PUBLISHABLE_KEY=pk_test_xxx
-# optional
-WACHT_PUBLIC_SIGNING_KEY="-----BEGIN PUBLIC KEY-----..."
+# Optional: Hardcode the public signing key for faster JWT verification
+WACHT_PUBLIC_SIGNING_KEY="-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0B...\n-----END PUBLIC KEY-----"
 ```

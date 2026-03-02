@@ -815,6 +815,40 @@ components:
       bearerFormat: API Key
       description: API key authentication (Bearer token)
 
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: "Resource not found"
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: "Invalid request data"
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: "Authentication required"
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: "Internal server error"
+
   schemas:
 
     ErrorItem:
@@ -1397,52 +1431,4 @@ components:
       - ticket
       - expires_at
 
-  components:
-    schemas:
-      ErrorItem:
-        type: object
-        properties:
-          message:
-            type: string
-          code:
-            type: integer
-        required:
-          - message
-          - code
 
-      Error:
-        type: object
-        properties:
-          errors:
-            type: array
-            items:
-              $ref: '#/components/schemas/ErrorItem'
-        required:
-          - errors
-
-      PaginatedResponse:
-        type: object
-        properties:
-          has_more:
-            type: boolean
-            description: Whether there are more items
-          limit:
-            type: integer
-            description: Optional page limit
-            nullable: true
-          offset:
-            type: integer
-            description: Optional offset
-            nullable: true
-
-      PaginatedUsers:
-        allOf:
-          - $ref: '#/components/schemas/PaginatedResponse'
-          - type: object
-            properties:
-              data:
-                type: array
-                items:
-                  $ref: '#/components/schemas/User'
-            required:
-              - data

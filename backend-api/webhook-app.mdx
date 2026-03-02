@@ -69,9 +69,11 @@ POST /webhook/deliveries/replay
 
 ## Security & Payload Verification
 
-When Wacht delivers a webhook to your customer's endpoint, it signs the payload using HMAC-SHA256 based on the unique `signing_secret` assigned to the Webhook App. 
+When Wacht delivers a webhook to your target endpoint, it signs the payload using HMAC-SHA256 based on the unique `signing_secret` assigned to the Webhook App. 
 
-Your customers can verify the signature by inspecting the Wacht signature headers. Users can trigger a secret rotation at any time via the frontend API if they believe their secret has been compromised.
+Wacht implements the [Standard Webhooks](https://www.standardwebhooks.com/) specification (`webhook-id`, `webhook-timestamp`, `webhook-signature` headers). 
+
+Users can trigger a secret rotation at any time via the frontend API if they believe their secret has been compromised.
 
 ```http
 POST /webhook/rotate-secret

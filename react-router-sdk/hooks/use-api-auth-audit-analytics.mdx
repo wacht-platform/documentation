@@ -1,0 +1,38 @@
+---
+title: useApiAuthAuditAnalytics
+description: Fetch aggregated API auth analytics for volume, outcomes, and top entities.
+---
+
+# useApiAuthAuditAnalytics
+
+The `useApiAuthAuditAnalytics` hook returns aggregated analytics for API auth requests.
+
+## Parameters
+
+<ParamField path="options.start_date" type="string">ISO start date.</ParamField>
+<ParamField path="options.end_date" type="string">ISO end date.</ParamField>
+<ParamField path="options.key_id" type="string">Optional key filter.</ParamField>
+<ParamField path="options.include_top_keys" type="boolean">Include top keys breakdown.</ParamField>
+<ParamField path="options.include_top_paths" type="boolean">Include top endpoint paths.</ParamField>
+<ParamField path="options.include_blocked_reasons" type="boolean">Include blocked reason stats.</ParamField>
+<ParamField path="options.include_rate_limits" type="boolean">Include rate-limit breakdown.</ParamField>
+<ParamField path="options.top_limit" type="number">Limit for top-N aggregations.</ParamField>
+
+## Return Value
+
+<ResponseField name="analytics" type="ApiAuditAnalyticsResponse | null">Aggregated analytics payload.</ResponseField>
+<ResponseField name="loading" type="boolean">Whether request is in progress.</ResponseField>
+<ResponseField name="error" type="unknown">Error from the latest request.</ResponseField>
+<ResponseField name="refetch" type="() => void">Revalidate analytics.</ResponseField>
+
+## Example
+
+```tsx
+import { useApiAuthAuditAnalytics } from "@wacht/react-router";
+
+function ApiAuthCharts() {
+  const { analytics, loading } = useApiAuthAuditAnalytics({ include_top_paths: true });
+  if (loading) return <div>Loading...</div>;
+  return <pre>{JSON.stringify(analytics, null, 2)}</pre>;
+}
+```

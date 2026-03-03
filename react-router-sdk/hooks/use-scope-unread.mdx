@@ -1,0 +1,53 @@
+---
+title: useScopeUnread
+description: Fetch unread notification counts for the selected notification scope.
+---
+
+# useScopeUnread
+
+The `useScopeUnread` hook returns a lightweight unread count for a specific notification query scope.
+
+## Parameters
+
+<ParamField path="params" type="NotificationListParams">
+  Same filtering options used by `useNotifications` (scope, organization IDs, workspace IDs, and more).
+</ParamField>
+
+## Return Value
+
+<ResponseField name="count" type="number">
+  Unread count for the selected scope.
+</ResponseField>
+
+<ResponseField name="loading" type="boolean">
+  Whether unread count is loading.
+</ResponseField>
+
+<ResponseField name="error" type="Error | null">
+  Error from the latest request.
+</ResponseField>
+
+<ResponseField name="refetch" type="() => Promise<void>">
+  Revalidate unread count.
+</ResponseField>
+
+## Example
+
+```tsx
+import { useScopeUnread } from "@wacht/react-router";
+
+function WorkspaceUnread({ workspaceId }: { workspaceId: string }) {
+  const { count, loading } = useScopeUnread({
+    scope: "workspace",
+    workspace_ids: [workspaceId],
+  });
+
+  if (loading) return <span>...</span>;
+  return <span>{count}</span>;
+}
+```
+
+## Related
+
+- [useNotifications](./use-notifications) - Notification list and actions
+- [useNotificationStream](./use-notification-stream) - Realtime notification stream

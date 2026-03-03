@@ -1,0 +1,73 @@
+---
+title: useApiAuthKeys
+description: List, create, rotate, and revoke API auth keys.
+---
+
+# useApiAuthKeys
+
+The `useApiAuthKeys` hook manages API auth keys for the current API auth app session.
+
+## Parameters
+
+<ParamField path="filters.status" type="string">
+  Optional key status filter.
+</ParamField>
+
+## Return Value
+
+<ResponseField name="keys" type="ApiKey[]">
+  Current key list.
+</ResponseField>
+
+<ResponseField name="loading" type="boolean">
+  Whether keys are loading.
+</ResponseField>
+
+<ResponseField name="error" type="unknown">
+  Error from the latest request.
+</ResponseField>
+
+<ResponseField name="createKey" type="(input: CreateApiAuthKeyInput) => Promise<ApiKeyWithSecret>">
+  Create a new key and receive its secret once.
+</ResponseField>
+
+<ResponseField name="rotateKey" type="(input: RotateApiAuthKeyInput) => Promise<ApiKeyWithSecret>">
+  Rotate an existing key and receive the new secret.
+</ResponseField>
+
+<ResponseField name="revokeKey" type="(input: RevokeApiAuthKeyInput) => Promise<void>">
+  Revoke a key.
+</ResponseField>
+
+<ResponseField name="refetch" type="() => void">
+  Revalidate key list.
+</ResponseField>
+
+## Example
+
+```tsx
+import { useApiAuthKeys } from "@wacht/tanstack-router";
+
+function KeysTable() {
+  const { keys, createKey, revokeKey } = useApiAuthKeys({ status: "active" });
+
+  return (
+    <div>
+      <button onClick={() => void createKey({ name: "CI key" })}>Create key</button>
+      <ul>
+        {keys.map((key) => (
+          <li key={key.id}>
+            {key.name}
+            <button onClick={() => void revokeKey({ key_id: key.id })}>Revoke</button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+## Related
+
+- [useApiAuthAuditLogs](./use-api-auth-audit-logs) - API auth request logs
+- [useApiAuthAppSession](./use-api-auth-app-session) - API auth app session state

@@ -1,0 +1,26 @@
+---
+title: useWebhookEvents
+description: List available webhook event types for subscriptions.
+---
+
+# useWebhookEvents
+
+The `useWebhookEvents` hook fetches webhook event definitions that can be subscribed to by endpoints.
+
+## Return Value
+
+<ResponseField name="events" type="WebhookAppEvent[]">Available webhook events.</ResponseField>
+<ResponseField name="loading" type="boolean">Whether events are loading.</ResponseField>
+<ResponseField name="error" type="unknown">Error from the latest request.</ResponseField>
+<ResponseField name="refetch" type="() => void">Revalidate event list.</ResponseField>
+
+## Example
+
+```tsx
+import { useWebhookEvents } from "@wacht/tanstack-router";
+
+function EventCatalog() {
+  const { events } = useWebhookEvents();
+  return <pre>{JSON.stringify(events, null, 2)}</pre>;
+}
+```

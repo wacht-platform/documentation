@@ -1,0 +1,63 @@
+---
+title: useUserSignins
+description: List and manage active user sign-in sessions.
+---
+
+# useUserSignins
+
+The `useUserSignins` hook returns the account's signin sessions and a helper to sign out an individual session.
+
+## Return Value
+
+<ResponseField name="signins" type="SignIn[] | undefined">
+  Current signin sessions for the user.
+</ResponseField>
+
+<ResponseField name="loading" type="boolean">
+  Whether signins are loading.
+</ResponseField>
+
+<ResponseField name="error" type="Error | null">
+  Error from the latest request.
+</ResponseField>
+
+<ResponseField name="removeSignin" type="(id: string) => Promise<ApiResult>">
+  <Expandable title="Sign out a specific session">
+    <ParamField path="id" type="string">
+      Signin ID to revoke.
+    </ParamField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="refetch" type="() => Promise<void>">
+  Revalidate the signin list.
+</ResponseField>
+
+## Example
+
+```tsx
+import { useUserSignins } from "@wacht/nextjs";
+
+function SigninList() {
+  const { signins, loading, removeSignin, refetch } = useUserSignins();
+
+  if (loading) return <div>Loading...</div>;
+
+  return (
+    <ul>
+      {(signins ?? []).map((signin) => (
+        <li key={signin.id}>
+          {signin.client_name ?? signin.id}
+          <button onClick={async () => { await removeSignin(signin.id); await refetch(); }}>
+            Sign out
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+## Related
+
+- [useUser](./use-user) - Load and manage current user profile

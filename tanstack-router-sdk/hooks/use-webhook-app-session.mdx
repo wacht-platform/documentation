@@ -1,0 +1,61 @@
+---
+title: useWebhookAppSession
+description: Resolve webhook app portal session state and perform endpoint and delivery actions.
+---
+
+# useWebhookAppSession
+
+The `useWebhookAppSession` hook loads webhook app portal session data, exchanges optional tickets, and exposes helper actions for endpoint and replay operations.
+
+## Parameters
+
+<ParamField path="ticket" type="string | null">
+  Optional session ticket to exchange before loading webhook app session data.
+</ParamField>
+
+## Return Value
+
+<ResponseField name="hasSession" type="boolean">Whether the current request has an active session.</ResponseField>
+<ResponseField name="sessionLoading" type="boolean">Whether ticket exchange or session fetch is in progress.</ResponseField>
+<ResponseField name="sessionError" type="Error | null">Session or ticket error.</ResponseField>
+<ResponseField name="sessionId" type="string | null">Webhook app session ID.</ResponseField>
+<ResponseField name="webhookApp" type="WebhookApp | null">Webhook app metadata.</ResponseField>
+<ResponseField name="ticketExchanged" type="boolean">Whether ticket exchange succeeded.</ResponseField>
+<ResponseField name="ticketLoading" type="boolean">Whether ticket exchange is in progress.</ResponseField>
+<ResponseField name="refetch" type="() => Promise<void>">Revalidate session data.</ResponseField>
+
+<ResponseField name="createEndpoint" type="(options) => Promise<EndpointWithSubscriptions>">Create a webhook endpoint.</ResponseField>
+<ResponseField name="updateEndpoint" type="(endpointId, options) => Promise<EndpointWithSubscriptions>">Update an endpoint.</ResponseField>
+<ResponseField name="deleteEndpoint" type="(endpointId) => Promise<void>">Delete an endpoint.</ResponseField>
+<ResponseField name="testEndpoint" type="(endpointId, options) => Promise<void>">Trigger endpoint test delivery.</ResponseField>
+<ResponseField name="rotateSecret" type="() => Promise<RotateSecretResponse>">Rotate app signing secret.</ResponseField>
+<ResponseField name="replayDelivery" type="(options) => Promise<ReplayResponse>">Replay a delivery.</ResponseField>
+<ResponseField name="fetchReplayTaskStatus" type="(options) => Promise<ReplayTaskStatus>">Fetch replay task status.</ResponseField>
+<ResponseField name="fetchReplayTasks" type="(options?) => Promise<ReplayTaskList>">List replay tasks.</ResponseField>
+<ResponseField name="cancelReplayTask" type="(options) => Promise<void>">Cancel replay task.</ResponseField>
+<ResponseField name="fetchDeliveryDetail" type="(deliveryId: string) => Promise<WebhookDeliveryDetail>">Fetch delivery detail.</ResponseField>
+
+## Example
+
+```tsx
+import { useWebhookAppSession } from "@wacht/tanstack-router";
+
+function WebhookPortal({ ticket }: { ticket?: string }) {
+  const { sessionLoading, webhookApp, createEndpoint } = useWebhookAppSession(ticket);
+
+  if (sessionLoading) return <div>Loading...</div>;
+
+  return (
+    <button
+      onClick={() =>
+        void createEndpoint({
+          url: "https://example.com/webhooks",
+          subscribed_events: ["user.created"],
+        })
+      }
+    >
+      Create endpoint for {webhookApp?.name}
+    </button>
+  );
+}
+```

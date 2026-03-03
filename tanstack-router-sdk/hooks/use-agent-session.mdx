@@ -1,0 +1,123 @@
+---
+title: useAgentSession
+description: Resolve agent session state, exchange optional tickets, and select an active agent.
+---
+
+# useAgentSession
+
+The `useAgentSession` hook loads current AI session state and returns available agents for that session.
+
+## Parameters
+
+<ParamField path="ticket" type="string | null">
+  Optional one-time session ticket to exchange before loading session data.
+</ParamField>
+
+## Return Value
+
+<ResponseField name="hasSession" type="boolean">
+  Whether a valid session exists.
+</ResponseField>
+
+<ResponseField name="sessionLoading" type="boolean">
+  Whether ticket exchange or session loading is in progress.
+</ResponseField>
+
+<ResponseField name="sessionError" type="Error | null">
+  Error from ticket exchange or session loading.
+</ResponseField>
+
+<ResponseField name="sessionId" type="string | null">
+  Current session ID.
+</ResponseField>
+
+<ResponseField name="contextGroup" type="string | null">
+  Context grouping key associated with the session.
+</ResponseField>
+
+<ResponseField name="agents" type="AgentWithIntegrations[]">
+  Agents available to the session.
+</ResponseField>
+
+<ResponseField name="activeAgent" type="AgentWithIntegrations | null">
+  Currently selected agent.
+</ResponseField>
+
+<ResponseField name="setActiveAgent" type="(agent: AgentWithIntegrations) => void">
+  <Expandable title="Set the active agent">
+    <ParamField path="agent" type="AgentWithIntegrations">
+      Agent to mark as active.
+    </ParamField>
+    <ResponseField name="returns" type="void">
+      No return value.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="ticketExchanged" type="boolean">
+  Whether the provided ticket was successfully exchanged.
+</ResponseField>
+
+<ResponseField name="ticketLoading" type="boolean">
+  Whether ticket exchange is currently in progress.
+</ResponseField>
+
+<ResponseField name="refetch" type="() => Promise<void>">
+  <Expandable title="Refetch session data">
+    <ResponseField name="returns" type="Promise<void>">
+      Resolves after session revalidation completes.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Examples
+
+### Load session data
+
+```tsx
+import { useAgentSession } from "@wacht/tanstack-router";
+
+function AgentPicker() {
+  const { sessionLoading, agents, activeAgent, setActiveAgent } = useAgentSession();
+
+  if (sessionLoading) return <div>Loading...</div>;
+
+  return (
+    <select
+      value={activeAgent?.id ?? ""}
+      onChange={(e) => {
+        const selected = agents.find((agent) => agent.id === e.target.value);
+        if (selected) setActiveAgent(selected);
+      }}
+    >
+      {agents.map((agent) => (
+        <option key={agent.id} value={agent.id}>
+          {agent.name}
+        </option>
+      ))}
+    </select>
+  );
+}
+```
+
+### Exchange a ticket before loading
+
+```tsx
+import { useAgentSession } from "@wacht/tanstack-router";
+
+function TicketSession({ ticket }: { ticket: string }) {
+  const { ticketLoading, hasSession, sessionError } = useAgentSession(ticket);
+
+  if (ticketLoading) return <div>Exchanging ticket...</div>;
+  if (!hasSession) return <div>No active session</div>;
+  if (sessionError) return <div>{sessionError.message}</div>;
+
+  return <div>Session ready</div>;
+}
+```
+
+## Related
+
+- [useAgentContext](./use-agent-context) - Stream messages for a specific context
+- [useAgentIntegrations](./use-agent-integrations) - Manage agent integrations
+- [useAgentMcpServers](./use-agent-mcp-servers) - Manage MCP server connections

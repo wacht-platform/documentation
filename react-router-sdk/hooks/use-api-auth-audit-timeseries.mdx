@@ -1,0 +1,34 @@
+---
+title: useApiAuthAuditTimeseries
+description: Fetch time-bucketed API auth metrics for dashboards and trend charts.
+---
+
+# useApiAuthAuditTimeseries
+
+The `useApiAuthAuditTimeseries` hook returns interval-based API auth audit metrics.
+
+## Parameters
+
+<ParamField path="options.start_date" type="string">ISO start date.</ParamField>
+<ParamField path="options.end_date" type="string">ISO end date.</ParamField>
+<ParamField path="options.interval" type="string">Aggregation interval (for example `hour` or `day`).</ParamField>
+<ParamField path="options.key_id" type="string">Optional key filter.</ParamField>
+
+## Return Value
+
+<ResponseField name="timeseries" type="ApiAuditTimeseriesResponse['data']">Timeseries points.</ResponseField>
+<ResponseField name="interval" type="string">Applied interval.</ResponseField>
+<ResponseField name="loading" type="boolean">Whether request is in progress.</ResponseField>
+<ResponseField name="error" type="unknown">Error from the latest request.</ResponseField>
+<ResponseField name="refetch" type="() => void">Revalidate timeseries.</ResponseField>
+
+## Example
+
+```tsx
+import { useApiAuthAuditTimeseries } from "@wacht/react-router";
+
+function ApiAuthTrend() {
+  const { timeseries } = useApiAuthAuditTimeseries({ interval: "day" });
+  return <pre>{JSON.stringify(timeseries, null, 2)}</pre>;
+}
+```

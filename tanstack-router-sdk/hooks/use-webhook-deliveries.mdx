@@ -1,0 +1,36 @@
+---
+title: useWebhookDeliveries
+description: Query webhook delivery logs with cursor pagination and filters.
+---
+
+# useWebhookDeliveries
+
+The `useWebhookDeliveries` hook fetches delivery logs and pagination metadata.
+
+## Parameters
+
+<ParamField path="options.endpoint_id" type="string">Filter by endpoint.</ParamField>
+<ParamField path="options.status" type="string">Filter by delivery status.</ParamField>
+<ParamField path="options.event_name" type="string">Filter by event name.</ParamField>
+<ParamField path="options.limit" type="number">Max rows per request.</ParamField>
+<ParamField path="options.cursor" type="string">Pagination cursor.</ParamField>
+
+## Return Value
+
+<ResponseField name="deliveries" type="WebhookDeliveriesResponse['data']">Delivery rows.</ResponseField>
+<ResponseField name="has_more" type="boolean">Whether more rows are available.</ResponseField>
+<ResponseField name="next_cursor" type="string | undefined">Cursor for next page.</ResponseField>
+<ResponseField name="loading" type="boolean">Whether request is in progress.</ResponseField>
+<ResponseField name="error" type="unknown">Error from latest request.</ResponseField>
+<ResponseField name="refetch" type="() => void">Revalidate deliveries.</ResponseField>
+
+## Example
+
+```tsx
+import { useWebhookDeliveries } from "@wacht/tanstack-router";
+
+function DeliveryList() {
+  const { deliveries, has_more } = useWebhookDeliveries({ limit: 25 });
+  return <div>{deliveries.length} deliveries {has_more ? "(more available)" : ""}</div>;
+}
+```

@@ -1,0 +1,55 @@
+---
+title: useMagicLinkVerification
+description: Verify magic-link tokens and track verification status.
+---
+
+# useMagicLinkVerification
+
+The `useMagicLinkVerification` hook validates magic-link `token` and `attempt` parameters against the auth API.
+
+## Return Value
+
+<ResponseField name="loading" type="boolean">
+  Whether client initialization or verification is in progress.
+</ResponseField>
+
+<ResponseField name="success" type="boolean | null">
+  Verification result: `true`, `false`, or `null` before attempt.
+</ResponseField>
+
+<ResponseField name="verifyMagicLink" type="(params: MagicLinkParams) => Promise<ApiResult>">
+  <Expandable title="Verify a magic link">
+    <ParamField path="params.token" type="string">
+      Magic link token.
+    </ParamField>
+    <ParamField path="params.attempt" type="string">
+      Magic link attempt identifier.
+    </ParamField>
+    <ParamField path="params.redirectUri" type="string">
+      Optional redirect target.
+    </ParamField>
+  </Expandable>
+</ResponseField>
+
+## Example
+
+```tsx
+import { useEffect } from "react";
+import { useMagicLinkVerification } from "@wacht/react-router";
+
+function MagicLinkPage({ token, attempt }: { token: string; attempt: string }) {
+  const { verifyMagicLink, success, loading } = useMagicLinkVerification();
+
+  useEffect(() => {
+    void verifyMagicLink({ token, attempt });
+  }, [token, attempt, verifyMagicLink]);
+
+  if (loading) return <div>Verifying...</div>;
+  return <div>{success ? "Verified" : "Invalid link"}</div>;
+}
+```
+
+## Related
+
+- [useSignIn](./use-sign-in) - Standard sign-in flows
+- [useSSOCallback](./use-sso-callback) - Handle auth callback flows

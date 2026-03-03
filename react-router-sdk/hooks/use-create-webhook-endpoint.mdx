@@ -1,0 +1,41 @@
+---
+title: useCreateWebhookEndpoint
+description: Create webhook endpoints with URL-encoded payloads.
+---
+
+# useCreateWebhookEndpoint
+
+The `useCreateWebhookEndpoint` hook exposes a single helper to create webhook endpoints.
+
+## Return Value
+
+<ResponseField name="createEndpoint" type="(options: CreateEndpointOptions) => Promise<EndpointWithSubscriptions>">
+  Create an endpoint with URL, optional description, and subscribed events.
+</ResponseField>
+
+<ResponseField name="loading" type="boolean">Current loading state (always `false` in this implementation).</ResponseField>
+<ResponseField name="error" type="unknown">Current error state (always `null` in this implementation).</ResponseField>
+
+## Example
+
+```tsx
+import { useCreateWebhookEndpoint } from "@wacht/react-router";
+
+function CreateEndpoint() {
+  const { createEndpoint } = useCreateWebhookEndpoint();
+
+  return (
+    <button
+      onClick={() =>
+        void createEndpoint({
+          url: "https://example.com/hooks",
+          description: "Primary endpoint",
+          subscribed_events: ["user.created", "organization.created"],
+        })
+      }
+    >
+      Create endpoint
+    </button>
+  );
+}
+```

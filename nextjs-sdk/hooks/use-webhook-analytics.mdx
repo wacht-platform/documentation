@@ -1,0 +1,33 @@
+---
+title: useWebhookAnalytics
+description: Fetch aggregated webhook analytics for date ranges and endpoints.
+---
+
+# useWebhookAnalytics
+
+The `useWebhookAnalytics` hook returns aggregated webhook metrics.
+
+## Parameters
+
+<ParamField path="options.start_date" type="string">ISO start date.</ParamField>
+<ParamField path="options.end_date" type="string">ISO end date.</ParamField>
+<ParamField path="options.endpoint_id" type="string">Optional endpoint filter.</ParamField>
+<ParamField path="options.fields" type="string[]">Optional set of fields to include.</ParamField>
+
+## Return Value
+
+<ResponseField name="analytics" type="WebhookAnalyticsResponse | null">Aggregated metrics payload.</ResponseField>
+<ResponseField name="loading" type="boolean">Whether request is in progress.</ResponseField>
+<ResponseField name="error" type="unknown">Error from latest request.</ResponseField>
+<ResponseField name="refetch" type="() => void">Revalidate analytics.</ResponseField>
+
+## Example
+
+```tsx
+import { useWebhookAnalytics } from "@wacht/nextjs";
+
+function AnalyticsPanel() {
+  const { analytics } = useWebhookAnalytics({ fields: ["status_breakdown"] });
+  return <pre>{JSON.stringify(analytics, null, 2)}</pre>;
+}
+```

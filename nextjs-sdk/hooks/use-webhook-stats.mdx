@@ -1,0 +1,26 @@
+---
+title: useWebhookStats
+description: Fetch webhook delivery summary statistics.
+---
+
+# useWebhookStats
+
+The `useWebhookStats` hook returns aggregate webhook delivery stats for the current webhook app context.
+
+## Return Value
+
+<ResponseField name="stats" type="WebhookStats | null">Webhook summary metrics.</ResponseField>
+<ResponseField name="loading" type="boolean">Whether stats are loading.</ResponseField>
+<ResponseField name="error" type="unknown">Error from the latest request.</ResponseField>
+<ResponseField name="refetch" type="() => void">Revalidate stats.</ResponseField>
+
+## Example
+
+```tsx
+import { useWebhookStats } from "@wacht/nextjs";
+
+function WebhookOverview() {
+  const { stats } = useWebhookStats();
+  return <pre>{JSON.stringify(stats, null, 2)}</pre>;
+}
+```

@@ -1,0 +1,44 @@
+---
+title: useApiAuthAuditLogs
+description: Query API auth audit log events with cursor-based pagination and filters.
+---
+
+# useApiAuthAuditLogs
+
+The `useApiAuthAuditLogs` hook fetches API auth audit events and pagination metadata.
+
+## Parameters
+
+<ParamField path="options.limit" type="number">Maximum events per page.</ParamField>
+<ParamField path="options.cursor" type="string">Pagination cursor.</ParamField>
+<ParamField path="options.outcome" type="string">Filter by outcome.</ParamField>
+<ParamField path="options.key_id" type="string">Filter by key ID.</ParamField>
+<ParamField path="options.start_date" type="string">ISO start date.</ParamField>
+<ParamField path="options.end_date" type="string">ISO end date.</ParamField>
+
+## Return Value
+
+<ResponseField name="logs" type="ApiAuditLogsResponse['data']">Audit log items.</ResponseField>
+<ResponseField name="limit" type="number">Applied limit.</ResponseField>
+<ResponseField name="has_more" type="boolean">Whether more data exists.</ResponseField>
+<ResponseField name="next_cursor" type="string | undefined">Cursor for next page.</ResponseField>
+<ResponseField name="loading" type="boolean">Whether request is in progress.</ResponseField>
+<ResponseField name="error" type="unknown">Error from the latest request.</ResponseField>
+<ResponseField name="refetch" type="() => void">Revalidate logs.</ResponseField>
+
+## Example
+
+```tsx
+import { useApiAuthAuditLogs } from "@wacht/tanstack-router";
+
+function AuditLogList() {
+  const { logs, has_more, next_cursor } = useApiAuthAuditLogs({ limit: 50 });
+
+  return (
+    <div>
+      <pre>{JSON.stringify(logs, null, 2)}</pre>
+      {has_more && <p>Next cursor: {next_cursor}</p>}
+    </div>
+  );
+}
+```

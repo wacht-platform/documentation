@@ -1,0 +1,139 @@
+---
+title: useAgentContexts
+description: List and manage AI conversation contexts with pagination and simple filtering.
+---
+
+# useAgentContexts
+
+The `useAgentContexts` hook provides CRUD-style helpers for agent conversation contexts.
+
+## Options
+
+<ParamField path="limit" type="number">
+  Maximum number of contexts to fetch. Defaults to `20`.
+</ParamField>
+
+<ParamField path="offset" type="number">
+  Number of contexts to skip for pagination. Defaults to `0`.
+</ParamField>
+
+<ParamField path="status" type="string">
+  Optional status filter.
+</ParamField>
+
+<ParamField path="search" type="string">
+  Optional text search filter.
+</ParamField>
+
+<ParamField path="enabled" type="boolean">
+  Whether fetching is enabled. Defaults to `true`.
+</ParamField>
+
+## Return Value
+
+<ResponseField name="contexts" type="AgentContext[]">
+  The current page of contexts.
+</ResponseField>
+
+<ResponseField name="loading" type="boolean">
+  Whether the initial contexts request is in-flight.
+</ResponseField>
+
+<ResponseField name="error" type="Error | null">
+  Error from the latest request, if any.
+</ResponseField>
+
+<ResponseField name="hasMore" type="boolean">
+  Whether the server reports additional contexts are available.
+</ResponseField>
+
+<ResponseField name="createContext" type="(request: CreateContextRequest) => Promise<AgentContext>">
+  <Expandable title="Create a new context">
+    <ParamField path="request.title" type="string">
+      Human-readable title for the context.
+    </ParamField>
+    <ParamField path="request.system_instructions" type="string">
+      Optional system instructions to attach to the context.
+    </ParamField>
+    <ResponseField name="returns" type="Promise<AgentContext>">
+      The created context.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="deleteContext" type="(id: string) => Promise<void>">
+  <Expandable title="Delete a context">
+    <ParamField path="id" type="string">
+      Context ID to delete.
+    </ParamField>
+    <ResponseField name="returns" type="Promise<void>">
+      Resolves when the context is removed.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="updateContext" type="(id: string, updates: { title?: string }) => Promise<void>">
+  <Expandable title="Update a context">
+    <ParamField path="id" type="string">
+      Context ID to update.
+    </ParamField>
+    <ParamField path="updates.title" type="string">
+      New title for the context.
+    </ParamField>
+    <ResponseField name="returns" type="Promise<void>">
+      Resolves when the context is updated.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="refetch" type="() => Promise<void>">
+  <Expandable title="Refetch contexts">
+    <ResponseField name="returns" type="Promise<void>">
+      Resolves after revalidation completes.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Examples
+
+### List contexts
+
+```tsx
+import { useAgentContexts } from "@wacht/nextjs";
+
+function ContextList() {
+  const { contexts, loading } = useAgentContexts({ limit: 10 });
+
+  if (loading) return <div>Loading...</div>;
+
+  return (
+    <ul>
+      {contexts.map((ctx) => (
+        <li key={ctx.id}>{ctx.title}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+### Create and rename a context
+
+```tsx
+import { useAgentContexts } from "@wacht/nextjs";
+
+function ContextActions() {
+  const { createContext, updateContext } = useAgentContexts();
+
+  async function handleCreate() {
+    const created = await createContext({ title: "Customer Support" });
+    await updateContext(created.id, { title: "Support Inbox" });
+  }
+
+  return <button onClick={handleCreate}>Create Context</button>;
+}
+```
+
+## Related
+
+- [useAgentContext](./use-agent-context) - Interact with a single context in real time
+- [useAgentSession](./use-agent-session) - Resolve session-level agent state

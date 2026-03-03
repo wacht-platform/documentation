@@ -1,0 +1,107 @@
+---
+title: useAgentMcpServers
+description: Manage MCP server connections for an agent.
+---
+
+# useAgentMcpServers
+
+The `useAgentMcpServers` hook lists MCP servers for an agent and provides connect or disconnect actions.
+
+## Parameters
+
+<ParamField path="agentName" type="string | null">
+  Agent name used to scope the MCP server list.
+</ParamField>
+
+## Return Value
+
+<ResponseField name="mcpServers" type="AgentMcpServer[]">
+  MCP servers available for the agent.
+</ResponseField>
+
+<ResponseField name="loading" type="boolean">
+  Whether MCP server data is loading.
+</ResponseField>
+
+<ResponseField name="error" type="Error | null">
+  Error from the latest MCP server request.
+</ResponseField>
+
+<ResponseField name="connect" type="(mcpServerId: string) => Promise<McpConnectResponse>">
+  <Expandable title="Connect an MCP server">
+    <ParamField path="mcpServerId" type="string">
+      MCP server ID to connect.
+    </ParamField>
+    <ResponseField name="returns" type="Promise<McpConnectResponse>">
+      Connection response from the server.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="disconnect" type="(mcpServerId: string) => Promise<void>">
+  <Expandable title="Disconnect an MCP server">
+    <ParamField path="mcpServerId" type="string">
+      MCP server ID to disconnect.
+    </ParamField>
+    <ResponseField name="returns" type="Promise<void>">
+      Resolves when disconnect completes.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="refetch" type="() => Promise<void>">
+  <Expandable title="Refetch MCP servers">
+    <ResponseField name="returns" type="Promise<void>">
+      Resolves after revalidation completes.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Examples
+
+### List MCP servers
+
+```tsx
+import { useAgentMcpServers } from "@wacht/tanstack-router";
+
+function McpServerList({ agentName }: { agentName: string }) {
+  const { mcpServers, loading } = useAgentMcpServers(agentName);
+
+  if (loading) return <div>Loading...</div>;
+
+  return (
+    <ul>
+      {mcpServers.map((server) => (
+        <li key={server.id}>{server.name}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+### Connect and disconnect
+
+```tsx
+import { useAgentMcpServers } from "@wacht/tanstack-router";
+
+function McpActions({ agentName }: { agentName: string }) {
+  const { mcpServers, connect, disconnect } = useAgentMcpServers(agentName);
+
+  return (
+    <ul>
+      {mcpServers.map((server) => (
+        <li key={server.id}>
+          {server.name}
+          <button onClick={() => connect(server.id)}>Connect</button>
+          <button onClick={() => disconnect(server.id)}>Disconnect</button>
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+## Related
+
+- [useAgentIntegrations](./use-agent-integrations) - Manage non-MCP integrations
+- [useAgentSession](./use-agent-session) - Resolve session-level agent state

@@ -1,0 +1,47 @@
+---
+title: useActiveTenancy
+description: Resolve the currently active organization and workspace memberships for the session.
+---
+
+# useActiveTenancy
+
+The `useActiveTenancy` hook combines session state with membership lists and returns the active organization and workspace memberships.
+
+## Return Value
+
+<ResponseField name="loading" type="boolean">
+  Whether tenancy resolution is still loading.
+</ResponseField>
+
+<ResponseField name="orgMembership" type="OrganizationMembership | null">
+  Active organization membership for the current signin.
+</ResponseField>
+
+<ResponseField name="workspaceMembership" type="WorkspaceMembership | null">
+  Active workspace membership for the current signin.
+</ResponseField>
+
+## Example
+
+```tsx
+import { useActiveTenancy } from "@wacht/nextjs";
+
+function ActiveTenancyBadge() {
+  const { loading, orgMembership, workspaceMembership } = useActiveTenancy();
+
+  if (loading) return <div>Loading...</div>;
+
+  return (
+    <div>
+      <p>Organization: {orgMembership?.organization?.name ?? "None"}</p>
+      <p>Workspace: {workspaceMembership?.workspace?.name ?? "None"}</p>
+    </div>
+  );
+}
+```
+
+## Related
+
+- [useSession](./use-session) - Access current session data
+- [useOrganizationMemberships](./use-organization-memberships) - List organization memberships
+- [useWorkspaceMemberships](./use-workspace-memberships) - List workspace memberships

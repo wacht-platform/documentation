@@ -54,7 +54,8 @@
                                     "react-router-sdk/hooks/use-navigation",
                                     "react-router-sdk/hooks/use-forgot-password",
                                     "react-router-sdk/hooks/use-waitlist",
-                                    "react-router-sdk/hooks/use-sso-callback"
+                                    "react-router-sdk/hooks/use-sso-callback",
+                                    "react-router-sdk/hooks/use-magic-link-verification"
                                 ]
                             },
                             {
@@ -82,7 +83,10 @@
                                 "group": "Agent Hooks",
                                 "pages": [
                                     "react-router-sdk/hooks/use-agent-context",
-                                    "react-router-sdk/hooks/use-agent-integrations"
+                                    "react-router-sdk/hooks/use-agent-contexts",
+                                    "react-router-sdk/hooks/use-agent-integrations",
+                                    "react-router-sdk/hooks/use-agent-mcp-servers",
+                                    "react-router-sdk/hooks/use-agent-session"
                                 ]
                             },
                             {
@@ -94,7 +98,32 @@
                             {
                                 "group": "User Hooks",
                                 "pages": [
-                                    "react-router-sdk/hooks/use-user"
+                                    "react-router-sdk/hooks/use-user",
+                                    "react-router-sdk/hooks/use-user-signins",
+                                    "react-router-sdk/hooks/use-active-tenancy"
+                                ]
+                            },
+                            {
+                                "group": "API Auth Hooks",
+                                "pages": [
+                                    "react-router-sdk/hooks/use-api-auth-app-session",
+                                    "react-router-sdk/hooks/use-api-auth-keys",
+                                    "react-router-sdk/hooks/use-api-auth-audit-logs",
+                                    "react-router-sdk/hooks/use-api-auth-audit-analytics",
+                                    "react-router-sdk/hooks/use-api-auth-audit-timeseries"
+                                ]
+                            },
+                            {
+                                "group": "Webhook Hooks",
+                                "pages": [
+                                    "react-router-sdk/hooks/use-webhook-app-session",
+                                    "react-router-sdk/hooks/use-webhook-stats",
+                                    "react-router-sdk/hooks/use-webhook-endpoints",
+                                    "react-router-sdk/hooks/use-create-webhook-endpoint",
+                                    "react-router-sdk/hooks/use-webhook-events",
+                                    "react-router-sdk/hooks/use-webhook-deliveries",
+                                    "react-router-sdk/hooks/use-webhook-analytics",
+                                    "react-router-sdk/hooks/use-webhook-timeseries"
                                 ]
                             },
                             {
@@ -110,7 +139,8 @@
                                     "react-router-sdk/hooks/use-client",
                                     "react-router-sdk/hooks/use-deployment",
                                     "react-router-sdk/hooks/use-notifications",
-                                    "react-router-sdk/hooks/use-notification-stream"
+                                    "react-router-sdk/hooks/use-notification-stream",
+                                    "react-router-sdk/hooks/use-scope-unread"
                                 ]
                             }
                         ]
@@ -150,7 +180,8 @@
                                     "nextjs-sdk/hooks/use-navigation",
                                     "nextjs-sdk/hooks/use-forgot-password",
                                     "nextjs-sdk/hooks/use-waitlist",
-                                    "nextjs-sdk/hooks/use-sso-callback"
+                                    "nextjs-sdk/hooks/use-sso-callback",
+                                    "nextjs-sdk/hooks/use-magic-link-verification"
                                 ]
                             },
                             {
@@ -178,7 +209,10 @@
                                 "group": "Agent Hooks",
                                 "pages": [
                                     "nextjs-sdk/hooks/use-agent-context",
-                                    "nextjs-sdk/hooks/use-agent-integrations"
+                                    "nextjs-sdk/hooks/use-agent-contexts",
+                                    "nextjs-sdk/hooks/use-agent-integrations",
+                                    "nextjs-sdk/hooks/use-agent-mcp-servers",
+                                    "nextjs-sdk/hooks/use-agent-session"
                                 ]
                             },
                             {
@@ -190,7 +224,32 @@
                             {
                                 "group": "User Hooks",
                                 "pages": [
-                                    "nextjs-sdk/hooks/use-user"
+                                    "nextjs-sdk/hooks/use-user",
+                                    "nextjs-sdk/hooks/use-user-signins",
+                                    "nextjs-sdk/hooks/use-active-tenancy"
+                                ]
+                            },
+                            {
+                                "group": "API Auth Hooks",
+                                "pages": [
+                                    "nextjs-sdk/hooks/use-api-auth-app-session",
+                                    "nextjs-sdk/hooks/use-api-auth-keys",
+                                    "nextjs-sdk/hooks/use-api-auth-audit-logs",
+                                    "nextjs-sdk/hooks/use-api-auth-audit-analytics",
+                                    "nextjs-sdk/hooks/use-api-auth-audit-timeseries"
+                                ]
+                            },
+                            {
+                                "group": "Webhook Hooks",
+                                "pages": [
+                                    "nextjs-sdk/hooks/use-webhook-app-session",
+                                    "nextjs-sdk/hooks/use-webhook-stats",
+                                    "nextjs-sdk/hooks/use-webhook-endpoints",
+                                    "nextjs-sdk/hooks/use-create-webhook-endpoint",
+                                    "nextjs-sdk/hooks/use-webhook-events",
+                                    "nextjs-sdk/hooks/use-webhook-deliveries",
+                                    "nextjs-sdk/hooks/use-webhook-analytics",
+                                    "nextjs-sdk/hooks/use-webhook-timeseries"
                                 ]
                             },
                             {
@@ -206,7 +265,8 @@
                                     "nextjs-sdk/hooks/use-client",
                                     "nextjs-sdk/hooks/use-deployment",
                                     "nextjs-sdk/hooks/use-notifications",
-                                    "nextjs-sdk/hooks/use-notification-stream"
+                                    "nextjs-sdk/hooks/use-notification-stream",
+                                    "nextjs-sdk/hooks/use-scope-unread"
                                 ]
                             }
                         ]
@@ -246,7 +306,8 @@
                                     "tanstack-router-sdk/hooks/use-navigation",
                                     "tanstack-router-sdk/hooks/use-forgot-password",
                                     "tanstack-router-sdk/hooks/use-waitlist",
-                                    "tanstack-router-sdk/hooks/use-sso-callback"
+                                    "tanstack-router-sdk/hooks/use-sso-callback",
+                                    "tanstack-router-sdk/hooks/use-magic-link-verification"
                                 ]
                             },
                             {
@@ -274,7 +335,10 @@
                                 "group": "Agent Hooks",
                                 "pages": [
                                     "tanstack-router-sdk/hooks/use-agent-context",
-                                    "tanstack-router-sdk/hooks/use-agent-integrations"
+                                    "tanstack-router-sdk/hooks/use-agent-contexts",
+                                    "tanstack-router-sdk/hooks/use-agent-integrations",
+                                    "tanstack-router-sdk/hooks/use-agent-mcp-servers",
+                                    "tanstack-router-sdk/hooks/use-agent-session"
                                 ]
                             },
                             {
@@ -286,7 +350,32 @@
                             {
                                 "group": "User Hooks",
                                 "pages": [
-                                    "tanstack-router-sdk/hooks/use-user"
+                                    "tanstack-router-sdk/hooks/use-user",
+                                    "tanstack-router-sdk/hooks/use-user-signins",
+                                    "tanstack-router-sdk/hooks/use-active-tenancy"
+                                ]
+                            },
+                            {
+                                "group": "API Auth Hooks",
+                                "pages": [
+                                    "tanstack-router-sdk/hooks/use-api-auth-app-session",
+                                    "tanstack-router-sdk/hooks/use-api-auth-keys",
+                                    "tanstack-router-sdk/hooks/use-api-auth-audit-logs",
+                                    "tanstack-router-sdk/hooks/use-api-auth-audit-analytics",
+                                    "tanstack-router-sdk/hooks/use-api-auth-audit-timeseries"
+                                ]
+                            },
+                            {
+                                "group": "Webhook Hooks",
+                                "pages": [
+                                    "tanstack-router-sdk/hooks/use-webhook-app-session",
+                                    "tanstack-router-sdk/hooks/use-webhook-stats",
+                                    "tanstack-router-sdk/hooks/use-webhook-endpoints",
+                                    "tanstack-router-sdk/hooks/use-create-webhook-endpoint",
+                                    "tanstack-router-sdk/hooks/use-webhook-events",
+                                    "tanstack-router-sdk/hooks/use-webhook-deliveries",
+                                    "tanstack-router-sdk/hooks/use-webhook-analytics",
+                                    "tanstack-router-sdk/hooks/use-webhook-timeseries"
                                 ]
                             },
                             {
@@ -302,7 +391,8 @@
                                     "tanstack-router-sdk/hooks/use-client",
                                     "tanstack-router-sdk/hooks/use-deployment",
                                     "tanstack-router-sdk/hooks/use-notifications",
-                                    "tanstack-router-sdk/hooks/use-notification-stream"
+                                    "tanstack-router-sdk/hooks/use-notification-stream",
+                                    "tanstack-router-sdk/hooks/use-scope-unread"
                                 ]
                             }
                         ]

@@ -1,0 +1,68 @@
+---
+title: useApiAuthAppSession
+description: Resolve API auth app portal session state and exchange optional session tickets.
+---
+
+# useApiAuthAppSession
+
+The `useApiAuthAppSession` hook loads API auth app portal session context, including ticket exchange support.
+
+## Parameters
+
+<ParamField path="ticket" type="string | null">
+  Optional session ticket to exchange before loading the API auth app session.
+</ParamField>
+
+## Return Value
+
+<ResponseField name="hasSession" type="boolean">
+  Whether the request has an active API auth session.
+</ResponseField>
+
+<ResponseField name="sessionLoading" type="boolean">
+  Whether ticket exchange or session loading is in progress.
+</ResponseField>
+
+<ResponseField name="sessionError" type="Error | null">
+  Error from ticket exchange or session loading.
+</ResponseField>
+
+<ResponseField name="sessionId" type="string | null">
+  Current API auth app session ID.
+</ResponseField>
+
+<ResponseField name="apiAuthApp" type="ApiAuthAppInfo | null">
+  API auth app metadata for the current session.
+</ResponseField>
+
+<ResponseField name="ticketExchanged" type="boolean">
+  Whether the ticket exchange completed successfully.
+</ResponseField>
+
+<ResponseField name="ticketLoading" type="boolean">
+  Whether ticket exchange is currently in progress.
+</ResponseField>
+
+<ResponseField name="refetch" type="() => Promise<void>">
+  Revalidate session data.
+</ResponseField>
+
+## Example
+
+```tsx
+import { useApiAuthAppSession } from "@wacht/nextjs";
+
+function ApiAuthPortal({ ticket }: { ticket?: string }) {
+  const { hasSession, sessionLoading, apiAuthApp } = useApiAuthAppSession(ticket);
+
+  if (sessionLoading) return <div>Loading...</div>;
+  if (!hasSession) return <div>No session</div>;
+
+  return <h1>{apiAuthApp?.name}</h1>;
+}
+```
+
+## Related
+
+- [useApiAuthKeys](./use-api-auth-keys) - Manage API auth keys
+- [useApiAuthAuditLogs](./use-api-auth-audit-logs) - Inspect audit log entries

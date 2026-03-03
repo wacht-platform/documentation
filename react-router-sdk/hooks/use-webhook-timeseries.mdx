@@ -1,0 +1,34 @@
+---
+title: useWebhookTimeseries
+description: Fetch interval-based webhook analytics data points.
+---
+
+# useWebhookTimeseries
+
+The `useWebhookTimeseries` hook returns time-bucketed webhook analytics.
+
+## Parameters
+
+<ParamField path="options.start_date" type="string">ISO start date.</ParamField>
+<ParamField path="options.end_date" type="string">ISO end date.</ParamField>
+<ParamField path="options.interval" type="string">Time bucket interval.</ParamField>
+<ParamField path="options.endpoint_id" type="string">Optional endpoint filter.</ParamField>
+
+## Return Value
+
+<ResponseField name="timeseries" type="WebhookTimeseriesResponse['data']">Timeseries points.</ResponseField>
+<ResponseField name="interval" type="string">Applied interval.</ResponseField>
+<ResponseField name="loading" type="boolean">Whether request is in progress.</ResponseField>
+<ResponseField name="error" type="unknown">Error from latest request.</ResponseField>
+<ResponseField name="refetch" type="() => void">Revalidate timeseries.</ResponseField>
+
+## Example
+
+```tsx
+import { useWebhookTimeseries } from "@wacht/react-router";
+
+function TimeseriesChart() {
+  const { timeseries, interval } = useWebhookTimeseries({ interval: "day" });
+  return <div>{interval}: {timeseries.length} points</div>;
+}
+```

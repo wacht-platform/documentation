@@ -1,0 +1,26 @@
+---
+title: useWebhookEndpoints
+description: List webhook endpoints configured for the current webhook app.
+---
+
+# useWebhookEndpoints
+
+The `useWebhookEndpoints` hook fetches existing webhook endpoints.
+
+## Return Value
+
+<ResponseField name="endpoints" type="EndpointWithSubscriptions[]">Endpoint list.</ResponseField>
+<ResponseField name="loading" type="boolean">Whether endpoints are loading.</ResponseField>
+<ResponseField name="error" type="unknown">Error from the latest request.</ResponseField>
+<ResponseField name="refetch" type="() => void">Revalidate endpoints.</ResponseField>
+
+## Example
+
+```tsx
+import { useWebhookEndpoints } from "@wacht/react-router";
+
+function EndpointList() {
+  const { endpoints } = useWebhookEndpoints();
+  return <pre>{JSON.stringify(endpoints, null, 2)}</pre>;
+}
+```

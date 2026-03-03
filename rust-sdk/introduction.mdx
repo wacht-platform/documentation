@@ -32,3 +32,15 @@ You should use the `wacht` crate when you are building:
 - **Backend APIs** in Rust that need to verify incoming session tokens from a frontend application.
 - **Machine-to-Machine (M2M) services** that require validation of API keys or OAuth credentials.
 - **Worker processes** or scheduled tasks that need to interact with Wacht's management APIs (e.g., fetching user details, dispatching webhooks).
+
+## Gateway OAuth Resource Fields
+
+When you resolve a gateway principal context for an OAuth access token, resource metadata is exposed as:
+
+- `oauth_resource`: the original OAuth `resource` value from the authorization request.
+- `granted_resource`: the effective granted resource used for authorization checks.
+
+Gateway headers use the same split:
+
+- `X-Wacht-OAuth-Resource`
+- `X-Wacht-Granted-Resource`

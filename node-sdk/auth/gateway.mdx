@@ -113,6 +113,16 @@ const authz = await gateway.verifyOauthAccessTokenRequest(
 );
 ```
 
+When resolving gateway metadata for OAuth access tokens, resource fields are split:
+
+- `metadata.oauth_resource`: the original `resource` value from the OAuth authorization request.
+- `metadata.granted_resource`: the effective resource that was actually granted and used for authz checks.
+
+Gateway response headers expose the same split:
+
+- `X-Wacht-Granted-Resource`
+- `X-Wacht-OAuth-Resource`
+
 <ParamField path="oauthToken" type="string" required>
   The extracted short-lived OAuth Bearer token.
 </ParamField>

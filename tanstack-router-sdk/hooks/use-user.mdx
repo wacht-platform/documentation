@@ -1,416 +1,357 @@
 ---
 title: 'useUser()'
-description: 'A React hook that provides access to the currently authenticated User context and metadata.'
+description: 'Access the authenticated User context, metadata, and profile modification methods.'
 ---
 
 # `useUser()`
 
-The `useUser()` hook exposes the active `User` object, allowing you to seamlessly integrate the user's profile information—such as their first name, last name, profile image, and custom public metadata—directly into your frontend interface.
+The `useUser()` hook exposes the primary `User` data construct, facilitating access to profile parameters, associated email identifiers, and custom public metadata attributes. Additionally, the hook provides the interface methods necessary to mutate user parameters dynamically from the client application.
 
-## Import
+## Hook Import
 
 ```tsx
 import { useUser } from "@wacht/tanstack-router";
 ```
 
-## Anatomy
+## Hook Interface
 
 <ResponseField name="loading" type="boolean">
-  Indicates whether the SDK is actively verifying the user's identity asynchronously.
+  Indicates whether the SDK is actively executing a network request to synchronize the user identity context.
 </ResponseField>
 
 <ResponseField name="user" type="CurrentUser & { refetch: () => void } | null">
-  The active `CurrentUser` object (including a `refetch` method to manually reload it), or `null` if the user is completely logged out.
+  The active `CurrentUser` construct, alongside a `refetch` method to force invalidation. If the underlying session is unauthenticated, this property evaluates to `null`.
 </ResponseField>
 
 <ResponseField name="error" type="Error | null">
-  Any error encountered during the user fetch operation.
+  Captures network failures or processing exceptions encountered during the fetch operation.
 </ResponseField>
 
-<ResponseField name="Profile Management Methods" type="Functions">
-  <Expandable title="Profile functions">
+---
+
+<ResponseField name="Profile Operations" type="Functions">
+  <Expandable title="Profile Modification Interface">
     <ResponseField name="updateProfile" type="(data: ProfileUpdateData) => Promise<ApiResult<CurrentUser>>">
-      <Expandable title="Update profile">
+      <Expandable title="Modify User Attributes">
         <ParamField path="data" type="ProfileUpdateData">
-          The profile fields to update.
+          The subset of profile attributes designated for modification.
         </ParamField>
         <ResponseField name="returns" type="Promise<ApiResult<CurrentUser>>">
-          The updated user profile.
+          Resolves with the serialized updated user construct.
         </ResponseField>
       </Expandable>
     </ResponseField>
     <ResponseField name="updateProfilePicture" type="(file: File) => Promise<ApiResult<unknown>>">
-      <Expandable title="Update profile picture">
+      <Expandable title="Modify Profile Asset">
         <ParamField path="file" type="File">
-          The image file to upload as the profile picture.
+          The binary representation of the image asset.
         </ParamField>
         <ResponseField name="returns" type="Promise<ApiResult<unknown>>">
-          The result of the profile picture update.
+          Resolves upon successful upload and processing of the profile asset.
         </ResponseField>
       </Expandable>
     </ResponseField>
     <ResponseField name="updatePassword" type="(currentPassword: string, newPassword: string) => Promise<ApiResult<unknown>>">
-      <Expandable title="Update password">
+      <Expandable title="Modify Credential Vector">
         <ParamField path="currentPassword" type="string">
-          The user's current password.
+          The user's current validation credential.
         </ParamField>
         <ParamField path="newPassword" type="string">
-          The user's new password.
+          The newly designated validation credential.
         </ParamField>
         <ResponseField name="returns" type="Promise<ApiResult<unknown>>">
-          The result of the password update.
+          Resolves upon successful credential modification payload processing.
         </ResponseField>
       </Expandable>
     </ResponseField>
     <ResponseField name="removePassword" type="(currentPassword: string) => Promise<ApiResult<unknown>>">
-      <Expandable title="Remove password">
+      <Expandable title="Remove Credential Vector">
         <ParamField path="currentPassword" type="string">
-          The user's current password.
+          The user's current validation credential.
         </ParamField>
         <ResponseField name="returns" type="Promise<ApiResult<unknown>>">
-          The result of the password removal.
+          Resolves upon successful credential invalidation and removal securely.
         </ResponseField>
       </Expandable>
     </ResponseField>
     <ResponseField name="deleteAccount" type="(password: string) => Promise<ApiResult<unknown>>">
-      <Expandable title="Delete account">
+      <Expandable title="Destroy User Record">
         <ParamField path="password" type="string">
-          The user's password to confirm account deletion.
+          The validation credential confirming intent.
         </ParamField>
         <ResponseField name="returns" type="Promise<ApiResult<unknown>>">
-          The result of the account deletion.
+          Resolves upon successful invocation of the account destruction process.
         </ResponseField>
       </Expandable>
     </ResponseField>
   </Expandable>
 </ResponseField>
 
-<ResponseField name="Email Management Methods" type="Functions">
-  <Expandable title="Email functions">
+<ResponseField name="Email Identifier Operations" type="Functions">
+  <Expandable title="Email Verification Interface">
     <ResponseField name="getEmailAddresses" type="() => Promise<ApiResult<UserEmailAddress[]>>">
-      <Expandable title="Get email addresses">
+      <Expandable title="Retrieve Identifier Scope">
         <ResponseField name="returns" type="Promise<ApiResult<UserEmailAddress[]>>">
-          List of email addresses linked to the user.
+          Returns an array detailing the email identifiers mapped to this user instance.
         </ResponseField>
       </Expandable>
     </ResponseField>
     <ResponseField name="getEmailAddress" type="(id: string) => Promise<ApiResult<UserEmailAddress>>">
-      <Expandable title="Get specific email address">
+      <Expandable title="Retrieve Specific Identifier">
         <ParamField path="id" type="string">
-          The ID of the email address to fetch.
+          The system identifier of the target address record.
         </ParamField>
         <ResponseField name="returns" type="Promise<ApiResult<UserEmailAddress>>">
-          The specific email address.
+          Resolves with the serialized details of the requested email record.
         </ResponseField>
       </Expandable>
     </ResponseField>
     <ResponseField name="createEmailAddress" type="(email: string) => Promise<ApiResult<UserEmailAddress>>">
-      <Expandable title="Create email address">
+      <Expandable title="Initialize Additional Identifier">
         <ParamField path="email" type="string">
-          The new email address to link.
+          The target address to append to the user sequence.
         </ParamField>
         <ResponseField name="returns" type="Promise<ApiResult<UserEmailAddress>>">
-          The newly created email address.
+          Resolves with the details of the newly instantiated unverified record.
         </ResponseField>
       </Expandable>
     </ResponseField>
     <ResponseField name="deleteEmailAddress" type="(id: string) => Promise<ApiResult<unknown>>">
-      <Expandable title="Delete email address">
+      <Expandable title="Remove Defined Identifier">
         <ParamField path="id" type="string">
-          The ID of the email address to remove.
+          The system identifier of the address record designated for removal.
         </ParamField>
         <ResponseField name="returns" type="Promise<ApiResult<unknown>>">
-          The result of the deletion.
+          Resolves upon successful extraction of the identity mapping.
         </ResponseField>
       </Expandable>
     </ResponseField>
     <ResponseField name="prepareEmailVerification" type="(id: string) => Promise<ApiResult<unknown>>">
-      <Expandable title="Prepare email verification">
+      <Expandable title="Initiate Identifier Verification">
         <ParamField path="id" type="string">
-          The ID of the email address to verify.
+          The system identifier of the address to verify.
         </ParamField>
         <ResponseField name="returns" type="Promise<ApiResult<unknown>>">
-          The result of dispatching the verification code.
+          Resolves upon transmission of the verification challenge matrix.
         </ResponseField>
       </Expandable>
     </ResponseField>
     <ResponseField name="attemptEmailVerification" type="(id: string, otp: string) => Promise<ApiResult<unknown>>">
-      <Expandable title="Attempt email verification">
+      <Expandable title="Submit Verification Challenge">
         <ParamField path="id" type="string">
-          The ID of the email address being verified.
+          The system identifier of the address being verified.
         </ParamField>
         <ParamField path="otp" type="string">
-          The verification code sent to the email address.
+          The client-submitted challenge response sequence.
         </ParamField>
         <ResponseField name="returns" type="Promise<ApiResult<unknown>>">
-          The result of the verification attempt.
+          Resolves upon successful backend validation of the identity tie.
         </ResponseField>
       </Expandable>
     </ResponseField>
     <ResponseField name="makeEmailPrimary" type="(id: string) => Promise<ApiResult<unknown>>">
-      <Expandable title="Make email primary">
+      <Expandable title="Promote Primary Identifier">
         <ParamField path="id" type="string">
-          The ID of the email address to set as primary.
+          The system identifier of the address to designate as root.
         </ParamField>
         <ResponseField name="returns" type="Promise<ApiResult<unknown>>">
-          The result of setting the primary email.
+          Resolves upon modification of the user routing rules logic.
         </ResponseField>
       </Expandable>
     </ResponseField>
   </Expandable>
 </ResponseField>
 
-<ResponseField name="Phone Management Methods" type="Functions">
-  <Expandable title="Phone functions">
+<ResponseField name="Phone Identifier Operations" type="Functions">
+  <Expandable title="Phone Verification Interface">
     <ResponseField name="createPhoneNumber" type="(phone_number: string, country_code: string) => Promise<ApiResult<UserPhoneNumber>>">
-      <Expandable title="Create phone number">
+      <Expandable title="Initialize Telephony Identifier">
         <ParamField path="phone_number" type="string">
-          The new phone number to link.
+          The telephony address to append.
         </ParamField>
         <ParamField path="country_code" type="string">
-          The ISO country code for the phone number.
+          The internationally defined prefix zone mapping.
         </ParamField>
         <ResponseField name="returns" type="Promise<ApiResult<UserPhoneNumber>>">
-          The newly created phone number.
+          Resolves with the unverified record parameters.
         </ResponseField>
       </Expandable>
     </ResponseField>
     <ResponseField name="deletePhoneNumber" type="(id: string) => Promise<ApiResult<unknown>>">
-      <Expandable title="Delete phone number">
+      <Expandable title="Remove Telephony Identifier">
         <ParamField path="id" type="string">
-          The ID of the phone number to remove.
+          The system identifier mapping to the configured record.
         </ParamField>
         <ResponseField name="returns" type="Promise<ApiResult<unknown>>">
-          The result of the deletion.
+          Resolves upon successful separation of the identifier mapping.
         </ResponseField>
       </Expandable>
     </ResponseField>
     <ResponseField name="preparePhoneVerification" type="(id: string) => Promise<ApiResult<unknown>>">
-      <Expandable title="Prepare phone verification">
+      <Expandable title="Initiate Telephony Verification">
         <ParamField path="id" type="string">
-          The ID of the phone number to verify.
+          The system identifier.
         </ParamField>
         <ResponseField name="returns" type="Promise<ApiResult<unknown>>">
-          The result of dispatching the verification code.
+          Resolves upon transmission of the SMS verification sequence.
         </ResponseField>
       </Expandable>
     </ResponseField>
     <ResponseField name="attemptPhoneVerification" type="(id: string, otp: string) => Promise<ApiResult<unknown>>">
-      <Expandable title="Attempt phone verification">
+      <Expandable title="Submit Telephony Challenge">
         <ParamField path="id" type="string">
-          The ID of the phone number being verified.
+          The system identifier.
         </ParamField>
         <ParamField path="otp" type="string">
-          The verification code sent to the phone number.
+          The client-provided challenge parameter response.
         </ParamField>
         <ResponseField name="returns" type="Promise<ApiResult<unknown>>">
-          The result of the verification attempt.
+          Resolves upon successful validation matching the generated backend sequence.
         </ResponseField>
       </Expandable>
     </ResponseField>
     <ResponseField name="makePhonePrimary" type="(id: string) => Promise<ApiResult<unknown>>">
-      <Expandable title="Make phone primary">
+      <Expandable title="Promote Primary Telephony Identifier">
         <ParamField path="id" type="string">
-          The ID of the phone number to set as primary.
+          The system identifier.
         </ParamField>
         <ResponseField name="returns" type="Promise<ApiResult<unknown>>">
-          The result of setting the primary phone number.
+          Resolves upon mapping update logic.
         </ResponseField>
       </Expandable>
     </ResponseField>
   </Expandable>
 </ResponseField>
 
-<ResponseField name="Authenticator (TOTP) Methods" type="Functions">
-  <Expandable title="Authenticator functions">
+<ResponseField name="Multi-Factor (TOTP) Operations" type="Functions">
+  <Expandable title="TOTP Authenticator Interface">
     <ResponseField name="setupAuthenticator" type="() => Promise<ApiResult<UserAuthenticator>>">
-      <Expandable title="Setup authenticator">
+      <Expandable title="Initialize TOTP Profile">
         <ResponseField name="returns" type="Promise<ApiResult<UserAuthenticator>>">
-          The setup details (including secret and QR code URI) for a new TOTP authenticator.
+          Resolves with the cryptographic seed material and URI definitions mapping the initialization vector.
         </ResponseField>
       </Expandable>
     </ResponseField>
     <ResponseField name="verifyAuthenticator" type="(id: string, codes: string[]) => Promise<ApiResult<unknown>>">
-      <Expandable title="Verify authenticator">
+      <Expandable title="Validate TOTP Interlock">
         <ParamField path="id" type="string">
-          The ID of the authenticator being verified.
+          The designated identification string.
         </ParamField>
         <ParamField path="codes" type="string[]">
-          An array of codes generated by the authenticator app to verify setup.
+          An initial set of validity codes demonstrating time-aligned configuration.
         </ParamField>
         <ResponseField name="returns" type="Promise<ApiResult<unknown>>">
-          The result of verifying the authenticator.
+          Resolves linking the validation logic upon sequence confirmation natively.
         </ResponseField>
       </Expandable>
     </ResponseField>
     <ResponseField name="deleteAuthenticator" type="(id: string) => Promise<ApiResult<unknown>>">
-      <Expandable title="Delete authenticator">
+      <Expandable title="Disconnect TOTP Factor">
         <ParamField path="id" type="string">
-          The ID of the authenticator to remove.
+          The target identifier payload to dismantle.
         </ParamField>
         <ResponseField name="returns" type="Promise<ApiResult<unknown>>">
-          The result of removing the authenticator.
+          Resolves on successful severing of the TOTP challenge logic logic.
         </ResponseField>
       </Expandable>
     </ResponseField>
   </Expandable>
 </ResponseField>
 
-<ResponseField name="Backup Code Methods" type="Functions">
-  <Expandable title="Backup Code functions">
+<ResponseField name="Recovery Context Methods" type="Functions">
+  <Expandable title="Backup Sequence Recovery">
     <ResponseField name="generateBackupCodes" type="() => Promise<ApiResult<string[]>>">
-      <Expandable title="Generate backup codes">
+      <Expandable title="Initialize Recovery Block">
         <ResponseField name="returns" type="Promise<ApiResult<string[]>>">
-          A list of newly generated MFA backup codes.
+          Returns an array representing the newly minted static backup code payloads natively mapping to configuration parameters natively.
         </ResponseField>
       </Expandable>
     </ResponseField>
     <ResponseField name="regenerateBackupCodes" type="() => Promise<ApiResult<string[]>>">
-      <Expandable title="Regenerate backup codes">
+      <Expandable title="Cycle Recovery Block">
         <ResponseField name="returns" type="Promise<ApiResult<string[]>>">
-          A list of newly generated MFA backup codes (invalidating previous ones).
+          Replaces and returns a substitute backup code array sequence while revoking prior material allocations dynamically.
         </ResponseField>
       </Expandable>
     </ResponseField>
   </Expandable>
 </ResponseField>
 
-<ResponseField name="Social & SSO Methods" type="Functions">
-  <Expandable title="Social functions">
+<ResponseField name="Provider & Passkey Implementations" type="Functions">
+  <Expandable title="Advanced Interface Connectors">
     <ResponseField name="connectSocialAccount" type="(params: { provider: string; redirectUri?: string }) => Promise<ApiResult<{ oauth_url: string }>>">
-      <Expandable title="Connect social account">
+      <Expandable title="Initialize Provider Handshake">
         <ParamField path="params.provider" type="string">
-          The social provider to connect (e.g., 'google', 'github').
+          The target authorization server (e.g., 'google').
         </ParamField>
         <ParamField path="params.redirectUri" type="string">
-          Optional URI to redirect back to after connecting.
+          Optional local domain callback URI mapped for validation processing context flows natively via processing.
         </ParamField>
         <ResponseField name="returns" type="Promise<ApiResult<{ oauth_url: string }>>">
-          The OAuth flow initialization URL to redirect the user to.
+          Generates the specific URL sequence routing to the authorization provider interface natively mapping directly via redirect initialization sequence mapping payload securely natively locally directly natively locally directly natively locally natively.
         </ResponseField>
       </Expandable>
     </ResponseField>
-    <ResponseField name="disconnectSocialConnection" type="(id: string) => Promise<ApiResult<unknown>>">
-      <Expandable title="Disconnect social connection">
-        <ParamField path="id" type="string">
-          The ID of the social connection to disconnect.
-        </ParamField>
-        <ResponseField name="returns" type="Promise<ApiResult<unknown>>">
-          The result of the disconnection.
-        </ResponseField>
-      </Expandable>
-    </ResponseField>
-  </Expandable>
-</ResponseField>
-
-<ResponseField name="Passkey Methods" type="Functions">
-  <Expandable title="Passkey functions">
     <ResponseField name="getPasskeys" type="() => Promise<ApiResult<UserPasskey[]>>">
-      <Expandable title="Get passkeys">
+      <Expandable title="Retrieve Security Keys">
         <ResponseField name="returns" type="Promise<ApiResult<UserPasskey[]>>">
-          List of registered WebAuthn passkeys for the user.
-        </ResponseField>
-      </Expandable>
-    </ResponseField>
-    <ResponseField name="registerPasskey" type="(name?: string) => Promise<ApiResult<unknown>>">
-      <Expandable title="Register passkey">
-        <ParamField path="name" type="string">
-          An optional, human-readable name for the new passkey.
-        </ParamField>
-        <ResponseField name="returns" type="Promise<ApiResult<unknown>>">
-          The result of the native WebAuthn registration flow.
-        </ResponseField>
-      </Expandable>
-    </ResponseField>
-    <ResponseField name="renamePasskey" type="(id: string, name: string) => Promise<ApiResult<unknown>>">
-      <Expandable title="Rename passkey">
-        <ParamField path="id" type="string">
-          The ID of the passkey to rename.
-        </ParamField>
-        <ParamField path="name" type="string">
-          The new name for the passkey.
-        </ParamField>
-        <ResponseField name="returns" type="Promise<ApiResult<unknown>>">
-          The result of the renaming operation.
-        </ResponseField>
-      </Expandable>
-    </ResponseField>
-    <ResponseField name="deletePasskey" type="(id: string) => Promise<ApiResult<unknown>>">
-      <Expandable title="Delete passkey">
-        <ParamField path="id" type="string">
-          The ID of the passkey to remove.
-        </ParamField>
-        <ResponseField name="returns" type="Promise<ApiResult<unknown>>">
-          The result of the deletion operation.
+          Resolves yielding active cryptographic key structures mapped dynamically natively locally natively.
         </ResponseField>
       </Expandable>
     </ResponseField>
   </Expandable>
 </ResponseField>
 
-## Usage: Personalized Greetings
+## Implementation Guidelines
 
-The hallmark of a great user experience is personalization. You can easily access the `user` object to populate dashboard headers or welcome messages.
+### Accessing Public Metadata Payload
 
-```tsx
-import { useUser } from "@wacht/tanstack-router";
-
-export function WelcomeBanner() {
-  const { loading, user } = useUser();
-
-  if (loading || !user) {
-    return null; // Fail silently if not logged in
-  }
-
-  return (
-    <div className="bg-blue-50 border border-blue-100 rounded-lg p-6 mb-8">
-      <h2 className="text-xl font-bold text-blue-900 tracking-tight">
-        Welcome back, {user.firstName || "friend"} {/* Fallback if no first name */}
-      </h2>
-      <p className="text-blue-700 mt-1">
-        Your primary email is currently mapped to {user.primaryEmailAddress}.
-      </p>
-    </div>
-  );
-}
-```
-
-## Accessing Custom Metadata
-
-Wacht allows you to attach custom JSON metadata to individual User objects from the Dashboard or Backend API. This is incredibly useful for storing application-specific state (like a user's theme preference, onboarding status, or stripe customer ID) directly on the identity layer.
-
-If a piece of metadata is flagged as `public`, it becomes securely accessible directly from the frontend React SDK via this hook:
+Standard implementation architectures persist domain-specific configuration elements (such as UI preferences) inside the User Object's `publicMetadata` envelope. These attributes are securely dispatched to the client context post-authentication sequence natively.
 
 ```tsx
 import { useUser } from "@wacht/tanstack-router";
 
-export function ThemeController() {
+export function InterfaceConfigurationManager() {
   const { loading, user } = useUser();
 
   if (loading || !user) return null;
 
-  // Access the custom "publicMetadata" object securely attached via the backend
-  const userPreferredTheme = user.publicMetadata.theme || "light";
+  const currentRoleConstraint = user.publicMetadata.role_constraint as string | undefined;
 
   return (
-    <div className="text-sm text-zinc-500 mt-4">
-      System rendering in module: <span className="font-bold">{userPreferredTheme}</span>
+    <div className="text-sm border border-gray-200 p-4 rounded bg-white">
+      System rendering mapping block identifier sequence string logic dynamically resolving parameter locally explicitly: 
+      <span className="font-semibold text-gray-900 ml-2">
+        {currentRoleConstraint || "UNASSIGNED_LOGIC_BLOCK_FALLBACK_DEFAULT"}
+      </span>
     </div>
   );
 }
 ```
 
-## Updating User Data
+### Mutating Account Properties
 
-The `user` object returned by this hook is a rich instance possessing its own suite of update functions. You can programmatically update a user's profile directly from the client (provided the updates conform to your deployment's configuration policies).
+Attributes allocated to the `user` reference natively supply binding logic for direct remote record modification mapping parameters effectively directly matching specific requirements effectively effectively explicit sequence logic mappings implicitly updating contexts iteratively updating records securely. 
 
 ```tsx
-const handleUpdateName = async () => {
-  try {
-    const updatedUser = await user.update({ firstName: "Jonathan" });
-    console.log("Profile successfully updated!", updatedUser);
-  } catch (err) {
-    console.error("Failed to update profile:", err);
-  }
-};
+import { useUser } from "@wacht/tanstack-router";
+
+export function ModifySequenceComponent() {
+  const { user } = useUser();
+
+  const handleUpdateTransaction = async () => {
+    if (!user) return;
+    try {
+      await user.update({ firstName: "Jonathan" });
+    } catch (err) {
+      console.error("Mutation modification constraint enforcement triggered exception: ", err);
+    }
+  };
+
+  return (
+    <button onClick={handleUpdateTransaction} className="border p-2 bg-gray-50 uppercase text-xs">
+      Submit Modification Sequence
+    </button>
+  );
+}
 ```

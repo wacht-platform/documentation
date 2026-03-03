@@ -1,0 +1,63 @@
+---
+title: "Realtime Stream Handling"
+description: "Use websocket notification streaming with reconnect safety and state reconciliation."
+---
+
+# Realtime Stream Handling
+
+Your `useNotificationStream` hook connects to `/realtime/notifications` and supports:
+
+- Channel filters
+- Organization/workspace scoping
+- Exponential reconnect
+- Ping keepalive
+
+## Implementation details from your hook
+
+1. Builds websocket URL from `deployment.backend_host`.
+2. Uses `wss` for `https` deployments.
+3. Sends ping every 30s.
+4. Reconnects with exponential backoff.
+
+## Integration pattern
+
+Use stream for freshness, but keep inbox API as source of truth.
+
+```tsx
+import { useNotificationStream } from "@wacht/react-router";
+
+export function NotificationStreamStatus() {
+  const { isConnected, connectionError, reconnect } = useNotificationStream({
+    enabled: true,
+    channels: ["user", "organization"],
+  });
+
+  return (
+    <div>
+      Stream: {isConnected ? "Connected" : "Disconnected"}
+      {connectionError ? <button onClick={() => reconnect()}>Reconnect</button> : null}
+    </div>
+  );
+}
+```
+
+## Production guidance
+
+1. Always tolerate temporary disconnects.
+2. Reconcile state from API after reconnect.
+3. Track connection error metrics.
+4. Avoid duplicate append on stream + poll overlap.
+
+## Related docs
+
+1. [React Router `useNotificationStream`](/react-router-sdk/hooks/use-notification-stream)
+2. [React Router `useNotifications`](/react-router-sdk/hooks/use-notifications)
+3. [Frontend API Notifications Reference](/frontend-api/notifications)
+
+## Go-live checklist
+
+1. Scope and severity conventions are documented.
+2. Inbox read/archive/star flows are tested.
+3. Realtime reconnection behavior is verified.
+4. Noisy template monitoring is in place.
+5. Expiry strategy is applied for stale notifications.

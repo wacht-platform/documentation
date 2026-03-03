@@ -1,0 +1,114 @@
+---
+title: "API Auth Integration Models"
+description: "Choose the right API Auth implementation model and rollout path for your SaaS."
+---
+
+# API Auth Integration Models
+
+API Auth Apps are for one specific job: letting your customers safely create and manage API keys for your product.
+
+Most teams get stuck on one early choice: should key management live in a ready-made portal, or inside your product's custom UX?
+
+This page gives you a practical way to decide.
+
+## Two valid models
+
+### Vanity model
+
+You expose a dedicated API Auth management surface (like your `vanity-pages` implementation) and hand users into it with a short-lived access ticket.
+
+This works best when:
+
+1. You need to ship quickly.
+2. You want battle-tested key lifecycle UX first.
+3. Your product team is still validating API customer behavior.
+
+### Custom model
+
+You build key management directly into your own product flows using hooks (`useApiAuthAppSession`, `useApiAuthKeys`, audit hooks).
+
+This works best when:
+
+1. Key management must be embedded in existing settings pages.
+2. You need complex internal policy/approval gates.
+3. You have mature product requirements and stable IA.
+
+## Shared security flow (both models)
+
+Regardless of UI model, keep this exact trust boundary:
+
+1. User authenticates in your app.
+2. Your backend authorizes that user for API key management.
+3. Backend issues short-lived `api_auth_access` ticket.
+4. Frontend exchanges ticket with `/session/ticket/exchange`.
+5. Frontend calls `/api-auth/*` endpoints with that session.
+
+Your backend remains the policy authority. The frontend handles management UX.
+
+## First step most teams miss: create the API Auth app
+
+You must create the API Auth app before issuing tickets or rendering vanity/custom UI.
+
+```bash
+curl -X POST "https://api.wacht.dev/api-auth/apps" \
+  -H "Authorization: Bearer <WACHT_BACKEND_API_KEY>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "app_slug": "aa_42",
+    "name": "Acme Public API",
+    "key_prefix": "acme_live",
+    "description": "API keys for Acme customers"
+  }'
+```
+
+Required fields:
+
+1. `app_slug`
+2. `name`
+3. `key_prefix`
+
+Practical convention: `app_slug = aa_<deploymentId>`.
+
+## Decision matrix
+
+| Constraint | Prefer Vanity | Prefer Custom |
+|---|---|---|
+| Time-to-market | Strong fit | Slower |
+| UX control | Medium | Full |
+| Product complexity | Low/medium | Medium/high |
+| Initial maintenance | Lower | Higher |
+| Differentiated experience | Moderate | High |
+
+## What to lock before implementation
+
+1. Key scope model: user, org, or workspace.
+2. Expiry policy: optional vs mandatory.
+3. Rotation policy: manual only vs required cadence.
+4. Revocation authority: owner-only vs admin override.
+5. Audit requirements: what your support/security teams must see.
+
+## Practical recommendation
+
+For most SaaS teams:
+
+1. Launch with vanity pages.
+2. Learn customer behavior for 1-2 release cycles.
+3. Move high-value flows to custom UX where needed.
+
+That sequence reduces risk while preserving long-term flexibility.
+
+## Related docs
+
+1. [API Auth vanity implementation](/guides/api-auth/vanity-pages-implementation)
+2. [API Auth custom hook implementation](/guides/api-auth/custom-hook-flow-implementation)
+3. [React Router `useApiAuthAppSession`](/react-router-sdk/hooks/use-api-auth-app-session)
+4. [React Router `useApiAuthKeys`](/react-router-sdk/hooks/use-api-auth-keys)
+5. [API Keys Backend API Reference](/backend-api/api-keys)
+
+## Go-live checklist
+
+1. RBAC gate for ticket issuance is enforced server-side.
+2. Ticket expiry is short and validated.
+3. Key create/rotate/revoke flows verified in staging.
+4. Audit logs visible to support/security owners.
+5. Customer-facing key handling docs are published.

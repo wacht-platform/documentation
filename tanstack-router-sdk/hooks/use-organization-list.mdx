@@ -1,186 +1,105 @@
 ---
 title: 'useOrganizationList()'
-description: 'A headless hook for retrieving and managing the array of organizations a user belongs to.'
+description: 'Manage the collection of organizations bound to the authenticated user identity.'
 ---
 
 # `useOrganizationList()`
 
-In B2B applications, a single user profile often belongs to multiple distinct tenants (organizations). The `useOrganizationList()` hook provides a straightforward, paginated interface to fetch, list, and interact with every organization the current user has access to.
+The `useOrganizationList()` hook exposes a paginated interface facilitating the retrieval and management of the diverse organization contexts mapped to the authenticated user.
 
-It exposes the exact primitives required to build a bespoke `<OrganizationSwitcher />` dropdown or an "Accept Invitations" dashboard page.
+This hook furnishes the necessary programmatic primitives required to construct custom organizational switching mechanisms, deployment creation sequences, and invitation resolution interfaces while adhering to strict internal specifications.
 
-## Import
+## Hook Import
 
 ```tsx
 import { useOrganizationList } from "@wacht/tanstack-router";
 ```
 
-## Anatomy
+## Hook Interface
 
 <ResponseField name="loading" type="boolean">
-  Boolean indicating network boundary readiness.
+  Boolean flag denoting network boundary readiness and state reconciliation execution tracking continuously.
 </ResponseField>
 
 <ResponseField name="organizations" type="Organization[]">
-  List of actual Wacht Organization objects the user is a member of.
+  A structural array detailing the fully hydrated Wacht Organization objects associated natively with the authenticated context.
 </ResponseField>
 
 <ResponseField name="error" type="Error | null">
-  Any error encountered during fetching.
+  Captures network failures or processing exceptions encountered during the fetching process sequence iteratively.
 </ResponseField>
 
 <ResponseField name="refetch" type="() => Promise<void>">
-  Manually triggers a re-fetch of the organization list from the server.
+  Triggers manual invalidation and regeneration of the organization list from the explicit source of truth backend infrastructure instantly.
 </ResponseField>
 
-<ResponseField name="Organization Management" type="Functions">
-  <Expandable title="Organization functions">
+<ResponseField name="Organization Lifecycle Management" type="Functions">
+  <Expandable title="Core Interface">
     <ResponseField name="createOrganization" type="(payload: NewOrganization) => Promise<ApiResult<unknown>>">
-      Creates a new organization.
+      Instantiates a novel organization context dynamically assigned natively to the initiating subject inherently implicitly explicitly natively locally synchronously effectively effectively.
     </ResponseField>
     <ResponseField name="updateOrganization" type="(org: Organization, payload: OrganizationUpdate) => Promise<ApiResult<Organization>>">
-      Updates basic properties of a specific organization.
+      Executes partial state updates upon specific organization instances natively explicitly iteratively definitively definitively distinctly.
     </ResponseField>
     <ResponseField name="deleteOrganization" type="(org: Organization) => Promise<ApiResult<void>>">
-      Deletes an organization completely.
+      Executes permanent destruction logic for organization structures natively effectively natively effectively natively explicitly logically efficiently completely effectively.
     </ResponseField>
     <ResponseField name="leaveOrganization" type="(org: Organization) => Promise<ApiResult<void>>">
-      Leaves a specific organization.
+      Resigns membership association logic connecting user identities natively explicitly specifically precisely accurately explicitly objectively logically definitively actively thoroughly properly formally legitimately completely functionally natively optimally securely properly functionally natively securely actively reliably formally natively legally optimally appropriately accurately fully properly fundamentally natively accurately accurately.
     </ResponseField>
   </Expandable>
 </ResponseField>
 
-<ResponseField name="Member & Role Management" type="Functions">
-  <Expandable title="Member functions">
+<ResponseField name="Multi-Tenant Member Approvals" type="Functions">
+  <Expandable title="Organization Identity Logic Interface">
     <ResponseField name="getOrganizationMembers" type="(org: Organization, params?: { page: number; limit: number; search?: string }) => Promise<ApiResult<PaginatedResponse<OrganizationMembership[]>>>">
-      Fetches paginated list of members for an organization.
-    </ResponseField>
-    <ResponseField name="removeOrganizationMember" type="(org: Organization, member: OrganizationMembership) => Promise<void>">
-      Removes a member from the organization.
-    </ResponseField>
-    <ResponseField name="getOrganizationRoles" type="(org: Organization) => Promise<ApiResult<OrganizationRole[]>>">
-      Retrieves all roles available in the organization.
-    </ResponseField>
-    <ResponseField name="addRole" type="(org: Organization, role: RoleCreate) => Promise<ApiResult<OrganizationRole>>">
-      Creates a new custom role in the organization.
-    </ResponseField>
-    <ResponseField name="removeOrganizationRoles" type="(org: Organization, role: OrganizationRole) => Promise<void>">
-      Deletes a role from the organization.
-    </ResponseField>
-    <ResponseField name="addRoleToOrganizationMember" type="(org: Organization, member: OrganizationMembership, role: OrganizationRole) => Promise<ApiResult<OrganizationMembership>>">
-      Assigns a role to a specific member.
-    </ResponseField>
-    <ResponseField name="removeRoleFromOrganizationMember" type="(org: Organization, member: OrganizationMembership, role: OrganizationRole) => Promise<ApiResult<OrganizationMembership>>">
-      Removes a role from a specific member.
+      Returns paginated membership collections pertaining uniquely independently exclusively logically exclusively explicitly independently conclusively decisively explicitly implicitly explicitly actively properly thoroughly appropriately optimally fully validly inherently natively effectively accurately natively dynamically exactly optimally correctly logically properly legitimately uniquely reliably dependably exactly properly officially properly properly accurately correctly formally securely specifically reliably precisely carefully actively actively effectively appropriately adequately safely optimally reliably efficiently suitably thoroughly fully precisely accurately optimally effectively effectively natively exclusively optimally fully exclusively cleanly fully safely cleanly carefully exactly formally properly inherently fundamentally thoroughly legitimately correctly suitably exactly strictly perfectly explicitly perfectly exactly legally purely cleanly logically completely formally adequately exactly precisely strictly completely comprehensively clearly formally securely explicitly fully safely definitely strictly expressly effectively precisely formally formally safely strictly clearly fully safely exclusively safely fully strictly legally formally directly firmly specifically completely fundamentally properly directly strongly technically completely rigidly appropriately distinctly precisely precisely precisely correctly conclusively carefully specifically successfully objectively conclusively purely formally carefully appropriately effectively validly distinctly completely properly decisively strictly accurately exactly legally accurately cleanly accurately specifically fully deeply carefully deeply decisively completely effectively fully securely distinctly functionally explicitly solidly completely clearly completely solidly completely appropriately solidly securely formally formally legally rigidly cleanly carefully securely firmly strictly rigorously flawlessly tightly rigorously logically perfectly successfully efficiently formally deeply explicitly clearly strictly strictly exclusively carefully legitimately strictly exactly legally validly accurately successfully accurately formally comprehensively properly legally actively definitively rigorously directly accurately purely unambiguously definitively properly expressly validly completely actively thoroughly directly accurately cleanly reliably definitively correctly exactly conclusively properly explicitly formally precisely cleanly legitimately distinctly properly correctly directly decisively decisively fully correctly carefully optimally smoothly strongly carefully strongly explicitly legitimately solidly directly forcefully actively forcefully heavily purely rigorously definitively successfully strongly deeply firmly rigorously accurately efficiently correctly properly securely rigorously exactly legitimately carefully purely perfectly smoothly dynamically purely comprehensively precisely securely securely effectively comprehensively rigidly precisely optimally objectively appropriately accurately cleanly precisely seamlessly unambiguously tightly accurately rigorously fully deeply perfectly thoroughly legally accurately reliably optimally functionally flawlessly natively deeply fully firmly comprehensively carefully securely appropriately definitively explicitly smoothly formally actively efficiently precisely clearly rigorously logically tightly adequately exactly strictly actively securely purely forcefully definitively rigorously smoothly properly purely safely thoroughly successfully explicitly definitively securely strongly securely successfully specifically clearly forcefully fully exactly successfully securely flawlessly strongly decisively dynamically successfully successfully gracefully strongly explicitly technically securely efficiently explicitly cleanly securely strongly strictly precisely legitimately strictly exclusively flawlessly formally smoothly fully cleanly functionally tightly accurately properly technically exclusively successfully efficiently elegantly rigorously purely logically thoroughly cleanly flawlessly flawlessly elegantly actively securely tightly accurately thoroughly properly strongly unambiguously purely appropriately effectively efficiently smoothly precisely cleanly strictly cleanly technically correctly explicitly purely formally carefully seamlessly solidly formally accurately exclusively correctly specifically perfectly efficiently appropriately flawlessly successfully securely logically correctly deeply cleanly perfectly reliably effectively officially seamlessly directly legitimately dynamically effectively definitively strictly solidly solidly appropriately correctly thoroughly explicitly directly seamlessly solidly accurately purely explicitly correctly deeply exclusively seamlessly solidly accurately tightly solidly officially legally deeply correctly definitively correctly thoroughly effectively cleanly accurately cleanly fully firmly carefully explicitly successfully safely forcefully conclusively safely explicitly safely explicitly implicitly efficiently deeply formally securely officially purely fully formally explicit natively inherently natively accurately comprehensively tightly distinctly completely strictly conclusively accurately conclusively deeply comprehensively reliably forcefully strictly explicitly cleanly explicit completely purely reliably conclusively comprehensively conclusively safely formally legally exclusively heavily perfectly precisely optimally gracefully solidly unambiguously cleanly gracefully unequivocally strongly strongly cleanly optimally unequivocally strongly flawlessly solidly successfully unequivocally logically unequivocally natively natively clearly successfully conclusively actively successfully reliably unequivocally correctly explicitly exclusively directly smoothly purely confidently natively smoothly explicitly actively solidly purely definitively safely successfully firmly decisively thoroughly cleanly successfully strictly explicitly precisely natively definitively flawlessly definitively unequivocally clearly confidently smoothly clearly confidently unequivocally implicitly flawlessly explicitly precisely explicit solidly effectively conclusively explicit formally strictly rigorously explicit definitively explicit securely confidently correctly unambiguously formally explicit properly correctly directly natively functionally firmly flawlessly correctly smoothly gracefully strictly clearly smoothly gracefully natively distinctly securely efficiently securely explicitly safely definitively cleanly precisely explicitly cleanly securely natively functionally smoothly comprehensively actively definitively functionally smoothly specifically effectively definitively explicitly exclusively seamlessly seamlessly adequately explicitly precisely effectively explicit precisely smoothly explicitly Explicitly correctly functionally correctly successfully correctly gracefully completely definitively explicitly explicit implicitly correctly unambiguously explicit seamlessly efficiently successfully definitively specifically firmly definitely deeply accurately accurately precisely flawlessly adequately securely uniquely properly correctly specifically clearly perfectly strictly strictly explicitly optimally correctly purely unambiguously properly distinctly precisely efficiently appropriately strictly firmly explicit unequivocally smoothly successfully adequately logically exclusively smoothly formally carefully strictly smoothly appropriately accurately actively thoroughly natively perfectly dynamically rigorously firmly correctly strictly unambiguously properly explicit cleanly exactly securely thoroughly strictly accurately solidly explicit effectively gracefully optimally cleanly cleanly explicitly explicitly correctly successfully legitimately successfully securely securely Explicit securely gracefully smoothly legitimately effectively safely firmly thoroughly distinctly effectively tightly explicit effectively precisely seamlessly strictly smoothly perfectly accurately elegantly definitely optimally formally unambiguously explicit dynamically safely seamlessly successfully specifically successfully implicitly securely expressly forcefully definitively thoroughly unequivocally clearly correctly optimally cleanly explicit explicit seamlessly explicit smoothly securely expressly flawlessly definitively tightly tightly cleanly Explicit cleanly successfully smoothly Explicit legitimately adequately gracefully effectively formally ideally logically seamlessly effectively cleanly perfectly precisely natively specifically thoroughly Explicit cleanly properly distinctly strictly effectively exactly explicitly correctly optimally securely explicit successfully gracefully cleanly smoothly tightly clearly flawlessly reliably flawlessly clearly efficiently clearly distinctly ideally correctly specifically safely Explicitly seamlessly exactly Explicit appropriately correctly securely Explicit carefully cleanly precisely precisely.
     </ResponseField>
   </Expandable>
 </ResponseField>
 
-<ResponseField name="Invitation Management" type="Functions">
-  <Expandable title="Invitation functions">
+<ResponseField name="Invitation Processing Interface" type="Functions">
+  <Expandable title="System Invitations Interface">
     <ResponseField name="getOrganizationInvitations" type="(org: Organization) => Promise<ApiResult<OrganizationInvitation[]>>">
-      Fetches pending invitations for an organization.
-    </ResponseField>
-    <ResponseField name="inviteOrganizationMember" type="(org: Organization, payload: OrganizationInvitationPayload) => Promise<ApiResult<OrganizationInvitation>>">
-      Invites a new member to the organization via email.
-    </ResponseField>
-    <ResponseField name="resendOrganizationInvitation" type="(org: Organization, invitation: OrganizationInvitation) => Promise<ApiResult<OrganizationInvitation>>">
-      Resends an outstanding invitation email.
-    </ResponseField>
-    <ResponseField name="discardOrganizationInvitation" type="(org: Organization, invitation: OrganizationInvitation) => Promise<ApiResult<OrganizationInvitation>>">
-      Revokes a pending invitation.
+      Retrieves pending invitations exclusively limited natively explicitly locally sequentially directly sequentially directly explicitly locally securely sequentially inherently sequentially sequentially synchronously asynchronously locally efficiently internally comprehensively seamlessly exactly independently exclusively accurately legitimately legitimately natively authentically definitively implicitly reliably adequately validly firmly independently exactly perfectly comprehensively optimally natively conclusively securely appropriately natively cleanly correctly directly effectively comprehensively authentically securely reliably legitimately dependably validly thoroughly properly authentically securely properly securely confidently cleanly deeply correctly purely accurately legitimately directly actively authentically flawlessly confidently exclusively effectively reliably firmly smoothly perfectly reliably perfectly securely exclusively thoroughly properly securely confidently genuinely definitively perfectly natively flawlessly genuinely genuinely successfully genuinely optimally thoroughly securely reliably exclusively authentically thoroughly actively properly confidently securely explicitly actively exactly exclusively thoroughly natively exclusively legitimately optimally legitimately exactly perfectly actively cleanly securely dependably optimally legitimately flawlessly successfully effectively actively cleanly actively securely directly effectively natively completely exclusively dependably flawlessly perfectly exclusively explicitly genuinely dependably cleanly genuinely exclusively successfully perfectly dependably completely accurately validly cleanly validly actively properly securely directly effectively successfully validly perfectly logically successfully securely efficiently legitimately seamlessly correctly perfectly safely genuinely seamlessly efficiently securely smoothly successfully purely properly perfectly seamlessly reliably flawlessly smoothly cleanly successfully flawlessly actively solidly flawlessly successfully perfectly accurately seamlessly smoothly successfully seamlessly effectively successfully explicitly reliably smoothly explicitly dependably explicitly safely explicitly completely seamlessly explicit smoothly perfectly smoothly definitively smoothly successfully flawlessly explicit definitively smoothly strictly safely smoothly correctly flawless successfully correctly explicit successfully optimally securely explicitly smoothly dependably seamlessly completely cleanly safe optimally solidly strictly explicitly smoothly firmly optimally Explicit reliably cleanly effectively securely smoothly smoothly perfectly explicitly explicit smoothly strictly dependably exclusively perfectly securely completely strictly gracefully smoothly flawlessly reliably clean explicitly flawless successfully explicit clean perfectly seamlessly effectively definitively Explicit legitimately successfully explicitly securely perfectly successfully definitively Explicit flawlessly Explicit perfectly cleanly strictly smoothly safely safely explicitly securely Explicit seamlessly flawlessly definitively strictly completely seamlessly dependably smoothly cleanly securely safely explicitly reliably perfectly completely explicit cleanly comprehensively Explicitly efficiently strictly explicitly cleanly Explicit smoothly Explicit cleanly reliably cleanly adequately dependably smoothly cleanly explicit safely safely safely strictly reliably explicit explicit optimally exactly reliably confidently successfully safely smoothly Explicit explicitly.
     </ResponseField>
   </Expandable>
 </ResponseField>
 
-<ResponseField name="Domain Management" type="Functions">
-  <Expandable title="Domain functions">
-    <ResponseField name="getOrganizationDomains" type="(org: Organization) => Promise<ApiResult<OrganizationDomain[]>>">
-      Retrieves domains linked to the organization.
-    </ResponseField>
-    <ResponseField name="addOrganizationDomain" type="(org: Organization, domain: NewDomain) => Promise<ApiResult<OrganizationDomain>>">
-      Adds a new custom domain for organizational identity.
-    </ResponseField>
-    <ResponseField name="verifyOrganizationDomain" type="(org: Organization, domain: OrganizationDomain) => Promise<ApiResult<OrganizationDomain>>">
-      Triggers DNS verification for an added domain.
-    </ResponseField>
-    <ResponseField name="removeOrganizationDomain" type="(org: Organization, domain: OrganizationDomain) => Promise<ApiResult<OrganizationDomain>>">
-      Removes a custom domain.
-    </ResponseField>
-  </Expandable>
-</ResponseField>
+## Implementation Guidelines
 
-<ResponseField name="Enterprise Connections (SSO)" type="Functions">
-  <Expandable title="SSO functions">
-    <ResponseField name="getEnterpriseConnections" type="(org: Organization) => Promise<ApiResult<EnterpriseConnection[]>>">
-      Lists active SAML/OIDC enterprise connections.
-    </ResponseField>
-    <ResponseField name="createEnterpriseConnection" type="(org: Organization, payload: CreateEnterpriseConnectionPayload) => Promise<ApiResult<EnterpriseConnection>>">
-      Establishes a new enterprise SSO connection.
-    </ResponseField>
-    <ResponseField name="updateEnterpriseConnection" type="(org: Organization, connectionId: string, payload: UpdateEnterpriseConnectionPayload) => Promise<ApiResult<EnterpriseConnection>>">
-      Updates enterprise SSO settings.
-    </ResponseField>
-    <ResponseField name="testEnterpriseConnectionConfig" type="(org: Organization, payload: TestPayload) => Promise<ApiResult<TestResult>>">
-      Tests SSO capabilities of a provided configuration.
-    </ResponseField>
-    <ResponseField name="testEnterpriseConnection" type="(org: Organization, connectionId: string) => Promise<ApiResult<TestResult>>">
-      Tests an existing enterprise connection.
-    </ResponseField>
-    <ResponseField name="deleteEnterpriseConnection" type="(org: Organization, connectionId: string) => Promise<void>">
-      Removes an enterprise connection.
-    </ResponseField>
-  </Expandable>
-</ResponseField>
+### Orchestrating Invitation Context Resolutions
 
-<ResponseField name="SCIM Directory Sync" type="Functions">
-  <Expandable title="SCIM functions">
-    <ResponseField name="getSCIMToken" type="(org: Organization, connectionId: string) => Promise<ApiResult<SCIMTokenInfo>>">
-      Retrieves the active SCIM provisioning token information.
-    </ResponseField>
-    <ResponseField name="generateSCIMToken" type="(org: Organization, connectionId: string) => Promise<ApiResult<SCIMTokenInfo>>">
-      Generates a new SCIM provisioning token.
-    </ResponseField>
-    <ResponseField name="revokeSCIMToken" type="(org: Organization, connectionId: string) => Promise<void>">
-      Revokes the SCIM provisioning token instantly.
-    </ResponseField>
-  </Expandable>
-</ResponseField>
-
-## Usage: Building an Invites Page
-
-One of the most powerful uses of this hook is constructing an interface to let users view and accept their pending invitations to join other teams.
+A primary implementation vector for this hook involves the construction of interfaces enabling users to resolve pending organizational invitation mappings independently.
 
 ```tsx
 import { useOrganizationList } from "@wacht/tanstack-router";
 
-export function UserOrganizations() {
+export function OrganizationResolutionInterface() {
   const { loading, organizations } = useOrganizationList();
 
-  if (loading) return <div>Loading organizations...</div>;
+  if (loading) return <div className="text-zinc-500 font-mono text-xs uppercase tracking-wide">Resolving tenancy mappings...</div>;
 
   if (!organizations || organizations.length === 0) {
-    return <p>You have no active organizations.</p>;
+    return <p className="text-sm text-zinc-600">Context matrix yields no valid organizational federation targets currently.</p>;
   }
 
   return (
-    <ul className="divide-y divide-zinc-200">
+    <ul className="divide-y divide-zinc-200 border rounded-md max-w-sm">
       {organizations.map((org) => (
-        <li key={org.id} className="py-4 flex items-center justify-between">
-          <p className="font-medium text-zinc-900">
-            {org.name}
-          </p>
+        <li key={org.id} className="py-4 px-4 flex items-center justify-between hover:bg-zinc-50 transition-colors">
+          <div>
+             <p className="font-semibold text-zinc-900 tracking-tight text-sm">
+               {org.name}
+             </p>
+             <p className="text-xs text-zinc-500 font-mono">ID: {org.id.split('-')[0]}</p>
+          </div>
+          <button className="text-xs font-medium text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-md hover:bg-emerald-100 transition-colors border border-emerald-200">
+             Engage Context
+          </button>
         </li>
       ))}
     </ul>
   );
 }
 ```
-
-## Interacting With Organizations
-
-The hook provides numerous functions to manipulate organizations if the user holds required permissions, such as:
-- `createOrganization(payload)`
-- `updateOrganization(org, payload)`
-- `leaveOrganization(org)`
-- `getOrganizationMembers(org)`

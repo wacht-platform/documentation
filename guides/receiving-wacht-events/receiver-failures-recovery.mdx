@@ -1,0 +1,77 @@
+---
+title: "Handling Receiver Failures and Recovery"
+description: "Implement concrete debugging and recovery paths for signature issues, duplicates, and delayed processing."
+---
+
+# Handling Receiver Failures and Recovery
+
+Use this page to build a receiver that is easy to debug and safe to recover after incidents.
+
+## What to build
+
+1. Signature verification logs with failure reason.
+2. Idempotency store keyed by webhook ID.
+3. Queue-first processing for slow downstream work.
+4. Replay-safe recovery workflow.
+
+## Step 1: log fields required for debugging
+
+At minimum, log these per request:
+
+1. `webhook-id`
+2. `webhook-timestamp`
+3. event type
+4. verification result
+5. idempotency decision (`new` or `duplicate`)
+
+Without these fields, you cannot safely replay or confirm duplicates.
+
+## Step 2: verify signatures with the canonical message format
+
+```text
+signed_payload = "{webhook-id}.{webhook-timestamp}.{raw-request-body}"
+signature = "v1,{base64_hmac_sha256(signed_payload, decoded_signing_secret)}"
+```
+
+Match this input format exactly in your receiver verification code.
+
+## Step 3: enforce idempotency before side effects
+
+Use `webhook-id` as the dedupe key.
+
+1. If key is new, mark processing started and continue.
+2. If key exists and completed, return success without re-running side effects.
+3. If key exists and in-progress, short-circuit to avoid concurrent duplicate work.
+
+## Step 4: adopt queue-first event handling
+
+Apply the same shape in your pipeline:
+
+1. Verify + dedupe in HTTP handler.
+2. Enqueue job.
+3. Return 2xx quickly.
+4. Process heavy business logic asynchronously.
+
+## Step 5: define recovery flow for incidents
+
+When failures happen:
+
+1. Fix root cause first (signature, outage, or bug).
+2. Identify impacted time window and event types.
+3. Replay only impacted subset.
+4. Validate resulting business state.
+
+Do not replay full history blindly.
+
+## Related docs
+
+1. [Signature Verification with Raw Body](/guides/receiving-wacht-events/signature-verification-with-raw-body)
+2. [Idempotency and Retry-safe Processing](/guides/receiving-wacht-events/idempotency-retry-safe-processing)
+3. [Webhooks Backend API Reference](/backend-api/webhooks)
+
+## Validation checklist
+
+1. Signature verification test passes with real captured payloads.
+2. Duplicate delivery does not create duplicate side effects.
+3. Receiver returns quickly while workers process async.
+4. Replay process is scoped, auditable, and repeatable.

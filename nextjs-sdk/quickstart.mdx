@@ -78,14 +78,26 @@ export async function GET() {
   </Step>
 </Steps>
 
-## Sign-in UI example
+## Hosted Page Authentication
+
+Wacht makes it easy to protect your application using our zero-configuration hosted authentication pages. Simply wrap your authenticated content with `<SignedIn>` and use `<SignedOut>` coupled with `<NavigateToSignIn />` to automatically redirect unauthenticated users to your securely hosted login page.
 
 ```tsx
-// app/sign-in/page.tsx
-import { SignInForm } from '@wacht/nextjs'
+// app/page.tsx
+import { SignedIn, SignedOut, NavigateToSignIn } from '@wacht/nextjs'
 
 export default function Page() {
-  return <SignInForm />
+  return (
+    <main>
+      <SignedIn>
+        <h1>Welcome back! You are authenticated.</h1>
+        {/* Your protected dashboard content goes here */}
+      </SignedIn>
+      <SignedOut>
+        <NavigateToSignIn />
+      </SignedOut>
+    </main>
+  )
 }
 ```
 

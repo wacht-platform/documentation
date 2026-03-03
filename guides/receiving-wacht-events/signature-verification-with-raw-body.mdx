@@ -1,0 +1,29 @@
+---
+title: "Signature Verification with Raw Body"
+description: "Verify Wacht webhook deliveries using Standard Webhooks libraries."
+---
+
+# Signature Verification with Raw Body
+
+Wacht follows the [Standard Webhooks spec](https://github.com/standard-webhooks/standard-webhooks?tab=readme-ov-file).
+
+Use a prebuilt Standard Webhooks library for verification.
+
+```ts
+import { Webhook } from "standardwebhooks";
+
+const wh = new Webhook(base64_secret);
+wh.verify(webhook_payload, webhook_headers);
+```
+
+Headers sent by Wacht:
+
+1. `webhook-id`
+2. `webhook-timestamp`
+3. `webhook-signature`
+
+## Related docs
+
+1. [Webhook Receiver Security Model](/guides/receiving-wacht-events/overview-security-model)
+2. [Idempotency and Retry-safe Processing](/guides/receiving-wacht-events/idempotency-retry-safe-processing)
+3. [Webhooks Backend API Reference](/backend-api/webhooks)

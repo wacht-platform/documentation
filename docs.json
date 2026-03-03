@@ -497,6 +497,62 @@
                 ]
             },
             {
+                "tab": "Guides",
+                "dropdowns": [
+                    {
+                        "dropdown": "SaaS Guides",
+                        "icon": "book-open",
+                        "groups": [
+                            {
+                                "group": "API Auth for SaaS",
+                                "pages": [
+                                    "guides/api-auth/overview",
+                                    "guides/api-auth/vanity-pages-implementation",
+                                    "guides/api-auth/custom-hook-flow-implementation",
+                                    "guides/api-auth/audit-observability-screens"
+                                ]
+                            },
+                            {
+                                "group": "Webhooks for SaaS",
+                                "pages": [
+                                    "guides/webhooks/overview-control-plane-vs-data-plane",
+                                    "guides/webhooks/vanity-pages-implementation",
+                                    "guides/webhooks/custom-hook-flow-implementation",
+                                    "guides/webhooks/event-catalog-triggering-strategy",
+                                    "guides/webhooks/deliveries-replay-ui"
+                                ]
+                            },
+                            {
+                                "group": "In-App Notifications",
+                                "pages": [
+                                    "guides/notifications/overview-scope-design",
+                                    "guides/notifications/backend-sending-patterns",
+                                    "guides/notifications/frontend-inbox-with-hooks",
+                                    "guides/notifications/realtime-stream-handling",
+                                    "guides/notifications/actionable-notification-ux"
+                                ]
+                            },
+                            {
+                                "group": "Use Webhooks to Keep Your Backend in Sync",
+                                "pages": [
+                                    "guides/deployment-events/use-webhooks-to-keep-backend-in-sync"
+                                ]
+                            },
+                            {
+                                "group": "Receiving Wacht Platform Webhook Events",
+                                "pages": [
+                                    "guides/receiving-wacht-events/overview-security-model",
+                                    "guides/receiving-wacht-events/signature-verification-with-raw-body",
+                                    "guides/receiving-wacht-events/event-envelope-payload-contracts",
+                                    "guides/receiving-wacht-events/idempotency-retry-safe-processing",
+                                    "guides/receiving-wacht-events/receiver-failures-recovery"
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
                 "tab": "API Reference",
                 "dropdowns": [
                     {

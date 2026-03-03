@@ -1,0 +1,97 @@
+---
+title: "Custom Hook Flow Implementation"
+description: "Build custom webhook settings UX with concrete hooks from your React SDK."
+---
+
+# Custom Hook Flow Implementation
+
+If webhook management must live inside your core product settings, use the hooks directly.
+
+## Core hook stack from your SDK
+
+1. `useWebhookAppSession(ticket)`
+2. `useWebhookEndpoints()`
+3. `useWebhookEvents()`
+4. `useWebhookDeliveries(...)`
+5. `useWebhookAnalytics(...)` + `useWebhookTimeseries(...)`
+
+`useWebhookAppSession` already exposes full mutation surface:
+
+- `createEndpoint`
+- `updateEndpoint`
+- `deleteEndpoint`
+- `testEndpoint`
+- `rotateSecret`
+- `replayDelivery`
+- `fetchReplayTasks`
+- `fetchReplayTaskStatus`
+- `cancelReplayTask`
+
+## Session bootstrap example
+
+```tsx
+import { useWebhookAppSession } from "@wacht/nextjs";
+
+export function WebhookGate({ ticket }: { ticket?: string }) {
+  const { hasSession, sessionLoading, sessionError } = useWebhookAppSession(ticket);
+
+  if (sessionLoading) return <div>Loading webhook access...</div>;
+  if (!hasSession) return <div>Access required</div>;
+  if (sessionError) return <div>Could not establish webhook session</div>;
+
+  return <div>Webhook session active</div>;
+}
+```
+
+## Endpoint creation example
+
+```tsx
+const { createEndpoint } = useWebhookAppSession(ticket);
+
+await createEndpoint({
+  url: "https://customer.example.com/hooks/wacht",
+  description: "Primary endpoint",
+  subscribed_events: ["invoice.paid", "invoice.failed"],
+  headers: {
+    "x-customer-env": "production",
+  },
+});
+```
+
+## Delivery replay example
+
+```tsx
+const { replayDelivery } = useWebhookAppSession(ticket);
+
+await replayDelivery({
+  start_date: "2026-03-01T00:00:00Z",
+  end_date: "2026-03-01T23:59:59Z",
+  status: "failed",
+  event_name: "invoice.paid",
+});
+```
+
+## UX requirements for production
+
+1. Explicit endpoint URL validation.
+2. Confirmation steps for delete and secret rotation.
+3. Filter controls for deliveries and replay windows.
+4. Clear state for running replay tasks.
+5. Immutable audit trail in support tools.
+
+## Related docs
+
+1. [React Router `useWebhookAppSession`](/react-router-sdk/hooks/use-webhook-app-session)
+2. [React Router `useWebhookEndpoints`](/react-router-sdk/hooks/use-webhook-endpoints)
+3. [React Router `useWebhookEvents`](/react-router-sdk/hooks/use-webhook-events)
+4. [React Router `useWebhookDeliveries`](/react-router-sdk/hooks/use-webhook-deliveries)
+5. [React Router `useWebhookAnalytics`](/react-router-sdk/hooks/use-webhook-analytics)
+6. [Webhooks Backend API Reference](/backend-api/webhooks)
+
+## Go-live checklist
+
+1. Event catalog and naming policy are frozen for current release.
+2. Endpoint test flow is working for pilot customers.
+3. Replay workflow is documented for support.
+4. Signature verification docs are published for customers.
+5. Alerts for endpoint failures and deactivations are active.

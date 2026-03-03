@@ -1,0 +1,105 @@
+---
+title: "Event Envelope and Payload Contracts"
+description: "Consume Wacht events safely with version-aware contract handling."
+---
+
+# Event Envelope and Payload Contracts
+
+## Stable envelope
+
+Every event is wrapped in:
+
+1. `type`
+2. `timestamp`
+3. `data`
+
+This gives your receiver one consistent parser path across all event domains.
+
+## Event type coverage in your platform
+
+Your seeded default catalog includes domains like:
+
+- `user.*`
+- `session.*`
+- `organization.*`
+- `workspace.*`
+- `api_key.*`
+- `agent.*`
+- `execution_context.*`
+
+## Sample payload examples
+
+```json
+{
+  "type": "organization.member.added",
+  "timestamp": "2026-03-04T10:00:00.000Z",
+  "data": {
+    "entity_id": 89011,
+    "entity_type": "organization_membership"
+  }
+}
+```
+
+```json
+{
+  "type": "api_key.rotated",
+  "timestamp": "2026-03-04T10:02:00.000Z",
+  "data": {
+    "entity_id": 44092,
+    "entity_type": "api_key"
+  }
+}
+```
+
+## Contract handling guidance
+
+1. Route behavior by `type`, not by inferred payload shape.
+2. Treat unknown fields as non-breaking additions.
+3. Keep strict validation only for fields you truly require.
+4. Log unsupported `type` values for forward compatibility.
+
+## API contract examples
+
+### 1) Signature verification input
+
+Use this canonical message format for verification:
+
+```text
+{webhook-id}.{webhook-timestamp}.{raw-request-body}
+```
+
+Signature header format:
+
+```text
+v1,{base64_hmac_sha256_signature}
+```
+
+### 2) Event envelope consumed by receivers
+
+```json
+{
+  "type": "organization.member.added",
+  "timestamp": "2026-03-04T10:00:00.000Z",
+  "data": {
+    "entity_id": 89011,
+    "entity_type": "organization_membership"
+  }
+}
+```
+
+### 3) API spec to validate payload and replay behavior
+
+Use `documentation/api-specs/backend-api/webhooks-openapi.yaml` for:
+
+1. Delivery history endpoints
+2. Replay task endpoints
+3. Analytics and timeseries endpoints
+
+
+## Go-live checklist
+
+1. Raw-body signature verification passes integration tests.
+2. Idempotency guard keyed by `webhook-id` is deployed.
+3. Queue-first processing path is in place.
+4. Replay runbook tested on staging data.
+5. Alerting for receiver failures and backlog is active.

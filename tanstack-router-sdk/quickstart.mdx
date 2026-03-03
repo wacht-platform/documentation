@@ -58,3 +58,25 @@ return Response.json(payload, { headers })
 
 - `getAuth`: read auth state
 - `requireAuth`: enforce authentication via `protect()`
+
+## Hosted Page Authentication
+
+For maximum simplicity, you can utilize Wacht's zero-configuration hosted authentication pages instead of building custom forms. Secure your UI by leveraging the `<SignedIn>` and `<SignedOut>` components, redirecting unauthenticated users seamlessly.
+
+```tsx
+import { SignedIn, SignedOut, NavigateToSignIn } from '@wacht/tanstack-router'
+
+export function Dashboard() {
+  return (
+    <div>
+      <SignedIn>
+        <h1>Welcome to your Dashboard</h1>
+        {/* Protected application content */}
+      </SignedIn>
+      <SignedOut>
+        <NavigateToSignIn />
+      </SignedOut>
+    </div>
+  )
+}
+```

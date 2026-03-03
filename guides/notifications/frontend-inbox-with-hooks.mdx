@@ -1,0 +1,73 @@
+---
+title: "Frontend Inbox with Hooks"
+description: "Build inbox UX with pagination, state transitions, and action controls using existing hooks."
+---
+
+# Frontend Inbox with Hooks
+
+Your `useNotifications` hook already implements most inbox requirements.
+
+## What `useNotifications` provides
+
+1. Cursor pagination (`loadMore`).
+2. Read/unread transitions.
+3. Star/archive operations.
+4. Bulk actions (`markAllAsRead`, `archiveAllRead`).
+5. Optional stream integration callback.
+
+## Example inbox integration
+
+```tsx
+import { useNotifications } from "@wacht/react-router";
+
+export function Inbox() {
+  const {
+    notifications,
+    hasMore,
+    loading,
+    loadMore,
+    markAsRead,
+    archiveNotification,
+    markAllAsRead,
+  } = useNotifications({ scope: "all", limit: 25, is_archived: false });
+
+  if (loading) return <div>Loading notifications...</div>;
+
+  return (
+    <div>
+      <button onClick={() => markAllAsRead()}>Mark all read</button>
+      {notifications.map((n) => (
+        <div key={n.id}>
+          <strong>{n.title}</strong>
+          <p>{n.body}</p>
+          <button onClick={() => markAsRead(n.id)}>Read</button>
+          <button onClick={() => archiveNotification(n.id)}>Archive</button>
+        </div>
+      ))}
+      <button disabled={!hasMore} onClick={() => loadMore()}>Load more</button>
+    </div>
+  );
+}
+```
+
+## UX patterns that work well
+
+1. Mark read on row-open, not on hover.
+2. Keep archive action easy but reversible (until hard delete policy).
+3. Show unread counters per scope in nav.
+4. Keep filters sticky between navigations.
+
+## Related docs
+
+1. [React Router `useNotifications`](/react-router-sdk/hooks/use-notifications)
+2. [React Router `useNotificationStream`](/react-router-sdk/hooks/use-notification-stream)
+3. [React Router `useScopeUnread`](/react-router-sdk/hooks/use-scope-unread)
+4. [Frontend API Notifications Reference](/frontend-api/notifications)
+
+## Go-live checklist
+
+1. Scope and severity conventions are documented.
+2. Inbox read/archive/star flows are tested.
+3. Realtime reconnection behavior is verified.
+4. Noisy template monitoring is in place.
+5. Expiry strategy is applied for stale notifications.

@@ -1,181 +1,182 @@
 ---
 title: 'useActiveOrganization()'
-description: 'A React hook that exposes the metadata and Role-Based Access Control (RBAC) permissions for the currently selected tenant.'
+description: 'Access the metadata and Role-Based Access Control (RBAC) permissions associated with the currently active tenant.'
 ---
 
 # `useActiveOrganization()`
 
-The `useActiveOrganization()` hook is arguably the most critical hook for maintaining data isolation in a B2B application. It retrieves the specific `Organization` object that the user has currently selected within their session context.
+The `useActiveOrganization()` hook serves as a critical primitive for enforcing data isolation boundaries within segmented B2B architectures. It yields the specific `Organization` object contextually bound to the user's active session.
 
-It provides immediate access to the organization's unique ID, its custom metadata, and—most importantly—provides rigorous utility functions for enforcing authorization gates on the frontend.
+This hook exposes the active organization's unique identifier, custom metadata matrix, and authorization evaluation functions, facilitating robust client-side access control.
 
-## Import
+## Hook Import
 
 ```tsx
 import { useActiveOrganization } from "@wacht/tanstack-router";
 ```
 
-## Anatomy
+## Hook Interface
 
 <ResponseField name="loading" type="boolean">
-  Boolean indicating SDK readiness.
+  Boolean flag denoting the initialization readiness of the SDK concerning the organization context.
 </ResponseField>
 
 <ResponseField name="activeOrganization" type="Organization | null">
-  The complete initialized Organization profile of the currently active tenant.
+  The fully hydrated `Organization` profile correlating to the actively selected tenant. Evaluates to `null` if no selection exists.
 </ResponseField>
 
 <ResponseField name="activeMembership" type="OrganizationMembershipWithOrganization | null">
-  The current user's specific membership context within the active organization.
+  The authenticated user's specific membership construct nested within the active organization parameter.
 </ResponseField>
 
 <ResponseField name="error" type="Error | null">
-  Any error encountered during organization initialization.
+  Captures network failures or processing exceptions encountered during the organization context initialization.
 </ResponseField>
 
 <ResponseField name="refetch" type="() => Promise<void>">
-  Manually triggers a re-fetch of the active organization and membership data.
+  Triggers a manual network synchronization sequence for the active organization and membership data.
 </ResponseField>
 
-<ResponseField name="Organization Management" type="Functions">
-  <Expandable title="Organization functions">
+<ResponseField name="Organization Management Controls" type="Functions">
+  <Expandable title="Core Organization Interface">
     <ResponseField name="updateOrganization" type="(payload: OrganizationUpdate) => Promise<ApiResult<Organization>>">
-      Updates basic properties of the active organization.
+      Executes a partial modification of the active organization's properties.
     </ResponseField>
     <ResponseField name="leave" type="() => Promise<ApiResult<void>>">
-      Leaves the currently active organization.
+      Executes the resignation protocol for the currently active organization.
     </ResponseField>
   </Expandable>
 </ResponseField>
 
-<ResponseField name="Member & Role Management" type="Functions">
-  <Expandable title="Member functions">
+<ResponseField name="Member & Role Authorizations" type="Functions">
+  <Expandable title="Access Control Interface">
     <ResponseField name="getMembers" type="(params?: { page: number; limit: number; search?: string }) => Promise<ApiResult<PaginatedResponse<OrganizationMembership[]>>>">
-      Fetches paginated list of members for the active organization.
+      Retrieves a paginated matrix of identity memberships bound to the active organization.
     </ResponseField>
     <ResponseField name="removeMember" type="(member: OrganizationMembership) => Promise<void>">
-      Removes a member from the active organization.
+      Detaches a specified member identity from the active organization.
     </ResponseField>
     <ResponseField name="getRoles" type="() => Promise<ApiResult<OrganizationRole[]>>">
-      Retrieves all roles available in the organization.
+      Retrieves the complete array of authorization roles configured within the organization.
     </ResponseField>
     <ResponseField name="removeRole" type="(role: OrganizationRole) => Promise<void>">
-      Deletes a role from the active organization.
+      Destroys an existing organizational role definition.
     </ResponseField>
     <ResponseField name="addMemberRole" type="(member: OrganizationMembership, role: OrganizationRole) => Promise<ApiResult<OrganizationMembership>>">
-      Assigns a role to a specific member within the active organization.
+      Allocates a specific authorization role to a target member construct.
     </ResponseField>
     <ResponseField name="removeMemberRole" type="(member: OrganizationMembership, role: OrganizationRole) => Promise<ApiResult<OrganizationMembership>>">
-      Removes a role from a specific member.
+      Revokes a specific authorization role assignment from a target member construct.
     </ResponseField>
   </Expandable>
 </ResponseField>
 
-<ResponseField name="Invitation Management" type="Functions">
-  <Expandable title="Invitation functions">
+<ResponseField name="Invitation Dispatch" type="Functions">
+  <Expandable title="Invitation Interface">
     <ResponseField name="getInvitations" type="() => Promise<ApiResult<OrganizationInvitation[]>>">
-      Fetches pending invitations for the active organization.
+      Retrieves the array of pending membership invitations associated with the active organization.
     </ResponseField>
     <ResponseField name="inviteMember" type="(payload: OrganizationInvitationPayload) => Promise<ApiResult<OrganizationInvitation>>">
-      Invites a new member to the active organization via email.
+      Dispatches a new membership invitation to external identities via defined communication channels.
     </ResponseField>
     <ResponseField name="resendInvitation" type="(invitation: OrganizationInvitation) => Promise<ApiResult<OrganizationInvitation>>">
-      Resends an outstanding invitation email.
+      Retransmits an outstanding invitation dispatch.
     </ResponseField>
     <ResponseField name="discardInvitation" type="(invitation: OrganizationInvitation) => Promise<ApiResult<OrganizationInvitation>>">
-      Revokes a pending invitation.
+      Revokes and nullifies a pending invitation payload.
     </ResponseField>
   </Expandable>
 </ResponseField>
 
-<ResponseField name="Domain Management" type="Functions">
-  <Expandable title="Domain functions">
+<ResponseField name="Domain Validations" type="Functions">
+  <Expandable title="Domain Interface">
     <ResponseField name="getDomains" type="() => Promise<ApiResult<OrganizationDomain[]>>">
-      Retrieves domains linked to the active organization.
+      Retrieves the verified and pending domain constraints linked to the active organization.
     </ResponseField>
     <ResponseField name="addDomain" type="(domain: NewDomain) => Promise<ApiResult<OrganizationDomain>>">
-      Adds a new custom domain for organizational identity.
+      Registers a new custom domain identity for organizational mapping constraints.
     </ResponseField>
     <ResponseField name="verifyDomain" type="(domain: OrganizationDomain) => Promise<ApiResult<OrganizationDomain>>">
-      Triggers DNS verification for an added domain.
+      Initiates the DNS verification sequence for an existing unverified domain record.
     </ResponseField>
     <ResponseField name="removeDomain" type="(domain: OrganizationDomain) => Promise<ApiResult<OrganizationDomain>>">
-      Removes a custom domain.
+      Removes a custom domain mapping from the organization.
     </ResponseField>
   </Expandable>
 </ResponseField>
 
-<ResponseField name="Enterprise Connections (SSO)" type="Functions">
-  <Expandable title="SSO functions">
+<ResponseField name="Enterprise Single Sign-On Integrations" type="Functions">
+  <Expandable title="Enterprise SSO Interface">
     <ResponseField name="getEnterpriseConnections" type="() => Promise<ApiResult<EnterpriseConnection[]>>">
-      Lists active SAML/OIDC enterprise connections for the active organization.
+      Retrieves the active SAML/OIDC enterprise federation mappings for the active organization.
     </ResponseField>
     <ResponseField name="createEnterpriseConnection" type="(payload: CreateEnterpriseConnectionPayload) => Promise<ApiResult<EnterpriseConnection>>">
-      Establishes a new enterprise SSO connection.
+      Initializes a novel enterprise SSO federation link.
     </ResponseField>
     <ResponseField name="updateEnterpriseConnection" type="(connectionId: string, payload: UpdateEnterpriseConnectionPayload) => Promise<ApiResult<EnterpriseConnection>>">
-      Updates enterprise SSO settings.
+      Modifies existing enterprise SSO configuration parameters.
     </ResponseField>
     <ResponseField name="testEnterpriseConnectionConfig" type="(payload: TestPayload) => Promise<ApiResult<TestResult>>">
-      Tests SSO capabilities of a provided configuration.
+      Executes validation tests against a provided SSO configuration schema prior to commitment.
     </ResponseField>
     <ResponseField name="testEnterpriseConnection" type="(connectionId: string) => Promise<ApiResult<TestResult>>">
-      Tests an existing enterprise connection.
+      Executes validation tests against an established enterprise connection link natively.
     </ResponseField>
     <ResponseField name="deleteEnterpriseConnection" type="(connectionId: string) => Promise<void>">
-      Removes an enterprise connection.
+      Destroys an enterprise connection federation link.
     </ResponseField>
   </Expandable>
 </ResponseField>
 
-<ResponseField name="SCIM Directory Sync" type="Functions">
-  <Expandable title="SCIM functions">
+<ResponseField name="SCIM Directory Synchronizations" type="Functions">
+  <Expandable title="SCIM Interface">
     <ResponseField name="getSCIMToken" type="(connectionId: string) => Promise<ApiResult<SCIMTokenInfo>>">
-      Retrieves the active SCIM provisioning token information.
+      Retrieves metadata pertaining to the active SCIM provisioning authorization token limit.
     </ResponseField>
     <ResponseField name="generateSCIMToken" type="(connectionId: string) => Promise<ApiResult<SCIMTokenInfo>>">
-      Generates a new SCIM provisioning token.
+      Mints a novel SCIM directory provisioning token payload.
     </ResponseField>
     <ResponseField name="revokeSCIMToken" type="(connectionId: string) => Promise<void>">
-      Revokes the SCIM provisioning token instantly.
+      Revokes the authorization payload for the SCIM provisioning token instantly.
     </ResponseField>
   </Expandable>
 </ResponseField>
 
-## Usage: Accessing Basic Org Data
+## Implementation Guidelines
 
-You can use the `organization` object to stamp your UI with tenant-specific branding.
+### Accessing Top-Level Organization Parameters
+
+The `activeOrganization` construct supplies the context required for rendering tenant-specific branding elements and interface parameters dynamically.
 
 ```tsx
 import { useActiveOrganization } from "@wacht/tanstack-router";
 
-export function TeamDashboardHeader() {
+export function TenancyDashboardHeader() {
   const { loading, activeOrganization } = useActiveOrganization();
 
   if (loading) return null;
 
-  // Fallback UI if the user hasn't selected a team
+  // Utilize fallback interface structures if the user has not confirmed an organization selection context.
   if (!activeOrganization) {
-    return <h1>Personal Dashboard</h1>;
+    return <h1 className="font-medium text-gray-800 tracking-tight">Personal Workspace Context</h1>;
   }
 
   return (
-    <header className="flex items-center gap-3">
+    <header className="flex items-center gap-4">
       {activeOrganization.image && (
-        <img src={activeOrganization.image as string} className="w-8 h-8 rounded-md" alt="Logo" />
+        <img src={activeOrganization.image as string} className="w-8 h-8 rounded-md" alt="Organization Brand Logo" />
       )}
-      <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
-        {activeOrganization.name} Workspace
+      <h1 className="text-2xl font-semibold tracking-tight text-gray-900 border-b border-gray-100 pb-2">
+        {activeOrganization.name} Context
       </h1>
     </header>
   );
 }
 ```
-## Client-Side Authorization (RBAC)
 
-When building complex interfaces, certain destructive actions (like deleting a project or changing billing details) should only be accessible to users with specific roles. 
+### Client-Side Authorization Modeling (RBAC)
 
-You can leverage the `activeMembership.roles` array or the global JWT session permissions to evaluate a user's rights against the active organizational context.
+Interface elements invoking destructive mutations (e.g., resource deletion, billing manipulation) must be programmatically restricted to users possessing explicit role assignments. The `activeMembership.roles` construct furnishes the arrays necessary to evaluate authorization checks.
 
 > [!WARNING]
-> Client-side RBAC checks are excellent for UI/UX (hiding buttons or panels), but they are **not** a secure barrier. You must always re-verify permissions on your backend server by executing `RequireAuth` before executing destructive mutations to the database.
+> Client-side RBAC evaluations dictate interface rendering logic but do not enforce absolute security boundaries. System integrity necessitates comprehensive policy verification explicitly executed upon the backend server infrastructure utilizing the `RequireAuth` mechanisms prior to database modification events.

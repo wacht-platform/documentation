@@ -113,7 +113,7 @@ const isProtected = createRouteMatcher(['/dashboard(.*)', '/api/private(.*)'])
 
 export default wachtMiddleware(async (auth, req) => {
   if (isProtected(req)) {
-    // protect() throws an error and redirects to /sign-in if unauthenticated
+    // protect() restricts access and redirects unauthenticated users to your hosted sign-in page
     await auth.protect() 
   }
   return NextResponse.next()
@@ -154,6 +154,61 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Total users fetched: {}", users.data.len());
     
     Ok(())
+}
+```
+</CodeGroup>
+
+## 5. Frontend Authentication
+
+Wacht makes it easy to protect your frontend application using zero-configuration hosted authentication pages. Simply wrap your authenticated content with `<SignedIn>` and use `<SignedOut>` coupled with `<NavigateToSignIn />` to automatically redirect unauthenticated users to your securely hosted login page.
+
+<CodeGroup>
+```tsx Next.js
+import { SignedIn, SignedOut, NavigateToSignIn } from '@wacht/nextjs'
+
+export default function Page() {
+  return (
+    <main>
+      <SignedIn>
+        <h1>Welcome back! You are authenticated.</h1>
+      </SignedIn>
+      <SignedOut>
+        <NavigateToSignIn />
+      </SignedOut>
+    </main>
+  )
+}
+```
+```tsx React Router
+import { SignedIn, SignedOut, NavigateToSignIn } from '@wacht/react-router'
+
+export function Dashboard() {
+  return (
+    <div>
+      <SignedIn>
+        <h1>Welcome back! You are authenticated.</h1>
+      </SignedIn>
+      <SignedOut>
+        <NavigateToSignIn />
+      </SignedOut>
+    </div>
+  )
+}
+```
+```tsx TanStack Router
+import { SignedIn, SignedOut, NavigateToSignIn } from '@wacht/tanstack-router'
+
+export function Dashboard() {
+  return (
+    <div>
+      <SignedIn>
+        <h1>Welcome back! You are authenticated.</h1>
+      </SignedIn>
+      <SignedOut>
+        <NavigateToSignIn />
+      </SignedOut>
+    </div>
+  )
 }
 ```
 </CodeGroup>

@@ -1,0 +1,232 @@
+---
+title: "Vanity Pages Implementation"
+description: "Complete API Auth iframe integration with full backend + frontend example code."
+---
+
+# Vanity Pages Implementation
+
+This guide shows a full working pattern for embedding Wacht API Auth pages inside your SaaS settings UI.
+
+## What users will get
+
+1. They open your `API Keys` settings page.
+2. Your app fetches a short-lived access ticket from your backend.
+3. Your app renders Wacht API Auth in an iframe.
+4. They can create, rotate, and revoke keys without leaving your product.
+
+## Step 0: create your API Auth app (one-time provisioning)
+
+Before embedding, create an API Auth app for each tenant/deployment.
+
+```bash
+curl -X POST "https://api.wacht.dev/api-auth/apps" \
+  -H "Authorization: Bearer <WACHT_BACKEND_API_KEY>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "app_slug": "aa_42",
+    "name": "Acme Public API",
+    "key_prefix": "acme_live",
+    "description": "API keys for Acme customers"
+  }'
+```
+
+Required fields from the API spec:
+
+1. `app_slug`
+2. `name`
+3. `key_prefix`
+
+Use a deterministic slug per deployment, for example `aa_<deploymentId>`.
+
+## Full backend example (Express)
+
+Create an endpoint in your backend that validates permissions, then issues a ticket.
+
+```ts
+import express from "express";
+import { WachtClient } from "@wacht/backend";
+
+const app = express();
+app.use(express.json());
+
+const wacht = new WachtClient({ apiKey: process.env.WACHT_API_KEY! });
+
+app.post("/api/settings/api-keys/embed-ticket", async (req, res) => {
+  const { deploymentId } = req.body as { deploymentId?: string };
+
+  // Replace with your real auth/session model.
+  const user = req.user as { id: string; canManageApiKeys: boolean } | undefined;
+
+  if (!user) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  if (!user.canManageApiKeys) {
+    return res.status(403).json({ error: "Forbidden" });
+  }
+
+  if (!deploymentId) {
+    return res.status(400).json({ error: "deploymentId is required" });
+  }
+
+  try {
+    const ticket = await wacht.sessions.createSessionTicket({
+      ticket_type: "api_auth_access",
+      api_auth_app_slug: `aa_${deploymentId}`,
+      expires_in: 120,
+    });
+
+    return res.json({
+      ticket: ticket.ticket,
+      expires_at: ticket.expires_at,
+    });
+  } catch (error) {
+    return res.status(500).json({ error: "Failed to create API Auth ticket" });
+  }
+});
+
+```
+
+## Full frontend example (React)
+
+Create a full page component that fetches a ticket and embeds the vanity UI.
+
+```tsx
+import { useEffect, useMemo, useState } from "react";
+import { useDeployment } from "@wacht/react-router";
+
+type EmbedResponse = {
+  ticket: string;
+  expires_at: number;
+};
+
+export function ApiKeysPage({ deploymentId }: { deploymentId: string }) {
+  const { deployment } = useDeployment();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [ticket, setTicket] = useState<string | null>(null);
+  const [retryNonce, setRetryNonce] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      setLoading(true);
+      setError(null);
+      setTicket(null);
+      if (!deployment?.backend_host) return;
+
+      try {
+        const response = await fetch("/api/settings/api-keys/embed-ticket", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ deploymentId }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Could not start API key session");
+        }
+
+        const data = (await response.json()) as EmbedResponse;
+        if (cancelled) return;
+
+        setTicket(data.ticket);
+      } catch (e) {
+        if (cancelled) return;
+        setError(e instanceof Error ? e.message : "Unknown error");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    void run();
+    return () => {
+      cancelled = true;
+    };
+  }, [deploymentId, retryNonce, deployment?.backend_host]);
+
+  const iframeSrc = useMemo(() => {
+    const vanityBaseUrl = deployment?.backend_host
+      ? `${deployment.backend_host}/vanity`
+      : null;
+    if (!ticket || !vanityBaseUrl) return null;
+    return `${vanityBaseUrl}/api-auth?ticket=${encodeURIComponent(ticket)}`;
+  }, [ticket, deployment?.backend_host]);
+
+  if (loading) return <div>Loading API key manager...</div>;
+
+  if (error) {
+    return (
+      <div>
+        <p>{error}</p>
+        <button onClick={() => setRetryNonce((n) => n + 1)}>Retry</button>
+      </div>
+    );
+  }
+
+  if (!iframeSrc) return <div>Unable to initialize API key manager.</div>;
+
+  return (
+    <div style={{ height: "calc(100vh - 120px)", width: "100%" }}>
+      <iframe
+        src={iframeSrc}
+        title="API Auth"
+        style={{ border: 0, width: "100%", height: "100%" }}
+        allow="clipboard-read; clipboard-write"
+      />
+    </div>
+  );
+}
+```
+
+## Route wiring example (React Router)
+
+```tsx
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { ApiKeysPage } from "./ApiKeysPage";
+
+const router = createBrowserRouter([
+  {
+    path: "/settings/api-keys",
+    element: <ApiKeysPage deploymentId="42" />,
+  },
+]);
+
+export function App() {
+  return <RouterProvider router={router} />;
+}
+```
+
+## Security requirements
+
+1. Issue tickets only from backend.
+2. Enforce RBAC before ticket creation.
+3. Keep expiry short (for example 120 seconds).
+4. Validate tenant ownership before using `aa_<deploymentId>`.
+
+## Where `backend_host` comes from
+
+In the real console flow, iframe base URL is derived from the deployment context:
+
+```ts
+const { deployment } = useDeployment();
+const vanityBaseUrl = deployment?.backend_host
+  ? `${deployment.backend_host}/vanity`
+  : null;
+```
+
+## SDK + API references
+
+1. [React Router `useApiAuthAppSession`](/react-router-sdk/hooks/use-api-auth-app-session)
+2. [React Router `useApiAuthKeys`](/react-router-sdk/hooks/use-api-auth-keys)
+3. [React Router `useApiAuthAuditLogs`](/react-router-sdk/hooks/use-api-auth-audit-logs)
+4. [React Router `useApiAuthAuditAnalytics`](/react-router-sdk/hooks/use-api-auth-audit-analytics)
+5. [React Router `useApiAuthAuditTimeseries`](/react-router-sdk/hooks/use-api-auth-audit-timeseries)
+6. [API Keys Backend API Reference](/backend-api/api-keys)
+
+## Verification checklist
+
+1. Unauthorized user gets `403` from ticket endpoint.
+2. Expired ticket cannot be reused.
+3. Key create/rotate/revoke work inside iframe.
+4. Audit logs and analytics data are visible after actions.

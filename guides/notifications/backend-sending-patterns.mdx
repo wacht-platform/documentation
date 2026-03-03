@@ -1,0 +1,107 @@
+---
+title: "Backend Sending Patterns"
+description: "Implement robust backend notification publishing with practical domain patterns."
+---
+
+# Backend Sending Patterns
+
+Your backend should send notifications from business events, not UI clicks.
+
+## Backend endpoint and schema
+
+From your backend API specs, `POST /notifications` accepts core fields like:
+
+- `user_id`
+- `title`
+- `body`
+- `severity`
+- `ctas`
+- `metadata`
+- expiry controls
+
+## Practical domain patterns
+
+### Security pattern
+
+- password changed
+- mfa enabled/disabled
+- unknown sign-in detected
+
+### Collaboration pattern
+
+- invite accepted
+- role changed
+- workspace membership updated
+
+### Operations pattern
+
+- webhook endpoint disabled
+- API key revoked/rotated
+- automation failed and needs attention
+
+## Example
+
+### Option A: Direct HTTP call
+
+```ts
+await fetch("https://api.wacht.dev/notifications", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.WACHT_BACKEND_API_KEY!}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    user_id: "1234567890123456789",
+    title: "Webhook endpoint disabled",
+    body: "Endpoint https://example.com/hooks returned repeated failures and was disabled.",
+    severity: "warning",
+    action_url: "https://app.example.com/settings/webhooks/endpoints",
+    action_label: "Review endpoint",
+    metadata: { endpoint_id: "ep_987" },
+    expires_hours: 24,
+  }),
+});
+```
+
+### Option B: Backend SDK (`@wacht/backend`)
+
+```ts
+import { WachtClient } from "@wacht/backend";
+
+const client = new WachtClient({
+  apiKey: process.env.WACHT_BACKEND_API_KEY!,
+  baseUrl: "https://api.wacht.dev",
+});
+
+await client.notifications.createNotification({
+  user_id: "1234567890123456789",
+  title: "Webhook endpoint disabled",
+  body: "Endpoint https://example.com/hooks returned repeated failures and was disabled.",
+  severity: "warning",
+  ctas: [{ label: "Review endpoint", url: "https://app.example.com/settings/webhooks/endpoints" }],
+  metadata: { endpoint_id: "ep_987" },
+  expires_in_hours: 24,
+});
+```
+
+## Backend reliability rules
+
+1. Do not block critical domain transaction on notification send failures.
+2. Retry publish with bounded retry policy.
+3. Keep metadata stable and parsable.
+4. Avoid sending duplicate notifications for same event window.
+
+## Related docs
+
+1. [Backend API Notifications Reference](/backend-api/notifications)
+2. [Frontend API Notifications Reference](/frontend-api/notifications)
+3. [React Router `useNotifications`](/react-router-sdk/hooks/use-notifications)
+4. [React Router `useNotificationStream`](/react-router-sdk/hooks/use-notification-stream)
+
+## Go-live checklist
+
+1. Scope and severity conventions are documented.
+2. Inbox read/archive/star flows are tested.
+3. Realtime reconnection behavior is verified.
+4. Noisy template monitoring is in place.
+5. Expiry strategy is applied for stale notifications.

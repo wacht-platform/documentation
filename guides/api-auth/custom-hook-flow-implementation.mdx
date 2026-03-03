@@ -1,0 +1,126 @@
+---
+title: "Custom Hook Flow Implementation"
+description: "Build a custom API key management experience using Wacht hooks and backend policy checks."
+---
+
+# Custom Hook Flow Implementation
+
+Use this model when API key management belongs inside your core product settings.
+
+## Hooks involved
+
+1. `useApiAuthAppSession(ticket)` for session bootstrap.
+2. `useApiAuthKeys({ status })` for key CRUD lifecycle.
+3. API Auth audit hooks for operational views.
+
+## Session bootstrap pattern
+
+```tsx
+import { useApiAuthAppSession } from "@wacht/nextjs";
+
+export function ApiAuthGuard({ ticket }: { ticket?: string }) {
+  const { hasSession, sessionLoading, sessionError, apiAuthApp } = useApiAuthAppSession(ticket);
+
+  if (sessionLoading) return <div>Loading API Auth...</div>;
+  if (!hasSession) return <div>Access required</div>;
+  if (sessionError) return <div>Session error, please retry.</div>;
+
+  return <div>Connected to {apiAuthApp?.name}</div>;
+}
+```
+
+## Key lifecycle panel
+
+```tsx
+import { useState } from "react";
+import { useApiAuthKeys } from "@wacht/nextjs";
+
+export function KeysPanel() {
+  const [oneTimeSecret, setOneTimeSecret] = useState<string | null>(null);
+  const { keys, loading, createKey, rotateKey, revokeKey } = useApiAuthKeys({ status: "active" });
+
+  if (loading) return <div>Loading keys...</div>;
+
+  return (
+    <div>
+      <button
+        onClick={async () => {
+          const created = await createKey({ name: "CI Key" });
+          setOneTimeSecret(created.secret);
+        }}
+      >
+        Create key
+      </button>
+
+      {oneTimeSecret ? <pre>{oneTimeSecret}</pre> : null}
+
+      {keys.map((key) => (
+        <div key={key.id}>
+          {key.name} ({key.key_prefix}...{key.key_suffix})
+          <button onClick={() => rotateKey({ key_id: key.id })}>Rotate</button>
+          <button onClick={() => revokeKey({ key_id: key.id, reason: "Compromised" })}>Revoke</button>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+## Required UX safeguards
+
+1. Confirm dialog before revoke.
+2. Clear warning before rotate.
+3. One-time secret modal with explicit acknowledgment.
+4. Error handling with actionable retry.
+5. Disabled actions while mutation in flight.
+
+## Performance and consistency
+
+1. Refetch list after create/rotate/revoke.
+2. Keep optimistic updates minimal for security-sensitive actions.
+3. Handle 401/403 by returning user to access gate.
+
+## Testing checklist
+
+1. Ticket missing: UI blocks correctly.
+2. Expired ticket: exchange fails cleanly.
+3. Rotate returns new secret and old secret is rejected.
+4. Revoke removes active status immediately.
+
+## Code examples from repo
+
+### 1) Ticket exchange in session hook (`react-sdk/jsx/lib/hooks/use-api-auth-app.ts`)
+
+```ts
+const response = await client(`/session/ticket/exchange?ticket=${encodeURIComponent(ticket)}`, {
+  method: "GET",
+});
+
+if (response.ok) {
+  setTicketExchanged(true);
+}
+```
+
+### 2) Key lifecycle operations (`react-sdk/jsx/lib/hooks/use-api-auth-keys.ts`)
+
+```ts
+const response = await client("/api-auth/keys", {
+  method: "POST",
+  body: formData,
+});
+
+const rotate = await client(`/api-auth/keys/${input.key_id}/rotate`, { method: "POST" });
+const revoke = await client(`/api-auth/keys/${input.key_id}/revoke`, { method: "POST", body: formData });
+```
+
+### 3) API reference
+
+Use [API Keys Backend API Reference](/backend-api/api-keys) only when you need direct server-to-server calls outside the SDK hook flow.
+
+## Go-live checklist
+
+1. RBAC gate for ticket issuance is enforced server-side.
+2. Ticket expiry is short and validated.
+3. Key create/rotate/revoke flows verified in staging.
+4. Audit logs visible to support/security owners.
+5. Customer-facing key handling docs are published.

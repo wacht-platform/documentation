@@ -1,0 +1,74 @@
+---
+title: "Event Catalog and Triggering Strategy"
+description: "Design durable event contracts and safe trigger workflows for your SaaS webhooks."
+---
+
+# Event Catalog and Triggering Strategy
+
+This is the most important page for long-term stability.
+
+## Catalog design rules
+
+1. Event names are stable contracts.
+2. Payloads evolve backward-compatibly by default.
+3. Breaking payload changes require explicit versioned event name.
+4. Event ownership is domain-based (billing, projects, identity).
+
+## What your codebase already supports
+
+Your backend webhook API includes event catalogs and app catalog assignment (`/webhooks/event-catalogs/*` and `/webhooks/apps/{app_slug}/catalog`).
+
+This lets you manage event definitions centrally and reuse across apps.
+
+## Trigger timing rules
+
+Trigger only after business state is committed.
+
+Bad:
+
+- Emitting event before DB commit and then rolling back.
+
+Good:
+
+- Commit domain mutation first.
+- Emit event from post-commit workflow.
+
+## Payload design
+
+Always include:
+
+1. Stable primary identifiers (`id`, `external_id` when relevant).
+2. Event timestamp in UTC RFC3339.
+3. Minimal required context for consumer decisions.
+4. No secrets or privileged internal fields.
+
+## Suggested event naming
+
+- `invoice.created`
+- `invoice.paid`
+- `invoice.failed`
+- `subscription.cancelled`
+- `project.export.completed`
+
+## Change management checklist
+
+1. Diff payload schema in PR.
+2. Notify consumers for additions and deprecations.
+3. Keep deprecated fields during migration window.
+4. Remove only after announced end date.
+
+## Related docs
+
+1. [React Router `useWebhookEvents`](/react-router-sdk/hooks/use-webhook-events)
+2. [React Router `useWebhookEndpoints`](/react-router-sdk/hooks/use-webhook-endpoints)
+3. [React Router `useWebhookDeliveries`](/react-router-sdk/hooks/use-webhook-deliveries)
+4. [React Router `useWebhookAppSession`](/react-router-sdk/hooks/use-webhook-app-session)
+5. [Webhooks Backend API Reference](/backend-api/webhooks)
+
+## Go-live checklist
+
+1. Event catalog and naming policy are frozen for current release.
+2. Endpoint test flow is working for pilot customers.
+3. Replay workflow is documented for support.
+4. Signature verification docs are published for customers.
+5. Alerts for endpoint failures and deactivations are active.

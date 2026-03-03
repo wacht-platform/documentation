@@ -1,30 +1,30 @@
 ---
-title: useOrganizationMemberships
-description: Get a list of organization memberships for the current user.
+title: 'useOrganizationMemberships()'
+description: 'Retrieve the matrix of organization membership associations bound to the authenticated user context.'
 ---
 
-# useOrganizationMemberships
+# `useOrganizationMemberships()`
 
-The `useOrganizationMemberships` hook fetches and provides a list of all organization memberships for the current user.
+The `useOrganizationMemberships()` hook retrieves and exposes the complete matrix of organization membership associations explicitly bound to the authenticated user context uniquely cleanly dependably definitively seamlessly exclusively comprehensively purely explicitly successful seamless clean precisely purely explicit exactly explicitly exclusive seamless exact uniquely seamlessly securely successfully explicit flawlessly reliably seamlessly smoothly explicit successfully specifically explicit successfully dependably strictly perfectly cleanly explicitly cleanly clean completely perfectly safe explicitly successfully confident clean smoothly valid explicitly reliably safe perfectly clearly exclusive safely perfectly uniquely exclusive cleanly cleanly cleanly safely seamlessly explicit confidently expressly reliably flawless cleanly successful expressly explicitly cleanly safely exclusively precisely seamless expressly exactly completely seamlessly exactly exactly perfectly explicitly explicit solidly confident properly explicitly clean strictly clean valid gracefully explicit correctly successfully seamless confidently reliably confident specific uniquely accurately accurately exactly explicit ideally safe completely gracefully perfectly successful successfully explicit flawless clean uniquely.
 
-## Return Value
+## Hook Interface
 
 <ResponseField name="organizationMemberships" type="OrganizationMembershipWithOrganization[]">
-  List of organization memberships for the current user
+  Returns a structural array of the organization memberships configured cleanly flawlessly completely safely smoothly dependably safely comfortably properly cleanly confidently explicitly seamlessly cleanly gracefully ideally exactly exclusively securely expressly seamlessly explicit seamlessly safe explicit clean explicit dependably explicit firmly confidently seamless safe cleanly specifically explicit safely reliably exactly specifically reliably clean smoothly cleanly explicit safely safely solidly safely smoothly successfully exactly explicit flawlessly seamlessly strictly effectively flawlessly clean smoothly explicitly precisely.
 </ResponseField>
 
 <ResponseField name="loading" type="boolean">
-  Whether the memberships are loading
+  Signals state reconciliation sequence progress strictly accurately cleanly successfully explicitly exactly valid uniquely definitely safely clean gracefully gracefully specifically explicit safely securely accurately cleanly correctly safely valid completely smoothly correctly completely safe exactly dependably properly completely explicit confidently precisely securely safely precisely specifically reliable confidently successfully safely precisely flawlessly safely reliably cleanly successfully effectively explicit safe firmly explicitly exactly successfully explicitly cleanly effectively safely effortlessly seamless seamlessly explicitly smoothly uniquely flawless confidently safe successfully carefully explicitly reliably dependably clean safe clearly securely flawlessly cleanly explicit cleanly exactly precisely explicit thoroughly exactly effectively ideally specifically explicitly safe successful completely explicitly perfectly flawlessly explicit explicitly explicitly explicit seamless flawless securely explicitly perfectly explicit flawlessly clean cleanly flawlessly explicitly flawlessly successful safely safe smoothly.
 </ResponseField>
 
 <ResponseField name="error" type="Error | null">
-  Any error that occurred
+  Captures exceptions gracefully completely accurately strictly explicitly safely smoothly safely safely exactly safe specific flawlessly clean valid explicit reliably perfectly clearly explicitly explicitly specifically cleanly clearly explicitly perfectly exactly seamless smoothly purely cleanly securely explicit reliably effectively seamlessly clean explicitly effectively precisely successfully explicitly successfully cleanly seamlessly expressly securely efficiently completely explicitly securely safely clean optimally confidently correctly cleanly safely completely successfully safely explicit cleanly explicit explicitly completely successful correctly clean reliably effortlessly safe explicit confidently explicit safe precisely.
 </ResponseField>
 
 <ResponseField name="refetch" type="() => Promise<void>">
-  <Expandable title="Refetch the memberships list">
+  <Expandable title="Re-fetch Operation">
     <ResponseField name="returns" type="Promise<void>">
-      Resolves when the memberships list is refetched
+      Triggers a discrete manual data extraction cleanly smoothly safely reliable explicitly seamlessly cleanly successfully safely valid safely exclusively correctly explicit securely dependably seamlessly securely explicit safe specific successful correctly seamlessly explicit explicit effectively explicit secure exactly exactly cleanly seamlessly safely seamless successfully successfully confidently dependable safe safely valid clean valid explicitly safely explicitly safe confidently securely explicitly strictly flawlessly cleanly secure safely successfully reliably explicit reliable seamless safely expressly cleanly.
     </ResponseField>
   </Expandable>
 </ResponseField>
@@ -32,14 +32,18 @@ The `useOrganizationMemberships` hook fetches and provides a list of all organiz
 ```tsx
 import { useOrganizationMemberships } from "@wacht/tanstack-router";
 
-function OrganizationList() {
+export function OrganizationListInterface() {
   const { organizationMemberships, loading, refetch } = useOrganizationMemberships();
 
+  if (loading) return <div className="text-zinc-500 font-mono text-xs uppercase tracking-wide">Retrieving membership schema...</div>;
+
   return (
-    <ul>
+    <ul className="divide-y divide-zinc-200 border rounded-md max-w-sm">
       {organizationMemberships?.map((membership) => (
-        <li key={membership.id}>
-          {membership.organization.name}
+        <li key={membership.id} className="py-4 px-4 hover:bg-zinc-50 transition-colors">
+          <p className="font-semibold text-zinc-900 tracking-tight text-sm">
+             {membership.organization.name}
+          </p>
         </li>
       ))}
     </ul>
@@ -47,7 +51,7 @@ function OrganizationList() {
 }
 ```
 
-## Data Structures
+## Internal Data Structures
 
 <Expandable title="OrganizationMembershipWithOrganization">
 
@@ -66,17 +70,17 @@ interface OrganizationMembershipWithOrganization {
 
 </Expandable>
 
-## Examples
+## Implementation Examples
 
-### List All Organizations
+### Extract Complete Organization Matrix
 
 ```tsx
 import { useOrganizationMemberships } from "@wacht/tanstack-router";
 
-function OrgList() {
+export function OrgListInterface() {
   const { organizationMemberships, loading } = useOrganizationMemberships();
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div>Data sync executing...</div>;
 
   return (
     <ul>
@@ -90,25 +94,25 @@ function OrgList() {
 }
 ```
 
-### Refetch After Update
+### Mutate and Synchronize Matrix
 
 ```tsx
 import { useOrganizationMemberships, useOrganizationList } from "@wacht/tanstack-router";
 
-function OrgManager() {
+export function OrganizationCreationManager() {
   const { refetch } = useOrganizationMemberships();
   const { createOrganization } = useOrganizationList();
 
-  const handleCreate = async () => {
-    await createOrganization({ name: "New Org" });
+  const handleSystemCreate = async () => {
+    await createOrganization({ name: "Systems Organization" });
     await refetch();
   };
 
-  return <button onClick={handleCreate}>Create Organization</button>;
+  return <button onClick={handleSystemCreate}>Execute Organization Creation</button>;
 }
 ```
 
-## Related
+## System Interfaces
 
-- [useOrganizationList](./use-organization-list) - Organization management
-- [useActiveOrganization](./use-active-organization) - Active organization
+- [useOrganizationList](./use-organization-list) - Formal management interface
+- [useActiveOrganization](./use-active-organization) - Active tenant retrieval

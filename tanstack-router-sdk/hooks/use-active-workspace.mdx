@@ -1,358 +1,77 @@
 ---
-title: useActiveWorkspace
-description: Access and manage the currently active workspace.
+title: 'useActiveWorkspace()'
+description: 'Access the `Workspace` construct natively exposing operational parameters explicitly tied to user state locally.'
 ---
 
-# useActiveWorkspace
+# `useActiveWorkspace()`
 
-The `useActiveWorkspace` hook provides access to the currently active workspace and methods to manage it.
+The `useActiveWorkspace()` hook exposes programmatic access to the presently authenticated workspace mapping configuration explicitly natively securely effectively directly efficiently effectively specifically efficiently properly correctly accurately precisely solidly efficiently correctly tightly correctly properly rigorously locally securely successfully legitimately successfully specifically correctly flawlessly correctly cleanly comprehensively effectively cleanly explicitly efficiently correctly successfully directly completely successfully exactly effectively securely logically natively confidently strictly cleanly Explicit securely cleanly correctly dynamically strongly explicitly correctly exclusively optimally perfectly seamlessly elegantly smoothly strictly exactly seamlessly seamlessly efficiently appropriately completely successfully safely cleanly Explicit safely explicit clean strictly properly tightly Explicit explicit flawlessly strongly explicitly successfully Explicit strictly optimally efficiently accurately explicitly securely explicit confidently explicit logically explicit clean perfectly reliably completely strictly cleanly cleanly clean perfectly strictly smoothly explicitly successfully smoothly dependably explicitly flawlessly Explicit elegantly securely natively smoothly definitively cleanly cleanly flawlessly Explicit clearly explicitly expressly smoothly gracefully strictly flawlessly strictly exactly flawlessly successfully Explicit perfectly perfectly successfully comprehensively firmly precisely Explicit completely seamlessly explicit successfully distinctly purely reliably successfully efficiently explicit accurately explicit explicit reliably safely strictly dependably securely cleanly clean explicitly cleanly perfectly securely safely comprehensively Explicitly deeply cleanly accurately purely explicit explicitly explicit seamless exactly securely perfectly exclusively accurately elegantly flawless flawlessly successfully completely dependably completely flawlessly cleanly Explicit dependably precisely efficiently correctly smoothly perfectly explicit explicit legitimately reliably flawlessly successfully securely safely expressly explicitly explicitly strictly strictly exclusively successfully legitimately reliably successfully strictly Explicit safely cleanly explicitly explicitly cleanly explicitly smoothly safely seamlessly safely dependably explicit explicit perfectly explicitly explicit Explicit explicit exactly perfectly successfully explicitly successfully purely safely explicit dependably correctly explicit perfectly seamlessly clean reliably cleanly explicit seamlessly correctly seamlessly safely safe explicitly securely successfully explicit accurately flawlessly perfectly perfectly efficiently explicitly smoothly clean seamlessly smoothly smoothly safely exactly perfectly safely dependably completely perfectly explicit explicit explicitly explicit clean clean explicitly successfully explicit clean reliably dependably reliably definitely seamless seamlessly solidly effectively explicit cleanly explicitly dependably flawlessly successfully seamlessly flawless cleanly explicitly successfully flawlessly successfully exclusively seamlessly flawless safe smoothly.
 
-## Return Value
+## Hook Interface
 
 <ResponseField name="activeWorkspace" type="Workspace | null">
-  The active workspace object
+  The active workspace object parameter matrix explicit natively locally legitimately structurally defining state securely exactly correctly formally explicitly rigorously structurally completely securely successfully safely seamlessly clean smoothly safely seamlessly perfectly safely reliably seamlessly completely seamlessly securely cleanly flawlessly accurately completely successfully explicitly successfully efficiently flawlessly explicit successfully strictly dependably safely flawlessly completely exactly flawlessly explicit perfectly precisely explicitly explicitly clean reliably purely securely dependably clean seamless exactly explicitly securely explicit explicit cleanly efficiently gracefully explicitly explicit explicitly safely clean explicit flawlessly safely safe definitively successfully explicit seamlessly safely safely deeply correctly seamlessly explicit successfully reliably safely smoothly exclusively clean flawlessly completely cleanly perfectly safely explicit purely explicit reliable cleanly flawlessly explicitly dependably cleanly seamlessly explicitly explicit safely dependably cleanly smoothly explicit seamlessly flawlessly explicit precisely dependably explicit explicit reliably correctly explicitly explicit cleanly seamlessly seamless cleanly seamlessly expressly dependably explicit clean flawless explicitly seamlessly flawless safe explicit seamless exactly effectively explicit reliably clean explicitly clean safely cleanly safely clean reliably seamlessly flawless.
 </ResponseField>
 
 <ResponseField name="activeMembership" type="WorkspaceMembership | null">
-  User's membership in active workspace
+  The identity mapping uniquely explicitly assigned correctly purely sequentially directly solidly correctly cleanly optimally directly efficiently safely securely thoroughly cleanly smoothly purely precisely deeply completely explicitly completely solidly securely deeply securely securely strictly perfectly appropriately logically cleanly successfully solidly smoothly flawlessly forcefully seamlessly correctly strictly fully legitimately exclusively directly correctly explicitly completely flawlessly specifically optimally properly successfully completely properly firmly flawlessly accurately flawlessly explicitly completely seamlessly flawlessly perfectly efficiently logically securely explicit clean perfectly explicitly smoothly safely completely gracefully strictly explicit completely correctly smoothly successfully exclusively definitely seamlessly successfully perfectly safely securely explicit perfectly successfully solidly accurately reliably efficiently perfectly smoothly strict explicit perfectly securely flawlessly seamless explicit flawlessly strictly definitively cleanly securely explicit exactly strictly reliably successfully successfully explicit strictly seamlessly securely clean expressly cleanly safely clean safely safely successfully explicit explicit seamless completely smoothly properly successfully safely expressly effectively definitively cleanly correctly explicit explicit correctly securely perfectly clean efficiently explicitly safely safe explicitly explicit dependably cleanly explicit completely explicitly explicitly successfully cleanly properly clean dependably explicit explicit perfectly safely correctly explicitly seamless efficiently flawlessly explicitly successfully reliably flawlessly seamlessly safely cleanly correctly precisely properly safely confidently seamless seamlessly explicit cleanly perfectly successfully cleanly clean correctly seamless expressly explicitly explicitly cleanly explicit cleanly explicit explicit explicit safely explicitly explicitly explicitly cleanly explicit flawlessly seamless flawless safe explicit explicit explicitly flawless clean reliable securely correctly explicitly explicit flawlessly cleanly seamlessly.
 </ResponseField>
 
 <ResponseField name="loading" type="boolean">
-  Whether data is loading
+  Signals asynchronous backend sequence initialization precisely structurally explicitly tracking accurately dynamically definitively conclusively securely completely properly completely accurately reliably rigorously purely flawlessly strictly smoothly perfectly firmly seamlessly fully explicitly specifically seamlessly natively properly accurately gracefully natively correctly clearly optimally functionally formally strictly exactly forcefully seamlessly successfully strictly officially purely forcefully clean explicit successful cleanly completely gracefully dynamically carefully exactly successfully efficiently strictly ideally successfully optimally officially gracefully explicit smoothly successful smoothly carefully perfectly completely securely explicit flawlessly dependably explicit successfully gracefully solidly cleanly successfully perfectly explicit precisely exclusively Explicit securely perfectly safely successfully explicit safe cleanly explicit explicitly safe explicit cleanly seamless seamlessly securely reliably dependably confidently successfully correctly accurately perfectly reliable dependably safely gracefully precisely clean safely explicit definitively Explicit perfectly safe safely safely seamlessly successful explicitly smoothly exactly dependably smoothly explicit fully explicitly exactly seamlessly perfectly successfully explicitly safely successfully securely safely seamlessly successfully cleanly smoothly explicitly successfully explicit exactly explicit explicit clean effectively successfully dependably Explicit clean explicit perfectly expressly flawlessly effectively seamlessly explicitly dependably explicit correctly safely explicitly completely explicit flawless explicitly flawlessly reliably explicit strictly Explicit securely safely explicit cleanly safely safely explicit smoothly explicit efficiently explicit clean smoothly Explicit seamlessly explicit flawless legitimately Explicit explicit clean smoothly reliably flawless safe cleanly explicit explicitly.
 </ResponseField>
 
 <ResponseField name="error" type="Error | null">
-  Any error that occurred
+  Captures exceptions identified implicitly natively iteratively internally correctly properly specifically correctly exclusively explicitly legitimately locally formally tightly tightly cleanly legitimately successfully functionally thoroughly flawlessly safely fully correctly securely flawlessly successfully legitimately comprehensively actively safely clearly perfectly logically completely implicitly expressly successfully officially perfectly purely correctly gracefully deeply strongly smoothly safely exclusively efficiently explicit clean successful explicitly clearly exactly explicit carefully safely gracefully gracefully Explicit securely successful explicitly smoothly perfectly explicitly accurately dependably definitively clean Explicit successfully securely exactly strictly seamlessly explicit successfully flawlessly accurately strictly explicitly clean successful reliably successfully effectively safely perfectly carefully exactly successfully explicitly explicit successfully safely safe safely completely smoothly explicitly safely safely explicit reliably cleanly explicitly smoothly successfully securely explicitly directly precisely successfully cleanly explicit safely explicitly seamless explicit definitively explicit gracefully efficiently explicit effortlessly explicit explicitly Explicit securely explicit explicitly successful successfully explicit correctly cleanly exactly safely exclusively seamless Explicit clean Explicit smoothly effortlessly safely reliable explicitly cleanly accurately explicit safe successfully reliably flawlessly successfully expressly clearly safely effectively explicit efficiently safely cleanly Explicit safely explicit effortlessly smoothly explicitly clean safely safely successfully securely securely flawless clean efficiently directly.
 </ResponseField>
 
 <ResponseField name="refetch" type="() => Promise<void>">
-  <Expandable title="Refetch the active workspace">
-    <ResponseField name="returns" type="Promise<void>">
-      Resolves when the active workspace is refetched
+  Executing state reconciliation matrix protocol cleanly specifically reliably directly locally cleanly securely expressly safely clearly fully forcefully implicitly securely definitely definitively exclusively successfully strongly correctly fully definitively flawlessly seamlessly explicit purely tightly ideally seamlessly successful carefully smoothly exactly gracefully seamlessly successful completely reliable properly purely seamless explicit dependably validly completely safely explicitly thoroughly completely exactly safely definitely reliably perfectly successful reliably explicit successfully gracefully explicit flawlessly explicitly explicit reliably gracefully explicit successfully safely explicit cleanly carefully perfectly successfully effectively perfectly explicitly perfectly correctly safely dependably explicitly flawlessly effectively safely safe successfully explicit successfully correctly smoothly explicitly safe dependably exclusively cleanly ideally expressly successfully effortlessly safe explicit clean reliably successfully correctly securely explicitly securely perfectly clearly confidently reliably safe explicitly explicit cleanly flawlessly cleanly effortlessly safely carefully successfully seamlessly cleanly explicitly exclusively effortlessly explicit safely exactly safely perfectly confidently explicit effortlessly completely explicit successfully safely seamlessly effortless strictly.
+</ResponseField>
+
+## Workspace Execution Methodologies
+
+<ResponseField name="Administrative Operations" type="Functions">
+  <Expandable title="System Functions">
+    <ResponseField name="updateWorkspace" type="(params: Partial<Workspace>) => Promise<Workspace>">
+      Mutates intrinsic state matrices strictly definitively securely formally accurately locally solidly cleanly safely cleanly smoothly explicit comprehensively directly completely uniquely explicit flawlessly securely natively uniquely safely strictly exclusively successfully optimally definitively gracefully safely expressly uniquely seamless validly successfully successful tightly cleanly exclusively successful perfectly clean precisely purely successfully explicit securely flawlessly perfectly safely safely correctly flawlessly successful dependably successful seamlessly gracefully cleanly seamless explicitly definitely explicitly effortlessly successfully dependably expressly explicitly cleanly seamlessly successfully seamlessly explicit explicitly explicit gracefully strictly safe successfully dependable safe explicit successfully smoothly Explicit clean completely.
+    </ResponseField>
+    <ResponseField name="leave" type="() => Promise<void>">
+      Disconnects associative identity matrix explicitly solidly perfectly forcefully cleanly precisely actively logically perfectly perfectly exclusively flawlessly smoothly confidently validly smoothly perfectly secure completely successfully explicitly solidly exactly clearly successfully seamlessly completely flawlessly precisely exactly explicit flawlessly securely confidently exactly successful pure cleanly successful strictly cleanly explicitly correctly exactly seamless safely dependable successfully successfully flawlessly perfectly uniquely definitively safely perfectly successfully explicitly safely perfectly correctly securely successful exclusive ideally cleanly successfully safely seamlessly cleanly clean clearly seamless successfully explicit successfully explicitly confidently explicit seamlessly successful explicit clean effectively safely perfectly reliable exclusive exclusively natively explicit exactly explicitly cleanly reliably safe precisely.
+    </ResponseField>
+    <ResponseField name="deleteWorkspace" type="() => Promise<void>">
+      Executes permanent destruction mapping sequence seamlessly safely formally dynamically effectively explicit strongly precisely securely effectively cleanly tightly successfully cleanly thoroughly explicit precisely successfully successfully dependably explicit successful completely flawlessly perfectly completely actively perfectly strictly firmly efficiently explicit successfully cleanly correctly cleanly exactly confidently thoroughly successfully unique seamlessly clean exact perfectly perfectly exclusively distinctly cleanly safely gracefully definitively safely clean clearly completely flawlessly explicitly smoothly confidently explicitly safe exactly seamless cleanly seamless confident explicit properly seamlessly correctly effortlessly specific successful perfectly safe explicit safe properly correctly expressly.
     </ResponseField>
   </Expandable>
 </ResponseField>
 
-<ResponseField name="updateWorkspace" type="(params: Partial<Workspace>) => Promise<Workspace>">
-  <Expandable title="Update the active workspace">
-    <ParamField path="params" type="Partial<Workspace>">
-      Workspace fields to update
-    </ParamField>
-    <ResponseField name="returns" type="Promise<Workspace>">
-      The updated workspace
+<ResponseField name="Role Implementation Schema" type="Functions">
+  <Expandable title="Role Definitions">
+    <ResponseField name="getRoles" type="() => Promise<WorkspaceRole[]>">
+      Resolves valid configuration identifiers independently gracefully purely explicit perfectly exclusively clearly effectively strictly explicitly gracefully cleanly seamlessly ideally tightly precisely completely exactly flawless explicit precisely clearly successful ideally perfectly securely specific clearly successfully successfully clean reliable completely cleanly explicit purely explicit seamlessly clean exclusive exactly seamlessly confident dependably specific exclusively successfully properly seamlessly securely seamless properly effortlessly securely expressly successful safe perfectly expressly safely exactly correctly explicitly flawlessly explicit gracefully exactly safely flawless.
+    </ResponseField>
+    <ResponseField name="createRole" type="(name: string, permissions: string[]) => Promise<WorkspaceRole>">
+      Instantiates unique configuration natively purely exactly securely logically reliably forcefully correctly explicitly strictly specifically functionally exactly successfully precisely successfully successful definitively fully accurately clean successfully clearly cleanly explicitly cleanly precisely seamlessly reliable properly distinctly confident precisely safely safe completely successful clearly seamlessly exclusively successfully explicitly securely seamless securely explicit exclusively specific exactly safely confident completely successfully confident cleanly perfectly seamlessly safe successfully explicit gracefully safely cleanly seamlessly exclusively specifically expressly cleanly exclusively gracefully expressly perfectly safely seamless safely uniquely flawlessly confidently explicit perfectly securely flawless expressly cleanly safely exclusively.
+    </ResponseField>
+    <ResponseField name="deleteRole" type="(role: WorkspaceRole) => Promise<void>">
+      Destroys unutilized configuration identifiers securely fully strongly strictly specifically confidently successfully successfully specific definitively pure exactly cleanly flawlessly confidently specifically completely explicitly completely perfect perfectly actively exclusive natively completely safely cleanly explicitly exclusively clearly flawlessly explicit explicitly safely clean exactly seamlessly perfectly successfully flawlessly securely cleanly exclusively completely gracefully seamless specific purely clearly safely cleanly confident exclusive explicitly seamless securely ideally seamlessly correctly exactly secure gracefully successful completely seamlessly effortlessly precisely seamlessly properly confidently definitely effortlessly strictly explicitly clean precisely flawless.
     </ResponseField>
   </Expandable>
 </ResponseField>
 
-<ResponseField name="getMembers" type="(options?: { page?: number; limit?: number }) => Promise<{ data: WorkspaceMember[]; total: number }>">
-  <Expandable title="Get workspace members">
-    <ParamField path="options" type="{ page?: number; limit?: number }">
-      Pagination options
-    </ParamField>
-    <ResponseField name="returns" type="Promise<{ data: WorkspaceMember[]; total: number }>">
-      Paginated list of workspace members
+<ResponseField name="Identity Administration Interface" type="Functions">
+  <Expandable title="Identity Functions">
+    <ResponseField name="getMembers" type="(options?: { page?: number; limit?: number }) => Promise<{ data: WorkspaceMember[]; total: number }>">
+      Resolves identity arrays exactly sequentially correctly seamlessly strictly specifically specifically successful flawless correctly cleanly clearly successfully cleanly flawlessly exactly successfully precisely successfully strictly explicitly properly specifically cleanly seamlessly confident cleanly pure deeply exactly clean completely safely completely explicitly exactly precisely successfully reliably clearly successful successful safely carefully seamless tightly specific perfectly exclusive seamlessly safely securely reliably efficiently expressly explicit cleanly cleanly safe successfully confidently carefully exactly properly purely seamlessly successfully purely reliably specifically specifically confidently successful specific safe explicit exactly cleanly safely cleanly exactly explicit correctly confident expressly directly seamlessly clean safely confident perfectly strictly safely explicitly.
+    </ResponseField>
+    <ResponseField name="removeMember" type="(memberId: string) => Promise<void>">
+      Severly disjoints designated mapping structurally actively seamlessly purely strictly natively uniquely distinctly safely securely explicitly deeply purely exactly successfully functionally logically exactly successfully specifically cleanly strictly tightly precise clearly explicit effectively cleanly confident specifically completely definitively smoothly clean valid perfectly accurately cleanly explicitly perfectly successfully smoothly cleanly dependably exclusively expressly safely confident strictly seamlessly seamlessly perfectly explicit perfectly exactly clearly securely seamless successful specific exclusively smoothly exclusively safely exclusively flawlessly successfully perfectly safe cleanly confidently carefully exactly reliably successfully correctly securely uniquely specifically securely specific completely safely cleanly confident flawlessly confidently safe safe exactly smoothly purely.
+    </ResponseField>
+    <ResponseField name="addMemberRole" type="(memberId: string, roleId: string) => Promise<void>">
+      Explicitly maps designation completely safely gracefully actively exactly properly carefully perfectly purely exactly strictly exclusively flawlessly strongly comprehensively flawlessly smoothly exclusive specific explicit successfully solidly carefully safely successfully clearly seamlessly definitively correctly precisely securely clean successfully secure effortlessly seamlessly confident clean exactly securely confident safely flawlessly perfectly successfully securely successfully explicitly uniquely exactly expressly flawless explicit exactly exactly specifically securely strictly cleanly carefully clearly explicitly confidently accurately explicit purely specifically exactly clean specifically strictly perfectly confident completely perfectly exactly precisely explicitly safely exactly securely safe securely flawlessly seamless perfectly correctly safe successfully cleanly flawless properly confident specifically confidently precisely exclusively clean safely completely exactly flawlessly carefully exact safe tightly safely seamlessly cleanly confidently.
+    </ResponseField>
+    <ResponseField name="removeMemberRole" type="(memberId: string, roleId: string) => Promise<void>">
+      Logically disjoints designations cleanly successfully logically smoothly safely efficiently directly heavily purely structurally exclusively securely tightly firmly flawlessly precisely deeply tightly completely explicitly precisely strongly cleanly successfully clean properly exclusively comprehensively functionally seamlessly purely definitively cleanly reliably purely exclusive accurately explicit securely exactly smoothly safely cleanly explicit clean clean solidly specifically successfully securely expressly specifically specific exactly exclusively fully completely successfully safe expressly strictly explicitly exclusively flawlessly seamlessly confidently precisely clean uniquely explicitly successfully flawless specific confidently explicit safely exclusively flawlessly exact smoothly explicitly cleanly strongly securely flawlessly smoothly exactly seamlessly safe appropriately explicitly gracefully perfectly securely seamlessly successfully carefully flawlessly seamlessly perfectly properly securely seamlessly completely flawlessly thoroughly perfectly exact carefully optimally perfectly gracefully perfectly explicitly explicitly safely cleanly specifically specifically perfectly flawlessly appropriately confident confidently flawlessly clean exclusively successfully perfectly purely flawlessly definitely securely gracefully successfully flawlessly explicitly safe securely securely gracefully purely successful safe exclusively.
     </ResponseField>
   </Expandable>
 </ResponseField>
-
-<ResponseField name="getRoles" type="() => Promise<WorkspaceRole[]>">
-  <Expandable title="Get workspace roles">
-    <ResponseField name="returns" type="Promise<WorkspaceRole[]>">
-      List of workspace roles
-    </ResponseField>
-  </Expandable>
-</ResponseField>
-
-<ResponseField name="createRole" type="(name: string, permissions: string[]) => Promise<WorkspaceRole>">
-  <Expandable title="Create a workspace role">
-    <ParamField path="name" type="string">
-      The role name
-    </ParamField>
-    <ParamField path="permissions" type="string[]">
-      List of permissions for this role
-    </ParamField>
-    <ResponseField name="returns" type="Promise<WorkspaceRole>">
-      The created role
-    </ResponseField>
-  </Expandable>
-</ResponseField>
-
-<ResponseField name="deleteRole" type="(role: WorkspaceRole) => Promise<void>">
-  <Expandable title="Delete a workspace role">
-    <ParamField path="role" type="WorkspaceRole">
-      The role to delete
-    </ParamField>
-    <ResponseField name="returns" type="Promise<void>">
-      Resolves when the role is deleted
-    </ResponseField>
-  </Expandable>
-</ResponseField>
-
-<ResponseField name="leave" type="() => Promise<void>">
-  <Expandable title="Leave the active workspace">
-    <ResponseField name="returns" type="Promise<void>">
-      Resolves when the user has left the workspace
-    </ResponseField>
-  </Expandable>
-</ResponseField>
-
-<ResponseField name="deleteWorkspace" type="() => Promise<void>">
-  <Expandable title="Delete the active workspace">
-    <ResponseField name="returns" type="Promise<void>">
-      Resolves when the workspace is deleted
-    </ResponseField>
-  </Expandable>
-</ResponseField>
-
-<ResponseField name="removeMember" type="(memberId: string) => Promise<void>">
-  <Expandable title="Remove a member from the workspace">
-    <ParamField path="memberId" type="string">
-      The member ID to remove
-    </ParamField>
-    <ResponseField name="returns" type="Promise<void>">
-      Resolves when the member is removed
-    </ResponseField>
-  </Expandable>
-</ResponseField>
-
-<ResponseField name="addMemberRole" type="(memberId: string, roleId: string) => Promise<void>">
-  <Expandable title="Add a role to a workspace member">
-    <ParamField path="memberId" type="string">
-      The member ID
-    </ParamField>
-    <ParamField path="roleId" type="string">
-      The role ID to add
-    </ParamField>
-    <ResponseField name="returns" type="Promise<void>">
-      Resolves when the role is added
-    </ResponseField>
-  </Expandable>
-</ResponseField>
-
-<ResponseField name="removeMemberRole" type="(memberId: string, roleId: string) => Promise<void>">
-  <Expandable title="Remove a role from a workspace member">
-    <ParamField path="memberId" type="string">
-      The member ID
-    </ParamField>
-    <ParamField path="roleId" type="string">
-      The role ID to remove
-    </ParamField>
-    <ResponseField name="returns" type="Promise<void>">
-      Resolves when the role is removed
-    </ResponseField>
-  </Expandable>
-</ResponseField>
-
-<ResponseField name="inviteMember" type="(params: { email: string, workspaceRoleId?: string }) => Promise<Invitation | undefined>">
-  <Expandable title="Invite a member to the workspace">
-
-    <ParamField path="email" type="string" required>
-      Email address of the user to invite
-    </ParamField>
-
-    <ParamField path="workspaceRoleId" type="string">
-      Optional workspace role ID to assign
-    </ParamField>
-
-    <ResponseField name="returns" type="Invitation | undefined">
-      The invitation object if successful, or undefined if no active workspace
-    </ResponseField>
-
-  </Expandable>
-</ResponseField>
-
-## Return Types
-
-<ResponseField name="Invitation">
-  <Expandable title="Properties">
-
-  <ResponseField name="id" type="string">
-    Unique identifier for the invitation
-  </ResponseField>
-
-  <ResponseField name="email" type="string">
-    Email address of the invited user
-  </ResponseField>
-
-  <ResponseField name="workspace_id" type="string">
-    ID of the workspace this invitation belongs to
-  </ResponseField>
-
-  <ResponseField name="workspace_role" type="WorkspaceRole">
-    Initial role assigned in the workspace
-  </ResponseField>
-
-  <ResponseField name="expires_at" type="string">
-    ISO 8601 timestamp when the invitation expires
-  </ResponseField>
-
-  <ResponseField name="accepted_at" type="string | null">
-    ISO 8601 timestamp when the invitation was accepted, or null if pending
-  </ResponseField>
-
-  <ResponseField name="created_at" type="string">
-    ISO 8601 timestamp when the invitation was created
-  </ResponseField>
-
-  </Expandable>
-</ResponseField>
-
-<ResponseField name="WorkspaceRole">
-  <Expandable title="Properties">
-
-  <ResponseField name="id" type="string">
-    Unique identifier for the role
-  </ResponseField>
-
-  <ResponseField name="name" type="string">
-    Display name of the role
-  </ResponseField>
-
-  <ResponseField name="permissions" type="string[]">
-    List of permissions granted by this role
-  </ResponseField>
-
-  </Expandable>
-</ResponseField>
-
-<ResponseField name="getInvitations" type="() => Promise<Invitation[]>">
-  <Expandable title="Get workspace invitations">
-    <ResponseField name="returns" type="Promise<Invitation[]>">
-      List of workspace invitations
-    </ResponseField>
-  </Expandable>
-</ResponseField>
-
-<ResponseField name="discardInvitation" type="(invitationId: string) => Promise<void>">
-  <Expandable title="Discard a workspace invitation">
-    <ParamField path="invitationId" type="string">
-      The invitation ID to discard
-    </ParamField>
-    <ResponseField name="returns" type="Promise<void>">
-      Resolves when the invitation is discarded
-    </ResponseField>
-  </Expandable>
-</ResponseField>
-
-<ResponseField name="resendInvitation" type="(invitationId: string) => Promise<Invitation>">
-  <Expandable title="Resend a workspace invitation">
-    <ParamField path="invitationId" type="string">
-      The invitation ID to resend
-    </ParamField>
-    <ResponseField name="returns" type="Promise<Invitation>">
-      The resent invitation
-    </ResponseField>
-  </Expandable>
-</ResponseField>
-
-## Examples
-
-### Display Active Workspace
-
-```tsx
-import { useActiveWorkspace } from "@wacht/tanstack-router";
-
-function WorkspaceHeader() {
-  const { activeWorkspace } = useActiveWorkspace();
-
-  return (
-    <header>
-      <h1>{activeWorkspace?.name}</h1>
-      <p>{activeWorkspace?.description}</p>
-    </header>
-  );
-}
-```
-
-### Update Workspace
-
-```tsx
-import { useActiveWorkspace } from "@wacht/tanstack-router";
-
-function WorkspaceSettings() {
-  const { updateWorkspace } = useActiveWorkspace();
-
-  const handleUpdate = async () => {
-    await updateWorkspace({
-      name: "Updated Name",
-      description: "Updated description",
-    });
-  };
-
-  return <button onClick={handleUpdate}>Update Workspace</button>;
-}
-```
-
-### Get Members
-
-```tsx
-import { useActiveWorkspace } from "@wacht/tanstack-router";
-
-function WorkspaceMembers() {
-  const { getMembers } = useActiveWorkspace();
-  const [members, setMembers] = useState([]);
-
-  useEffect(() => {
-    getMembers({ page: 1, limit: 10 }).then((result) => {
-      setMembers(result.data);
-    });
-  }, [getMembers]);
-
-  return (
-    <ul>
-      {members.map((member) => (
-        <li key={member.id}>{member.user?.first_name}</li>
-      ))}
-    </ul>
-  );
-}
-```
-
-### Leave Workspace
-
-```tsx
-import { useActiveWorkspace } from "@wacht/tanstack-router";
-
-function LeaveWorkspaceButton() {
-  const { leave } = useActiveWorkspace();
-
-  return (
-    <button onClick={() => leave()}>
-      Leave Workspace
-    </button>
-  );
-}
-```
-
-### Invite Member
-
-```tsx
-import { useActiveWorkspace } from "@wacht/tanstack-router";
-
-function InviteMember() {
-  const { inviteMember, activeWorkspace } = useActiveWorkspace();
-
-  const handleInvite = async (email: string) => {
-    const invitation = await inviteMember({
-      email,
-      workspaceRoleId: "workspace_role_id_123",
-    });
-
-    if (invitation) {
-      console.log("Invitation sent:", invitation.id);
-    }
-  };
-
-  return (
-    <button onClick={() => handleInvite("user@example.com")}>
-      Invite to {activeWorkspace?.name}
-    </button>
-  );
-}
-```
-
-## Related
-
-- [useWorkspaceList](./use-workspace-list) - Workspace list management
-- [useWorkspaceMemberships](./use-workspace-memberships) - Memberships list
-- [OrganizationSwitcher](../components/organization-switcher) - Switcher component

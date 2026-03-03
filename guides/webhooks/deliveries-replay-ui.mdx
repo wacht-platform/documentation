@@ -1,0 +1,107 @@
+---
+title: "Implementing Deliveries and Replay UI"
+description: "Build webhook delivery diagnostics and replay flows using React SDK hooks."
+---
+
+# Implementing Deliveries and Replay UI
+
+Use this page to build the customer-facing diagnostics workflow for webhook failures and recovery.
+
+## What to build
+
+1. Deliveries list with endpoint/status/event filters.
+2. Delivery detail drawer with request/response metadata.
+3. Replay actions for single and bulk recovery.
+4. Replay task monitor with cancel support.
+
+## Step 1: build deliveries list screen
+
+```ts
+const { deliveries, has_more, next_cursor, loading, refetch } = useWebhookDeliveries({
+  endpoint_id,
+  status,
+  event_name,
+  limit: 50,
+  cursor,
+});
+```
+
+Show filters:
+
+1. `endpoint_id`
+2. `status`
+3. `event_name`
+4. date range in URL state (if your list supports date params elsewhere)
+
+## Step 2: add delivery detail panel
+
+Use `fetchWebhookDeliveryDetail` from `webhook-app-api.ts`.
+
+```ts
+const detail = await fetchWebhookDeliveryDetail(client, deliveryId);
+```
+
+Panel should show:
+
+1. Event name and delivery status.
+2. Attempts and timestamps.
+3. Response code and latency.
+4. Signature/debug headers if available.
+
+## Step 3: add replay actions
+
+For targeted replay:
+
+```ts
+await replayWebhookDelivery(client, {
+  endpoint_id,
+  start_date,
+  end_date,
+  event_names,
+});
+```
+
+For task monitoring:
+
+```ts
+const tasks = await fetchWebhookReplayTasks(client, { limit: 50, offset: 0 });
+const task = await fetchWebhookReplayTaskStatus(client, { taskId });
+await cancelWebhookReplayTask(client, { taskId });
+```
+
+## Step 4: wire analytics and trends
+
+Use existing hooks for summary and charting:
+
+```ts
+const { analytics } = useWebhookAnalytics({ start_date, end_date, endpoint_id });
+const { timeseries } = useWebhookTimeseries({ start_date, end_date, interval: "hour", endpoint_id });
+```
+
+Use these to surface:
+
+1. Failure spikes per endpoint.
+2. Retry volume trends.
+3. Success rate after replay windows.
+
+## Step 5: build safe recovery UX
+
+1. Confirm replay scope before submit.
+2. Show estimated replay volume before execution.
+3. Mark replay tasks as running/completed/failed.
+4. Prevent duplicate replay launches for same window.
+
+## Related docs
+
+1. [React Router `useWebhookDeliveries`](/react-router-sdk/hooks/use-webhook-deliveries)
+2. [React Router `useWebhookAnalytics`](/react-router-sdk/hooks/use-webhook-analytics)
+3. [React Router `useWebhookTimeseries`](/react-router-sdk/hooks/use-webhook-timeseries)
+4. [React Router `useWebhookAppSession`](/react-router-sdk/hooks/use-webhook-app-session)
+5. [Webhooks Backend API Reference](/backend-api/webhooks)
+
+## Validation checklist
+
+1. Filters return expected subset of deliveries.
+2. Replay creates task and task status transitions correctly.
+3. Cancel endpoint stops running replay tasks.
+4. Analytics reflects post-replay recovery window.

@@ -1,58 +1,63 @@
 ---
 title: useAgentIntegrations
-description: Manage third-party integrations for AI agents.
+description: Manage third-party integrations associated with AI agents.
 ---
 
 # useAgentIntegrations
 
-The `useAgentIntegrations` hook manages third-party integrations (like Google Drive, Slack, etc.) for AI agents, including OAuth consent URL generation and integration removal.
+> [!WARNING]
+> Deprecation Notice: Agent Integrations will be phased out in future releases in favor of Model Context Protocol (MCP) servers utilizing `useAgentMcpServers`.
+
+The `useAgentIntegrations` hook provides the core functionalities required for managing an AI agent's connections to external services, such as Google Drive or Slack.
+
+This hook interfaces directly with the Frontend API (`/agent/integrations`), facilitating the retrieval of existing connections, the generation of secure OAuth consent URLs for new integrations, and the managed disconnection of existing services.
 
 ## Parameters
 
 <ParamField path="agentName" type="string | null">
-  The name of the agent to fetch integrations for
+  The target agent's identifier. Specifying this parameter ensures that all integration actions and data queries are scoped appropriately to a single agent's context.
 </ParamField>
 
-## Return Value
+## Hook Interface
 
 <ResponseField name="integrations" type="AgentIntegration[]">
-  List of available integrations for the agent
+  An array containing all active and available integrations associated with the specified agent.
 </ResponseField>
 
 <ResponseField name="loading" type="boolean">
-  Whether integrations are loading
+  Indicates whether the network request to retrieve the initial integrations list is currently in progress.
 </ResponseField>
 
 <ResponseField name="error" type="Error | null">
-  Any error that occurred
+  Captures network failures or authorization errors encountered during data retrieval or mutation operations.
 </ResponseField>
 
 <ResponseField name="generateConsentURL" type="(integrationId: string) => Promise<ConsentURLResponse>">
-  <Expandable title="Generate an OAuth consent URL for connecting an integration">
+  <Expandable title="Initiate an OAuth flow">
     <ParamField path="integrationId" type="string">
-      The integration ID to generate a consent URL for
+      The specific identifier of the target service (e.g., `google_drive`, `slack`).
     </ParamField>
     <ResponseField name="returns" type="Promise<ConsentURLResponse>">
-      The consent URL response containing the URL and state
+      Returns a secure consent URL and state parameter. The client application must redirect the user to this URL to complete the OAuth authorization flow.
     </ResponseField>
   </Expandable>
 </ResponseField>
 
 <ResponseField name="removeIntegration" type="(integrationId: string) => Promise<void>">
-  <Expandable title="Disconnect and remove an integration">
+  <Expandable title="Disconnect an active integration">
     <ParamField path="integrationId" type="string">
-      The integration ID to remove
+      The unique identifier of the integration to be disconnected.
     </ParamField>
     <ResponseField name="returns" type="Promise<void>">
-      Resolves when the integration is removed
+      Resolves upon backend confirmation that the integration has been successfully removed.
     </ResponseField>
   </Expandable>
 </ResponseField>
 
 <ResponseField name="refetch" type="() => Promise<void>">
-  <Expandable title="Refetch the integrations list">
+  <Expandable title="Force data synchronization">
     <ResponseField name="returns" type="Promise<void>">
-      Resolves when the integrations list is refetched
+      Triggers a network request to the `/agent/integrations` endpoint, ensuring the client state synchronizes with the current server state.
     </ResponseField>
   </Expandable>
 </ResponseField>
@@ -63,12 +68,12 @@ The `useAgentIntegrations` hook manages third-party integrations (like Google Dr
 
 ```typescript
 interface AgentIntegration {
-  id: string;                    // Unique identifier for the integration
-  name: string;                  // Display name of the integration
-  integration_type: string;      // Type of integration (e.g., "google_drive", "slack")
-  agent_id: string;              // ID of the associated agent
-  is_active: boolean;            // Whether the integration is currently connected
-  connection_metadata?: Record<string, any>;  // Additional connection details
+  id: string;                    // The unique identifier for this integration record
+  name: string;                  // The display name of the service
+  integration_type: string;      // The system identifier for the type of service
+  agent_id: string;              // The ID of the agent this integration is bound to
+  is_active: boolean;            // Indicates if the OAuth connection is currently valid
+  connection_metadata?: Record<string, any>;  // Supporting metadata required by the service
 }
 ```
 
@@ -78,32 +83,39 @@ interface AgentIntegration {
 
 ```typescript
 interface ConsentURLResponse {
-  consent_url: string;  // URL to redirect user to for OAuth consent
-  state: string;        // OAuth state parameter for security
-  expires_in: number;   // Number of seconds until the consent URL expires
+  consent_url: string;  // The destination URL for user authorization approval
+  state: string;        // The OAuth state parameter, securely managed by the backend
+  expires_in: number;   // Time remaining in seconds before the generated URL expires
 }
 ```
 
 </Expandable>
 
-## Examples
+## Usage Examples
 
-### List Integrations
+### Rendering Available Integrations
+
+The `integrations` array can be utilized to construct an interface displaying connected services:
 
 ```tsx
 import { useAgentIntegrations } from "@wacht/tanstack-router";
 
-function IntegrationsList({ agentName }: { agentName: string }) {
-  const { integrations, loading } = useAgentIntegrations(agentName);
+export function IntegrationsList({ agentName }: { agentName: string }) {
+  const { integrations, loading, error } = useAgentIntegrations(agentName);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div>Loading integrations...</div>;
+  if (error) return <div className="text-red-600">Failed to load integrations: {error.message}</div>;
 
   return (
-    <ul>
+    <ul className="space-y-3">
       {integrations.map((integration) => (
-        <li key={integration.id}>
-          {integration.name}
-          {integration.is_active && " ✓"}
+        <li key={integration.id} className="flex justify-between items-center border-b pb-2">
+          <span className="font-medium">{integration.name}</span>
+          {integration.is_active ? (
+            <span className="text-sm font-semibold text-green-600">Connected</span>
+          ) : (
+            <span className="text-sm text-gray-400">Not configured</span>
+          )}
         </li>
       ))}
     </ul>
@@ -111,52 +123,77 @@ function IntegrationsList({ agentName }: { agentName: string }) {
 }
 ```
 
-### Connect Integration
+### Establishing a New Connection
+
+To initiate a new service connection, invoke `generateConsentURL` and redirect the user:
 
 ```tsx
+import { useState } from "react";
 import { useAgentIntegrations } from "@wacht/tanstack-router";
 
-function ConnectIntegration({ agentName }: { agentName: string }) {
+export function ConnectDrive({ agentName }: { agentName: string }) {
   const { generateConsentURL } = useAgentIntegrations(agentName);
-  const [integratingId, setIntegratingId] = useState<string | null>(null);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
-  const handleConnect = async (integrationId: string) => {
-    setIntegratingId(integrationId);
-    const result = await generateConsentURL(integrationId);
-    // Redirect user to consent page
-    window.location.href = result.consent_url;
+  const handleConnection = async () => {
+    setIsRedirecting(true);
+    try {
+      const { consent_url } = await generateConsentURL("google_drive");
+      window.location.href = consent_url;
+    } catch (err) {
+      console.error("Initiation failed:", err);
+      setIsRedirecting(false);
+    }
   };
 
   return (
-    <button onClick={() => handleConnect("google_drive")} disabled={integratingId !== null}>
-      Connect Google Drive
+    <button 
+      onClick={handleConnection} 
+      disabled={isRedirecting}
+      className="px-4 py-2 bg-blue-600 text-white rounded shadow-sm"
+    >
+      {isRedirecting ? "Connecting..." : "Connect Google Drive"}
     </button>
   );
 }
 ```
 
-### Disconnect Integration
+### Disconnecting a Service
+
+To terminate an active integration, invoke the `removeIntegration` method:
 
 ```tsx
 import { useAgentIntegrations } from "@wacht/tanstack-router";
+import { useState } from "react";
 
-function IntegrationItem({ integration, agentName }: { integration: AgentIntegration; agentName: string }) {
+export function DisconnectButton({ integrationId, agentName }: { integrationId: string; agentName: string }) {
   const { removeIntegration } = useAgentIntegrations(agentName);
+  const [isRemoving, setIsRemoving] = useState(false);
+
+  const handleDisconnect = async () => {
+    setIsRemoving(true);
+    try {
+      await removeIntegration(integrationId);
+    } finally {
+      setIsRemoving(false);
+    }
+  };
 
   return (
-    <li>
-      {integration.name}
-      {integration.is_active && (
-        <button onClick={() => removeIntegration(integration.id)}>
-          Disconnect
-        </button>
-      )}
-    </li>
+    <button 
+      onClick={handleDisconnect}
+      disabled={isRemoving}
+      className={`px-3 py-1 text-sm border rounded ${
+        isRemoving ? "text-gray-400 border-gray-200" : "text-red-600 border-red-200 hover:bg-red-50"
+      }`}
+    >
+      {isRemoving ? "Disconnecting..." : "Disconnect"}
+    </button>
   );
 }
 ```
 
-## Related
+## Related Documentation
 
-- [useAgentContext](./use-agent-context) - Agent chat context
-- [useAgentSession](./use-agent-session) - Agent session management
+- [useAgentContext](./use-agent-context) - For interfacing directly with the agent through a chat interface.
+- [useAgentSession](./use-agent-session) - For resolving the active agent and initializing a real-time session.

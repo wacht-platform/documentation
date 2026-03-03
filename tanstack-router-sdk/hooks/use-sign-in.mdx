@@ -1,90 +1,90 @@
 ---
 title: 'useSignIn()'
-description: 'A headless hook that provides low-level, programatic access to the Wacht authentication state machine.'
+description: 'Programmatic access to the authentication state machine for custom sign-in flows.'
 ---
 
 # `useSignIn()`
 
-The `useSignIn()` hook exposes the underlying authentication primitives that power Wacht's pre-built `<SignInForm />`. 
+The `useSignIn()` hook exposes the underlying authentication primitives utilized by the pre-built `<SignInForm />` component. 
 
-If your organization's design system mandates pixel-perfect control over every input field, transition, and error state—or if you need to build a bespoke multi-step login modal—this hook provides the raw engine you need without forcing any UI upon you.
+This hook facilitates the development of custom authentication interfaces, enabling precise control over input handling, state transitions, and error management without relying on predefined UI components.
 
-## Import
+## Hook Import
 
 ```tsx
 import { useSignIn } from "@wacht/tanstack-router";
 ```
 
-## Anatomy
+## Hook Interface
 
-Calling the hook returns an object containing the current `status` of the sign-in attempt, the active `strategy`, and the primary programmatic functions to progress the state machine.
+The hook returns an object detailing the current `status` of the sign-in attempt, the active authentication `strategy`, and the methods required to progress the state machine.
 
 <ResponseField name="loading" type="boolean">
-  Indicates whether the SDK is actively managing a request state.
+  Indicates whether the SDK is actively processing a network request or managing internal state transitions.
 </ResponseField>
 
 <ResponseField name="signIn" type="SignIn">
-  <Expandable title="SignIn object methods">
+  <Expandable title="SignIn Interface Methods">
     <ResponseField name="createStrategy" type="(strategy: SignInStrategy) => SignInFunction">
-      <Expandable title="Create Strategy">
+      <Expandable title="Initialize Authentication Strategy">
         <ParamField path="strategy" type="string" required>
-          The auth strategy to strictly infer types (e.g., `'email'`, `'oauth'`, `'passkey'`).
+          The authentication strategy identifier (e.g., `'email'`, `'oauth'`, `'passkey'`).
         </ParamField>
         <ResponseField name="returns" type="SignInFunction">
-          A properly typed function to execute the chosen strategy.
+          A typed execution function for the specified strategy.
         </ResponseField>
       </Expandable>
     </ResponseField>
     <ResponseField name="prepareVerification" type="(params: VerificationParams) => Promise<ApiResult<PrepareVerificationResponse>>">
-      <Expandable title="Prepare Verification">
+      <Expandable title="Initialize Verification Flow">
         <ParamField path="params" type="VerificationParams" required>
-          Configuration object specifying the strategy (`'email_otp'`, `'phone_otp'`, `'magic_link'`) and related redirect URIs.
+          Configuration object defining the verification strategy (e.g., `'email_otp'`, `'phone_otp'`, `'magic_link'`) and any relevant redirect URIs.
         </ParamField>
         <ResponseField name="returns" type="Promise<ApiResult<PrepareVerificationResponse>>">
-          The result of dispatching the verification vector.
+          The resolution of the verification dispatch request.
         </ResponseField>
       </Expandable>
     </ResponseField>
     <ResponseField name="completeVerification" type="(verificationCode: string) => Promise<Session>">
-      <Expandable title="Complete Verification">
+      <Expandable title="Finalize Verification">
         <ParamField path="verificationCode" type="string" required>
-          The One-Time Password or code supplied by the user.
+          The verification code or One-Time Password submitted by the client.
         </ParamField>
         <ResponseField name="returns" type="Promise<Session>">
-          A successful authentication session.
+          Resolves with a fully authenticated session construct upon successful validation.
         </ResponseField>
       </Expandable>
     </ResponseField>
     <ResponseField name="completeProfile" type="(data: ProfileCompletionData) => Promise<Session>">
-      <Expandable title="Complete Profile">
+      <Expandable title="Submit Profile Completion Data">
         <ParamField path="data" type="ProfileCompletionData" required>
-          The remaining profile information needed to finalize registration.
+          The mandatory profile attributes required to finalize the authentication process.
         </ParamField>
         <ResponseField name="returns" type="Promise<Session>">
-          A successful authentication session.
+          Resolves with an authenticated session upon successful submission.
         </ResponseField>
       </Expandable>
     </ResponseField>
     <ResponseField name="identify" type="(identifier: string) => Promise<IdentifyResult>">
-      <Expandable title="Identify">
+      <Expandable title="Resolve Identifier">
         <ParamField path="identifier" type="string" required>
-          The user's email address or identifier.
+          The email address or unique identifier of the target user subject.
         </ParamField>
         <ResponseField name="returns" type="Promise<IdentifyResult>">
-          Details about the authentication flows available for this user (`sso`, `social`, `password`).
+          Provides the supported authentication vectors configured for the subject (`sso`, `social`, `password`).
         </ResponseField>
       </Expandable>
     </ResponseField>
     <ResponseField name="initEnterpriseSso" type="(connectionId: string, redirectUri?: string) => Promise<{ sso_url: string; session: Session }>">
-      <Expandable title="Initialize Enterprise SSO">
+      <Expandable title="Initialize SAML/OIDC SSO">
         <ParamField path="connectionId" type="string" required>
-          The ID of the Enterprise SSO connection.
+          The unique identifier of the target Enterprise SSO configuration.
         </ParamField>
         <ParamField path="redirectUri" type="string">
-          Optional URL to redirect the user back to after SAML/OIDC authentication.
+          An optional callback URI to process the authentication payload post-redirect.
         </ParamField>
         <ResponseField name="returns" type="Promise<{ sso_url: string; session: Session }>">
-          The URL to the IdP, or a hydrated session if instantly resolved.
+          Resolves with either an Identity Provider URL for redirection, or a hydrated session object if instantaneously resolved.
         </ResponseField>
       </Expandable>
     </ResponseField>
@@ -92,27 +92,29 @@ Calling the hook returns an object containing the current `status` of the sign-i
 </ResponseField>
 
 <ResponseField name="signinAttempt" type="SigninAttempt | null">
-  The current state of the sign-in attempt.
+  The active context state of the current sign-in execution.
 </ResponseField>
 
 <ResponseField name="discardSignInAttempt" type="() => void">
-  Clears the current sign-in attempt state.
+  Terminates and clears the current sign-in attempt context from memory.
 </ResponseField>
 
 <ResponseField name="setSignInAttempt" type="(attempt: SigninAttempt | null) => void">
-  Setter function to manually override the sign-in attempt state.
+  Direct mutation method to override the existing sign-in attempt state representation.
 </ResponseField>
 
-## Building a Custom Email / Password Flow
+## Implementation Guidelines
 
-Here is a simplified example demonstrating how to construct a custom login form by leveraging the `signIn` object returned by the hook.
+### Developing a Custom Credential Interface
+
+The following implementation demonstrates the construction of a custom credential submission interface utilizing the `signIn` object:
 
 ```tsx
 import { useSignIn } from "@wacht/tanstack-router";
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 
-export default function CustomSignIn() {
+export function CustomSignInForm() {
   const { loading, signIn } = useSignIn();
   const navigate = useNavigate();
   
@@ -120,49 +122,48 @@ export default function CustomSignIn() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  if (loading) return <div>Loading...</div>;
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     setError("");
 
     try {
-      // 1. Submit the credentials to the Wacht API
-      // Since Wacht uses HTTP-only cookies, the session is established transparently
-      // by the backend upon success. No `setActive` is required.
-      const strategy = signIn.createStrategy("email");
-      await strategy({
+      const emailStrategy = signIn.createStrategy("email");
+      await emailStrategy({
         email: emailAddress,
         password,
       });
 
-      // 2. Redirect the user on success
+      // The Wacht API transparently sets an HTTP-only session cookie upon success.
       navigate({ to: "/dashboard" });
-
     } catch (err: any) {
-      setError(err.message || "Authentication failed");
+      setError(err.message || "Authentication negotiation failed.");
     }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      {error && <div className="text-red-700 font-medium text-sm border border-red-200 p-2 rounded bg-red-50">{error}</div>}
       <input 
         type="email" 
         value={emailAddress} 
-        onChange={(e) => setEmailAddress(e.target.value)} 
+        onChange={(e) => setEmailAddress(e.target.value)}
+        className="border p-2 rounded"
       />
       <input 
         type="password" 
         value={password} 
         onChange={(e) => setPassword(e.target.value)} 
+        className="border p-2 rounded"
       />
-      <button type="submit">Sign In</button>
+      <button type="submit" disabled={loading} className="bg-blue-600 text-white p-2 rounded">
+        {loading ? "Authenticating..." : "Sign In"}
+      </button>
     </form>
   );
 }
 ```
 
-## Security Warning
+## Security Considerations
 
-When bypassing the pre-built `<SignInForm />` to build a custom implementation using `useSignIn()`, you take full responsibility for handling brute-force lockouts, rendering specific API error messages (like `invalid_password`), and orchestrating secondary authentication factors.
+Implementing custom authentication interfaces via `useSignIn()` bypasses the protections embedded within the pre-built `<SignInForm />` component. Consequently, the consuming application is directly responsible for rendering granular API error messages (e.g., `invalid_password`), orchestrating multi-factor authentication steps, and appropriately handling brute-force lockouts.

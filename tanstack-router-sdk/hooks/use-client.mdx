@@ -3,9 +3,9 @@ title: useClient
 description: Access the configured HTTP client for making API requests.
 ---
 
-# useClient
+# `useClient`
 
-The `useClient` hook provides access to the configured HTTP client for making authenticated API requests to the Wacht backend.
+Building secure fetch requests from scratch can be tedious. The `useClient` hook exposes the Wacht HTTP client directly to your components, making it effortless to send authenticated API requests securely to your Wacht backend.
 
 ## Return Value
 
@@ -48,7 +48,7 @@ function DataFetcher() {
 
 ## Behavior
 
-The client automatically:
+When utilizing this hook, the underlying client automatically:
 
 - Includes authentication credentials (cookies) in production mode
 - Handles development mode session tokens

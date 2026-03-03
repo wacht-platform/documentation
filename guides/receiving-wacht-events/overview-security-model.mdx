@@ -1,0 +1,85 @@
+---
+title: "Webhook Receiver Security Model"
+description: "Establish secure, durable webhook receiver architecture for Wacht platform events."
+---
+
+# Webhook Receiver Security Model
+
+Treat incoming webhook endpoints as secure ingestion APIs.
+
+Wacht signatures follow the **Standard Webhooks** format, so you can use standard verifiers directly.
+
+## Mandatory sequence
+
+1. Validate signature headers.
+2. Verify signature against raw body.
+3. Validate envelope and event type.
+4. Enqueue async processing.
+5. Return `2xx` quickly.
+
+## Headers used by Wacht
+
+- `webhook-id`
+- `webhook-timestamp`
+- `webhook-signature`
+
+## Envelope shape
+
+```json
+{
+  "type": "user.created",
+  "timestamp": "2026-03-04T09:42:00.000Z",
+  "data": {
+    "entity_id": 123,
+    "entity_type": "user"
+  }
+}
+```
+
+## Source of truth for integrators
+
+1. [Signature Verification with Raw Body](/guides/receiving-wacht-events/signature-verification-with-raw-body)
+2. [Event Envelope and Payload Contracts](/guides/receiving-wacht-events/event-envelope-payload-contracts)
+3. [Webhooks Backend API Reference](/backend-api/webhooks)
+
+## API contract examples
+
+### 1) Signature verification input
+
+Use this canonical message format for verification:
+
+```text
+{webhook-id}.{webhook-timestamp}.{raw-request-body}
+```
+
+Signature header format:
+
+```text
+v1,{base64_hmac_sha256_signature}
+```
+
+### 2) Event envelope consumed by receivers
+
+```json
+{
+  "type": "organization.member.added",
+  "timestamp": "2026-03-04T10:00:00.000Z",
+  "data": {
+    "entity_id": 89011,
+    "entity_type": "organization_membership"
+  }
+}
+```
+
+### 3) API reference for replay and delivery diagnostics
+
+See [Webhooks Backend API Reference](/backend-api/webhooks).
+
+
+## Go-live checklist
+
+1. Raw-body signature verification passes integration tests.
+2. Idempotency guard keyed by `webhook-id` is deployed.
+3. Queue-first processing path is in place.
+4. Replay runbook tested on staging data.
+5. Alerting for receiver failures and backlog is active.

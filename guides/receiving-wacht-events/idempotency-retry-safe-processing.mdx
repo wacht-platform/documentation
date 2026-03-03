@@ -1,0 +1,84 @@
+---
+title: "Idempotency and Retry-safe Processing"
+description: "Prevent duplicate side effects under retries and replay operations."
+---
+
+# Idempotency and Retry-safe Processing
+
+Webhook delivery is at-least-once. Duplicates are a normal condition.
+
+## Idempotency key
+
+Use `webhook-id` as your dedupe key.
+
+## Minimal idempotency table
+
+1. `webhook_id` (unique)
+2. `event_type`
+3. `received_at`
+4. `processing_status`
+5. `last_error` (optional)
+
+## Processing algorithm
+
+1. Verify signature.
+2. Start transaction.
+3. Insert idempotency key if missing.
+4. If key already exists and processed, return 200.
+5. Perform side-effect safely.
+6. Mark processed and commit.
+
+## Replay-safe behavior
+
+When operators replay windows, dedupe should prevent double side-effects while still returning success for already applied events.
+
+## Failure taxonomy
+
+1. Transient: timeout, upstream unavailable -> retryable.
+2. Permanent: validation fail, unknown entity -> non-retryable or dead-letter path.
+
+## API contract examples
+
+### 1) Signature verification input
+
+Use this canonical message format for verification:
+
+```text
+{webhook-id}.{webhook-timestamp}.{raw-request-body}
+```
+
+Signature header format:
+
+```text
+v1,{base64_hmac_sha256_signature}
+```
+
+### 2) Event envelope consumed by receivers
+
+```json
+{
+  "type": "organization.member.added",
+  "timestamp": "2026-03-04T10:00:00.000Z",
+  "data": {
+    "entity_id": 89011,
+    "entity_type": "organization_membership"
+  }
+}
+```
+
+### 3) API spec to validate payload and replay behavior
+
+Use `documentation/api-specs/backend-api/webhooks-openapi.yaml` for:
+
+1. Delivery history endpoints
+2. Replay task endpoints
+3. Analytics and timeseries endpoints
+
+
+## Go-live checklist
+
+1. Raw-body signature verification passes integration tests.
+2. Idempotency guard keyed by `webhook-id` is deployed.
+3. Queue-first processing path is in place.
+4. Replay runbook tested on staging data.
+5. Alerting for receiver failures and backlog is active.

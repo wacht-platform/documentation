@@ -1,0 +1,113 @@
+---
+title: "Designing Actionable Notification UX"
+description: "Build inbox UX that users can actually act on, with realtime updates and strong filtering semantics."
+---
+
+# Designing Actionable Notification UX
+
+Use this page to build a notification center that drives actions, not noise.
+
+## What to build
+
+1. Inbox list with scope/severity/read filters.
+2. Per-item actions (read, unread, archive, star).
+3. Bulk actions (mark-all-read, archive-all-read).
+4. Realtime stream for new notifications.
+
+## API and hook surface you already have
+
+From `use-notifications.ts` and `use-notification-stream.ts`:
+
+1. `GET /notifications`
+2. `POST /notifications/:id/read`
+3. `POST /notifications/:id/unread`
+4. `POST /notifications/:id/archive`
+5. `POST /notifications/:id/star`
+6. `POST /notifications/mark-all-read`
+7. `POST /notifications/archive-all-read`
+8. WebSocket `/realtime/notifications`
+
+## Step 1: build inbox list with useful filters
+
+```ts
+const {
+  notifications,
+  loading,
+  hasMore,
+  loadMore,
+  refetch,
+} = useNotifications({
+  scope: "all",
+  severity,
+  is_read,
+  is_archived: false,
+  channels,
+  organization_ids,
+  workspace_ids,
+  limit: 25,
+});
+```
+
+Recommended default:
+
+1. `is_archived: false`
+2. newest first
+3. unread highlighted
+
+## Step 2: wire item-level actions
+
+`useNotifications` already exposes mutation actions:
+
+1. `markAsRead(notificationId)`
+2. `markAsUnread(notificationId)`
+3. `archiveNotification(notificationId)`
+4. `starNotification(notificationId)`
+
+These actions use optimistic UI updates and then refetch.
+
+## Step 3: add bulk actions
+
+Use existing handlers from the same hook:
+
+1. `markAllAsRead()`
+2. `archiveAllRead()`
+
+Both actions should preserve active filters so users can bulk-manage current view without context switching.
+
+## Step 4: enable realtime updates
+
+`useNotifications` internally wires `useNotificationStream` and prepends new notifications into first page.
+
+```ts
+useNotificationStream({
+  enabled: !clientLoading && !!pages,
+  channels: streamChannels,
+  organizationIds: streamOrganizationIds,
+  workspaceIds: streamWorkspaceIds,
+  onNotification,
+});
+```
+
+WebSocket reconnection uses exponential backoff; show a small "reconnecting" state in UI when disconnected.
+
+## Step 5: make notifications consistently actionable
+
+Every template should include:
+
+1. Clear title with cause.
+2. Body with affected entity.
+3. CTA that opens exact problem location.
+4. Severity aligned with urgency.
+
+## Related docs
+
+1. [React Router `useNotifications`](/react-router-sdk/hooks/use-notifications)
+2. [React Router `useNotificationStream`](/react-router-sdk/hooks/use-notification-stream)
+3. [Backend API Overview](/backend-api/overview)
+
+## Validation checklist
+
+1. Read/unread/archive/star states stay correct after reload.
+2. New notifications appear without manual refresh.
+3. Channel/scope filters constrain stream and list correctly.
+4. Bulk actions affect only currently filtered set.

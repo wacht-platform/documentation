@@ -1,99 +1,88 @@
 ---
 title: useAgentMcpServers
-description: Manage MCP server connections for an agent.
+description: Manage Model Context Protocol (MCP) server connections for AI agents.
 ---
 
 # useAgentMcpServers
 
-The `useAgentMcpServers` hook lists MCP servers for an agent and provides connect or disconnect actions.
+The `useAgentMcpServers` hook provides the management interface for configuring the Model Context Protocol (MCP) servers actively connected to a specific agent. It facilitates retrieving the configured server list and executing connect or disconnect operations, enabling dynamic tool integration at runtime.
 
 ## Parameters
 
 <ParamField path="agentName" type="string | null">
-  Agent name used to scope the MCP server list.
+  The specific agent identifier used to scope the MCP server request. Providing a `null` value will suspend data fetching until a valid identifier is supplied.
 </ParamField>
 
-## Return Value
+## Hook Interface
 
 <ResponseField name="mcpServers" type="AgentMcpServer[]">
-  MCP servers available for the agent.
+  An array detailing all MCP servers configured and available for the specified agent.
 </ResponseField>
 
 <ResponseField name="loading" type="boolean">
-  Whether MCP server data is loading.
+  Indicates whether the network request to retrieve the server list is currently resolving.
 </ResponseField>
 
 <ResponseField name="error" type="Error | null">
-  Error from the latest MCP server request.
+  Captures network failures or processing errors encountered during the server retrieval or connection process.
 </ResponseField>
 
+### Actions
+
 <ResponseField name="connect" type="(mcpServerId: string) => Promise<McpConnectResponse>">
-  <Expandable title="Connect an MCP server">
+  <Expandable title="Establish an MCP server connection">
     <ParamField path="mcpServerId" type="string">
-      MCP server ID to connect.
+      The unique identifier of the target server.
     </ParamField>
     <ResponseField name="returns" type="Promise<McpConnectResponse>">
-      Connection response from the server.
+      Resolves with the connection details upon successful protocol initialization with the MCP server.
     </ResponseField>
   </Expandable>
 </ResponseField>
 
 <ResponseField name="disconnect" type="(mcpServerId: string) => Promise<void>">
-  <Expandable title="Disconnect an MCP server">
+  <Expandable title="Terminate an MCP server connection">
     <ParamField path="mcpServerId" type="string">
-      MCP server ID to disconnect.
+      The unique identifier of the server to disconnect.
     </ParamField>
     <ResponseField name="returns" type="Promise<void>">
-      Resolves when disconnect completes.
+      Resolves once the connection protocol is successfully terminated.
     </ResponseField>
   </Expandable>
 </ResponseField>
 
 <ResponseField name="refetch" type="() => Promise<void>">
-  <Expandable title="Refetch MCP servers">
+  <Expandable title="Force data synchronization">
     <ResponseField name="returns" type="Promise<void>">
-      Resolves after revalidation completes.
+      Instructs the hook to retrieve the latest list of servers immediately from the backend.
     </ResponseField>
   </Expandable>
 </ResponseField>
 
-## Examples
+## Implementation Guidelines
 
-### List MCP servers
+### Displaying Configured Servers
 
-```tsx
-import { useAgentMcpServers } from "@wacht/react-router";
-
-function McpServerList({ agentName }: { agentName: string }) {
-  const { mcpServers, loading } = useAgentMcpServers(agentName);
-
-  if (loading) return <div>Loading...</div>;
-
-  return (
-    <ul>
-      {mcpServers.map((server) => (
-        <li key={server.id}>{server.name}</li>
-      ))}
-    </ul>
-  );
-}
-```
-
-### Connect and disconnect
+To construct an administrative interface for server management, iterate over the `mcpServers` response:
 
 ```tsx
 import { useAgentMcpServers } from "@wacht/react-router";
 
-function McpActions({ agentName }: { agentName: string }) {
-  const { mcpServers, connect, disconnect } = useAgentMcpServers(agentName);
+export function McpServerList({ agentName }: { agentName: string }) {
+  const { mcpServers, loading, error } = useAgentMcpServers(agentName);
+
+  if (loading) return <div className="text-gray-500">Retrieving configured servers...</div>;
+  if (error) return <div className="text-red-500 text-sm">Retrieval failure: {error.message}</div>;
+  if (mcpServers.length === 0) return <div>No custom servers configured for this agent.</div>;
 
   return (
-    <ul>
+    <ul className="divide-y border rounded-md">
       {mcpServers.map((server) => (
-        <li key={server.id}>
-          {server.name}
-          <button onClick={() => connect(server.id)}>Connect</button>
-          <button onClick={() => disconnect(server.id)}>Disconnect</button>
+        <li key={server.id} className="p-3 flex justify-between items-center bg-white">
+          <span className="font-semibold text-gray-800">{server.name}</span>
+          <span className="text-xs text-gray-500 font-mono uppercase tracking-wide">
+            Status: {server.status}
+          </span>
         </li>
       ))}
     </ul>
@@ -101,7 +90,65 @@ function McpActions({ agentName }: { agentName: string }) {
 }
 ```
 
-## Related
+### Managing Connection States
 
-- [useAgentIntegrations](./use-agent-integrations) - Manage non-MCP integrations
-- [useAgentSession](./use-agent-session) - Resolve session-level agent state
+To implement interactive toggle controls for server connections, utilize the `connect` and `disconnect` methods in conjunction with local processing state:
+
+```tsx
+import { useState } from "react";
+import { useAgentMcpServers } from "@wacht/react-router";
+
+export function McpConnectionManager({ agentName }: { agentName: string }) {
+  const { mcpServers, connect, disconnect } = useAgentMcpServers(agentName);
+  const [processingId, setProcessingId] = useState<string | null>(null);
+
+  const toggleConnection = async (server: any) => {
+    setProcessingId(server.id);
+    try {
+      if (server.connected) {
+        await disconnect(server.id);
+      } else {
+        await connect(server.id);
+      }
+    } catch (err) {
+      console.error(`Status modification failed for server ${server.id}`, err);
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      {mcpServers.map((server) => (
+        <div key={server.id} className="flex items-center justify-between p-4 border rounded-lg bg-gray-50">
+          <div>
+            <h4 className="font-semibold text-gray-900">{server.name}</h4>
+            <p className="text-sm text-gray-500">MCP Configuration</p>
+          </div>
+          
+          <button 
+            onClick={() => toggleConnection(server)}
+            disabled={processingId === server.id}
+            className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              server.connected 
+                ? 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200' 
+                : 'bg-green-50 text-green-700 hover:bg-green-100 border border-green-200'
+            } ${processingId === server.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            {processingId === server.id 
+              ? "Modifying..." 
+              : server.connected 
+                ? "Disconnect" 
+                : "Connect"}
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+## Related Documentation
+
+- [useAgentIntegrations](./use-agent-integrations) - For managing standard third-party OAuth integrations (e.g., Slack, Notion).
+- [useAgentContext](./use-agent-context) - Utilized for mounting the SSE communication stream within an initiated context.

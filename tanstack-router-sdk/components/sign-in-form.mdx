@@ -5,11 +5,11 @@ description: 'A complete, drop-in authentication interface supporting passwords,
 
 # `<SignInForm />`
 
-Building a secure, robust authentication flow from scratch is notoriously difficult. The `<SignInForm />` component eliminates this complexity by providing a complete, drop-in user interface that handles the entire authentication lifecycle.
+Building a secure and robust authentication flow from scratch can be a complex undertaking. The `<SignInForm />` component eliminates this complexity by providing a comprehensive, drop-in user interface that securely manages the entire authentication lifecycle.
 
-Instead of wiring up complex state machines to manage passwords, magic links, WebAuthn (passkeys), and OAuth redirects, you can simply mount this single component. 
+Instead of engineering complex state machines to handle passwords, magic links, WebAuthn (passkeys), and OAuth redirects, you only need to mount this single component. 
 
-The best part? It's fully dynamic. If you decide to toggle "Enable Passkeys" or add "Sign in with GitHub" in your Wacht Dashboard, the UI instantly adapts—no code changes required.
+Furthermore, the interface is fully dynamic. If you enable Passkeys or add a social provider like GitHub in your Wacht Dashboard, the UI instantly adapts—requiring no additional code changes.
 
 ## Import
 
@@ -58,9 +58,11 @@ Once authentication is complete, the user needs to be redirected into your appli
 2. **Dashboard Configuration**: The **After Sign-In URL** configured in your deployment settings.
 3. **Fallback**: The root URL (`/`) of your application.
 
-## Need to build a custom UI?
+## Need a Custom Identity UI?
 
-The `<SignInForm />` was designed to cover 95% of standard authentication use cases with a beautiful, secure default. However, if your design system strictly requires a highly bespoke layout (such as a multi-step modal flow deeply integrated into your app), you can bypass this pre-built component entirely.
+While the `<SignInForm />` covers the vast majority of standard authentication use cases with a secure and pre-built design, your application may require a highly bespoke layout.
+
+If you are building a deeply custom authentication flow (such as a multi-step modal integrated directly into a unique design system), you can bypass this pre-built component entirely.
 
 Instead, you can build your own interface and wire it directly into the Wacht state machine using our low-level React hooks:
 

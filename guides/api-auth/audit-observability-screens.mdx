@@ -1,0 +1,126 @@
+---
+title: "Building API Auth Observability Screens"
+description: "Implement logs, analytics, and timeseries views for API Auth using React SDK hooks."
+---
+
+# Building API Auth Observability Screens
+
+Use this page to build a real customer-facing observability section for API Auth, not an internal checklist.
+
+## What to build
+
+1. A `Logs` table for per-request audit entries.
+2. An `Analytics` summary for top keys, top paths, blocked reasons.
+3. A `Timeseries` chart for trend monitoring.
+4. A triage panel with one-click rotate/revoke actions.
+
+## Step 1: build logs table with filters
+
+Use `useApiAuthAuditLogs` with cursor and filter options.
+
+```ts
+const {
+  logs,
+  has_more,
+  next_cursor,
+  loading,
+  refetch,
+} = useApiAuthAuditLogs({
+  limit: 50,
+  outcome,
+  key_id,
+  start_date,
+  end_date,
+  cursor,
+});
+```
+
+Supported query params from SDK hook:
+
+1. `limit`
+2. `cursor`
+3. `outcome`
+4. `key_id`
+5. `start_date`
+6. `end_date`
+
+## Step 2: build analytics cards
+
+Use `useApiAuthAuditAnalytics` for aggregate insights.
+
+```ts
+const { analytics, loading } = useApiAuthAuditAnalytics({
+  start_date,
+  end_date,
+  include_top_keys: true,
+  include_top_paths: true,
+  include_blocked_reasons: true,
+  include_rate_limits: true,
+  top_limit: 10,
+});
+```
+
+Recommended cards:
+
+1. Total requests.
+2. Allowed vs blocked.
+3. Top 5 keys by traffic.
+4. Top blocked reasons.
+
+## Step 3: add trend chart
+
+Use `useApiAuthAuditTimeseries`.
+
+```ts
+const { timeseries, interval, loading } = useApiAuthAuditTimeseries({
+  start_date,
+  end_date,
+  interval: "hour",
+  key_id,
+});
+```
+
+Use interval policy:
+
+1. `hour` for 24h/48h.
+2. `day` for 7-30 days.
+
+## Step 4: connect logs to key actions
+
+When operator clicks a suspicious key in logs/analytics:
+
+1. Open key details.
+2. Show recent events for that key.
+3. Provide `Rotate` and `Revoke` actions.
+
+Key actions come from existing key hook flow:
+
+```ts
+await client(`/api-auth/keys/${input.key_id}/rotate`, { method: "POST" });
+await client(`/api-auth/keys/${input.key_id}/revoke`, {
+  method: "POST",
+  body: formData,
+});
+```
+
+## Step 5: make the screen usable in production
+
+1. Save filters in URL query params.
+2. Poll or refetch every 30-60 seconds for active incidents.
+3. Render explicit empty state when no logs match filters.
+4. Show clear error banners for failed analytics queries.
+
+## Related docs
+
+1. [React Router `useApiAuthAuditLogs`](/react-router-sdk/hooks/use-api-auth-audit-logs)
+2. [React Router `useApiAuthAuditAnalytics`](/react-router-sdk/hooks/use-api-auth-audit-analytics)
+3. [React Router `useApiAuthAuditTimeseries`](/react-router-sdk/hooks/use-api-auth-audit-timeseries)
+4. [React Router `useApiAuthKeys`](/react-router-sdk/hooks/use-api-auth-keys)
+5. [API Keys Backend API Reference](/backend-api/api-keys)
+
+## Validation checklist
+
+1. Filters in logs table match backend query behavior.
+2. Analytics totals and timeseries window align for same date range.
+3. Rotate/revoke actions refresh logs and analytics state.
+4. Unauthorized users cannot access audit routes.

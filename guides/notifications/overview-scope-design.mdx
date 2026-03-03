@@ -1,0 +1,58 @@
+---
+title: "Notification System Architecture"
+description: "Design a high-signal in-app notification system with scope, severity, and lifecycle discipline."
+---
+
+# Notification System Architecture
+
+In-app notifications are easy to build badly. The hard part is signal quality.
+
+## Scope model in your stack
+
+Your frontend notification APIs and hooks support scope filtering with:
+
+- `user`
+- `organization`
+- `workspace`
+- broader filtered views (`all`, `current`) in hook usage
+
+## Scope design guidance
+
+1. Use `user` for personal/account/security changes.
+2. Use `organization` for team-level operational events.
+3. Use `workspace` for project-level activity.
+4. Avoid broadcasting org-wide when workspace scope is enough.
+
+## Severity usage
+
+Keep severity semantic:
+
+- `info`: neutral updates
+- `success`: completed actions
+- `warning`: attention required soon
+- `error`: action required now
+
+Do not use severity as category taxonomy.
+
+## Lifecycle model
+
+1. Create notification.
+2. Deliver to inbox.
+3. Mark read/unread.
+4. Star/archive as needed.
+5. Expire when stale.
+
+## Related docs
+
+1. [React Router `useNotifications`](/react-router-sdk/hooks/use-notifications)
+2. [React Router `useNotificationStream`](/react-router-sdk/hooks/use-notification-stream)
+3. [Frontend API Notifications Reference](/frontend-api/notifications)
+4. [Backend API Notifications Reference](/backend-api/notifications)
+
+## Go-live checklist
+
+1. Scope and severity conventions are documented.
+2. Inbox read/archive/star flows are tested.
+3. Realtime reconnection behavior is verified.
+4. Noisy template monitoring is in place.
+5. Expiry strategy is applied for stale notifications.

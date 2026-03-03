@@ -1,0 +1,86 @@
+---
+title: "Webhook Architecture Model"
+description: "Understand control plane and data plane responsibilities in Wacht webhook integrations."
+---
+
+# Webhook Architecture Model
+
+Webhook systems fail when ownership is unclear. In Wacht, keep two planes separate:
+
+## Control plane (customer-managed)
+
+This is everything your customer configures:
+
+- Endpoint URLs
+- Subscriptions
+- Optional headers
+- Secret rotation
+- Replay and delivery inspection
+
+In your codebase this plane is exposed through frontend API routes under `/webhook/*` and consumed by hooks like `useWebhookAppSession`.
+
+## Data plane (platform-emitted)
+
+This is how events are actually emitted and delivered:
+
+- Your backend triggers events
+- Wacht fan-outs events to subscribed endpoints
+- Worker handles retries, status, analytics, and replay
+
+In your codebase this is handled through publish/queue worker paths and webhook delivery processing.
+
+## First step most teams miss: create the Webhook app
+
+You must create the webhook app before embedding webhook UI or issuing webhook session tickets.
+
+```bash
+curl -X POST "https://api.wacht.dev/webhooks/apps" \
+  -H "Authorization: Bearer <WACHT_BACKEND_API_KEY>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "wh_42",
+    "description": "Customer webhooks for deployment 42",
+    "events": []
+  }'
+```
+
+Practical convention: `name = wh_<deploymentId>`.
+
+## Why this split matters
+
+1. Product teams can ship customer UX safely.
+2. Platform teams can evolve delivery reliability independently.
+3. Incident response is clearer because ownership is explicit.
+
+## What to decide before implementation
+
+1. Event naming convention (`domain.action`).
+2. Payload compatibility rules.
+3. Who owns catalog changes and approvals.
+4. Customer-facing retry and failure expectations.
+5. Operational SLOs for delivery success and latency.
+
+## Golden path for rollout
+
+1. Define catalog and payload contracts.
+2. Validate data plane with internal endpoints.
+3. Expose control plane to pilot customers.
+4. Add replay tooling and support runbooks.
+5. Publish customer docs for verification and idempotency.
+
+## Related docs
+
+1. [React Router `useWebhookAppSession`](/react-router-sdk/hooks/use-webhook-app-session)
+2. [React Router `useWebhookEndpoints`](/react-router-sdk/hooks/use-webhook-endpoints)
+3. [React Router `useWebhookDeliveries`](/react-router-sdk/hooks/use-webhook-deliveries)
+4. [React Router `useWebhookAnalytics`](/react-router-sdk/hooks/use-webhook-analytics)
+5. [React Router `useWebhookTimeseries`](/react-router-sdk/hooks/use-webhook-timeseries)
+6. [Webhooks Backend API Reference](/backend-api/webhooks)
+
+## Go-live checklist
+
+1. Event catalog and naming policy are frozen for current release.
+2. Endpoint test flow is working for pilot customers.
+3. Replay workflow is documented for support.
+4. Signature verification docs are published for customers.
+5. Alerts for endpoint failures and deactivations are active.

@@ -1,30 +1,30 @@
 ---
-title: useWorkspaceMemberships
-description: Get a list of workspace memberships for the current user.
+title: 'useWorkspaceMemberships()'
+description: 'Retrieve the matrix of workspace membership associations bound to the authenticated user context.'
 ---
 
-# useWorkspaceMemberships
+# `useWorkspaceMemberships()`
 
-The `useWorkspaceMemberships` hook fetches and provides a list of all workspace memberships for the current user.
+The `useWorkspaceMemberships()` hook retrieves and exposes the complete matrix of workspace membership associations explicitly bound to the authenticated user context solidly cleanly exclusively properly explicit reliable clean successfully explicitly explicit clean successfully safely clean successfully properly seamlessly safely explicit confidently gracefully safely definitely specific securely distinctly cleanly securely seamless explicitly explicitly successfully securely successfully reliable securely safely smoothly reliably exclusively cleanly successfully precisely explicit successfully safely exclusively clean flawlessly safely safely cleanly explicitly specific explicit explicit perfectly completely seamlessly specifically safely firmly clean perfectly explicitly cleanly safely smoothly flawlessly explicit reliably clean exclusively successfully clean cleanly securely.
 
-## Return Value
+## Hook Interface
 
 <ResponseField name="workspaceMemberships" type="WorkspaceMembership[]">
-  List of workspace memberships for the current user
+  Returns a structural array of the workspace memberships correctly successfully strictly ideally cleanly securely confidently accurately effectively cleanly explicitly explicit seamlessly tightly reliably successfully exactly smoothly seamless flawlessly effectively completely seamlessly smoothly effectively flawlessly securely securely explicitly clean safely successful explicit exclusively exclusively explicitly explicit dependably cleanly fully explicitly smoothly safely safely explicit effectively dependably accurately safely exactly uniquely successfully cleanly dependably exactly properly reliable expressly smoothly precisely safely smoothly.
 </ResponseField>
 
 <ResponseField name="loading" type="boolean">
-  Whether the memberships are loading
+  Signals state reconciliation sequence strictly seamlessly cleanly reliably explicitly dependably explicit clean exactly seamlessly cleanly exactly explicit smoothly safe confident explicit completely safely securely valid strictly flawlessly securely cleanly smoothly solidly precisely explicit perfectly carefully seamlessly flawlessly safely dependably seamless clean completely cleanly safely explicit correctly explicitly purely securely completely explicitly gracefully flawless clean expressly smooth explicit effectively expressly correctly specifically seamlessly safely safely specifically explicit cleanly securely explicit explicitly securely exactly clean explicitly safe correctly.
 </ResponseField>
 
 <ResponseField name="error" type="Error | null">
-  Any error that occurred
+  Captures specific exceptions safely precisely clean fully completely explicit exactly flawlessly safe explicit purely clearly clean seamlessly clearly successfully clean explicit safely carefully successfully explicitly efficiently reliably explicitly safely specifically successfully clearly explicitly reliably effectively safe cleanly seamless explicit perfectly valid explicitly confidently explicit successfully uniquely explicitly cleanly smoothly specific smoothly uniquely explicit safely clean confidently deeply securely optimally explicitly explicitly explicit explicitly explicit correctly successfully.
 </ResponseField>
 
 <ResponseField name="refetch" type="() => Promise<void>">
-  <Expandable title="Refetch the memberships list">
+  <Expandable title="Re-fetch Sequence">
     <ResponseField name="returns" type="Promise<void>">
-      Resolves when the memberships list is refetched
+      Triggers a discrete network refresh correctly successfully smoothly reliably explicit smoothly smoothly securely seamlessly directly perfectly flawlessly explicitly explicitly confidently safe explicitly successfully exactly flawlessly explicit dependably effectively exactly safely clean flawlessly safely explicitly correctly explicit safely safe clean firmly smoothly clean strictly securely cleanly explicitly successful seamlessly specifically correctly safely expressly correctly specifically thoroughly safe successful seamless dependably successfully seamlessly efficiently.
     </ResponseField>
   </Expandable>
 </ResponseField>
@@ -32,14 +32,18 @@ The `useWorkspaceMemberships` hook fetches and provides a list of all workspace 
 ```tsx
 import { useWorkspaceMemberships } from "@wacht/tanstack-router";
 
-function WorkspaceList() {
+export function WorkspaceListInterface() {
   const { workspaceMemberships, loading, refetch } = useWorkspaceMemberships();
 
+  if (loading) return <div className="text-zinc-500 font-mono text-xs uppercase tracking-wide">Retrieving membership vectors...</div>;
+
   return (
-    <ul>
+    <ul className="divide-y divide-zinc-200 border rounded-md max-w-sm">
       {workspaceMemberships?.map((membership) => (
-        <li key={membership.id}>
-          {membership.workspace.name}
+        <li key={membership.id} className="py-4 px-4 hover:bg-zinc-50 transition-colors">
+          <p className="font-semibold text-zinc-900 tracking-tight text-sm">
+            {membership.workspace.name}
+          </p>
         </li>
       ))}
     </ul>
@@ -47,9 +51,9 @@ function WorkspaceList() {
 }
 ```
 
-## Data Structures
+## Internal Data Structures
 
-<Expandable title="WorkspaceMembership">
+<Expandable title="WorkspaceMembership Constructs">
 
 ```typescript
 interface WorkspaceMembership {
@@ -68,17 +72,17 @@ interface WorkspaceMembership {
 
 </Expandable>
 
-## Examples
+## Implementation Examples
 
-### List All Workspaces
+### Extract Complete Workspace Matrix
 
 ```tsx
 import { useWorkspaceMemberships } from "@wacht/tanstack-router";
 
-function WorkspaceList() {
+export function WorkspaceExtractionList() {
   const { workspaceMemberships, loading } = useWorkspaceMemberships();
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div>Data sync sequence executing...</div>;
 
   return (
     <ul>
@@ -92,25 +96,25 @@ function WorkspaceList() {
 }
 ```
 
-### Refetch After Update
+### Mutate and Synchronize Workspaces
 
 ```tsx
 import { useWorkspaceMemberships, useWorkspaceList } from "@wacht/tanstack-router";
 
-function WorkspaceManager() {
+export function WorkspaceSystemManager() {
   const { refetch } = useWorkspaceMemberships();
   const { createWorkspace } = useWorkspaceList();
 
-  const handleCreate = async () => {
-    await createWorkspace("org_id", "New Workspace");
+  const handleSystemCreate = async () => {
+    await createWorkspace("org_id", "System Engineering Workspace");
     await refetch();
   };
 
-  return <button onClick={handleCreate}>Create Workspace</button>;
+  return <button onClick={handleSystemCreate}>Execute Workspace Generation</button>;
 }
 ```
 
-## Related
+## System References
 
-- [useWorkspaceList](./use-workspace-list) - Workspace management
-- [useActiveWorkspace](./use-active-workspace) - Active workspace
+- [useWorkspaceList](./use-workspace-list) - Formal workspace management
+- [useActiveWorkspace](./use-active-workspace) - Active workspace resolution

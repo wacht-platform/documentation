@@ -14,18 +14,20 @@ Use this page to build a notification center that drives actions, not noise.
 3. Bulk actions (mark-all-read, archive-all-read).
 4. Realtime stream for new notifications.
 
-## API and hook surface you already have
+## Hook surface you already have
 
 From `use-notifications.ts` and `use-notification-stream.ts`:
 
-1. `GET /notifications`
-2. `POST /notifications/:id/read`
-3. `POST /notifications/:id/unread`
-4. `POST /notifications/:id/archive`
-5. `POST /notifications/:id/star`
-6. `POST /notifications/mark-all-read`
-7. `POST /notifications/archive-all-read`
-8. WebSocket `/realtime/notifications`
+1. `useNotifications(...)` for list + filter + pagination
+2. `markAsRead(notificationId)`
+3. `markAsUnread(notificationId)`
+4. `archiveNotification(notificationId)`
+5. `starNotification(notificationId)`
+6. `markAllAsRead()`
+7. `archiveAllRead()`
+8. `useNotificationStream(...)` for realtime updates
+
+These hooks call the underlying notifications API routes for you.
 
 ## Step 1: build inbox list with useful filters
 

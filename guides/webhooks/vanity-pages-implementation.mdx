@@ -18,15 +18,18 @@ This guide shows a full working pattern for embedding Wacht webhook pages inside
 
 Before embedding, create a webhook app for each tenant/deployment.
 
-```bash
-curl -X POST "https://api.wacht.dev/webhooks/apps" \
-  -H "Authorization: Bearer <WACHT_BACKEND_API_KEY>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "wh_42",
-    "description": "Customer webhooks for deployment 42",
-    "events": []
-  }'
+```ts
+import { WachtClient } from "@wacht/backend";
+
+const client = new WachtClient({
+  apiKey: process.env.WACHT_BACKEND_API_KEY!,
+});
+
+await client.webhooks.createWebhookApp({
+  name: "wh_42",
+  description: "Customer webhooks for deployment 42",
+  events: [],
+});
 ```
 
 Use a deterministic name per deployment, for example `wh_<deploymentId>`, so ticket issuance can target the correct app.
@@ -63,11 +66,14 @@ app.post("/api/settings/webhooks/embed-ticket", async (req, res) => {
   }
 
   try {
-    const ticket = await wacht.sessions.createSessionTicket({
-      ticket_type: "webhook_app_access",
-      webhook_app_slug: `wh_${deploymentId}`,
-      expires_in: 120,
-    });
+    const ticket = await wacht.post<{ ticket: string; expires_at: number }>(
+      "/session/tickets",
+      {
+        ticket_type: "webhook_app_access",
+        webhook_app_slug: `wh_${deploymentId}`,
+        expires_in: 120,
+      },
+    );
 
     return res.json({
       ticket: ticket.ticket,
@@ -221,7 +227,8 @@ const vanityBaseUrl = deployment?.backend_host
 3. [React Router `useWebhookDeliveries`](/react-router-sdk/hooks/use-webhook-deliveries)
 4. [React Router `useWebhookAnalytics`](/react-router-sdk/hooks/use-webhook-analytics)
 5. [React Router `useWebhookTimeseries`](/react-router-sdk/hooks/use-webhook-timeseries)
-6. [Webhooks Backend API Reference](/backend-api/webhooks)
+6. [Node SDK Webhooks API](/node-sdk/api/webhooks)
+7. [Webhooks Backend API Reference](/backend-api/webhooks)
 
 ## Verification checklist
 

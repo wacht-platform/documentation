@@ -25,11 +25,7 @@ Provisions a new agent profile equipped with specific instructions.
 ```typescript
 const supportAgent = await client.ai.createAgent({
   name: "support_bot_v2",
-  configuration: {
-    instructions: "You are a highly capable technical support assistant who replies strictly in JSON.",
-    model: "claude-3-5-sonnet",
-    visibility: "private"
-  }
+  description: "Technical support assistant for workspace admins"
 });
 ```
 
@@ -42,7 +38,7 @@ const supportAgent = await client.ai.createAgent({
       An optional description of the agent's purpose.
     </ParamField>
     <ParamField path="configuration" type="Record<string, unknown>">
-      Agent configuration properties such as `model`, `instructions`, `temperature`, and `visibility`.
+      Optional agent configuration object.
     </ParamField>
   </Expandable>
 </ParamField>

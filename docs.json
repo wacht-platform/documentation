@@ -439,7 +439,8 @@
                                 "group": "Integrations",
                                 "pages": [
                                     "node-sdk/api/webhooks",
-                                    "node-sdk/api/api-keys"
+                                    "node-sdk/api/api-keys",
+                                    "node-sdk/api/oauth"
                                 ]
                             }
                         ]
@@ -481,7 +482,8 @@
                                 "group": "Integrations",
                                 "pages": [
                                     "rust-sdk/guide/webhooks",
-                                    "rust-sdk/guide/api-keys"
+                                    "rust-sdk/guide/api-keys",
+                                    "rust-sdk/guide/oauth-apps"
                                 ]
                             },
                             {
@@ -533,7 +535,26 @@
                                 ]
                             },
                             {
-                                "group": "Use Webhooks to Keep Your Backend in Sync",
+                                "group": "OAuth Apps for SaaS",
+                                "pages": [
+                                    "guides/oauth-apps/overview",
+                                    "guides/oauth-apps/create-oauth-app-and-clients",
+                                    "guides/oauth-apps/implement-consent-flow",
+                                    "guides/oauth-apps/verify-access-tokens-and-operate-clients"
+                                ]
+                            },
+                            {
+                                "group": "AI Agents for SaaS",
+                                "pages": [
+                                    "guides/ai-agents/overview-console-api-mcp",
+                                    "guides/ai-agents/create-agents-console-and-backend-api",
+                                    "guides/ai-agents/run-agents-in-your-app",
+                                    "guides/ai-agents/connect-mcp-servers",
+                                    "guides/ai-agents/protect-mcp-servers-with-oauth-apps"
+                                ]
+                            },
+                            {
+                                "group": "Keep your backend in sync",
                                 "pages": [
                                     "guides/deployment-events/use-webhooks-to-keep-backend-in-sync"
                                 ]

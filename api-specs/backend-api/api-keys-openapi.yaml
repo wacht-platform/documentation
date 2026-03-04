@@ -14,6 +14,8 @@ security:
 tags:
   - name: API Keys
     description: API Keys management
+  - name: OAuth Apps
+    description: OAuth app, client, scope, and grant management
 
 paths:
 
@@ -248,6 +250,295 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+
+  # OAuth App Endpoints
+  /deployments/{deployment_id}/oauth/apps:
+    get:
+      summary: List OAuth apps
+      description: List OAuth apps for a deployment
+      tags:
+        - OAuth Apps
+      parameters:
+        - $ref: '#/components/parameters/DeploymentId'
+      responses:
+        '200':
+          description: OAuth apps
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListOAuthAppsResponse'
+    post:
+      summary: Create OAuth app
+      description: Create a new OAuth app for a deployment
+      tags:
+        - OAuth Apps
+      parameters:
+        - $ref: '#/components/parameters/DeploymentId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreateOAuthAppRequest'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOAuthAppRequest'
+      responses:
+        '200':
+          description: OAuth app created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthApp'
+
+  /deployments/{deployment_id}/oauth/apps/{oauth_app_slug}:
+    patch:
+      summary: Update OAuth app
+      description: Update OAuth app settings
+      tags:
+        - OAuth Apps
+      parameters:
+        - $ref: '#/components/parameters/DeploymentId'
+        - $ref: '#/components/parameters/OAuthAppSlug'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateOAuthAppRequest'
+      responses:
+        '200':
+          description: OAuth app updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthApp'
+
+  /deployments/{deployment_id}/oauth/apps/{oauth_app_slug}/verify-domain:
+    post:
+      summary: Verify OAuth app domain
+      description: Trigger OAuth app domain verification
+      tags:
+        - OAuth Apps
+      parameters:
+        - $ref: '#/components/parameters/DeploymentId'
+        - $ref: '#/components/parameters/OAuthAppSlug'
+      responses:
+        '200':
+          description: Domain verification status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthDomainVerificationResponse'
+
+  /deployments/{deployment_id}/oauth/apps/{oauth_app_slug}/scopes/{scope}:
+    patch:
+      summary: Update OAuth scope
+      description: Update display metadata for a specific OAuth scope
+      tags:
+        - OAuth Apps
+      parameters:
+        - $ref: '#/components/parameters/DeploymentId'
+        - $ref: '#/components/parameters/OAuthAppSlug'
+        - $ref: '#/components/parameters/OAuthScope'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateOAuthScopeRequest'
+      responses:
+        '200':
+          description: OAuth app updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthApp'
+
+  /deployments/{deployment_id}/oauth/apps/{oauth_app_slug}/scopes/{scope}/archive:
+    post:
+      summary: Archive OAuth scope
+      description: Archive a scope on an OAuth app
+      tags:
+        - OAuth Apps
+      parameters:
+        - $ref: '#/components/parameters/DeploymentId'
+        - $ref: '#/components/parameters/OAuthAppSlug'
+        - $ref: '#/components/parameters/OAuthScope'
+      responses:
+        '200':
+          description: OAuth app updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthApp'
+
+  /deployments/{deployment_id}/oauth/apps/{oauth_app_slug}/scopes/{scope}/unarchive:
+    post:
+      summary: Unarchive OAuth scope
+      description: Unarchive a scope on an OAuth app
+      tags:
+        - OAuth Apps
+      parameters:
+        - $ref: '#/components/parameters/DeploymentId'
+        - $ref: '#/components/parameters/OAuthAppSlug'
+        - $ref: '#/components/parameters/OAuthScope'
+      responses:
+        '200':
+          description: OAuth app updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthApp'
+
+  /deployments/{deployment_id}/oauth/apps/{oauth_app_slug}/scopes/{scope}/mapping:
+    post:
+      summary: Set OAuth scope mapping
+      description: Map an OAuth scope to a resource category and permission
+      tags:
+        - OAuth Apps
+      parameters:
+        - $ref: '#/components/parameters/DeploymentId'
+        - $ref: '#/components/parameters/OAuthAppSlug'
+        - $ref: '#/components/parameters/OAuthScope'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetOAuthScopeMappingRequest'
+      responses:
+        '200':
+          description: OAuth app updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthApp'
+
+  /deployments/{deployment_id}/oauth/apps/{oauth_app_slug}/clients:
+    get:
+      summary: List OAuth clients
+      description: List OAuth clients under an OAuth app
+      tags:
+        - OAuth Apps
+      parameters:
+        - $ref: '#/components/parameters/DeploymentId'
+        - $ref: '#/components/parameters/OAuthAppSlug'
+      responses:
+        '200':
+          description: OAuth clients
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListOAuthClientsResponse'
+    post:
+      summary: Create OAuth client
+      description: Create a client under an OAuth app
+      tags:
+        - OAuth Apps
+      parameters:
+        - $ref: '#/components/parameters/DeploymentId'
+        - $ref: '#/components/parameters/OAuthAppSlug'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOAuthClientRequest'
+      responses:
+        '200':
+          description: OAuth client created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthClientWithSecret'
+
+  /deployments/{deployment_id}/oauth/apps/{oauth_app_slug}/clients/{oauth_client_id}:
+    patch:
+      summary: Update OAuth client
+      description: Update OAuth client configuration
+      tags:
+        - OAuth Apps
+      parameters:
+        - $ref: '#/components/parameters/DeploymentId'
+        - $ref: '#/components/parameters/OAuthAppSlug'
+        - $ref: '#/components/parameters/OAuthClientId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateOAuthClientRequest'
+      responses:
+        '200':
+          description: OAuth client updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthClient'
+    delete:
+      summary: Deactivate OAuth client
+      description: Deactivate (or delete) an OAuth client
+      tags:
+        - OAuth Apps
+      parameters:
+        - $ref: '#/components/parameters/DeploymentId'
+        - $ref: '#/components/parameters/OAuthAppSlug'
+        - $ref: '#/components/parameters/OAuthClientId'
+      responses:
+        '204':
+          description: OAuth client deactivated
+
+  /deployments/{deployment_id}/oauth/apps/{oauth_app_slug}/clients/{oauth_client_id}/rotate-secret:
+    post:
+      summary: Rotate OAuth client secret
+      description: Rotate secret for an OAuth client
+      tags:
+        - OAuth Apps
+      parameters:
+        - $ref: '#/components/parameters/DeploymentId'
+        - $ref: '#/components/parameters/OAuthAppSlug'
+        - $ref: '#/components/parameters/OAuthClientId'
+      responses:
+        '200':
+          description: OAuth client secret rotated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RotateOAuthClientSecretResponse'
+
+  /deployments/{deployment_id}/oauth/apps/{oauth_app_slug}/clients/{oauth_client_id}/grants:
+    get:
+      summary: List OAuth grants
+      description: List active and historical grants for an OAuth client
+      tags:
+        - OAuth Apps
+      parameters:
+        - $ref: '#/components/parameters/DeploymentId'
+        - $ref: '#/components/parameters/OAuthAppSlug'
+        - $ref: '#/components/parameters/OAuthClientId'
+      responses:
+        '200':
+          description: OAuth grants
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListOAuthGrantsResponse'
+
+  /deployments/{deployment_id}/oauth/apps/{oauth_app_slug}/clients/{oauth_client_id}/grants/{grant_id}/revoke:
+    post:
+      summary: Revoke OAuth grant
+      description: Revoke a grant by grant ID
+      tags:
+        - OAuth Apps
+      parameters:
+        - $ref: '#/components/parameters/DeploymentId'
+        - $ref: '#/components/parameters/OAuthAppSlug'
+        - $ref: '#/components/parameters/OAuthClientId'
+        - $ref: '#/components/parameters/OAuthGrantId'
+      responses:
+        '200':
+          description: Grant revoked
 
   # Rate Limit Schemes
   /api-auth/rate-limit-schemes:
@@ -507,6 +798,41 @@ components:
       schema:
         type: string
       description: API Auth app name
+    DeploymentId:
+      name: deployment_id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Deployment ID
+    OAuthAppSlug:
+      name: oauth_app_slug
+      in: path
+      required: true
+      schema:
+        type: string
+      description: OAuth app slug
+    OAuthClientId:
+      name: oauth_client_id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: OAuth client ID
+    OAuthGrantId:
+      name: grant_id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: OAuth grant ID
+    OAuthScope:
+      name: scope
+      in: path
+      required: true
+      schema:
+        type: string
+      description: OAuth scope string
 
   schemas:
     ErrorItem:
@@ -1153,26 +1479,301 @@ components:
                 type: integer
               avg_duration_ms:
                 type: number
+    ListOAuthAppsResponse:
+      type: object
+      properties:
+        apps:
+          type: array
+          items:
+            $ref: '#/components/schemas/OAuthApp'
+      required:
+        - apps
+
+    ListOAuthClientsResponse:
+      type: object
+      properties:
+        clients:
+          type: array
+          items:
+            $ref: '#/components/schemas/OAuthClient'
+      required:
+        - clients
+
+    ListOAuthGrantsResponse:
+      type: object
+      properties:
+        grants:
+          type: array
+          items:
+            $ref: '#/components/schemas/OAuthGrant'
+      required:
+        - grants
+
+    CreateOAuthAppRequest:
+      type: object
+      required:
+        - slug
+        - name
+      properties:
+        slug:
+          type: string
+          description: Unique slug for the OAuth app
+        name:
+          type: string
+          description: Display name
+        description:
+          type: string
+          nullable: true
+        fqdn:
+          type: string
+          description: Domain used by the OAuth app
+          nullable: true
+        supported_scopes:
+          type: array
+          items:
+            type: string
+        scope_definitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/OAuthScopeDefinition'
+        allow_dynamic_client_registration:
+          type: boolean
+        logo:
+          type: string
+          format: binary
+          description: Optional logo upload (multipart/form-data only)
+
+    UpdateOAuthAppRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        supported_scopes:
+          type: array
+          items:
+            type: string
+        scope_definitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/OAuthScopeDefinition'
+        allow_dynamic_client_registration:
+          type: boolean
+        is_active:
+          type: boolean
+
+    UpdateOAuthScopeRequest:
+      type: object
+      properties:
+        display_name:
+          type: string
+        description:
+          type: string
+          nullable: true
+
+    SetOAuthScopeMappingRequest:
+      type: object
+      required:
+        - category
+      properties:
+        category:
+          type: string
+          enum: [personal, organization, workspace]
+        organization_permission:
+          type: string
+          nullable: true
+        workspace_permission:
+          type: string
+          nullable: true
+
+    CreateOAuthClientRequest:
+      type: object
+      required:
+        - client_auth_method
+        - grant_types
+        - redirect_uris
+      properties:
+        client_auth_method:
+          type: string
+        grant_types:
+          type: array
+          items:
+            type: string
+        redirect_uris:
+          type: array
+          items:
+            type: string
+        token_endpoint_auth_signing_alg:
+          type: string
+          nullable: true
+        jwks_uri:
+          type: string
+          nullable: true
+        jwks:
+          $ref: '#/components/schemas/JwksDocument'
+        public_key_pem:
+          type: string
+          nullable: true
+
+    UpdateOAuthClientRequest:
+      type: object
+      properties:
+        client_auth_method:
+          type: string
+        grant_types:
+          type: array
+          items:
+            type: string
+        redirect_uris:
+          type: array
+          items:
+            type: string
+        token_endpoint_auth_signing_alg:
+          type: string
+          nullable: true
+        jwks_uri:
+          type: string
+          nullable: true
+        jwks:
+          $ref: '#/components/schemas/JwksDocument'
+        public_key_pem:
+          type: string
+          nullable: true
+
+    RotateOAuthClientSecretResponse:
+      type: object
+      properties:
+        client_secret:
+          type: string
+      required:
+        - client_secret
+
+    OAuthScopeDefinition:
+      type: object
+      properties:
+        scope:
+          type: string
+        display_name:
+          type: string
+        description:
+          type: string
+        archived:
+          type: boolean
+        category:
+          type: string
+          enum: ["", personal, organization, workspace]
+        organization_permission:
+          type: string
+          nullable: true
+        workspace_permission:
+          type: string
+          nullable: true
+
     OAuthApp:
       type: object
       properties:
         id:
           type: string
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-        deployment_id:
+        slug:
           type: string
         name:
           type: string
         description:
           type: string
           nullable: true
-        slug:
+        logo_url:
           type: string
+          nullable: true
+        fqdn:
+          type: string
+        supported_scopes:
+          type: array
+          items:
+            type: string
+        scope_definitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/OAuthScopeDefinition'
+        allow_dynamic_client_registration:
+          type: boolean
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    OAuthDomainVerificationResponse:
+      type: object
+      properties:
+        domain:
+          type: string
+        cname_target:
+          type: string
+        verified:
+          type: boolean
+
+    Jwk:
+      type: object
+      additionalProperties: true
+      properties:
+        kty:
+          type: string
+        kid:
+          type: string
+          nullable: true
+        use:
+          type: string
+          nullable: true
+        key_ops:
+          type: array
+          items:
+            type: string
+        alg:
+          type: string
+          nullable: true
+        n:
+          type: string
+          nullable: true
+        e:
+          type: string
+          nullable: true
+        crv:
+          type: string
+          nullable: true
+        x:
+          type: string
+          nullable: true
+        y:
+          type: string
+          nullable: true
+        x5u:
+          type: string
+          nullable: true
+        x5c:
+          type: array
+          items:
+            type: string
+        x5t:
+          type: string
+          nullable: true
+        x5t#S256:
+          type: string
+          nullable: true
+
+    JwksDocument:
+      type: object
+      properties:
+        keys:
+          type: array
+          items:
+            $ref: '#/components/schemas/Jwk'
+      required:
+        - keys
 
     OAuthClient:
       type: object
@@ -1181,17 +1782,35 @@ components:
           type: string
         oauth_app_id:
           type: string
-        name:
-          type: string
         client_id:
           type: string
+        client_auth_method:
+          type: string
+        grant_types:
+          type: array
+          items:
+            type: string
         redirect_uris:
           type: array
           items:
             type: string
+        token_endpoint_auth_signing_alg:
+          type: string
+          nullable: true
+        jwks_uri:
+          type: string
+          nullable: true
+        jwks:
+          $ref: '#/components/schemas/JwksDocument'
+        public_key_pem:
+          type: string
+          nullable: true
         is_active:
           type: boolean
         created_at:
+          type: string
+          format: date-time
+        updated_at:
           type: string
           format: date-time
 
@@ -1208,14 +1827,35 @@ components:
       properties:
         id:
           type: string
+        api_auth_app_slug:
+          type: string
         oauth_client_id:
           type: string
-        user_id:
+        resource:
           type: string
         scopes:
           type: array
           items:
             type: string
+        status:
+          type: string
+        granted_at:
+          type: string
+          format: date-time
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        revoked_at:
+          type: string
+          format: date-time
+          nullable: true
+        granted_by_user_id:
+          type: string
+          nullable: true
         created_at:
+          type: string
+          format: date-time
+        updated_at:
           type: string
           format: date-time

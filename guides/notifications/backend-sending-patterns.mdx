@@ -7,9 +7,9 @@ description: "Implement robust backend notification publishing with practical do
 
 Your backend should send notifications from business events, not UI clicks.
 
-## Backend endpoint and schema
+## SDK request shape
 
-From your backend API specs, `POST /notifications` accepts core fields like:
+The backend SDK create request accepts core fields like:
 
 - `user_id`
 - `title`
@@ -41,7 +41,28 @@ From your backend API specs, `POST /notifications` accepts core fields like:
 
 ## Example
 
-### Option A: Direct HTTP call
+### Option A: Backend SDK (`@wacht/backend`)
+
+```ts
+import { WachtClient } from "@wacht/backend";
+
+const client = new WachtClient({
+  apiKey: process.env.WACHT_BACKEND_API_KEY!,
+  baseUrl: "https://api.wacht.dev",
+});
+
+await client.notifications.createNotification({
+  user_id: "1234567890123456789",
+  title: "Webhook endpoint disabled",
+  body: "Endpoint https://example.com/hooks returned repeated failures and was disabled.",
+  severity: "warning",
+  ctas: [{ label: "Review endpoint", url: "https://app.example.com/settings/webhooks/endpoints" }],
+  metadata: { endpoint_id: "ep_987" },
+  expires_in_hours: 24,
+});
+```
+
+### Option B: Raw HTTP fallback
 
 ```ts
 await fetch("https://api.wacht.dev/notifications", {
@@ -63,27 +84,6 @@ await fetch("https://api.wacht.dev/notifications", {
 });
 ```
 
-### Option B: Backend SDK (`@wacht/backend`)
-
-```ts
-import { WachtClient } from "@wacht/backend";
-
-const client = new WachtClient({
-  apiKey: process.env.WACHT_BACKEND_API_KEY!,
-  baseUrl: "https://api.wacht.dev",
-});
-
-await client.notifications.createNotification({
-  user_id: "1234567890123456789",
-  title: "Webhook endpoint disabled",
-  body: "Endpoint https://example.com/hooks returned repeated failures and was disabled.",
-  severity: "warning",
-  ctas: [{ label: "Review endpoint", url: "https://app.example.com/settings/webhooks/endpoints" }],
-  metadata: { endpoint_id: "ep_987" },
-  expires_in_hours: 24,
-});
-```
-
 ## Backend reliability rules
 
 1. Do not block critical domain transaction on notification send failures.
@@ -93,8 +93,8 @@ await client.notifications.createNotification({
 
 ## Related docs
 
-1. [Backend API Notifications Reference](/backend-api/notifications)
-2. [Frontend API Notifications Reference](/frontend-api/notifications)
+1. [Node SDK Introduction](/node-sdk/introduction)
+2. [Backend API Notifications Reference](/backend-api/notifications)
 3. [React Router `useNotifications`](/react-router-sdk/hooks/use-notifications)
 4. [React Router `useNotificationStream`](/react-router-sdk/hooks/use-notification-stream)
 

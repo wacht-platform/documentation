@@ -18,16 +18,19 @@ This guide shows a full working pattern for embedding Wacht API Auth pages insid
 
 Before embedding, create an API Auth app for each tenant/deployment.
 
-```bash
-curl -X POST "https://api.wacht.dev/api-auth/apps" \
-  -H "Authorization: Bearer <WACHT_BACKEND_API_KEY>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "app_slug": "aa_42",
-    "name": "Acme Public API",
-    "key_prefix": "acme_live",
-    "description": "API keys for Acme customers"
-  }'
+```ts
+import { WachtClient } from "@wacht/backend";
+
+const client = new WachtClient({
+  apiKey: process.env.WACHT_BACKEND_API_KEY!,
+});
+
+await client.apiKeys.createApiAuthApp({
+  app_slug: "aa_42",
+  name: "Acme Public API",
+  key_prefix: "acme_live",
+  description: "API keys for Acme customers",
+});
 ```
 
 Required fields from the API spec:
@@ -70,11 +73,14 @@ app.post("/api/settings/api-keys/embed-ticket", async (req, res) => {
   }
 
   try {
-    const ticket = await wacht.sessions.createSessionTicket({
-      ticket_type: "api_auth_access",
-      api_auth_app_slug: `aa_${deploymentId}`,
-      expires_in: 120,
-    });
+    const ticket = await wacht.post<{ ticket: string; expires_at: number }>(
+      "/session/tickets",
+      {
+        ticket_type: "api_auth_access",
+        api_auth_app_slug: `aa_${deploymentId}`,
+        expires_in: 120,
+      },
+    );
 
     return res.json({
       ticket: ticket.ticket,
@@ -222,7 +228,8 @@ const vanityBaseUrl = deployment?.backend_host
 3. [React Router `useApiAuthAuditLogs`](/react-router-sdk/hooks/use-api-auth-audit-logs)
 4. [React Router `useApiAuthAuditAnalytics`](/react-router-sdk/hooks/use-api-auth-audit-analytics)
 5. [React Router `useApiAuthAuditTimeseries`](/react-router-sdk/hooks/use-api-auth-audit-timeseries)
-6. [API Keys Backend API Reference](/backend-api/api-keys)
+6. [Node SDK API Keys API](/node-sdk/api/api-keys)
+7. [API Keys Backend API Reference](/backend-api/api-keys)
 
 ## Verification checklist
 

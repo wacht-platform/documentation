@@ -49,17 +49,22 @@ Your backend remains the policy authority. The frontend handles management UX.
 
 You must create the API Auth app before issuing tickets or rendering vanity/custom UI.
 
-```bash
-curl -X POST "https://api.wacht.dev/api-auth/apps" \
-  -H "Authorization: Bearer <WACHT_BACKEND_API_KEY>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "app_slug": "aa_42",
-    "name": "Acme Public API",
-    "key_prefix": "acme_live",
-    "description": "API keys for Acme customers"
-  }'
+```ts
+import { WachtClient } from "@wacht/backend";
+
+const client = new WachtClient({
+  apiKey: process.env.WACHT_BACKEND_API_KEY!,
+});
+
+await client.apiKeys.createApiAuthApp({
+  app_slug: "aa_42",
+  name: "Acme Public API",
+  key_prefix: "acme_live",
+  description: "API keys for Acme customers",
+});
 ```
+
+Use direct HTTP only in non-SDK runtimes.
 
 Required fields:
 
@@ -103,7 +108,8 @@ That sequence reduces risk while preserving long-term flexibility.
 2. [API Auth custom hook implementation](/guides/api-auth/custom-hook-flow-implementation)
 3. [React Router `useApiAuthAppSession`](/react-router-sdk/hooks/use-api-auth-app-session)
 4. [React Router `useApiAuthKeys`](/react-router-sdk/hooks/use-api-auth-keys)
-5. [API Keys Backend API Reference](/backend-api/api-keys)
+5. [Node SDK API Keys API](/node-sdk/api/api-keys)
+6. [API Keys Backend API Reference](/backend-api/api-keys)
 
 ## Go-live checklist
 

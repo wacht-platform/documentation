@@ -33,15 +33,18 @@ In your codebase this is handled through publish/queue worker paths and webhook 
 
 You must create the webhook app before embedding webhook UI or issuing webhook session tickets.
 
-```bash
-curl -X POST "https://api.wacht.dev/webhooks/apps" \
-  -H "Authorization: Bearer <WACHT_BACKEND_API_KEY>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "wh_42",
-    "description": "Customer webhooks for deployment 42",
-    "events": []
-  }'
+```ts
+import { WachtClient } from "@wacht/backend";
+
+const client = new WachtClient({
+  apiKey: process.env.WACHT_BACKEND_API_KEY!,
+});
+
+await client.webhooks.createWebhookApp({
+  name: "wh_42",
+  description: "Customer webhooks for deployment 42",
+  events: [],
+});
 ```
 
 Practical convention: `name = wh_<deploymentId>`.
@@ -75,7 +78,8 @@ Practical convention: `name = wh_<deploymentId>`.
 3. [React Router `useWebhookDeliveries`](/react-router-sdk/hooks/use-webhook-deliveries)
 4. [React Router `useWebhookAnalytics`](/react-router-sdk/hooks/use-webhook-analytics)
 5. [React Router `useWebhookTimeseries`](/react-router-sdk/hooks/use-webhook-timeseries)
-6. [Webhooks Backend API Reference](/backend-api/webhooks)
+6. [Node SDK Webhooks API](/node-sdk/api/webhooks)
+7. [Webhooks Backend API Reference](/backend-api/webhooks)
 
 ## Go-live checklist
 

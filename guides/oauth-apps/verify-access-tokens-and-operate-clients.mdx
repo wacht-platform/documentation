@@ -1,0 +1,116 @@
+---
+title: "Verify Tokens and Operate OAuth Clients"
+description: "Verify OAuth access tokens in your resource server, rotate client secrets, and revoke grants safely."
+---
+
+# Verify Tokens and Operate OAuth Clients
+
+After consent and token issuance, your backend must verify every access token before serving protected resources.
+
+## Verify OAuth token in resource server
+
+```ts
+import { WachtClient } from "@wacht/backend";
+
+const client = new WachtClient({
+  apiKey: process.env.WACHT_BACKEND_API_KEY!,
+});
+
+export async function verifyOAuthRequest(token: string, method: string, resource: string) {
+  const authz = await client.gateway.verifyOauthAccessTokenRequest(token, method, resource, {
+    requiredPermissions: ["mcp:invoke"],
+  });
+
+  return {
+    clientId: authz.headers["x-wacht-oauth-client-id"],
+    grantedResource: authz.headers["x-wacht-granted-resource"],
+    oauthResource: authz.metadata?.oauth_resource,
+    scopes: authz.metadata?.scopes || [],
+    expiresAt: authz.metadata?.expires_at,
+  };
+}
+```
+
+## Verify OAuth token in Rust resource server
+
+```rust
+use wacht::{WachtClient, WachtConfig};
+use wacht::gateway::{GatewayAuthzOptions, GatewayPrincipalType};
+
+let api_key = std::env::var("WACHT_BACKEND_API_KEY").expect("WACHT_BACKEND_API_KEY is required");
+let frontend_host = std::env::var("WACHT_FRONTEND_HOST").expect("WACHT_FRONTEND_HOST is required");
+let client = WachtClient::new(WachtConfig::new(api_key, frontend_host)).expect("valid Wacht config");
+
+let authz = client
+    .gateway()
+    .check_authz_with_principal_type(
+        GatewayPrincipalType::OauthAccessToken,
+        access_token,
+        "POST",
+        "mcp",
+        GatewayAuthzOptions {
+            required_permissions: Some(vec!["mcp:invoke".to_string()]),
+            ..Default::default()
+        },
+    )
+    .await?;
+
+if !authz.allowed {
+    // Reject request in your framework middleware/handler.
+}
+
+let principal = authz.resolve_principal_context();
+let scopes = principal.metadata.scopes;
+let granted_resource = principal.metadata.granted_resource;
+```
+
+## For MCP resource servers
+
+This is the same verification model used in the MCP protection guide:
+
+1. Use `mcp-auth` middleware.
+2. Verify bearer token with `gateway.verifyOauthAccessTokenRequest`.
+3. Pass resolved subject/scopes into tool handlers.
+
+## Operational playbook
+
+### Rotate client secret
+
+Use your OAuth client rotation flow and deploy secret updates atomically.
+
+```ts
+const rotated = await client.oauth.rotateOAuthClientSecret(
+  "dep_123",
+  "mcp-auth",
+  oauthClient.id,
+);
+```
+
+### Revoke grants
+
+When users disconnect integrations or incidents happen, revoke active grants for the target client.
+
+```rust
+client.oauth()
+    .revoke_oauth_grant("dep_123", "mcp-auth", &oauth_client.id, grant_id)
+    .send()
+    .await?;
+```
+
+### Audit and monitoring
+
+Track:
+
+1. token verification failures by client ID,
+2. denied scope attempts,
+3. grant revocations,
+4. secret rotation timestamp and actor.
+
+## Related references
+
+1. [Node SDK Gateway Authz](/node-sdk/auth/gateway)
+2. [Node SDK OAuth Apps API](/node-sdk/api/oauth)
+3. [Rust SDK OAuth Apps Guide](/rust-sdk/guide/oauth-apps)
+4. [Backend API Reference](/backend-api/api-keys)
+5. [Protect MCP Servers with OAuth Apps](/guides/ai-agents/protect-mcp-servers-with-oauth-apps)
+6. [Frontend OAuth Consent API Reference](/frontend-api/oauth-consent)

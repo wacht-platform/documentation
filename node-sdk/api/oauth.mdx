@@ -1,0 +1,95 @@
+---
+title: OAuth Apps API
+description: Create and manage OAuth apps, clients, scopes, and grants with the Node SDK.
+---
+
+# OAuth Apps API
+
+Use the `oauth` module in `@wacht/backend` for deployment-scoped OAuth app and client management.
+
+```ts
+import { WachtClient } from "@wacht/backend";
+
+const client = new WachtClient({
+  apiKey: process.env.WACHT_BACKEND_API_KEY!,
+  baseUrl: "https://api.wacht.dev",
+});
+```
+
+## Create OAuth app
+
+```ts
+const app = await client.oauth.createOAuthApp("dep_123", {
+  slug: "mcp-auth",
+  name: "MCP Auth App",
+  description: "OAuth provider for MCP resource access",
+  fqdn: "auth.example.com",
+  supported_scopes: ["mcp:invoke", "workspace:read"],
+});
+```
+
+## Create OAuth client
+
+```ts
+const oauthClient = await client.oauth.createOAuthClient("dep_123", "mcp-auth", {
+  client_auth_method: "client_secret_basic",
+  grant_types: ["authorization_code", "refresh_token"],
+  redirect_uris: ["https://app.example.com/oauth/callback"],
+});
+```
+
+## Rotate client secret
+
+```ts
+const rotated = await client.oauth.rotateOAuthClientSecret(
+  "dep_123",
+  "mcp-auth",
+  oauthClient.id,
+);
+
+console.log(rotated.client_secret);
+```
+
+## Verify domain and manage scopes
+
+```ts
+await client.oauth.verifyOAuthAppDomain("dep_123", "mcp-auth");
+
+await client.oauth.updateOAuthScope("dep_123", "mcp-auth", "mcp:invoke", {
+  display_name: "Invoke MCP Tools",
+  description: "Allows MCP tool invocation on approved resources",
+});
+
+await client.oauth.setOAuthScopeMapping("dep_123", "mcp-auth", "mcp:invoke", {
+  category: "workspace",
+  workspace_permission: "workspace:mcp:invoke",
+});
+```
+
+## Grants operations
+
+```ts
+const grants = await client.oauth.listOAuthGrants("dep_123", "mcp-auth", oauthClient.id);
+
+if (grants.length > 0) {
+  await client.oauth.revokeOAuthGrant("dep_123", "mcp-auth", oauthClient.id, grants[0].id);
+}
+```
+
+## Available methods
+
+- `listOAuthApps(deploymentId)`
+- `createOAuthApp(deploymentId, request)`
+- `updateOAuthApp(deploymentId, oauthAppSlug, request)`
+- `verifyOAuthAppDomain(deploymentId, oauthAppSlug)`
+- `updateOAuthScope(deploymentId, oauthAppSlug, scope, request)`
+- `archiveOAuthScope(deploymentId, oauthAppSlug, scope)`
+- `unarchiveOAuthScope(deploymentId, oauthAppSlug, scope)`
+- `setOAuthScopeMapping(deploymentId, oauthAppSlug, scope, request)`
+- `listOAuthClients(deploymentId, oauthAppSlug)`
+- `createOAuthClient(deploymentId, oauthAppSlug, request)`
+- `updateOAuthClient(deploymentId, oauthAppSlug, oauthClientId, request)`
+- `deactivateOAuthClient(deploymentId, oauthAppSlug, oauthClientId)`
+- `rotateOAuthClientSecret(deploymentId, oauthAppSlug, oauthClientId)`
+- `listOAuthGrants(deploymentId, oauthAppSlug, oauthClientId)`
+- `revokeOAuthGrant(deploymentId, oauthAppSlug, oauthClientId, grantId)`

@@ -1,0 +1,71 @@
+---
+title: "Implement OAuth Consent Flow"
+description: "Build the consent UI and approval flow using Wacht OAuth consent endpoints."
+---
+
+# Implement OAuth Consent Flow
+
+Wacht exposes a clean consent flow contract with three endpoints.
+
+This is one of the few places where frontend calls are intentionally direct; app/client provisioning and token operations should still use backend SDKs.
+
+## Consent flow sequence
+
+1. Redirect user to `GET /oauth/consent/init?handoff_id=...`
+2. Fetch consent data from `GET /oauth/consent/details`
+3. Submit decision to `POST /oauth/consent/submit`
+
+## Step 1: Initialize consent
+
+```ts
+const redirect = `${frontendApiBase}/oauth/consent/init?handoff_id=${encodeURIComponent(handoffId)}`;
+window.location.assign(redirect);
+```
+
+## Step 2: Load consent details
+
+```ts
+const detailsRes = await fetch(`${frontendApiBase}/oauth/consent/details`, {
+  method: "GET",
+  credentials: "include",
+});
+
+if (!detailsRes.ok) throw new Error("Failed to load consent details");
+
+const details = await detailsRes.json();
+// details.data includes: client_name, scopes, scope_definitions, resource_options, csrf_token, expires_at
+```
+
+## Step 3: Submit approve or deny
+
+```ts
+await fetch(`${frontendApiBase}/oauth/consent/submit`, {
+  method: "POST",
+  credentials: "include",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    action: "approve", // or "deny"
+    resource: "urn:wacht:workspace:123", // required when approving
+    csrf_token: details.data.csrf_token,
+  }),
+});
+```
+
+## UX requirements for production
+
+1. Show human-readable scope descriptions (`scope_definitions`).
+2. Always show target resource and app/client identity.
+3. Handle consent expiry (`expires_at`) with retry path.
+4. Require explicit action for destructive scopes.
+
+## Security requirements
+
+1. Use cookie session auth (`credentials: include`) for consent endpoints.
+2. Enforce CSRF token usage on submit.
+3. Do not auto-approve hidden scopes.
+4. Log user, client, scopes, resource, and decision.
+
+## Related references
+
+1. [Frontend OAuth Consent API Reference](/frontend-api/oauth-consent)
+2. [Verify Tokens and Operate OAuth Clients](/guides/oauth-apps/verify-access-tokens-and-operate-clients)

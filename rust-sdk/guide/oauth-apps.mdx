@@ -1,0 +1,111 @@
+---
+title: 'OAuth Apps'
+description: 'Create and manage OAuth apps, clients, scopes, and grants in the Rust SDK'
+---
+
+# OAuth Apps Guide
+
+Use `client.oauth()` for deployment-scoped OAuth app and client management.
+
+## Create OAuth app
+
+```rust
+use wacht::models::CreateOAuthAppRequest;
+
+let app = client.oauth()
+    .create_oauth_app(
+        "dep_123",
+        CreateOAuthAppRequest {
+            slug: "mcp-auth".to_string(),
+            name: "MCP Auth App".to_string(),
+            description: Some("OAuth provider for MCP access".to_string()),
+            fqdn: Some("auth.example.com".to_string()),
+            supported_scopes: Some(vec!["mcp:invoke".to_string()]),
+            scope_definitions: None,
+            allow_dynamic_client_registration: Some(false),
+            logo_file: None,
+            logo_filename: None,
+        },
+    )
+    .send()
+    .await?;
+```
+
+## Create OAuth client
+
+```rust
+use wacht::models::CreateOAuthClientRequest;
+
+let oauth_client = client.oauth()
+    .create_oauth_client(
+        "dep_123",
+        "mcp-auth",
+        CreateOAuthClientRequest {
+            client_auth_method: "client_secret_basic".to_string(),
+            grant_types: vec!["authorization_code".to_string(), "refresh_token".to_string()],
+            redirect_uris: vec!["https://app.example.com/oauth/callback".to_string()],
+            token_endpoint_auth_signing_alg: None,
+            jwks_uri: None,
+            jwks: None,
+            public_key_pem: None,
+        },
+    )
+    .send()
+    .await?;
+```
+
+## Rotate secret
+
+```rust
+let rotated = client.oauth()
+    .rotate_oauth_client_secret("dep_123", "mcp-auth", &oauth_client.id)
+    .send()
+    .await?;
+
+println!("new secret: {}", rotated.client_secret);
+```
+
+## Scope and grant operations
+
+```rust
+use wacht::models::{SetOAuthScopeMappingRequest, UpdateOAuthScopeRequest};
+
+client.oauth()
+    .update_oauth_scope(
+        "dep_123",
+        "mcp-auth",
+        "mcp:invoke",
+        UpdateOAuthScopeRequest {
+            display_name: Some("Invoke MCP Tools".to_string()),
+            description: Some("Allows MCP tool execution".to_string()),
+        },
+    )
+    .send()
+    .await?;
+
+client.oauth()
+    .set_oauth_scope_mapping(
+        "dep_123",
+        "mcp-auth",
+        "mcp:invoke",
+        SetOAuthScopeMappingRequest {
+            category: "workspace".to_string(),
+            organization_permission: None,
+            workspace_permission: Some("workspace:mcp:invoke".to_string()),
+        },
+    )
+    .send()
+    .await?;
+
+let grants = client.oauth()
+    .list_oauth_grants("dep_123", "mcp-auth", &oauth_client.id)
+    .send()
+    .await?;
+
+if let Some(first) = grants.first() {
+    client.oauth()
+        .revoke_oauth_grant("dep_123", "mcp-auth", &oauth_client.id, &first.id)
+        .send()
+        .await?;
+}
+```

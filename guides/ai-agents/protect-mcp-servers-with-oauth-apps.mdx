@@ -1,0 +1,187 @@
+---
+title: "Protect MCP Servers with OAuth Apps"
+description: "Secure MCP endpoints using OAuth token verification with Wacht Gateway checks."
+---
+
+# Protect MCP Servers with OAuth Apps
+
+If your MCP server is exposed over HTTP, protect it as an OAuth resource server.
+
+The example below shows a production-friendly way to protect your MCP endpoint on Express using `mcp-auth` and the Wacht backend SDK. `mcp-auth` handles resource metadata and bearer middleware, while Wacht gateway checks validate OAuth access tokens for each MCP request.
+
+## OAuth app setup in Console
+
+Before deploying your MCP server, configure OAuth in Console:
+
+1. Create an OAuth app for your integration.
+2. Create an OAuth client for that app.
+3. Add redirect URLs required by your MCP consumer/client.
+4. Define scopes your MCP tools need.
+5. Use the app issuer URL in `WACHT_OAUTH_ISSUER`.
+
+## End-to-end example (Node + Express)
+
+Required env vars:
+
+1. `WACHT_BACKEND_API_KEY`: backend API key for gateway verification.
+2. `WACHT_OAUTH_ISSUER`: issuer URL of your Wacht OAuth app (from your OAuth app setup in Console).
+3. `MCP_RESOURCE`: resource URI your MCP server protects (must match your MCP auth config).
+
+```ts
+import express from "express";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { fetchServerConfig, MCPAuth } from "mcp-auth";
+import { WachtClient } from "@wacht/backend";
+
+const app = express();
+app.use(express.json());
+
+const wacht = new WachtClient({
+  apiKey: process.env.WACHT_BACKEND_API_KEY!,
+  baseUrl: "https://api.wacht.dev",
+});
+
+function createMcpServer() {
+  const server = new McpServer({
+    name: "whoami",
+    version: "1.0.0",
+  });
+
+  server.registerTool(
+    "whoami",
+    {
+      description: "Return current authenticated subject",
+      inputSchema: {},
+    },
+    async (_, { authInfo }) => {
+      if (!authInfo.subject) {
+        return {
+          content: [{ type: "text", text: JSON.stringify({ error: "Not authenticated" }) }],
+        };
+      }
+
+      return {
+        content: [{ type: "text", text: `Hi ${authInfo.subject}` }],
+      };
+    },
+  );
+
+  return server;
+}
+
+async function main() {
+  const oauthIssuer = process.env.WACHT_OAUTH_ISSUER!;
+  const resource = process.env.MCP_RESOURCE!;
+
+  const authServerConfig = await fetchServerConfig(oauthIssuer, { type: "oauth" });
+
+  const mcpAuth = new MCPAuth({
+    protectedResources: {
+      metadata: {
+        resource,
+        authorizationServers: [authServerConfig],
+      },
+    },
+  });
+
+  app.use(mcpAuth.protectedResourceMetadataRouter());
+  app.use(
+    mcpAuth.bearerAuth(
+      async (token) => {
+        const exchange = await wacht.gateway.verifyOauthAccessTokenRequest(
+          token,
+          "POST",
+          "mcp",
+        );
+
+        return {
+          clientId: exchange.headers["x-wacht-oauth-client-id"],
+          token,
+          scopes: exchange.metadata?.scopes || [],
+          resource: exchange.metadata?.oauth_resource,
+          expiresAt: exchange.metadata?.expires_at,
+          issuer: exchange.headers["x-wacht-oauth-issuer"] || oauthIssuer,
+          subject: exchange.headers["x-wacht-granted-resource"],
+        };
+      },
+      { resource },
+    ),
+  );
+
+  app.post("/", async (req, res) => {
+    const server = createMcpServer();
+    const transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: undefined,
+    });
+
+    await server.connect(transport);
+    await transport.handleRequest(req, res, req.body);
+
+    res.on("close", () => {
+      transport.close();
+      server.close();
+    });
+  });
+
+  app.listen(6969);
+}
+
+main();
+```
+
+## Why this is the right verification model
+
+1. You do not need to hand-roll token introspection logic.
+2. Token validity and permissions are evaluated by Wacht gateway checks.
+3. Your MCP tool handlers receive resolved auth context (`authInfo`).
+
+## Rust verification snippet (resource server side)
+
+If your protected resource server is Rust, use the Rust SDK for the same token verification model:
+
+```rust
+use wacht::{WachtClient, WachtConfig};
+use wacht::gateway::{GatewayAuthzOptions, GatewayPrincipalType};
+
+let api_key = std::env::var("WACHT_BACKEND_API_KEY").expect("WACHT_BACKEND_API_KEY is required");
+let frontend_host = std::env::var("WACHT_FRONTEND_HOST").expect("WACHT_FRONTEND_HOST is required");
+let client = WachtClient::new(WachtConfig::new(api_key, frontend_host)).expect("valid Wacht config");
+
+// Simple verification helper
+let _authz = client
+    .gateway()
+    .verify_oauth_access_token_request(access_token, "POST", "mcp")
+    .await?;
+
+// Optional strict verification with required permissions
+let authz_with_perms = client
+    .gateway()
+    .check_authz_with_principal_type(
+        GatewayPrincipalType::OauthAccessToken,
+        access_token,
+        "POST",
+        "mcp",
+        GatewayAuthzOptions {
+            required_permissions: Some(vec!["mcp:invoke".to_string()]),
+            ..Default::default()
+        },
+    )
+    .await?;
+
+if !authz_with_perms.allowed {
+    // Reject request in your framework middleware/handler.
+}
+
+let principal = authz_with_perms.resolve_principal_context();
+let scopes = principal.metadata.scopes;
+let granted_resource = principal.metadata.granted_resource;
+```
+
+## Related references
+
+1. [Node SDK Gateway Authz](/node-sdk/auth/gateway)
+2. [Rust SDK OAuth Apps Guide](/rust-sdk/guide/oauth-apps)
+3. [Backend API Reference](/backend-api/api-keys)
+4. [Backend AI API Reference](/backend-api/agents)
+5. [Frontend OAuth Consent APIs](/frontend-api/oauth-consent)

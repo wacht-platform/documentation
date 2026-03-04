@@ -1,0 +1,105 @@
+---
+title: "Create and Run Agents"
+description: "Set up AI agents from Console or Backend API, then execute them with context-aware messages."
+---
+
+# Create and Run Agents
+
+This page covers the full path from agent creation to first execution.
+
+## Path A: Create agents in Console
+
+In Console, go to AI agents and configure:
+
+1. Agent name and description.
+2. Optional tool and knowledge-base attachments.
+3. Optional access and visibility settings.
+4. Optional MCP server attachments (covered in a separate page).
+
+Use this path when product or operations teams need to update behavior without backend deploys.
+
+## Path B: Create agents in your backend using Node SDK
+
+```ts
+import { WachtClient } from "@wacht/backend";
+
+const client = new WachtClient({
+  apiKey: process.env.WACHT_BACKEND_API_KEY!,
+  baseUrl: "https://api.wacht.dev",
+});
+
+const agent = await client.ai.createAgent({
+  name: "customer_success_assistant",
+  description: "Answers account and billing questions for workspace admins",
+});
+
+console.log("agent_id", agent.id);
+```
+
+## Create a context and execute the agent
+
+Use execution contexts to keep conversation state scoped to a user/session.
+
+```ts
+const ctx = await client.ai.createExecutionContext({
+  title: "Support chat - ws_123",
+  context_group: "workspace:ws_123:user:u_777",
+  system_instructions: "Prioritize security and account ownership checks.",
+});
+
+const execution = await client.ai.executeAgentInContext(ctx.id, {
+  agent_name: "customer_success_assistant",
+  execution_type: {
+    new_message: {
+      message: "List the last 3 failed webhook deliveries and suggest next action.",
+    },
+  },
+});
+
+console.log(execution.status, execution.conversation_id);
+```
+
+## What `context_group` means
+
+`context_group` is the grouping key that decides which execution contexts belong to the same logical conversation scope.
+
+Use a deterministic tenancy-safe format, for example `workspace:<workspaceId>:user:<userId>`.
+
+For full session-type behavior (`static` vs `signin`), see [Run Agents Inside Your App](/guides/ai-agents/run-agents-in-your-app).
+
+## Raw HTTP fallback (non-SDK runtimes)
+
+```bash
+curl -X POST "https://api.wacht.dev/ai/agents" \
+  -H "Authorization: Bearer $WACHT_BACKEND_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "customer_success_assistant",
+    "description": "Answers account and billing questions"
+  }'
+```
+
+Use this only when you cannot use the backend SDK.
+
+```bash
+curl -X POST "https://api.wacht.dev/ai/execution-contexts" \
+  -H "Authorization: Bearer $WACHT_BACKEND_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Support chat - ws_123",
+    "context_group": "workspace:ws_123:user:u_777"
+  }'
+```
+
+## Production pattern
+
+1. Keep one stable `agent_name` per business capability.
+2. Keep one `context_group` strategy that maps to your tenancy model.
+3. Store `agent_id` and context metadata in your own DB for auditability.
+4. Never let frontend clients call `/ai/*` with backend API keys.
+
+## Related references
+
+1. [Backend AI API Reference](/backend-api/agents)
+2. [Node SDK AI API](/node-sdk/api/ai)
+3. [Frontend Agent APIs](/frontend-api/agents)

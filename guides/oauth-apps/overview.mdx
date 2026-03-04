@@ -1,0 +1,40 @@
+---
+title: "OAuth Apps for SaaS"
+description: "End-to-end guide for creating OAuth apps, managing clients, handling consent, and validating tokens with Wacht."
+---
+
+# OAuth Apps for SaaS
+
+Yes, you now have an explicit OAuth Apps guide set.
+
+If your SaaS needs third-party integrations, agent tool auth, or protected MCP resources, OAuth apps should be treated as first-class product infrastructure.
+
+This section covers the full lifecycle:
+
+1. Create OAuth apps and clients.
+2. Configure scopes and consent behavior.
+3. Handle consent screens and approvals.
+4. Verify access tokens in your backend.
+5. Rotate secrets and manage active grants.
+
+## Recommended rollout model
+
+1. Start with Console to define app, clients, and scopes.
+2. Automate app/client lifecycle through SDK OAuth operations.
+3. Use backend verification in your resource server (`verifyOauthAccessTokenRequest` in Node, `verify_oauth_access_token_request` in Rust).
+4. Add operational controls for secret rotation and grant revocation.
+
+## Read in this order
+
+1. [Create OAuth Apps and Clients](/guides/oauth-apps/create-oauth-app-and-clients)
+2. [Implement OAuth Consent Flow](/guides/oauth-apps/implement-consent-flow)
+3. [Verify Tokens and Operate OAuth Clients](/guides/oauth-apps/verify-access-tokens-and-operate-clients)
+
+## Related references
+
+1. [Node SDK OAuth Apps API](/node-sdk/api/oauth)
+2. [Rust SDK OAuth Apps Guide](/rust-sdk/guide/oauth-apps)
+3. [Node SDK Gateway Authz](/node-sdk/auth/gateway)
+4. [Frontend OAuth Consent API Reference](/frontend-api/oauth-consent)
+5. [Backend API Reference](/backend-api/api-keys)
+6. [Protect MCP Servers with OAuth Apps](/guides/ai-agents/protect-mcp-servers-with-oauth-apps)

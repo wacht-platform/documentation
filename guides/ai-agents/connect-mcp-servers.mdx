@@ -1,0 +1,283 @@
+---
+title: "Connect MCP Servers"
+description: "Set up MCP servers, choose the right auth mode, attach them to agents, and handle runtime connection behavior in your app."
+---
+
+# Connect MCP Servers
+
+If this page is useful, you should be able to copy these steps and ship a working MCP integration.
+
+This guide covers the full lifecycle:
+
+1. Create MCP server config in control plane.
+2. Discover auth requirements from the MCP endpoint.
+3. Save auth config correctly.
+4. Attach server to one or more agents.
+5. Connect/disconnect at runtime from the user session.
+
+## The core MCP server contract
+
+The MCP server config shape used by Console and backend APIs is:
+
+```json
+{
+  "name": "crm-mcp",
+  "config": {
+    "endpoint": "https://mcp.example.com/mcp",
+    "auth": {
+      "type": "oauth_client_credentials",
+      "client_id": "...",
+      "client_secret": "...",
+      "token_url": "https://auth.example.com/oauth/token",
+      "scopes": ["crm:read", "crm:write"]
+    }
+  }
+}
+```
+
+Use `config.endpoint` (not `server_url`) and keep auth nested under `config.auth`.
+
+## Step 1: Discover auth before saving config
+
+Do this first for unknown endpoints.
+
+```ts
+import { WachtClient } from "@wacht/backend";
+
+const client = new WachtClient({
+  apiKey: process.env.WACHT_BACKEND_API_KEY!,
+});
+
+const discovery = await client.post("/ai/mcp-servers/discover", {
+  endpoint: "https://mcp.example.com/mcp",
+});
+```
+
+Use the response fields to prefill auth UI safely:
+
+1. `requires_auth`
+2. `recommended_auth_mode`
+3. `token_url`
+4. `auth_url`
+5. `register_url`
+6. `resource`
+7. `scopes`
+
+This is exactly how your Console MCP dialog behaves before final submit.
+
+Discovery response also includes:
+
+1. `token_endpoint_auth_methods_supported`
+2. `authorization_servers`
+3. `resource_metadata_url`
+
+## Step 1.5: Backend auto-discovery and config hydration
+
+Yes, backend create/update can auto-discover and hydrate missing OAuth MCP auth fields.
+
+When you create an MCP server, backend can fill missing:
+
+1. `auth_url`
+2. `token_url`
+3. `register_url`
+4. `resource`
+5. `scopes`
+
+This is based on MCP/OAuth metadata discovered from the endpoint (`WWW-Authenticate` + resource metadata + OAuth AS metadata).
+
+## Step 2: Create MCP server (with correct auth mode)
+
+### Option A: Token auth
+
+```ts
+const tokenServer = await client.post("/ai/mcp-servers", {
+  name: "crm-mcp",
+  config: {
+    endpoint: "https://mcp.example.com/mcp",
+    auth: {
+      type: "token",
+      auth_token: process.env.MCP_AUTH_TOKEN!,
+    },
+  },
+});
+```
+
+### Option B: OAuth client credentials
+
+```ts
+const oauthClientCredentialsServer = await client.post("/ai/mcp-servers", {
+  name: "crm-mcp",
+  config: {
+    endpoint: "https://mcp.example.com/mcp",
+    auth: {
+      type: "oauth_client_credentials",
+      client_id: process.env.MCP_CLIENT_ID!,
+      client_secret: process.env.MCP_CLIENT_SECRET!,
+      token_url: "https://auth.example.com/oauth/token",
+      scopes: ["crm:read", "crm:write"],
+    },
+  },
+});
+```
+
+### Option C: OAuth authorization code (public PKCE)
+
+```ts
+const publicPkceServer = await client.post("/ai/mcp-servers", {
+  name: "crm-mcp",
+  config: {
+    endpoint: "https://mcp.example.com/mcp",
+    auth: {
+      type: "oauth_authorization_code_public_pkce",
+      client_id: "public-client-id",
+      auth_url: "https://auth.example.com/oauth/authorize",
+      token_url: "https://auth.example.com/oauth/token",
+      register_url: "https://auth.example.com/oauth/register",
+      scopes: ["crm:read"],
+      resource: "urn:example:workspace:123",
+    },
+  },
+});
+```
+
+If `client_id` is omitted, backend can auto-register a public client through DCR (dynamic client registration), using discovered `register_url`.
+
+### Option D: OAuth authorization code (confidential PKCE)
+
+```ts
+const confidentialPkceServer = await client.post("/ai/mcp-servers", {
+  name: "crm-mcp",
+  config: {
+    endpoint: "https://mcp.example.com/mcp",
+    auth: {
+      type: "oauth_authorization_code_confidential_pkce",
+      client_id: process.env.MCP_CLIENT_ID!,
+      client_secret: process.env.MCP_CLIENT_SECRET!,
+      auth_url: "https://auth.example.com/oauth/authorize",
+      token_url: "https://auth.example.com/oauth/token",
+      scopes: ["crm:read", "crm:write"],
+      resource: "urn:example:workspace:123",
+    },
+  },
+});
+```
+
+If `client_id`/`client_secret` are omitted, backend can auto-register a confidential client through DCR and persist returned credentials.
+
+## Step 2.5: DCR-first create flows (recommended when provider supports registration)
+
+DCR registrations use this redirect URI:
+
+`https://agentlink.wacht.services/service/mcp/consent/callback`
+
+Ensure your MCP OAuth provider allows this redirect URI.
+
+### Public PKCE with DCR
+
+Send only endpoint + auth type (optionally scopes/resource). Backend discovers metadata and registers client when possible.
+
+```ts
+const created = await client.post("/ai/mcp-servers", {
+  name: "crm-mcp",
+  config: {
+    endpoint: "https://mcp.example.com/mcp",
+    auth: {
+      type: "oauth_authorization_code_public_pkce",
+      scopes: ["crm:read"],
+      resource: "urn:example:workspace:123",
+    },
+  },
+});
+```
+
+### Confidential PKCE with DCR
+
+Same flow, but backend attempts registration methods supported by provider and stores generated `client_id` + `client_secret`.
+
+Method preference is driven by provider metadata and falls back across:
+
+1. `client_secret_basic`
+2. `client_secret_post`
+3. `none`
+
+```ts
+const created = await client.post("/ai/mcp-servers", {
+  name: "crm-mcp",
+  config: {
+    endpoint: "https://mcp.example.com/mcp",
+    auth: {
+      type: "oauth_authorization_code_confidential_pkce",
+      scopes: ["crm:read", "crm:write"],
+      resource: "urn:example:workspace:123",
+    },
+  },
+});
+```
+
+### Read backend discovery hints from create response
+
+Create responses include a `discovery_result` object you can log/show in your admin UX:
+
+```ts
+console.log(created.discovery_result);
+// { requires_auth, recommended_auth_mode, token_url, auth_url, register_url, ... }
+```
+
+If provider does not expose registration support, send explicit client credentials in config instead of DCR.
+
+## Step 3: Attach MCP server to agent
+
+```ts
+await client.post(`/ai/agents/${agentId}/mcp-servers/${mcpServerId}`);
+```
+
+Detach when needed:
+
+```ts
+await client.delete(`/ai/agents/${agentId}/mcp-servers/${mcpServerId}`);
+```
+
+## Step 4: Runtime connect/disconnect in user session
+
+Attach is control-plane. Connect/disconnect is runtime-plane per active agent session.
+
+```tsx
+import { useAgentMcpServers } from "@wacht/react-router";
+
+export function McpRuntimePanel({ agentName }: { agentName: string }) {
+  const { mcpServers, connect, disconnect } = useAgentMcpServers(agentName);
+
+  return (
+    <div className="space-y-3">
+      {mcpServers.map((server) => (
+        <div key={server.id} className="flex items-center gap-2">
+          <span>{server.name}</span>
+          <button onClick={() => connect(server.id)}>Connect</button>
+          <button onClick={() => disconnect(server.id)}>Disconnect</button>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+Runtime connection is already handled by `useAgentMcpServers` hooks.
+
+Control-plane setup is already handled by the backend SDK examples above.
+
+## Troubleshooting that actually matters
+
+1. `401/403` on connect: verify session ticket scope includes the target agent.
+2. `connect` succeeds but tools fail: auth mode mismatch (`token` vs OAuth) or wrong scopes.
+3. OAuth mode loops: wrong `resource`, `auth_url`, or redirect registration.
+4. Intermittent failures: check endpoint timeout/retry settings on MCP provider side.
+5. Only some tenants fail: compare per-tenant scope mapping and OAuth app/client config.
+6. DCR fails on create: provider may not expose `registration_endpoint`/`register_url`; provide `client_id`/`client_secret` manually.
+
+## Related references
+
+1. [Backend AI API Reference](/backend-api/agents)
+2. [Frontend Agent APIs](/frontend-api/agents)
+3. [React Router `useAgentMcpServers`](/react-router-sdk/hooks/use-agent-mcp-servers)
+4. [OAuth Apps for SaaS](/guides/oauth-apps/overview)
+5. [Protect MCP Servers with OAuth Apps](/guides/ai-agents/protect-mcp-servers-with-oauth-apps)

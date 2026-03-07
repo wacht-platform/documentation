@@ -178,6 +178,21 @@ println!("Recent sign-ins: {}", recent.signups.len());
 <ParamField path="workspaces_created_change" type="Option<f64>">
   Percentage change from previous period.
 </ParamField>
+<ParamField path="daily_metrics" type="Vec<DailyAuthMetric>">
+  Day-wise sign-in and sign-up metrics for the selected period.
+</ParamField>
+
+### DailyAuthMetric Fields
+
+<ParamField path="day" type="String">
+  Day bucket in YYYY-MM-DD format.
+</ParamField>
+<ParamField path="signins" type="i64">
+  Unique sign-ins count for this day.
+</ParamField>
+<ParamField path="signups" type="i64">
+  Sign-ups count for this day.
+</ParamField>
 
 ### RecentSignup Fields
 

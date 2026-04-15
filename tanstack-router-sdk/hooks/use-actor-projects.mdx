@@ -1,0 +1,72 @@
+---
+title: useActorProjects
+description: List and mutate actor-scoped projects from the frontend AI runtime.
+---
+
+# useActorProjects
+
+The `useActorProjects` hook works against the current frontend AI runtime actor from `GET /ai/session`.
+
+It loads projects from:
+
+- `GET /ai/projects`
+
+And exposes project mutations through:
+
+- `POST /ai/projects`
+- `POST /ai/projects/:project_id/update`
+- `POST /ai/projects/:project_id/archive`
+- `POST /ai/projects/:project_id/unarchive`
+
+## Return shape
+
+- `projects`
+- `loading`
+- `error`
+- `createProject(request)`
+- `updateProject(projectId, request)`
+- `archiveProject(projectId)`
+- `unarchiveProject(projectId)`
+- `refetch()`
+
+## Options
+
+- `includeArchived?: boolean`
+- `enabled?: boolean`
+
+## Example
+
+```tsx
+import { useActorProjects } from "@wacht/tanstack-router";
+
+export function ProjectList() {
+  const { projects, loading, createProject } = useActorProjects();
+
+  if (loading) return <div>Loading projects...</div>;
+
+  return (
+    <div>
+      <button
+        onClick={() => createProject({
+          name: "Launch workspace",
+          agent_id: "123",
+        })}
+      >
+        Create project
+      </button>
+
+      <ul>
+        {projects.map((project) => (
+          <li key={project.id}>{project.name}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+## Related hooks
+
+- `useAgentSession`
+- `useProjectThreadFeed`
+- `useProjectTaskBoardItem`

@@ -1,1450 +1,1605 @@
 openapi: 3.0.3
 info:
-  title: Wacht Frontend API - Agents
-  description: AI agent context and execution endpoints for the Wacht Frontend API
+  title: Wacht Frontend API - AI Runtime
+  description: Session-scoped AI runtime routes exposed from the frontend API.
   version: 1.0.0
 servers:
 - url: https://api.wacht.dev
   description: Production server
-
+security:
+- cookieAuth: []
 tags:
-- name: Agent Session
-  description: Agent session management
-- name: Agent Contexts
-  description: Agent conversation contexts
-- name: Agent Integrations
-  description: Third-party integrations for agents
-- name: Agent Execution
-  description: Agent execution and messaging
-
+- name: AI Runtime
+  description: Session-scoped actor projects, board items, threads, MCP connections,
+    and runtime execution.
 paths:
-  /agent/session:
+  /ai/session:
     get:
       tags:
-      - Agent Session
-      summary: Get agent session
-      description: Retrieve the current active agent session
-      security:
-      - cookieAuth: []
+      - AI Runtime
+      summary: Get AI session
       responses:
         '200':
-          description: Agent session retrieved successfully
+          description: Active AI session
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 200
-                  message:
-                    type: string
-                    description: Response message (empty on success)
-                    example: ''
-                  data:
-                    $ref: '#/components/schemas/AgentSession'
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    nullable: true
-                    description: Error details (null on success)
+                $ref: '#/components/schemas/FrontendAgentSessionResponse'
         '401':
-          description: Unauthorized - No active agent session
-
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 401
-                  message:
-                    type: string
-                    description: Unauthorized - No active agent session
-                  data:
-                    nullable: true
-                    description: Additional error context (may be null)
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    description: Structured error details
-  /agent/contexts:
+          $ref: '#/components/responses/FrontendError'
+  /ai/projects:
     get:
       tags:
-      - Agent Contexts
-      summary: List agent contexts
-      description: Retrieve a paginated list of agent conversation contexts
-      security:
-      - cookieAuth: []
+      - AI Runtime
+      summary: List actor projects
       parameters:
-      - name: limit
-        in: query
-        description: Maximum number of contexts to return
-        schema:
-          type: integer
-          default: 10
-          minimum: 1
-          maximum: 100
-      - name: offset
-        in: query
-        description: Number of contexts to skip
-        schema:
-          type: integer
-          default: 0
-          minimum: 0
-      - name: status
-        in: query
-        description: Filter by status
-        schema:
-          type: string
-          enum: [active, archived, all]
-      - name: search
-        in: query
-        description: Search term for context titles
-        schema:
-          type: string
+      - $ref: '#/components/parameters/IncludeArchived'
       responses:
         '200':
-          description: Contexts retrieved successfully
+          description: Actor projects
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 200
-                  message:
-                    type: string
-                    description: Response message (empty on success)
-                    example: ''
-                  data:
-                    $ref: '#/components/schemas/ListContextsResponse'
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    nullable: true
-                    description: Error details (null on success)
-        '401':
-          description: Unauthorized - No active agent session
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 401
-                  message:
-                    type: string
-                    description: Unauthorized - No active agent session
-                  data:
-                    nullable: true
-                    description: Additional error context (may be null)
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    description: Structured error details
+                $ref: '#/components/schemas/FrontendActorProjectsListResponse'
     post:
       tags:
-      - Agent Contexts
-      summary: Create agent context
-      description: Create a new agent conversation context
-      security:
-      - cookieAuth: []
-      requestBody:
-        required: true
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              required:
-              - title
-              properties:
-                title:
-                  type: string
-                  description: Context title
-                  example: "Customer Support Conversation"
-                system_instructions:
-                  type: string
-                  description: Optional system instructions for the agent
-                  example: "You are a helpful customer support assistant."
-      responses:
-        '200':
-          description: Context created successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 200
-                  message:
-                    type: string
-                    description: Response message (empty on success)
-                    example: ''
-                  data:
-                    $ref: '#/components/schemas/AgentContext'
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    nullable: true
-                    description: Error details (null on success)
-        '400':
-          description: Bad request - Missing title
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 400
-                  message:
-                    type: string
-                    description: Bad request - Missing title
-                  data:
-                    nullable: true
-                    description: Additional error context (may be null)
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    description: Structured error details
-        '401':
-          description: Unauthorized - No active agent session
-
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 401
-                  message:
-                    type: string
-                    description: Unauthorized - No active agent session
-                  data:
-                    nullable: true
-                    description: Additional error context (may be null)
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    description: Structured error details
-  /agent/contexts/{id}:
-    get:
-      tags:
-      - Agent Contexts
-      summary: Get agent context
-      description: Retrieve a specific agent context
-      security:
-      - cookieAuth: []
-      parameters:
-      - $ref: '#/components/parameters/ContextId'
-      responses:
-        '200':
-          description: Context retrieved successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 200
-                  message:
-                    type: string
-                    description: Response message (empty on success)
-                    example: ''
-                  data:
-                    $ref: '#/components/schemas/AgentContext'
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    nullable: true
-                    description: Error details (null on success)
-        '401':
-          description: Unauthorized - No active agent session
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 401
-                  message:
-                    type: string
-                    description: Unauthorized - No active agent session
-                  data:
-                    nullable: true
-                    description: Additional error context (may be null)
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    description: Structured error details
-        '404':
-          description: Context not found
-
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 404
-                  message:
-                    type: string
-                    description: Context not found
-                  data:
-                    nullable: true
-                    description: Additional error context (may be null)
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    description: Structured error details
-  /agent/contexts/{id}/update:
-    post:
-      tags:
-      - Agent Contexts
-      summary: Update agent context
-      description: Update an agent context's title
-      security:
-      - cookieAuth: []
-      parameters:
-      - $ref: '#/components/parameters/ContextId'
-      requestBody:
-        required: true
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              required:
-              - title
-              properties:
-                title:
-                  type: string
-                  description: New context title
-                  example: "Updated Conversation Title"
-      responses:
-        '200':
-          description: Context updated successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 200
-                  message:
-                    type: string
-                    description: Response message (empty on success)
-                    example: ''
-                  data:
-                    type: object
-                    additionalProperties: true
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    nullable: true
-                    description: Error details (null on success)
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 400
-                  message:
-                    type: string
-                    description: Bad request
-                  data:
-                    nullable: true
-                    description: Additional error context (may be null)
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    description: Structured error details
-        '401':
-          description: Unauthorized - No active agent session
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 401
-                  message:
-                    type: string
-                    description: Unauthorized - No active agent session
-                  data:
-                    nullable: true
-                    description: Additional error context (may be null)
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    description: Structured error details
-        '404':
-          description: Context not found
-
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 404
-                  message:
-                    type: string
-                    description: Context not found
-                  data:
-                    nullable: true
-                    description: Additional error context (may be null)
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    description: Structured error details
-  /agent/contexts/{id}/delete:
-    post:
-      tags:
-      - Agent Contexts
-      summary: Delete agent context
-      description: Delete an agent context and all its messages
-      security:
-      - cookieAuth: []
-      parameters:
-      - $ref: '#/components/parameters/ContextId'
-      responses:
-        '204':
-          description: Context deleted successfully
-        '401':
-          description: Unauthorized - No active agent session
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 401
-                  message:
-                    type: string
-                    description: Unauthorized - No active agent session
-                  data:
-                    nullable: true
-                    description: Additional error context (may be null)
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    description: Structured error details
-        '404':
-          description: Context not found
-
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 404
-                  message:
-                    type: string
-                    description: Context not found
-                  data:
-                    nullable: true
-                    description: Additional error context (may be null)
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    description: Structured error details
-  /agent/contexts/{id}/messages:
-    get:
-      tags:
-      - Agent Contexts
-      summary: Get context messages
-      description: Retrieve all messages in a conversation context
-      security:
-      - cookieAuth: []
-      parameters:
-      - $ref: '#/components/parameters/ContextId'
-      - name: limit
-        in: query
-        description: Maximum number of messages to return
-        schema:
-          type: integer
-          default: 50
-          minimum: 1
-          maximum: 200
-      - name: offset
-        in: query
-        description: Number of messages to skip
-        schema:
-          type: integer
-          default: 0
-          minimum: 0
-      responses:
-        '200':
-          description: Messages retrieved successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 200
-                  message:
-                    type: string
-                    description: Response message (empty on success)
-                    example: ''
-                  data:
-                    $ref: '#/components/schemas/ListMessagesResponse'
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    nullable: true
-                    description: Error details (null on success)
-        '401':
-          description: Unauthorized - No active agent session
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 401
-                  message:
-                    type: string
-                    description: Unauthorized - No active agent session
-                  data:
-                    nullable: true
-                    description: Additional error context (may be null)
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    description: Structured error details
-        '404':
-          description: Context not found
-
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 404
-                  message:
-                    type: string
-                    description: Context not found
-                  data:
-                    nullable: true
-                    description: Additional error context (may be null)
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    description: Structured error details
-  /agent/contexts/{context_id}/files/{filename}:
-    get:
-      tags:
-      - Agent Contexts
-      summary: Serve context file
-      description: Download a file attached to a message in the context
-      security:
-      - cookieAuth: []
-      parameters:
-      - name: context_id
-        in: path
-        required: true
-        description: Context ID
-        schema:
-          type: string
-          format: uint64
-      - name: filename
-        in: path
-        required: true
-        description: File name
-        schema:
-          type: string
-      responses:
-        '200':
-          description: File content
-          content:
-            application/octet-stream:
-              schema:
-                type: string
-                format: binary
-        '401':
-          description: Unauthorized - No active agent session
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 401
-                  message:
-                    type: string
-                    description: Unauthorized - No active agent session
-                  data:
-                    nullable: true
-                    description: Additional error context (may be null)
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    description: Structured error details
-        '404':
-          description: Context or file not found
-
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 404
-                  message:
-                    type: string
-                    description: Context or file not found
-                  data:
-                    nullable: true
-                    description: Additional error context (may be null)
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    description: Structured error details
-  /agent/contexts/{id}/execute:
-    post:
-      tags:
-      - Agent Execution
-      summary: Execute agent
-      description: Execute the agent with a new message in the context
-      security:
-      - cookieAuth: []
-      parameters:
-      - $ref: '#/components/parameters/ContextId'
+      - AI Runtime
+      summary: Create actor project
       requestBody:
         required: true
         content:
           multipart/form-data:
             schema:
-              type: object
-              required:
-              - message
-              properties:
-                message:
-                  type: string
-                  description: User message to send to the agent
-                  example: "Hello, can you help me?"
-                files:
-                  type: array
-                  items:
-                    type: string
-                    format: binary
-                  description: Optional file attachments
+              $ref: '#/components/schemas/CreateActorProjectRequest'
       responses:
         '200':
-          description: Agent response
+          description: Created project
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 200
-                  message:
-                    type: string
-                    description: Response message (empty on success)
-                    example: ''
-                  data:
-                    $ref: '#/components/schemas/AgentExecutionResponse'
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    nullable: true
-                    description: Error details (null on success)
-        '400':
-          description: Bad request - Missing message
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 400
-                  message:
-                    type: string
-                    description: Bad request - Missing message
-                  data:
-                    nullable: true
-                    description: Additional error context (may be null)
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    description: Structured error details
-        '401':
-          description: Unauthorized - No active agent session
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 401
-                  message:
-                    type: string
-                    description: Unauthorized - No active agent session
-                  data:
-                    nullable: true
-                    description: Additional error context (may be null)
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    description: Structured error details
-        '404':
-          description: Context not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 404
-                  message:
-                    type: string
-                    description: Context not found
-                  data:
-                    nullable: true
-                    description: Additional error context (may be null)
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    description: Structured error details
-        '503':
-          description: Service unavailable - Agent integration not configured
-
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 503
-                  message:
-                    type: string
-                    description: Service unavailable - Agent integration not configured
-                  data:
-                    nullable: true
-                    description: Additional error context (may be null)
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    description: Structured error details
-  /agent/integrations:
+                $ref: '#/components/schemas/FrontendActorProjectResponse'
+  /ai/projects/search:
     get:
       tags:
-      - Agent Integrations
-      summary: Get active integrations
-      description: Retrieve all active integrations for the current agent session
-      security:
-      - cookieAuth: []
-      responses:
-        '200':
-          description: Integrations retrieved successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 200
-                  message:
-                    type: string
-                    description: Response message (empty on success)
-                    example: ''
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/AgentIntegration'
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    nullable: true
-                    description: Error details (null on success)
-        '401':
-          description: Unauthorized - No active agent session
-
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 401
-                  message:
-                    type: string
-                    description: Unauthorized - No active agent session
-                  data:
-                    nullable: true
-                    description: Additional error context (may be null)
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    description: Structured error details
-  /agent/integrations/{integration_id}/remove:
-    post:
-      tags:
-      - Agent Integrations
-      summary: Remove integration
-      description: Remove an integration from the current agent session
-      security:
-      - cookieAuth: []
+      - AI Runtime
+      summary: Search actor projects
       parameters:
-      - name: integration_id
-        in: path
-        required: true
-        description: Integration ID
-        schema:
-          type: string
-          format: int64
+      - $ref: '#/components/parameters/Q'
+      - $ref: '#/components/parameters/Limit'
+      - $ref: '#/components/parameters/Cursor'
       responses:
         '200':
-          description: Integration removed successfully
-        '401':
-          description: Unauthorized - No active agent session
+          description: Project page
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 401
-                  message:
-                    type: string
-                    description: Unauthorized - No active agent session
-                  data:
-                    nullable: true
-                    description: Additional error context (may be null)
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    description: Structured error details
+                $ref: '#/components/schemas/FrontendActorProjectsPageResponse'
+  /ai/projects/{project_id}:
+    get:
+      tags:
+      - AI Runtime
+      summary: Get actor project
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '200':
+          description: Project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FrontendActorProjectResponse'
         '404':
-          description: Integration not found
-
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 404
-                  message:
-                    type: string
-                    description: Integration not found
-                  data:
-                    nullable: true
-                    description: Additional error context (may be null)
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    description: Structured error details
-  /agent/integrations/{integration_id}/consent-url:
+          $ref: '#/components/responses/FrontendError'
+  /ai/projects/{project_id}/update:
     post:
       tags:
-      - Agent Integrations
-      summary: Generate consent URL
-      description: Generate a URL for user to grant consent to an integration
-      security:
-      - cookieAuth: []
+      - AI Runtime
+      summary: Update actor project
       parameters:
-      - name: integration_id
-        in: path
-        required: true
-        description: Integration ID
-        schema:
-          type: string
-          format: int64
+      - $ref: '#/components/parameters/ProjectId'
       requestBody:
         required: true
         content:
-          application/x-www-form-urlencoded:
+          multipart/form-data:
             schema:
-              type: object
-              required:
-              - redirect_url
-              properties:
-                redirect_url:
-                  type: string
-                  format: uri
-                  description: URL to redirect to after consent
-                  example: "https://app.example.com/integrations/success"
+              $ref: '#/components/schemas/UpdateActorProjectRequest'
       responses:
         '200':
-          description: Consent URL generated
+          description: Updated project
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 200
-                  message:
-                    type: string
-                    description: Response message (empty on success)
-                    example: ''
-                  data:
-                    type: object
-                    properties:
-                      consent_url:
-                        type: string
-                        format: uri
-                        description: URL for user to grant consent
-                        example: "https://provider.com/oauth/authorize?..."
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    nullable: true
-                    description: Error details (null on success)
-        '401':
-          description: Unauthorized - No active agent session
+                $ref: '#/components/schemas/FrontendActorProjectResponse'
+  /ai/projects/{project_id}/archive:
+    post:
+      tags:
+      - AI Runtime
+      summary: Archive actor project
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '200':
+          description: Archived project
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 401
-                  message:
-                    type: string
-                    description: Unauthorized - No active agent session
-                  data:
-                    nullable: true
-                    description: Additional error context (may be null)
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    description: Structured error details
-        '404':
-          description: Integration not found
-
+                $ref: '#/components/schemas/FrontendActorProjectResponse'
+  /ai/projects/{project_id}/unarchive:
+    post:
+      tags:
+      - AI Runtime
+      summary: Unarchive actor project
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '200':
+          description: Unarchived project
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 404
-                  message:
-                    type: string
-                    description: Integration not found
-                  data:
-                    nullable: true
-                    description: Additional error context (may be null)
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    description: Structured error details
-  /agent/mcp-servers:
+                $ref: '#/components/schemas/FrontendActorProjectResponse'
+  /ai/projects/{project_id}/board:
     get:
       tags:
-      - Agent Integrations
-      summary: List MCP servers
-      description: Retrieve all configured MCP servers for the current agent session
-      security:
-      - cookieAuth: []
+      - AI Runtime
+      summary: Get project board
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
       responses:
         '200':
-          description: MCP servers retrieved successfully
+          description: Project board
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 200
-                  message:
-                    type: string
-                    description: Response message (empty on success)
-                    example: ''
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/McpServer'
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    nullable: true
-                    description: Error details (null on success)
-        '401':
-          description: Unauthorized
-
+                $ref: '#/components/schemas/FrontendProjectTaskBoardResponse'
+  /ai/projects/{project_id}/board/items:
+    get:
+      tags:
+      - AI Runtime
+      summary: List project board items
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/Statuses'
+      - $ref: '#/components/parameters/IncludeArchived'
+      - $ref: '#/components/parameters/ArchivedOnly'
+      - $ref: '#/components/parameters/Limit'
+      - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Board item page
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 401
-                  message:
-                    type: string
-                    description: Unauthorized
-                  data:
-                    nullable: true
-                    description: Additional error context (may be null)
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    description: Structured error details
-  /agent/mcp-servers/{id}/connect:
+                $ref: '#/components/schemas/FrontendBoardItemsPageResponse'
     post:
       tags:
-      - Agent Integrations
-      summary: Connect to MCP server
-      description: Connect to a specific MCP server
-      security:
-      - cookieAuth: []
+      - AI Runtime
+      summary: Create project board item
       parameters:
-      - name: id
-        in: path
+      - $ref: '#/components/parameters/ProjectId'
+      requestBody:
         required: true
-        description: MCP server ID
-        schema:
-          type: string
-          format: uint64
+        content:
+          multipart/form-data:
+            schema:
+              allOf:
+              - $ref: '#/components/schemas/CreateProjectTaskBoardItemRequest'
+              - type: object
+                properties:
+                  files:
+                    type: array
+                    items:
+                      type: string
+                      format: binary
       responses:
         '200':
-          description: Connected successfully
-        '401':
-          description: Unauthorized
+          description: Created board item
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 401
-                  message:
-                    type: string
-                    description: Unauthorized
-                  data:
-                    nullable: true
-                    description: Additional error context (may be null)
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    description: Structured error details
-        '404':
-          description: MCP server not found
-
+                $ref: '#/components/schemas/FrontendBoardItemResponse'
+  /ai/projects/{project_id}/board/items/{item_id}:
+    get:
+      tags:
+      - AI Runtime
+      summary: Get project board item
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/ItemId'
+      - $ref: '#/components/parameters/IncludeArchived'
+      responses:
+        '200':
+          description: Board item
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 404
-                  message:
-                    type: string
-                    description: MCP server not found
-                  data:
-                    nullable: true
-                    description: Additional error context (may be null)
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    description: Structured error details
-  /agent/mcp-servers/{id}/disconnect:
+                $ref: '#/components/schemas/FrontendBoardItemResponse'
+  /ai/projects/{project_id}/board/items/{item_id}/events:
+    get:
+      tags:
+      - AI Runtime
+      summary: List board item events
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/ItemId'
+      - $ref: '#/components/parameters/IncludeArchived'
+      - $ref: '#/components/parameters/Limit'
+      - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Board item event page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FrontendBoardItemEventsResponse'
+  /ai/projects/{project_id}/board/items/{item_id}/assignments:
+    get:
+      tags:
+      - AI Runtime
+      summary: List board item assignments
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/ItemId'
+      - $ref: '#/components/parameters/IncludeArchived'
+      - $ref: '#/components/parameters/Limit'
+      - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Board item assignment page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FrontendBoardItemAssignmentsResponse'
+  /ai/projects/{project_id}/board/items/{item_id}/filesystem:
+    get:
+      tags:
+      - AI Runtime
+      summary: List board item filesystem
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/ItemId'
+      - $ref: '#/components/parameters/Path'
+      - $ref: '#/components/parameters/IncludeArchived'
+      responses:
+        '200':
+          description: Filesystem listing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FrontendTaskWorkspaceListingResponse'
+  /ai/projects/{project_id}/board/items/{item_id}/filesystem/file:
+    get:
+      tags:
+      - AI Runtime
+      summary: Read board item filesystem file
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/ItemId'
+      - $ref: '#/components/parameters/PathRequired'
+      - $ref: '#/components/parameters/IncludeArchived'
+      responses:
+        '200':
+          description: File content
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FrontendTaskWorkspaceFileContentResponse'
+  /ai/projects/{project_id}/board/items/{item_id}/update:
     post:
       tags:
-      - Agent Integrations
-      summary: Disconnect from MCP server
-      description: Disconnect from a specific MCP server
-      security:
-      - cookieAuth: []
+      - AI Runtime
+      summary: Update board item
       parameters:
-      - name: id
-        in: path
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/ItemId'
+      requestBody:
         required: true
-        description: MCP server ID
-        schema:
-          type: string
-          format: uint64
+        content:
+          multipart/form-data:
+            schema:
+              allOf:
+              - $ref: '#/components/schemas/UpdateProjectTaskBoardItemRequest'
+              - type: object
+                properties:
+                  files:
+                    type: array
+                    items:
+                      type: string
+                      format: binary
       responses:
         '200':
-          description: Disconnected successfully
-        '401':
-          description: Unauthorized
+          description: Updated board item
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 401
-                  message:
-                    type: string
-                    description: Unauthorized
-                  data:
-                    nullable: true
-                    description: Additional error context (may be null)
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    description: Structured error details
-        '404':
-          description: MCP server not found
-
+                $ref: '#/components/schemas/FrontendBoardItemResponse'
+  /ai/projects/{project_id}/board/items/{item_id}/archive:
+    post:
+      tags:
+      - AI Runtime
+      summary: Archive board item
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/ItemId'
+      responses:
+        '200':
+          description: Archived board item
           content:
             application/json:
               schema:
-                type: object
+                $ref: '#/components/schemas/FrontendBoardItemResponse'
+  /ai/projects/{project_id}/board/items/{item_id}/unarchive:
+    post:
+      tags:
+      - AI Runtime
+      summary: Unarchive board item
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/ItemId'
+      responses:
+        '200':
+          description: Unarchived board item
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FrontendBoardItemResponse'
+  /ai/projects/{project_id}/board/items/{item_id}/journal:
+    post:
+      tags:
+      - AI Runtime
+      summary: Append board item journal entry
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/ItemId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              allOf:
+              - $ref: '#/components/schemas/AppendProjectTaskBoardItemJournalRequest'
+              - type: object
                 properties:
-                  status:
-                    type: integer
-                    description: HTTP status code
-                    example: 404
-                  message:
-                    type: string
-                    description: MCP server not found
-                  data:
-                    nullable: true
-                    description: Additional error context (may be null)
-                  session:
-                    $ref: '#/components/schemas/SessionInfo'
-                  errors:
+                  files:
                     type: array
                     items:
-                      $ref: '#/components/schemas/ErrorDetail'
-                    description: Structured error details
+                      type: string
+                      format: binary
+      responses:
+        '200':
+          description: Journal event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FrontendBoardItemEventResponse'
+  /ai/projects/{project_id}/threads:
+    get:
+      tags:
+      - AI Runtime
+      summary: List project threads
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/IncludeArchived'
+      - $ref: '#/components/parameters/ArchivedOnly'
+      - $ref: '#/components/parameters/Q'
+      - $ref: '#/components/parameters/Limit'
+      - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Project thread page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FrontendProjectThreadsPageResponse'
+    post:
+      tags:
+      - AI Runtime
+      summary: Create project thread
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreateAgentThreadRequest'
+      responses:
+        '200':
+          description: Created thread
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FrontendAgentThreadResponse'
+  /ai/threads:
+    post:
+      tags:
+      - AI Runtime
+      summary: Create actor thread in most recent matching project
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreateAgentThreadRequest'
+      responses:
+        '200':
+          description: Created thread
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FrontendAgentThreadResponse'
+  /ai/threads/search:
+    get:
+      tags:
+      - AI Runtime
+      summary: Search actor threads
+      parameters:
+      - $ref: '#/components/parameters/Q'
+      - $ref: '#/components/parameters/Limit'
+      - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Thread page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FrontendProjectThreadsPageResponse'
+  /ai/threads/{thread_id}:
+    get:
+      tags:
+      - AI Runtime
+      summary: Get thread
+      parameters:
+      - $ref: '#/components/parameters/ThreadId'
+      responses:
+        '200':
+          description: Thread
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FrontendAgentThreadResponse'
+  /ai/threads/{thread_id}/update:
+    post:
+      tags:
+      - AI Runtime
+      summary: Update thread
+      parameters:
+      - $ref: '#/components/parameters/ThreadId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UpdateAgentThreadRequest'
+      responses:
+        '200':
+          description: Updated thread
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FrontendAgentThreadResponse'
+  /ai/threads/{thread_id}/archive:
+    post:
+      tags:
+      - AI Runtime
+      summary: Archive thread
+      parameters:
+      - $ref: '#/components/parameters/ThreadId'
+      responses:
+        '200':
+          description: Archived thread
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FrontendAgentThreadResponse'
+  /ai/threads/{thread_id}/unarchive:
+    post:
+      tags:
+      - AI Runtime
+      summary: Unarchive thread
+      parameters:
+      - $ref: '#/components/parameters/ThreadId'
+      responses:
+        '200':
+          description: Unarchived thread
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FrontendAgentThreadResponse'
+  /ai/threads/{thread_id}/events:
+    get:
+      tags:
+      - AI Runtime
+      summary: List thread events
+      parameters:
+      - $ref: '#/components/parameters/ThreadId'
+      - $ref: '#/components/parameters/Limit'
+      - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Thread event page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FrontendThreadEventsResponse'
+  /ai/threads/{thread_id}/assignments:
+    get:
+      tags:
+      - AI Runtime
+      summary: List thread assignments
+      parameters:
+      - $ref: '#/components/parameters/ThreadId'
+      - $ref: '#/components/parameters/Limit'
+      - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Thread assignment page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FrontendThreadAssignmentsResponse'
+  /ai/threads/{thread_id}/task-graphs:
+    get:
+      tags:
+      - AI Runtime
+      summary: List thread task graphs
+      parameters:
+      - $ref: '#/components/parameters/ThreadId'
+      - $ref: '#/components/parameters/Limit'
+      - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Thread task graph page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FrontendThreadTaskGraphsResponse'
+  /ai/threads/{thread_id}/messages:
+    get:
+      tags:
+      - AI Runtime
+      summary: List thread messages
+      parameters:
+      - $ref: '#/components/parameters/ThreadId'
+      - $ref: '#/components/parameters/MessageLimit'
+      - $ref: '#/components/parameters/BeforeId'
+      - $ref: '#/components/parameters/AfterId'
+      responses:
+        '200':
+          description: Messages page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FrontendThreadMessagesResponse'
+  /ai/threads/{thread_id}/filesystem:
+    get:
+      tags:
+      - AI Runtime
+      summary: List thread filesystem
+      parameters:
+      - $ref: '#/components/parameters/ThreadId'
+      - $ref: '#/components/parameters/Path'
+      responses:
+        '200':
+          description: Filesystem listing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FrontendTaskWorkspaceListingResponse'
+  /ai/threads/{thread_id}/filesystem/file:
+    get:
+      tags:
+      - AI Runtime
+      summary: Read thread filesystem file
+      parameters:
+      - $ref: '#/components/parameters/ThreadId'
+      - $ref: '#/components/parameters/PathRequired'
+      responses:
+        '200':
+          description: File content
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FrontendTaskWorkspaceFileContentResponse'
+  /ai/threads/{thread_id}/stream:
+    get:
+      tags:
+      - AI Runtime
+      summary: Stream thread events
+      parameters:
+      - $ref: '#/components/parameters/ThreadId'
+      responses:
+        '101':
+          description: WebSocket upgrade accepted
+  /ai/threads/{thread_id}/run:
+    post:
+      tags:
+      - AI Runtime
+      summary: Run thread
+      description: Exactly one execution action must be provided in the multipart
+        form.
+      parameters:
+      - $ref: '#/components/parameters/ThreadId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RunThreadMultipartRequest'
+      responses:
+        '200':
+          description: Execution queued or cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FrontendExecuteAgentResponseEnvelope'
+  /ai/mcp-servers:
+    get:
+      tags:
+      - AI Runtime
+      summary: List actor MCP servers
+      responses:
+        '200':
+          description: Actor MCP servers
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FrontendActorMcpServersResponse'
+  /ai/mcp-servers/{mcp_server_id}/connect:
+    post:
+      tags:
+      - AI Runtime
+      summary: Start actor MCP connection
+      parameters:
+      - $ref: '#/components/parameters/McpServerId'
+      responses:
+        '200':
+          description: MCP connect URL
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FrontendActorMcpConnectResponseEnvelope'
+  /ai/mcp-servers/{mcp_server_id}/disconnect:
+    post:
+      tags:
+      - AI Runtime
+      summary: Disconnect actor MCP server
+      parameters:
+      - $ref: '#/components/parameters/McpServerId'
+      responses:
+        '200':
+          description: Disconnected MCP server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FrontendBooleanResponse'
 components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: __session
   parameters:
-    ContextId:
-      name: id
+    ProjectId:
+      name: project_id
       in: path
       required: true
-      description: Context ID
       schema:
         type: string
-        format: uint64
-      example: "123456789012345678"
-
+    ItemId:
+      name: item_id
+      in: path
+      required: true
+      schema:
+        type: string
+    ThreadId:
+      name: thread_id
+      in: path
+      required: true
+      schema:
+        type: string
+    McpServerId:
+      name: mcp_server_id
+      in: path
+      required: true
+      schema:
+        type: string
+    IncludeArchived:
+      name: include_archived
+      in: query
+      schema:
+        type: boolean
+    ArchivedOnly:
+      name: archived_only
+      in: query
+      schema:
+        type: boolean
+    Q:
+      name: q
+      in: query
+      schema:
+        type: string
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+    MessageLimit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        default: 50
+    Cursor:
+      name: cursor
+      in: query
+      schema:
+        type: string
+    Statuses:
+      name: statuses
+      in: query
+      schema:
+        type: string
+        description: Comma-separated status filters.
+    Path:
+      name: path
+      in: query
+      schema:
+        type: string
+    PathRequired:
+      name: path
+      in: query
+      required: true
+      schema:
+        type: string
+    BeforeId:
+      name: before_id
+      in: query
+      schema:
+        type: string
+    AfterId:
+      name: after_id
+      in: query
+      schema:
+        type: string
+  responses:
+    FrontendError:
+      description: Error response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/FrontendErrorResponse'
   schemas:
-    AgentSession:
+    FrontendErrorItem:
       type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+    FrontendSessionMeta:
+      type: object
+      nullable: true
       properties:
         id:
           type: string
-          format: uint64
-          description: Agent session ID
-          example: "123456789012345678"
-        session_id:
-          type: string
-          format: uint64
-          description: User session ID
-          example: "987654321098765432"
-        deployment_id:
-          type: string
-          format: uint64
-          description: Deployment ID
-          example: "111111111111111111"
-        context_group:
-          type: string
-          description: Context group identifier
-          example: "support-agents"
-        agent_ids:
-          type: array
-          items:
-            type: string
-            format: int64
-          description: IDs of available agents
-          example: ["12345", "67890"]
-        identifier:
-          type: string
-          description: Session identifier type
-          example: "static"
-        expires_at:
-          type: string
-          format: date-time
-          description: Session expiration time
-          example: "2024-01-16T10:30:00Z"
-          nullable: true
-
-    AgentContext:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uint64
-          description: Context ID
-          example: "123456789012345678"
-        deployment_id:
-          type: string
-          format: uint64
-          description: Deployment ID
-          example: "111111111111111111"
-        context_group:
-          type: string
-          description: Context group identifier
-          example: "support-agents"
-        title:
-          type: string
-          description: Context title
-          example: "Customer Support Conversation"
-        system_instructions:
-          type: string
-          description: System instructions for the agent
-          example: "You are a helpful customer support assistant."
-          nullable: true
-        status:
-          type: string
-          enum: [active, archived]
-          description: Context status
-          example: "active"
-        message_count:
-          type: integer
-          description: Number of messages in context
-          example: 15
         created_at:
           type: string
           format: date-time
-          example: "2024-01-15T10:30:00Z"
         updated_at:
           type: string
           format: date-time
-          example: "2024-01-15T11:30:00Z"
-
-    ListContextsResponse:
+    FrontendResponseMeta:
       type: object
       properties:
-        data:
+        status:
+          type: integer
+        message:
+          type: string
+        session:
+          $ref: '#/components/schemas/FrontendSessionMeta'
+        errors:
           type: array
           items:
-            $ref: '#/components/schemas/AgentContext'
-          description: List of contexts
-        has_more:
-          type: boolean
-          description: Whether there are more contexts to fetch
-          example: false
+            $ref: '#/components/schemas/FrontendErrorItem'
+    FrontendErrorResponse:
+      allOf:
+      - $ref: '#/components/schemas/FrontendResponseMeta'
+      - type: object
+        properties:
+          data:
+            nullable: true
+    FrontendEnvelopeActorProject:
+      allOf:
+      - $ref: '#/components/schemas/FrontendResponseMeta'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/ActorProject'
+    FrontendEnvelopeActorProjectArray:
+      allOf:
+      - $ref: '#/components/schemas/FrontendResponseMeta'
+      - type: object
+        properties:
+          data:
+            type: array
+            items:
+              $ref: '#/components/schemas/ActorProject'
+    FrontendEnvelopeActorProjectsPage:
+      allOf:
+      - $ref: '#/components/schemas/FrontendResponseMeta'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/ActorProjectsPage'
+    FrontendEnvelopeAgentSession:
+      allOf:
+      - $ref: '#/components/schemas/FrontendResponseMeta'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/AgentSessionData'
+    FrontendEnvelopeProjectTaskBoard:
+      allOf:
+      - $ref: '#/components/schemas/FrontendResponseMeta'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/ProjectTaskBoard'
+    FrontendEnvelopeBoardItem:
+      allOf:
+      - $ref: '#/components/schemas/FrontendResponseMeta'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/ProjectTaskBoardItem'
+    FrontendEnvelopeBoardItemsPage:
+      allOf:
+      - $ref: '#/components/schemas/FrontendResponseMeta'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/BoardItemsPage'
+    FrontendEnvelopeBoardItemEventsPage:
+      allOf:
+      - $ref: '#/components/schemas/FrontendResponseMeta'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/BoardItemEventsPage'
+    FrontendEnvelopeBoardItemAssignmentsPage:
+      allOf:
+      - $ref: '#/components/schemas/FrontendResponseMeta'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/BoardItemAssignmentsPage'
+    FrontendEnvelopeAgentThread:
+      allOf:
+      - $ref: '#/components/schemas/FrontendResponseMeta'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/AgentThread'
+    FrontendEnvelopeProjectThreadsPage:
+      allOf:
+      - $ref: '#/components/schemas/FrontendResponseMeta'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/ProjectThreadsPage'
+    FrontendEnvelopeThreadEventsPage:
+      allOf:
+      - $ref: '#/components/schemas/FrontendResponseMeta'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/ThreadEventsPage'
+    FrontendEnvelopeThreadAssignmentsPage:
+      allOf:
+      - $ref: '#/components/schemas/FrontendResponseMeta'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/ThreadAssignmentsPage'
+    FrontendEnvelopeThreadTaskGraphsPage:
+      allOf:
+      - $ref: '#/components/schemas/FrontendResponseMeta'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/ThreadTaskGraphsPage'
+    FrontendEnvelopeMessagesPage:
+      allOf:
+      - $ref: '#/components/schemas/FrontendResponseMeta'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/ListMessagesResponse'
+    FrontendEnvelopeTaskWorkspaceListing:
+      allOf:
+      - $ref: '#/components/schemas/FrontendResponseMeta'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/TaskWorkspaceListing'
+    FrontendEnvelopeTaskWorkspaceFileContent:
+      allOf:
+      - $ref: '#/components/schemas/FrontendResponseMeta'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/TaskWorkspaceFileContent'
+    FrontendEnvelopeExecuteAgentResponse:
+      allOf:
+      - $ref: '#/components/schemas/FrontendResponseMeta'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/ExecuteAgentResponse'
+    FrontendEnvelopeActorMcpServers:
+      allOf:
+      - $ref: '#/components/schemas/FrontendResponseMeta'
+      - type: object
+        properties:
+          data:
+            type: array
+            items:
+              $ref: '#/components/schemas/ActorMcpServerSummary'
+    FrontendEnvelopeActorMcpConnectResponse:
+      allOf:
+      - $ref: '#/components/schemas/FrontendResponseMeta'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/ActorMcpServerConnectResponse'
+    FrontendEnvelopeBoolean:
+      allOf:
+      - $ref: '#/components/schemas/FrontendResponseMeta'
+      - type: object
+        properties:
+          data:
+            type: object
+            properties:
+              success:
+                type: boolean
+    FrontendAgentSessionResponse:
+      $ref: '#/components/schemas/FrontendEnvelopeAgentSession'
+    FrontendActorProjectResponse:
+      $ref: '#/components/schemas/FrontendEnvelopeActorProject'
+    FrontendActorProjectsListResponse:
+      $ref: '#/components/schemas/FrontendEnvelopeActorProjectArray'
+    FrontendActorProjectsPageResponse:
+      $ref: '#/components/schemas/FrontendEnvelopeActorProjectsPage'
+    FrontendProjectTaskBoardResponse:
+      $ref: '#/components/schemas/FrontendEnvelopeProjectTaskBoard'
+    FrontendBoardItemResponse:
+      $ref: '#/components/schemas/FrontendEnvelopeBoardItem'
+    FrontendBoardItemsPageResponse:
+      $ref: '#/components/schemas/FrontendEnvelopeBoardItemsPage'
+    FrontendBoardItemEventsResponse:
+      $ref: '#/components/schemas/FrontendEnvelopeBoardItemEventsPage'
+    FrontendBoardItemAssignmentsResponse:
+      $ref: '#/components/schemas/FrontendEnvelopeBoardItemAssignmentsPage'
+    FrontendAgentThreadResponse:
+      $ref: '#/components/schemas/FrontendEnvelopeAgentThread'
+    FrontendProjectThreadsPageResponse:
+      $ref: '#/components/schemas/FrontendEnvelopeProjectThreadsPage'
+    FrontendThreadEventsResponse:
+      $ref: '#/components/schemas/FrontendEnvelopeThreadEventsPage'
+    FrontendThreadAssignmentsResponse:
+      $ref: '#/components/schemas/FrontendEnvelopeThreadAssignmentsPage'
+    FrontendThreadTaskGraphsResponse:
+      $ref: '#/components/schemas/FrontendEnvelopeThreadTaskGraphsPage'
+    FrontendThreadMessagesResponse:
+      $ref: '#/components/schemas/FrontendEnvelopeMessagesPage'
+    FrontendTaskWorkspaceListingResponse:
+      $ref: '#/components/schemas/FrontendEnvelopeTaskWorkspaceListing'
+    FrontendTaskWorkspaceFileContentResponse:
+      $ref: '#/components/schemas/FrontendEnvelopeTaskWorkspaceFileContent'
+    FrontendExecuteAgentResponseEnvelope:
+      $ref: '#/components/schemas/FrontendEnvelopeExecuteAgentResponse'
+    FrontendActorMcpServersResponse:
+      $ref: '#/components/schemas/FrontendEnvelopeActorMcpServers'
+    FrontendActorMcpConnectResponseEnvelope:
+      $ref: '#/components/schemas/FrontendEnvelopeActorMcpConnectResponse'
+    FrontendBooleanResponse:
+      $ref: '#/components/schemas/FrontendEnvelopeBoolean'
+    CursorPageBase:
+      type: object
+      properties:
         limit:
           type: integer
-          description: Applied limit
-          example: 10
+        has_more:
+          type: boolean
+        next_cursor:
+          type: string
+    ActorSummary:
+      type: object
+      properties:
+        id:
+          type: string
+        display_name:
+          type: string
           nullable: true
-        offset:
+        subject_type:
+          type: string
+        external_key:
+          type: string
+    AgentSummary:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        child_agents:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentSummary'
+    AgentSessionData:
+      type: object
+      properties:
+        session_id:
+          type: string
+        actor:
+          $ref: '#/components/schemas/ActorSummary'
+        agents:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentSummary'
+    ActorProject:
+      type: object
+      properties:
+        id:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        deployment_id:
+          type: string
+        actor_id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        status:
+          type: string
+        coordinator_thread_id:
+          type: string
+          nullable: true
+        review_thread_id:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+          additionalProperties: true
+        archived_at:
+          type: string
+          format: date-time
+          nullable: true
+    ActorProjectsPage:
+      allOf:
+      - $ref: '#/components/schemas/CursorPageBase'
+      - type: object
+        properties:
+          data:
+            type: array
+            items:
+              $ref: '#/components/schemas/ActorProject'
+    AgentThread:
+      type: object
+      properties:
+        id:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        deployment_id:
+          type: string
+        actor_id:
+          type: string
+        project_id:
+          type: string
+        project_name:
+          type: string
+          nullable: true
+        agent_id:
+          type: string
+          nullable: true
+        title:
+          type: string
+        thread_purpose:
+          type: string
+        responsibility:
+          type: string
+          nullable: true
+        reusable:
+          type: boolean
+        accepts_assignments:
+          type: boolean
+        capability_tags:
+          type: array
+          items:
+            type: string
+        last_activity_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        status:
+          type: string
+        system_instructions:
+          type: string
+          nullable: true
+        execution_state:
+          type: object
+          nullable: true
+          additionalProperties: true
+        metadata:
+          type: object
+          additionalProperties: true
+        archived_at:
+          type: string
+          format: date-time
+          nullable: true
+    ProjectThreadsPage:
+      allOf:
+      - $ref: '#/components/schemas/CursorPageBase'
+      - type: object
+        properties:
+          data:
+            type: array
+            items:
+              $ref: '#/components/schemas/AgentThread'
+    ProjectTaskBoard:
+      type: object
+      properties:
+        id:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        deployment_id:
+          type: string
+        actor_id:
+          type: string
+        project_id:
+          type: string
+        title:
+          type: string
+        status:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+        archived_at:
+          type: string
+          format: date-time
+          nullable: true
+    ProjectTaskSchedule:
+      type: object
+      properties:
+        id:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        template_board_item_id:
+          type: string
+        status:
+          type: string
+        schedule_kind:
+          type: string
+        interval_seconds:
           type: integer
-          description: Applied offset
-          example: 0
           nullable: true
-
+        next_run_at:
+          type: string
+          format: date-time
+        last_enqueued_at:
+          type: string
+          format: date-time
+          nullable: true
+    ProjectTaskBoardItem:
+      type: object
+      properties:
+        id:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        board_id:
+          type: string
+        task_key:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        status:
+          type: string
+        priority:
+          type: string
+        assigned_thread_id:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+          additionalProperties: true
+        schedule:
+          allOf:
+          - $ref: '#/components/schemas/ProjectTaskSchedule'
+          nullable: true
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        archived_at:
+          type: string
+          format: date-time
+          nullable: true
+    BoardItemsPage:
+      allOf:
+      - $ref: '#/components/schemas/CursorPageBase'
+      - type: object
+        properties:
+          data:
+            type: array
+            items:
+              $ref: '#/components/schemas/ProjectTaskBoardItem'
+    ProjectTaskBoardItemEvent:
+      type: object
+      properties:
+        id:
+          type: string
+        board_item_id:
+          type: string
+        thread_id:
+          type: string
+          nullable: true
+        execution_run_id:
+          type: string
+          nullable: true
+        event_type:
+          type: string
+        summary:
+          type: string
+        body_markdown:
+          type: string
+          nullable: true
+        details:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+    BoardItemEventsPage:
+      allOf:
+      - $ref: '#/components/schemas/CursorPageBase'
+      - type: object
+        properties:
+          data:
+            type: array
+            items:
+              $ref: '#/components/schemas/ProjectTaskBoardItemEvent'
+    ProjectTaskBoardItemAssignment:
+      type: object
+      properties:
+        id:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        board_item_id:
+          type: string
+        thread_id:
+          type: string
+        assignment_role:
+          type: string
+        assignment_order:
+          type: integer
+        status:
+          type: string
+        instructions:
+          type: string
+          nullable: true
+        handoff_file_path:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+          additionalProperties: true
+        result_status:
+          type: string
+          nullable: true
+        result_summary:
+          type: string
+          nullable: true
+        result_payload:
+          type: object
+          nullable: true
+          additionalProperties: true
+        claimed_at:
+          type: string
+          format: date-time
+          nullable: true
+        started_at:
+          type: string
+          format: date-time
+          nullable: true
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        rejected_at:
+          type: string
+          format: date-time
+          nullable: true
+    BoardItemAssignmentsPage:
+      allOf:
+      - $ref: '#/components/schemas/CursorPageBase'
+      - type: object
+        properties:
+          data:
+            type: array
+            items:
+              $ref: '#/components/schemas/ProjectTaskBoardItemAssignment'
+    ThreadEvent:
+      type: object
+      properties:
+        id:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        deployment_id:
+          type: string
+        thread_id:
+          type: string
+        board_item_id:
+          type: string
+          nullable: true
+        event_type:
+          type: string
+        status:
+          type: string
+        priority:
+          type: integer
+        payload:
+          type: object
+          additionalProperties: true
+        available_at:
+          type: string
+          format: date-time
+        claimed_at:
+          type: string
+          format: date-time
+          nullable: true
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        failed_at:
+          type: string
+          format: date-time
+          nullable: true
+        caused_by_conversation_id:
+          type: string
+          nullable: true
+        caused_by_run_id:
+          type: string
+          nullable: true
+        caused_by_thread_id:
+          type: string
+          nullable: true
+    ThreadEventsPage:
+      allOf:
+      - $ref: '#/components/schemas/CursorPageBase'
+      - type: object
+        properties:
+          data:
+            type: array
+            items:
+              $ref: '#/components/schemas/ThreadEvent'
+    ThreadAssignmentsPage:
+      allOf:
+      - $ref: '#/components/schemas/CursorPageBase'
+      - type: object
+        properties:
+          data:
+            type: array
+            items:
+              $ref: '#/components/schemas/ProjectTaskBoardItemAssignment'
+    ThreadTaskGraph:
+      type: object
+      properties:
+        id:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        deployment_id:
+          type: string
+        thread_id:
+          type: string
+        board_item_id:
+          type: string
+          nullable: true
+        version:
+          type: integer
+        status:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+    ThreadTaskNode:
+      type: object
+      properties:
+        id:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        graph_id:
+          type: string
+        board_item_id:
+          type: string
+          nullable: true
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        status:
+          type: string
+        priority:
+          type: integer
+        owner_agent_id:
+          type: string
+          nullable: true
+        assigned_thread_id:
+          type: string
+          nullable: true
+        retry_count:
+          type: integer
+        max_retries:
+          type: integer
+        input:
+          type: object
+          nullable: true
+          additionalProperties: true
+        output:
+          type: object
+          nullable: true
+          additionalProperties: true
+        error:
+          type: object
+          nullable: true
+          additionalProperties: true
+        lease_owner:
+          type: string
+          nullable: true
+        lease_until:
+          type: string
+          format: date-time
+          nullable: true
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+    ThreadTaskEdge:
+      type: object
+      properties:
+        graph_id:
+          type: string
+        from_node_id:
+          type: string
+        to_node_id:
+          type: string
+        dependency_type:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+    ThreadTaskGraphSummary:
+      type: object
+      properties:
+        graph_id:
+          type: string
+        graph_status:
+          type: string
+        total_nodes:
+          type: integer
+        pending_nodes:
+          type: integer
+        ready_nodes:
+          type: integer
+        in_progress_nodes:
+          type: integer
+        completed_nodes:
+          type: integer
+        failed_nodes:
+          type: integer
+        cancelled_nodes:
+          type: integer
+        progress_percent:
+          type: number
+    ThreadTaskGraphBundle:
+      type: object
+      properties:
+        graph:
+          $ref: '#/components/schemas/ThreadTaskGraph'
+        nodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/ThreadTaskNode'
+        edges:
+          type: array
+          items:
+            $ref: '#/components/schemas/ThreadTaskEdge'
+        summary:
+          allOf:
+          - $ref: '#/components/schemas/ThreadTaskGraphSummary'
+          nullable: true
+    ThreadTaskGraphsPage:
+      allOf:
+      - $ref: '#/components/schemas/CursorPageBase'
+      - type: object
+        properties:
+          data:
+            type: array
+            items:
+              $ref: '#/components/schemas/ThreadTaskGraphBundle'
     ConversationMessage:
       type: object
       properties:
         id:
           type: string
-          description: Message ID
-          example: "msg_abc123"
-        message_type:
-          type: string
-          enum: [user, assistant, system]
-          description: Message type (role)
-          example: "user"
         content:
           type: object
-          description: Message content (format varies by message type)
-          example: {"type": "text", "text": "Hello, how can you help?"}
+          additionalProperties: true
         timestamp:
           type: string
           format: date-time
-          description: Message timestamp
-          example: "2024-01-15T10:30:00Z"
         metadata:
           type: object
-          description: Optional message metadata
+          nullable: true
           additionalProperties: true
-
     ListMessagesResponse:
       type: object
       properties:
@@ -1452,133 +1607,223 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ConversationMessage'
-          description: List of messages
         has_more:
           type: boolean
-          description: Whether there are more messages to fetch
-          example: false
-
-    AgentExecutionResponse:
+    TaskWorkspaceFileEntry:
       type: object
       properties:
-        message:
-          $ref: '#/components/schemas/ConversationMessage'
-          description: Agent's response message
-        status:
+        path:
           type: string
-          enum: [complete, streaming, error]
-          description: Execution status
-          example: "complete"
-        tool_calls:
-          type: array
-          items:
-            type: object
-            properties:
-              id:
-                type: string
-              name:
-                type: string
-              arguments:
-                type: object
-          description: Tool calls made by the agent
-          example: []
-        usage:
-          type: object
-          properties:
-            prompt_tokens:
-              type: integer
-            completion_tokens:
-              type: integer
-            total_tokens:
-              type: integer
-          description: Token usage statistics
-
-    AgentIntegration:
-      type: object
-      properties:
-        id:
-          type: string
-          format: int64
-          description: Integration ID
-          example: "12345"
-        deployment_id:
-          type: string
-          format: uint64
-          description: Deployment ID
-          example: "111111111111111111"
-        agent_id:
-          type: string
-          format: int64
-          description: Agent ID
-          example: "67890"
-        provider:
-          type: string
-          description: Integration provider
-          example: "openai"
-        config:
-          type: object
-          description: Integration configuration
-          additionalProperties: true
-          example: {"model": "gpt-4", "temperature": 0.7}
-        consent_granted:
-          type: boolean
-          description: Whether user has granted consent
-          example: true
-        created_at:
-          type: string
-          format: date-time
-          example: "2024-01-15T10:30:00Z"
-        updated_at:
-          type: string
-          format: date-time
-          example: "2024-01-15T10:30:00Z"
-
-    McpServer:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uint64
-        deployment_id:
-          type: string
-          format: uint64
         name:
           type: string
-        config:
-          type: object
-          description: McpServer configuration details
-
-    SessionInfo:
+        is_dir:
+          type: boolean
+        size_bytes:
+          type: integer
+          nullable: true
+        modified_at:
+          type: string
+          format: date-time
+          nullable: true
+    TaskWorkspaceListing:
       type: object
-      description: Minimal session info included in every response
-      nullable: true
+      properties:
+        exists:
+          type: boolean
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaskWorkspaceFileEntry'
+    TaskWorkspaceFileContent:
+      type: object
+      properties:
+        path:
+          type: string
+        name:
+          type: string
+        mime_type:
+          type: string
+        is_text:
+          type: boolean
+        size_bytes:
+          type: integer
+        truncated:
+          type: boolean
+        content:
+          type: string
+        content_base64:
+          type: string
+    ExecuteAgentResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+          - queued
+          - cancelled
+        conversation_id:
+          type: string
+          nullable: true
+    ActorMcpServerSummary:
+      type: object
       properties:
         id:
           type: string
-          description: Session ID
-          example: '123456789012345678'
-        created_at:
+        name:
+          type: string
+        endpoint:
+          type: string
+        auth_type:
+          type: string
+        requires_user_connection:
+          type: boolean
+        connection_status:
+          type: string
+        connected_at:
           type: string
           format: date-time
-          description: Session creation timestamp
-        updated_at:
+          nullable: true
+        expires_at:
           type: string
           format: date-time
-          description: Session last update timestamp
-    ErrorDetail:
+          nullable: true
+    ActorMcpServerConnectResponse:
       type: object
       properties:
-        code:
+        auth_url:
           type: string
-          description: Machine-readable error code
-          example: INVALID_CREDENTIALS
+    CreateActorProjectRequest:
+      type: object
+      required:
+      - name
+      - agent_id
+      properties:
+        name:
+          type: string
+        agent_id:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+    UpdateActorProjectRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+    CreateAgentThreadRequest:
+      type: object
+      required:
+      - title
+      - agent_id
+      properties:
+        title:
+          type: string
+        agent_id:
+          type: string
+        system_instructions:
+          type: string
+        thread_purpose:
+          type: string
+        responsibility:
+          type: string
+        reusable:
+          type: boolean
+        accepts_assignments:
+          type: boolean
+        capability_tags:
+          type: array
+          items:
+            type: string
+        metadata:
+          type: object
+          additionalProperties: true
+    UpdateAgentThreadRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        agent_id:
+          type: string
+        system_instructions:
+          type: string
+    CreateProjectTaskBoardItemRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+        priority:
+          type: string
+        schedule_kind:
+          type: string
+        next_run_at:
+          type: string
+          format: date-time
+        interval_seconds:
+          type: integer
+      required:
+      - title
+    UpdateProjectTaskBoardItemRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+        priority:
+          type: string
+        schedule_kind:
+          type: string
+        next_run_at:
+          type: string
+          format: date-time
+        interval_seconds:
+          type: integer
+        clear_schedule:
+          type: boolean
+    AppendProjectTaskBoardItemJournalRequest:
+      type: object
+      required:
+      - summary
+      properties:
+        summary:
+          type: string
+        details:
+          type: string
+        body_markdown:
+          type: string
+    RunThreadMultipartRequest:
+      type: object
+      properties:
         message:
           type: string
-          description: Human-readable error message
-          example: Invalid credentials. Please try again.
-  securitySchemes:
-    cookieAuth:
-      type: apiKey
-      in: cookie
-      name: session_id
-      description: Session-based authentication using cookies
+        files:
+          type: array
+          items:
+            type: string
+            format: binary
+        request_message_id:
+          type: string
+        approval_tool_name:
+          type: array
+          items:
+            type: string
+        approval_mode:
+          type: array
+          items:
+            type: string
+            enum:
+            - allow_once
+            - allow_always
+        cancel:
+          type: boolean

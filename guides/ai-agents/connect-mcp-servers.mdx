@@ -1,6 +1,6 @@
 ---
 title: "Connect MCP Servers"
-description: "Set up MCP servers, choose the right auth mode, attach them to agents, and handle runtime connection behavior in your app."
+description: "Set up MCP servers, choose the right auth mode, and handle runtime connection behavior in your app."
 ---
 
 # Connect MCP Servers
@@ -225,31 +225,19 @@ console.log(created.discovery_result);
 
 If provider does not expose registration support, send explicit client credentials in config instead of DCR.
 
-## Step 3: Attach MCP server to agent
+## Step 3: Runtime connect/disconnect in user session
 
-```ts
-await client.post(`/ai/agents/${agentId}/mcp-servers/${mcpServerId}`);
-```
-
-Detach when needed:
-
-```ts
-await client.delete(`/ai/agents/${agentId}/mcp-servers/${mcpServerId}`);
-```
-
-## Step 4: Runtime connect/disconnect in user session
-
-Attach is control-plane. Connect/disconnect is runtime-plane per active agent session.
+MCP server registration is deployment control-plane. Runtime connect/disconnect is actor-scoped and happens per active agent session.
 
 ```tsx
-import { useAgentMcpServers } from "@wacht/react-router";
+import { useActorMcpServers } from "@wacht/react-router";
 
-export function McpRuntimePanel({ agentName }: { agentName: string }) {
-  const { mcpServers, connect, disconnect } = useAgentMcpServers(agentName);
+export function McpRuntimePanel() {
+  const { servers, connect, disconnect } = useActorMcpServers();
 
   return (
     <div className="space-y-3">
-      {mcpServers.map((server) => (
+      {servers.map((server) => (
         <div key={server.id} className="flex items-center gap-2">
           <span>{server.name}</span>
           <button onClick={() => connect(server.id)}>Connect</button>
@@ -261,7 +249,7 @@ export function McpRuntimePanel({ agentName }: { agentName: string }) {
 }
 ```
 
-Runtime connection is already handled by `useAgentMcpServers` hooks.
+Runtime connection is already handled by `useActorMcpServers` hooks.
 
 Control-plane setup is already handled by the backend SDK examples above.
 
@@ -276,8 +264,8 @@ Control-plane setup is already handled by the backend SDK examples above.
 
 ## Related references
 
-1. [Backend AI API Reference](/backend-api/agents)
-2. [Frontend Agent APIs](/frontend-api/agents)
-3. [React Router `useAgentMcpServers`](/react-router-sdk/hooks/use-agent-mcp-servers)
+1. [Backend AI Admin Routes](/guides/ai-agents/backend-api-admin-routes)
+2. [Frontend AI Runtime Routes](/guides/ai-agents/frontend-api-runtime-routes)
+3. [React Router `useActorMcpServers`](/react-router-sdk/hooks/use-actor-mcp-servers)
 4. [OAuth Apps for SaaS](/guides/oauth-apps/overview)
 5. [Protect MCP Servers with OAuth Apps](/guides/ai-agents/protect-mcp-servers-with-oauth-apps)

@@ -18,16 +18,16 @@ After an agent exists, you need to choose the session type first, then choose th
 
 Use this when your backend wants full control over conversation partitioning.
 
-1. You must send `context_group` in the ticket request.
-2. The same `context_group` is used for agent contexts/messages throughout that session.
-3. Best when you want strict tenant keys like `workspace:<id>:user:<id>`.
+1. You must send `actor_id` in the ticket request.
+2. The resulting agent session is pinned to that actor.
+3. Best when you want strict tenant/user runtime ownership.
 
 ### `signin` session
 
 Use this when agent context should follow the currently active signed-in account.
 
 1. Set `agent_session_identifier: "signin"`.
-2. `context_group` is derived from the active sign-in user ID.
+2. The actor is derived from the active sign-in user.
 3. If there is no active sign-in, the session is rejected.
 
 ## Flow A: `static` agent session
@@ -46,7 +46,7 @@ const ticketResponse = await client.post<{ ticket: string; expires_at: number }>
     ticket_type: "agent_access",
     agent_ids: [agentId],
     agent_session_identifier: "static",
-    context_group: `workspace:${workspaceId}:user:${userId}`,
+    actor_id: actorId,
     expires_in: 60 * 30,
   },
 );
@@ -77,18 +77,16 @@ const ticketResponse = await client.post<{ ticket: string; expires_at: number }>
 const ticket = ticketResponse.ticket;
 ```
 
-## What `context_group` means
+## What `actor_id` means
 
-`context_group` is the partition key for agent runtime state.
-
-It decides which execution contexts/messages are considered part of the same conversation bucket for that session scope.
+`actor_id` is the runtime owner for projects, threads, board items, MCP connections, and related AI state.
 
 Practical guidance:
 
-1. Use deterministic keys, for example `workspace:<workspaceId>:user:<userId>`.
-2. Never use a global/shared value across tenants.
-3. Keep one format across your app so support and debugging are predictable.
-4. In `signin` mode, Wacht derives this from active sign-in user ID.
+1. Use a deterministic actor mapping for the user or tenant subject you want to represent.
+2. Never share one actor across unrelated tenants.
+3. Keep actor provisioning stable so runtime resources remain traceable.
+4. In `signin` mode, Wacht derives the actor from the active signed-in user.
 
 ## Runtime UI model (independent from session type)
 
@@ -104,27 +102,29 @@ window.open(url, "_blank");
 ### Option 2: Build custom UI with hooks
 
 ```tsx
-import { useAgentSession, useAgentContexts, useAgentContext } from "@wacht/react-router";
+import {
+  useAgentSession,
+  useActorProjects,
+  useProjectThreadFeed,
+  useAgentThreadConversation,
+} from "@wacht/react-router";
 
 export function AgentChat({ ticket }: { ticket: string }) {
-  const { hasSession, sessionLoading, activeAgent, contextGroup } = useAgentSession(ticket);
-  const { contexts, createContext } = useAgentContexts({ enabled: hasSession });
-
-  const currentContextId = contexts[0]?.id;
-  const { messages, sendMessage, isExecuting } = useAgentContext({
-    contextId: currentContextId || "",
-    agentName: activeAgent?.name || "",
-  });
+  const { hasSession, sessionLoading, actor } = useAgentSession(ticket);
+  const { projects } = useActorProjects({ enabled: hasSession });
+  const projectId = projects[0]?.id;
+  const { threads } = useProjectThreadFeed(projectId, { enabled: !!projectId });
+  const threadId = threads[0]?.id;
+  const { messages, sendMessage, isRunning } = useAgentThreadConversation(threadId);
 
   if (sessionLoading) return <div>Loading agent session...</div>;
   if (!hasSession) return <div>No valid agent session.</div>;
 
   return (
     <div>
-      <div>Context group: {contextGroup}</div>
-      <button onClick={() => createContext({ title: "New support chat" })}>New chat</button>
+      <div>Actor: {actor?.display_name ?? actor?.external_key}</div>
       <button
-        disabled={!currentContextId || isExecuting}
+        disabled={!threadId || isRunning}
         onClick={() => sendMessage("Summarize this workspace's current webhook health")}
       >
         Ask agent
@@ -139,7 +139,7 @@ export function AgentChat({ ticket }: { ticket: string }) {
 
 1. Tickets should be short-lived and created only after your own authz checks.
 2. Scope `agent_ids` and session type (`static`/`signin`) to your tenancy model.
-3. For `static`, enforce a strict `context_group` format.
+3. For `static`, enforce a strict actor-mapping strategy.
 4. For `signin`, ensure an active sign-in exists before ticket use.
 5. Handle expired tickets with a re-issue flow.
 6. Exchanging a new `agent_access` ticket replaces the older active agent session for that browser session.
@@ -147,7 +147,7 @@ export function AgentChat({ ticket }: { ticket: string }) {
 ## Related references
 
 1. [React Router `useAgentSession`](/react-router-sdk/hooks/use-agent-session)
-2. [React Router `useAgentContexts`](/react-router-sdk/hooks/use-agent-contexts)
-3. [React Router `useAgentContext`](/react-router-sdk/hooks/use-agent-context)
+2. [React Router `useActorProjects`](/react-router-sdk/hooks/use-actor-projects)
+3. [React Router `useAgentThreadConversation`](/react-router-sdk/hooks/use-agent-thread-conversation)
 4. [Node SDK AI API](/node-sdk/api/ai)
-5. [Frontend Agent APIs](/frontend-api/agents)
+5. [Frontend AI Runtime Routes](/guides/ai-agents/frontend-api-runtime-routes)

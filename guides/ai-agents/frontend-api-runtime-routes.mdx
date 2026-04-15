@@ -1,0 +1,86 @@
+---
+title: Frontend API Runtime Routes
+description: Session-scoped AI runtime routes exposed from the frontend API.
+---
+
+# Frontend API Runtime Routes
+
+These routes are exposed from `frontend-api` and are intended for session-scoped runtime use.
+
+Key properties:
+
+- authenticated with the frontend session and active agent session
+- user-facing runtime surface
+- includes realtime thread streaming
+- does not use backend API keys
+
+## Session and actor runtime
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/ai/session` | Return the active agent session, current actor, and available agents. |
+| `GET` | `/ai/projects` | List actor projects for the active session actor. |
+| `GET` | `/ai/projects/search` | Cursor-search actor projects. |
+| `POST` | `/ai/projects` | Create a new actor project. |
+| `POST` | `/ai/threads` | Create a new actor thread. |
+| `GET` | `/ai/threads/search` | Cursor-search actor threads. |
+| `GET` | `/ai/mcp-servers` | List actor MCP servers and connection state. |
+| `POST` | `/ai/mcp-servers/:mcp_server_id/connect` | Start an actor MCP connection flow. |
+| `POST` | `/ai/mcp-servers/:mcp_server_id/disconnect` | Disconnect an actor MCP server. |
+
+## Projects
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/ai/projects/:project_id` | Get a single actor project. |
+| `POST` | `/ai/projects/:project_id/update` | Update project fields. |
+| `POST` | `/ai/projects/:project_id/archive` | Archive a project. |
+| `POST` | `/ai/projects/:project_id/unarchive` | Unarchive a project. |
+| `GET` | `/ai/projects/:project_id/board` | Get the project task board. |
+| `GET` | `/ai/projects/:project_id/board/items` | List project board items. |
+| `POST` | `/ai/projects/:project_id/board/items` | Create a project board item. |
+| `GET` | `/ai/projects/:project_id/threads` | List project threads. |
+| `POST` | `/ai/projects/:project_id/threads` | Create a project thread. |
+
+## Project board items
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/ai/projects/:project_id/board/items/:item_id` | Get a single board item. |
+| `GET` | `/ai/projects/:project_id/board/items/:item_id/events` | List board-item event history. |
+| `GET` | `/ai/projects/:project_id/board/items/:item_id/assignments` | List board-item assignment history. |
+| `GET` | `/ai/projects/:project_id/board/items/:item_id/filesystem` | List board-item workspace files. |
+| `GET` | `/ai/projects/:project_id/board/items/:item_id/filesystem/file` | Read a board-item workspace file. |
+| `POST` | `/ai/projects/:project_id/board/items/:item_id/update` | Update a board item. |
+| `POST` | `/ai/projects/:project_id/board/items/:item_id/archive` | Archive a board item. |
+| `POST` | `/ai/projects/:project_id/board/items/:item_id/unarchive` | Unarchive a board item. |
+| `POST` | `/ai/projects/:project_id/board/items/:item_id/journal` | Append a board-item journal entry. |
+
+## Threads
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/ai/threads/:thread_id` | Get a single thread. |
+| `POST` | `/ai/threads/:thread_id/update` | Update thread fields. |
+| `POST` | `/ai/threads/:thread_id/archive` | Archive a thread. |
+| `POST` | `/ai/threads/:thread_id/unarchive` | Unarchive a thread. |
+| `GET` | `/ai/threads/:thread_id/events` | List paginated thread events. |
+| `GET` | `/ai/threads/:thread_id/assignments` | List paginated thread assignments. |
+| `GET` | `/ai/threads/:thread_id/task-graphs` | List thread task graphs. |
+| `GET` | `/ai/threads/:thread_id/messages` | List conversation messages. |
+| `GET` | `/ai/threads/:thread_id/filesystem` | List thread filesystem entries. |
+| `GET` | `/ai/threads/:thread_id/filesystem/file` | Read a thread filesystem file. |
+| `GET` | `/ai/threads/:thread_id/stream` | Realtime thread stream. |
+| `POST` | `/ai/threads/:thread_id/run` | Enqueue runtime execution for the thread. |
+
+## Realtime notifications
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/notifications/stream` | Realtime websocket stream for notifications. |
+
+## Notes
+
+- This runtime surface is intentionally separate from the backend-admin AI API.
+- These routes are session-bound and should not be called with backend API keys.
+- The backend-admin AI API does not expose the thread stream route.

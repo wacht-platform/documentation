@@ -32,9 +32,9 @@ Best for:
 
 Use this when agent setup must be automated per tenant or per workflow.
 
-1. Create and update agents with backend SDK methods (`client.ai.createAgent`, `client.ai.createExecutionContext`).
-2. Manage MCP servers through SDK HTTP helpers (`client.post/get/delete`) against `/ai/mcp-servers`, then attach per agent.
-3. Run contexts from your app with tickets and frontend hooks.
+1. Create and update agents with backend SDK methods (`client.ai.createAgent`, `client.ai.createActorProject`).
+2. Manage deployment MCP servers through backend SDK HTTP helpers against `/ai/mcp-servers`. Runtime user connections use the actor-scoped MCP runtime APIs.
+3. Create actor projects and run threads from your app with tickets and frontend hooks.
 
 Best for:
 
@@ -66,12 +66,12 @@ flowchart LR
 
 1. Create and run agents using Console + Backend API.
 2. Embed agent runtime in your app using session tickets and frontend hooks.
-3. Connect MCP servers and attach them to agents.
+3. Connect MCP servers at runtime through the actor-scoped MCP runtime APIs.
 4. Protect MCP servers with OAuth app token verification.
 
 ## Related references
 
-1. [Backend AI API Reference](/backend-api/agents)
+1. [Backend AI Admin Routes](/guides/ai-agents/backend-api-admin-routes)
 2. [Node SDK AI API](/node-sdk/api/ai)
 3. [Node SDK Gateway Authz](/node-sdk/auth/gateway)
-4. [Frontend Agent APIs](/frontend-api/agents)
+4. [Frontend AI Runtime Routes](/guides/ai-agents/frontend-api-runtime-routes)

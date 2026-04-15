@@ -1,281 +1,163 @@
 ---
-title: AI Agents API
-description: Execute LLM Agents, provide toolsets, and manage dynamic Knowledge Bases.
+title: AI API
+description: Backend AI control-plane APIs and actor-project runtime administration in @wacht/backend.
 ---
 
-# AI Agents API
+# AI API
 
-The `ai` module in `@wacht/backend` provides high-level APIs to orchestrate Wacht's native AI infrastructure from your backend environments. 
+`@wacht/backend` now exposes two distinct AI surfaces:
 
-Through this module, you can programmatically provision LLM Agents, bind custom runtime Tools, manage contextual Knowledge Bases, and execute conversational interactions interactively.
+1. Control-plane APIs for deployment resources.
+2. Actor-project runtime administration APIs for backend operators.
 
-```typescript
+Use this SDK from trusted server environments only.
+
+```ts
 import { WachtClient } from "@wacht/backend";
 
-const client = new WachtClient({ apiKey: process.env.WACHT_API_KEY });
+const client = new WachtClient({ apiKey: process.env.WACHT_API_KEY! });
 ```
 
-## AI Agents
+## Scope split
 
-Agents represent the foundational identity and behavior profiles of the LLMs deployed in your environments.
+### Control plane
 
-### `createAgent(request)`
-Provisions a new agent profile equipped with specific instructions.
-
-```typescript
-const supportAgent = await client.ai.createAgent({
-  name: "support_bot_v2",
-  description: "Technical support assistant for workspace admins"
-});
-```
-
-<ParamField path="request" type="CreateAiAgentRequest">
-  <Expandable title="properties">
-    <ParamField path="name" type="string" required>
-      The identifying name of the agent.
-    </ParamField>
-    <ParamField path="description" type="string">
-      An optional description of the agent's purpose.
-    </ParamField>
-    <ParamField path="configuration" type="Record<string, unknown>">
-      Optional agent configuration object.
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-### `executeAgent(agentName, request)`
-Interactively triggers an execution block, continuing a conversation or triggering a new system response based on input.
-
-```typescript
-const response = await client.ai.executeAgent("support_bot_v2", {
-  execution_type: {
-    new_message: {
-      message: "How do I reset my password?"
-    }
-  } // execution_id can be passed as a query param or depending on the backend signature
-});
-
-console.log(response.status); // Usually 'running', 'requires_action', or 'completed'
-```
-
-<ParamField path="agentName" type="string" required>
-  The name or ID of the agent to execute.
-</ParamField>
-
-<ParamField path="request" type="ExecuteAgentRequest">
-  <Expandable title="properties">
-    <ParamField path="execution_type" type="object" required>
-      The type of execution trigger, typically `new_message`.
-    </ParamField>
-  </Expandable>
-</ParamField>
+Use these methods to manage deployment-owned AI resources:
 
 - `client.ai.listAgents(options)`
 - `client.ai.getAgent(agentId)`
+- `client.ai.getAgentDetails(agentId)`
+- `client.ai.createAgent(request)`
 - `client.ai.updateAgent(agentId, request)`
 - `client.ai.deleteAgent(agentId)`
-
-## Execution Contexts
-
-Execution Contexts maintain the state, history, and active variables of an Agent interacting with a specific user over time. To ensure persistence, you must bind your agent executions to these contextual records.
-
-### `createExecutionContext(request)`
-Generate an isolated execution bubble for a specific user to interact within.
-
-```typescript
-const ctx = await client.ai.createExecutionContext({
-  title: "Support Session - usr_abc",
-  system_instructions: "Priority: high. Intent: billing.",
-  context_group: "billing_support"
-});
-```
-
-<ParamField path="request" type="CreateExecutionContextRequest">
-  <Expandable title="properties">
-    <ParamField path="title" type="string">
-      A human-readable label or title for the context.
-    </ParamField>
-    <ParamField path="system_instructions" type="string">
-      Context-specific instructions appended to the agent during execution.
-    </ParamField>
-    <ParamField path="context_group" type="string">
-      An optional grouping key to organize related contexts.
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-### `executeAgentInContext(contextId, request)`
-Executes an agent *within* a defined stateful context instead of a generic execution thread.
-
-```typescript
-await client.ai.executeAgentInContext(ctx.id, {
-  execution_type: {
-    new_message: {
-      message: "Referencing our last message..."
-    }
-  }
-});
-```
-
-<ParamField path="contextId" type="string" required>
-  The unique identifier of the Execution Context.
-</ParamField>
-
-<ParamField path="request" type="ExecuteAgentRequest">
-  <Expandable title="properties">
-    <ParamField path="execution_type" type="object" required>
-      The type of execution trigger, typically `new_message`.
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-- `client.ai.listExecutionContexts(options)`
-- `client.ai.updateExecutionContext(contextId, request)`
-- `client.ai.deleteExecutionContext(contextId)`
-
-## Tools
-
-AI Tools define deterministic backend logic that LLM Agents can choose to invoke if required.
-
-### `createTool(request)`
-Define a JSON Schema describing a backend capability the Agent can utilize.
-
-```typescript
-await client.ai.createTool({
-  name: "search_customer_receipts",
-  description: "Looks up a customer's stripe receipts.",
-  tool_type: "api",
-  configuration: {
-    input_schema: {
-       type: "object",
-       properties: {
-          email: { type: "string", description: "The customer's email address" }
-       },
-       required: ["email"]
-    }
-  }
-});
-```
-
-<ParamField path="request" type="CreateToolRequest">
-  <Expandable title="properties">
-    <ParamField path="name" type="string" required>
-      The snake_case name of the tool presented to the LLM.
-    </ParamField>
-    <ParamField path="description" type="string" required>
-      A detailed description explaining when the LLM should invoke this tool.
-    </ParamField>
-    <ParamField path="tool_type" type="string" required>
-      The type of tool being created (e.g., `api`).
-    </ParamField>
-    <ParamField path="configuration" type="Record<string, unknown>" required>
-      The tool configuration, containing the JSON `input_schema`.
-    </ParamField>
-  </Expandable>
-</ParamField>
-
+- `client.ai.listAgentSubAgents(agentId)`
+- `client.ai.attachAgentSubAgent(agentId, subAgentId)`
+- `client.ai.detachAgentSubAgent(agentId, subAgentId)`
 - `client.ai.listTools(options)`
 - `client.ai.getTool(toolId)`
+- `client.ai.createTool(request)`
 - `client.ai.updateTool(toolId, request)`
 - `client.ai.deleteTool(toolId)`
-
-## Agent Integrations
-
-Agents rarely operate in isolation. You can bind specific Tools and Knowledge Bases directly to an Agent via Integrations.
-
-### `createAgentIntegration(agentId, request)`
-Bind a specific capability to an Agent.
-
-```typescript
-await client.ai.createAgentIntegration("agt_123", {
-  integration_type: "slack",
-  name: "Slack Support Channel Bot",
-  config: {
-    slack_channel_id: "C12345678"
-  }
-});
-```
-
-<ParamField path="agentId" type="string" required>
-  The unique identifier of the Agent to bind to.
-</ParamField>
-
-<ParamField path="request" type="CreateAgentIntegrationRequest">
-  <Expandable title="properties">
-    <ParamField path="integration_type" type="string" required>
-      The type of integration (e.g., `tool`, `slack`, `discord`).
-    </ParamField>
-    <ParamField path="name" type="string">
-      An optional descriptive name for the integration binding.
-    </ParamField>
-    <ParamField path="config" type="Record<string, unknown>" required>
-      The specific configuration values required for the selected integration type.
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-- `client.ai.listAgentIntegrations(agentId, options)`
-- `client.ai.getAgentIntegration(agentId, integrationId)`
-- `client.ai.updateAgentIntegration(agentId, integrationId, request)`
-- `client.ai.deleteAgentIntegration(agentId, integrationId)`
-
-## Knowledge Bases
-
-Knowledge Bases allow you to assemble RAG (Retrieval-Augmented Generation) clusters, giving an LLM Agent access to your proprietary documents.
-
-### `createKnowledgeBase(request)`
-Provision an empty knowledge store.
-
-```typescript
-const kb = await client.ai.createKnowledgeBase({
-  name: "API Documentation Store",
-  description: "Markdown documents covering our REST APIs."
-});
-```
-
-<ParamField path="request" type="CreateKnowledgeBaseRequest">
-  <Expandable title="properties">
-    <ParamField path="name" type="string" required>
-      The name of the Knowledge Base.
-    </ParamField>
-    <ParamField path="description" type="string">
-      An optional description of the Knowledge Base's contents.
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-### `uploadKnowledgeBaseDocument(kbId, file)`
-Directly upload a document into the Knowledge Base for vectorization.
-
-```typescript
-// Assuming `req.file` from a traditional express multipart/form-data upload
-await client.ai.uploadKnowledgeBaseDocument(
-  kb.id, 
-  req.file, 
-  "Billing API Guide", 
-  "Explains the v2 Billing API."
-);
-```
-
-<ParamField path="kbId" type="string" required>
-  The unique identifier of the target Knowledge Base.
-</ParamField>
-
-<ParamField path="file" type="File | Blob | Buffer" required>
-  The binary representation of the document to vectorize.
-</ParamField>
-
-<ParamField path="title" type="string">
-  An optional title to override the uploaded file's name.
-</ParamField>
-
-<ParamField path="description" type="string">
-  An optional description providing context on the document contents.
-</ParamField>
-
+- `client.ai.listAgentTools(agentId)`
+- `client.ai.attachAgentTool(agentId, toolId)`
+- `client.ai.detachAgentTool(agentId, toolId)`
 - `client.ai.listKnowledgeBases(options)`
 - `client.ai.getKnowledgeBase(kbId)`
+- `client.ai.createKnowledgeBase(request)`
 - `client.ai.updateKnowledgeBase(kbId, request)`
 - `client.ai.deleteKnowledgeBase(kbId)`
+- `client.ai.listAgentKnowledgeBases(agentId)`
+- `client.ai.attachAgentKnowledgeBase(agentId, kbId)`
+- `client.ai.detachAgentKnowledgeBase(agentId, kbId)`
 - `client.ai.listKnowledgeBaseDocuments(kbId, options)`
+- `client.ai.uploadKnowledgeBaseDocument(kbId, file, title?, description?)`
 - `client.ai.deleteKnowledgeBaseDocument(kbId, documentId)`
+- `client.ai.listMcpServers(options)`
+- `client.ai.getMcpServer(mcpServerId)`
+- `client.ai.createMcpServer(request)`
+- `client.ai.updateMcpServer(mcpServerId, request)`
+- `client.ai.deleteMcpServer(mcpServerId)`
+- `client.ai.discoverMcpServerAuth(request)`
+- `client.ai.getAiSettings()`
+- `client.ai.updateAiSettings(request)`
+
+### Actor-project runtime administration
+
+Use these methods when a backend operator needs deployment-admin access to the same runtime resources the frontend experience uses, but through the backend API contract.
+
+- `client.ai.listActorProjects(actorId, includeArchived?)`
+- `client.ai.searchActorProjects(actorId, options)`
+- `client.ai.createActorProject(actorId, request)`
+- `client.ai.getActorProject(projectId)`
+- `client.ai.updateActorProject(projectId, request)`
+- `client.ai.archiveActorProject(projectId)`
+- `client.ai.unarchiveActorProject(projectId)`
+- `client.ai.getProjectTaskBoard(projectId)`
+- `client.ai.listProjectTaskBoardItems(projectId)`
+- `client.ai.createProjectTaskBoardItem(projectId, request)`
+- `client.ai.getProjectTaskBoardItem(projectId, itemId)`
+- `client.ai.listProjectTaskBoardItemEvents(projectId, itemId)`
+- `client.ai.listProjectTaskBoardItemAssignments(projectId, itemId)`
+- `client.ai.listProjectTaskBoardItemFilesystem(projectId, itemId, path?)`
+- `client.ai.getProjectTaskBoardItemFilesystemFile(projectId, itemId, path)`
+- `client.ai.updateProjectTaskBoardItem(projectId, itemId, request)`
+- `client.ai.archiveProjectTaskBoardItem(projectId, itemId)`
+- `client.ai.unarchiveProjectTaskBoardItem(projectId, itemId)`
+- `client.ai.appendProjectTaskBoardItemJournal(projectId, itemId, request)`
+- `client.ai.listProjectThreads(projectId, includeArchived?)`
+- `client.ai.createAgentThread(projectId, request)`
+- `client.ai.searchActorProjectThreads(actorId, options)`
+- `client.ai.getAgentThread(threadId)`
+- `client.ai.updateAgentThread(threadId, request)`
+- `client.ai.archiveAgentThread(threadId)`
+- `client.ai.unarchiveAgentThread(threadId)`
+- `client.ai.listThreadEvents(threadId)`
+- `client.ai.listThreadAssignments(threadId)`
+- `client.ai.getLatestThreadTaskGraph(threadId)`
+- `client.ai.listThreadMessages(threadId, options)`
+- `client.ai.listThreadFilesystem(threadId, path?)`
+- `client.ai.runAgentThread(threadId, request)`
+- `client.ai.listActorMcpServers(actorId)`
+- `client.ai.connectActorMcpServer(actorId, mcpServerId)`
+- `client.ai.disconnectActorMcpServer(actorId, mcpServerId)`
+
+## Example: create an actor project
+
+```ts
+const project = await client.ai.createActorProject("123", {
+  name: "Website Launch",
+  agent_id: "456",
+  description: "Coordinate launch preparation and review.",
+});
+```
+
+## Example: create a project thread
+
+```ts
+const thread = await client.ai.createAgentThread(project.id, {
+  title: "Launch coordinator",
+  agent_id: "456",
+  thread_purpose: "coordinator",
+  accepts_assignments: true,
+});
+```
+
+## Example: append task journal
+
+```ts
+await client.ai.appendProjectTaskBoardItemJournal(project.id, "789", {
+  summary: "Reviewed copy and requested revisions",
+  body_markdown: "Headline is ready. CTA still needs legal review.",
+});
+```
+
+## Example: run a thread
+
+```ts
+const execution = await client.ai.runAgentThread(thread.id, {
+  execution_type: {
+    new_message: {
+      message: "Review the launch plan and produce next actions.",
+    },
+  },
+});
+```
+
+## Important contract changes
+
+The current SDK no longer models these removed backend concepts:
+
+- actor CRUD routes
+- `/ai/projects/*` runtime routes on the backend API
+- `/ai/threads/:thread_id/state`
+- `/ai/threads/:thread_id/status-updates`
+- `/ai/thread-events/:event_id`
+- `/ai/thread-task-graphs/:graph_id/*`
+
+Backend runtime administration now uses:
+
+- `/ai/actor-projects/*`
+- `/ai/actor-project-threads/*`
+- `/ai/actor-mcp-servers/*`
+
+For end-user runtime access and streaming, use the frontend API and React SDK instead.

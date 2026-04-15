@@ -1,0 +1,58 @@
+---
+title: useProjectThreadFeed
+description: Page through project threads in the frontend AI runtime.
+---
+
+# useProjectThreadFeed
+
+The `useProjectThreadFeed` hook loads project threads from:
+
+- `GET /ai/projects/:project_id/threads`
+
+It uses the same cursor-based pagination contract as the frontend API.
+
+## Return shape
+
+- `threads`
+- `loading`
+- `error`
+- `hasMore`
+- `loadingMore`
+- `loadMore()`
+- `refetch()`
+
+## Options
+
+- `includeArchived?: boolean`
+- `archivedOnly?: boolean`
+- `enabled?: boolean`
+- `query?: string`
+- `limit?: number`
+
+## Example
+
+```tsx
+import { useProjectThreadFeed } from "@wacht/nextjs";
+
+export function ThreadFeed({ projectId }: { projectId: string }) {
+  const { threads, hasMore, loadMore } = useProjectThreadFeed(projectId, {
+    query: "review",
+    limit: 20,
+  });
+
+  return (
+    <div>
+      {threads.map((thread) => (
+        <div key={thread.id}>{thread.title}</div>
+      ))}
+
+      {hasMore ? <button onClick={() => loadMore()}>Load more</button> : null}
+    </div>
+  );
+}
+```
+
+## Related hooks
+
+- `useActorProjects`
+- `useAgentThreadConversation`

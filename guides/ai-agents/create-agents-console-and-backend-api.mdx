@@ -36,19 +36,25 @@ const agent = await client.ai.createAgent({
 console.log("agent_id", agent.id);
 ```
 
-## Create a context and execute the agent
+## Create an actor project and run a thread
 
-Use execution contexts to keep conversation state scoped to a user/session.
+The current backend-admin runtime surface is actor-project based. Create a project for a concrete actor, create a project thread, then run that thread.
 
 ```ts
-const ctx = await client.ai.createExecutionContext({
-  title: "Support chat - ws_123",
-  context_group: "workspace:ws_123:user:u_777",
-  system_instructions: "Prioritize security and account ownership checks.",
+const project = await client.ai.createActorProject("777", {
+  name: "Support chat - ws_123",
+  agent_id: agent.id,
+  description: "Workspace support runtime for user 777",
 });
 
-const execution = await client.ai.executeAgentInContext(ctx.id, {
-  agent_name: "customer_success_assistant",
+const thread = await client.ai.createAgentThread(project.id, {
+  title: "Support coordinator",
+  agent_id: agent.id,
+  thread_purpose: "conversation",
+  accepts_assignments: true,
+});
+
+const execution = await client.ai.runAgentThread(thread.id, {
   execution_type: {
     new_message: {
       message: "List the last 3 failed webhook deliveries and suggest next action.",
@@ -59,13 +65,11 @@ const execution = await client.ai.executeAgentInContext(ctx.id, {
 console.log(execution.status, execution.conversation_id);
 ```
 
-## What `context_group` means
+## Why actor projects matter
 
-`context_group` is the grouping key that decides which execution contexts belong to the same logical conversation scope.
+Actor projects give the backend-admin surface an explicit runtime owner without relying on a frontend session.
 
-Use a deterministic tenancy-safe format, for example `workspace:<workspaceId>:user:<userId>`.
-
-For full session-type behavior (`static` vs `signin`), see [Run Agents Inside Your App](/guides/ai-agents/run-agents-in-your-app).
+Use a stable actor ID for the tenant/user/application subject you want the runtime resources to belong to.
 
 ## Raw HTTP fallback (non-SDK runtimes)
 
@@ -82,24 +86,24 @@ curl -X POST "https://api.wacht.dev/ai/agents" \
 Use this only when you cannot use the backend SDK.
 
 ```bash
-curl -X POST "https://api.wacht.dev/ai/execution-contexts" \
+curl -X POST "https://api.wacht.dev/ai/actor-projects?actor_id=777" \
   -H "Authorization: Bearer $WACHT_BACKEND_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "title": "Support chat - ws_123",
-    "context_group": "workspace:ws_123:user:u_777"
+    "name": "Support chat - ws_123",
+    "agent_id": "1234567890123456789"
   }'
 ```
 
 ## Production pattern
 
-1. Keep one stable `agent_name` per business capability.
-2. Keep one `context_group` strategy that maps to your tenancy model.
-3. Store `agent_id` and context metadata in your own DB for auditability.
+1. Keep one stable agent per business capability.
+2. Use a deterministic actor ID strategy that maps to your tenancy model.
+3. Store `agent_id`, `actor_id`, and project/thread IDs in your own DB for auditability.
 4. Never let frontend clients call `/ai/*` with backend API keys.
 
 ## Related references
 
-1. [Backend AI API Reference](/backend-api/agents)
+1. [Backend AI Admin Routes](/guides/ai-agents/backend-api-admin-routes)
 2. [Node SDK AI API](/node-sdk/api/ai)
-3. [Frontend Agent APIs](/frontend-api/agents)
+3. [Frontend AI Runtime Routes](/guides/ai-agents/frontend-api-runtime-routes)

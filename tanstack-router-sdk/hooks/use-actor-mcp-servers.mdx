@@ -1,0 +1,49 @@
+---
+title: useActorMcpServers
+description: Manage actor-scoped MCP connections in the frontend AI runtime.
+---
+
+# useActorMcpServers
+
+The `useActorMcpServers` hook uses the current actor-scoped MCP routes:
+
+- `GET /ai/mcp-servers`
+- `POST /ai/mcp-servers/:mcp_server_id/connect`
+- `POST /ai/mcp-servers/:mcp_server_id/disconnect`
+
+## Return shape
+
+- `servers`
+- `loading`
+- `error`
+- `connect(mcpServerId)`
+- `disconnect(mcpServerId)`
+- `refetch()`
+
+## Example
+
+```tsx
+import { useActorMcpServers } from "@wacht/tanstack-router";
+
+export function McpConnections() {
+  const { servers, connect, disconnect } = useActorMcpServers();
+
+  return (
+    <div>
+      {servers.map((server) => (
+        <button
+          key={server.id}
+          onClick={() => (server.connection_status === "connected" ? disconnect(server.id) : connect(server.id))}
+        >
+          {server.name}
+        </button>
+      ))}
+    </div>
+  );
+}
+```
+
+## Related hooks
+
+- `useAgentSession`
+- `useActorProjects`

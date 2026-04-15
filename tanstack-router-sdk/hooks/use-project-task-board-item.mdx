@@ -1,0 +1,74 @@
+---
+title: useProjectTaskBoardItem
+description: Load one board item plus its events, assignments, and filesystem.
+---
+
+# useProjectTaskBoardItem
+
+The `useProjectTaskBoardItem` hook composes the current board-item route family:
+
+- `GET /ai/projects/:project_id/board/items/:item_id`
+- `GET /ai/projects/:project_id/board/items/:item_id/events`
+- `GET /ai/projects/:project_id/board/items/:item_id/assignments`
+- `GET /ai/projects/:project_id/board/items/:item_id/filesystem`
+- `GET /ai/projects/:project_id/board/items/:item_id/filesystem/file`
+
+It also exposes the matching mutations:
+
+- `POST /ai/projects/:project_id/board/items/:item_id/update`
+- `POST /ai/projects/:project_id/board/items/:item_id/archive`
+- `POST /ai/projects/:project_id/board/items/:item_id/unarchive`
+- `POST /ai/projects/:project_id/board/items/:item_id/journal`
+
+## Return shape
+
+- `item`
+- `events`
+- `assignments`
+- `eventsHasMore`
+- `eventsLoadingMore`
+- `loadMoreEvents()`
+- `assignmentsHasMore`
+- `assignmentsLoadingMore`
+- `loadMoreAssignments()`
+- `taskWorkspace`
+- `taskWorkspaceLoading`
+- `taskWorkspaceError`
+- `updateItem(request, files?)`
+- `archiveItem()`
+- `unarchiveItem()`
+- `getTaskWorkspaceFile(path)`
+- `listTaskWorkspaceDirectory(path?)`
+- `appendJournal(request, files?)`
+- `refetch()`
+
+## Example
+
+```tsx
+import { useProjectTaskBoardItem } from "@wacht/tanstack-router";
+
+export function TaskDetail(props: { projectId: string; itemId: string }) {
+  const { item, events, taskWorkspace, appendJournal } = useProjectTaskBoardItem(
+    props.projectId,
+    props.itemId,
+  );
+
+  if (!item) return <div>Loading task...</div>;
+
+  return (
+    <div>
+      <h1>{item.title}</h1>
+      <div>Journal entries: {events.length}</div>
+      <div>Workspace files: {taskWorkspace.files.length}</div>
+      <button onClick={() => appendJournal({ summary: "Reviewed", body_markdown: "Ready" })}>
+        Add journal
+      </button>
+    </div>
+  );
+}
+```
+
+## Related hooks
+
+- `useProjectTasks`
+- `useProjectThreadFeed`

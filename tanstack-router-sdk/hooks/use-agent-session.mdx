@@ -1,164 +1,54 @@
 ---
 title: useAgentSession
-description: Validate authentication sessions and manage active agent selections.
+description: Resolve the current frontend AI session, actor, and available agents.
 ---
 
 # useAgentSession
 
-Within applications deploying embedded AI components or requiring stringent access validation prior to execution, the `useAgentSession` hook operates as the primary initialization interface. It handles secure one-time ticket exchanges, retrieves the current session state, and dictates the active conversational agent for the application instance.
+The `useAgentSession` hook is the entrypoint for frontend AI runtime access in `@wacht/tanstack-router`.
 
-By interfacing with the `/agent/session` API endpoint, the hook ensures that subsequent operations executed via `useAgentContext` are fully authenticated and explicitly routed.
+It exchanges an optional one-time session ticket, then reads the live session state from `GET /ai/session`.
 
-## Configuration Parameters
+Current return shape:
 
-<ParamField path="ticket" type="string | null">
-  An optional, single-use authentication ticket mapped to a backend grant. When supplied, the hook exchanges this token sequentially before fetching session parameters. Omit or pass `null` if navigating a standard, persistent session.
-</ParamField>
+- `hasSession`
+- `sessionLoading`
+- `sessionError`
+- `sessionId`
+- `actor`
+- `agents`
+- `ticketExchanged`
+- `ticketLoading`
+- `refetch()`
 
-## Hook Interface
+Important current contract changes:
 
-<ResponseField name="hasSession" type="boolean">
-  Indicates the verified existence of an active and valid agent session.
-</ResponseField>
-
-<ResponseField name="sessionLoading" type="boolean">
-  Indicates whether the hook is actively resolving the required session state via network requests.
-</ResponseField>
-
-<ResponseField name="sessionError" type="Error | null">
-  Captures errors resulting from malformed tickets, expired sessions, or network failures.
-</ResponseField>
-
-<ResponseField name="sessionId" type="string | null">
-  The unique identifier mapped to the active agent session.
-</ResponseField>
-
-<ResponseField name="contextGroup" type="string | null">
-  An organizational assignment key applied specifically to this session structure.
-</ResponseField>
-
-<ResponseField name="agents" type="AgentWithIntegrations[]">
-  A serialized array of AI Agents explicitly available within the verified user's authorization scope.
-</ResponseField>
-
-<ResponseField name="activeAgent" type="AgentWithIntegrations | null">
-  The specific agent currently designated for active interaction processing.
-</ResponseField>
-
-### Methods
-
-<ResponseField name="setActiveAgent" type="(agent: AgentWithIntegrations) => void">
-  <Expandable title="Reassign active target agent">
-    <ParamField path="agent" type="AgentWithIntegrations">
-      The designated agent object intended for selection. Must be derived from the valid `agents` collection.
-    </ParamField>
-    <ResponseField name="returns" type="void">
-      Executes the modification exclusively in local state to route subsequent hook operations.
-    </ResponseField>
-  </Expandable>
-</ResponseField>
-
-<ResponseField name="ticketExchanged" type="boolean">
-  A state indicator confirming that a strictly provided authorization ticket has successfully exchanged for a session footprint.
-</ResponseField>
-
-<ResponseField name="ticketLoading" type="boolean">
-  Indicates whether the specific ticket exchange operation is actively processing.
-</ResponseField>
-
-<ResponseField name="refetch" type="() => Promise<void>">
-  <Expandable title="Force session synchronization">
-    <ResponseField name="returns" type="Promise<void>">
-      Manually triggers a network verification to reconcile local data against the server's session state.
-    </ResponseField>
-  </Expandable>
-</ResponseField>
-
-## Implementation Guidelines
-
-### Dynamic Agent Selection
-
-In multi-agent environments, explicit selection interfaces are required to ensure the user communicates against the proper context model:
+- the hook no longer uses `/agent/session`
+- the session contains a single `actor`, not an `actors[]` list
+- there is no `contextGroup` return field
+- the hook does not expose `setActiveAgent`; agent selection is handled by the runtime consumer layer
 
 ```tsx
 import { useAgentSession } from "@wacht/tanstack-router";
 
-function TargetAgentSelector() {
-  const { sessionLoading, agents, activeAgent, setActiveAgent } = useAgentSession();
+export function AgentBootstrap({ ticket }: { ticket?: string }) {
+  const { hasSession, sessionLoading, sessionError, actor, agents } = useAgentSession(ticket);
 
-  if (sessionLoading) return <div className="text-gray-500 font-medium">Validating agent configurations...</div>;
-  if (agents.length === 0) return <div className="text-red-700">No agents authorized for current session parameters.</div>;
+  if (sessionLoading) return <div>Loading AI session…</div>;
+  if (sessionError) return <div>Failed: {sessionError.message}</div>;
+  if (!hasSession) return <div>No active AI session.</div>;
 
   return (
-    <div className="flex flex-col gap-3">
-      <label htmlFor="agent-selector" className="text-sm font-semibold uppercase tracking-wide text-gray-700">
-        Designate Operating Agent
-      </label>
-      <select
-        id="agent-selector"
-        className="form-select block w-full pl-3 pr-10 py-2.5 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md shadow-sm"
-        value={activeAgent?.id ?? ""}
-        onChange={(e) => {
-          const selectedTarget = agents.find((agent) => agent.id === e.target.value);
-          if (selectedTarget) setActiveAgent(selectedTarget);
-        }}
-      >
-        <option value="" disabled>Awaiting agent selection...</option>
-        {agents.map((agent) => (
-          <option key={agent.id} value={agent.id}>
-            {agent.name}
-          </option>
-        ))}
-      </select>
+    <div>
+      <div>Actor: {actor?.display_name ?? actor?.external_key}</div>
+      <div>Agents: {agents.map((agent) => agent.name).join(", ")}</div>
     </div>
   );
 }
 ```
 
-### Initializing Embedded Security Contexts
+## Related hooks
 
-When configuring Wacht embedded contexts utilizing backend-generated session tickets, the hook must process the one-time artifact before rendering the interface:
-
-```tsx
-import { useAgentSession } from "@wacht/tanstack-router";
-
-function SecureEmbeddedContext({ authorizationTicket }: { authorizationTicket: string }) {
-  const { ticketLoading, hasSession, sessionError } = useAgentSession(authorizationTicket);
-
-  if (ticketLoading) {
-    return (
-      <div className="flex animate-pulse items-center justify-center p-12 text-indigo-700 font-semibold tracking-wide">
-        Exchanging authorization token...
-      </div>
-    );
-  }
-
-  if (sessionError) {
-    return (
-      <div className="p-6 bg-red-50 border border-red-200 rounded-lg">
-        <h3 className="text-red-800 font-bold mb-2">Authentication Subsystem Error</h3>
-        <p className="text-red-600 font-mono text-sm">{sessionError.message}</p>
-      </div>
-    );
-  }
-
-  if (!hasSession) {
-    return <div className="p-6 text-gray-500 italic text-center">Security context expired or rejected. Request new authorization parameters.</div>;
-  }
-
-  return (
-    <div className="p-8 border border-gray-200 rounded-xl bg-white shadow-md">
-      <h2 className="text-xl font-bold text-gray-900 border-b pb-4 mb-4">Secure Context Initialized</h2>
-      <p className="text-gray-600 leading-relaxed">
-        The application is now permitted to initiate execution streams against local operations.
-      </p>
-      {/* TargetAgentSelector and Chat components mount below */}
-    </div>
-  );
-}
-```
-
-## Related Documentation
-
-- [useAgentContext](./use-agent-context) - Implemented upon agent selection to deploy the associated execution stream.
-- [useAgentIntegrations](./use-agent-integrations) - Review available integrations corresponding to the designated active agent.
+- `useAgentThreadConversation` for live thread messaging and execution state
+- `useActorProjects` and `useProjectThreadFeed` for runtime resource browsing
+- `useActorMcpServers` for actor MCP connection flows

@@ -82,11 +82,12 @@
                             {
                                 "group": "Agent Hooks",
                                 "pages": [
-                                    "react-router-sdk/hooks/use-agent-context",
-                                    "react-router-sdk/hooks/use-agent-contexts",
-                                    "react-router-sdk/hooks/use-agent-integrations",
-                                    "react-router-sdk/hooks/use-agent-mcp-servers",
-                                    "react-router-sdk/hooks/use-agent-session"
+                                    "react-router-sdk/hooks/use-agent-session",
+                                    "react-router-sdk/hooks/use-actor-projects",
+                                    "react-router-sdk/hooks/use-project-thread-feed",
+                                    "react-router-sdk/hooks/use-project-task-board-item",
+                                    "react-router-sdk/hooks/use-agent-thread-conversation",
+                                    "react-router-sdk/hooks/use-actor-mcp-servers"
                                 ]
                             },
                             {
@@ -208,11 +209,12 @@
                             {
                                 "group": "Agent Hooks",
                                 "pages": [
-                                    "nextjs-sdk/hooks/use-agent-context",
-                                    "nextjs-sdk/hooks/use-agent-contexts",
-                                    "nextjs-sdk/hooks/use-agent-integrations",
-                                    "nextjs-sdk/hooks/use-agent-mcp-servers",
-                                    "nextjs-sdk/hooks/use-agent-session"
+                                    "nextjs-sdk/hooks/use-agent-session",
+                                    "nextjs-sdk/hooks/use-actor-projects",
+                                    "nextjs-sdk/hooks/use-project-thread-feed",
+                                    "nextjs-sdk/hooks/use-project-task-board-item",
+                                    "nextjs-sdk/hooks/use-agent-thread-conversation",
+                                    "nextjs-sdk/hooks/use-actor-mcp-servers"
                                 ]
                             },
                             {
@@ -334,11 +336,12 @@
                             {
                                 "group": "Agent Hooks",
                                 "pages": [
-                                    "tanstack-router-sdk/hooks/use-agent-context",
-                                    "tanstack-router-sdk/hooks/use-agent-contexts",
-                                    "tanstack-router-sdk/hooks/use-agent-integrations",
-                                    "tanstack-router-sdk/hooks/use-agent-mcp-servers",
-                                    "tanstack-router-sdk/hooks/use-agent-session"
+                                    "tanstack-router-sdk/hooks/use-agent-session",
+                                    "tanstack-router-sdk/hooks/use-actor-projects",
+                                    "tanstack-router-sdk/hooks/use-project-thread-feed",
+                                    "tanstack-router-sdk/hooks/use-project-task-board-item",
+                                    "tanstack-router-sdk/hooks/use-agent-thread-conversation",
+                                    "tanstack-router-sdk/hooks/use-actor-mcp-servers"
                                 ]
                             },
                             {
@@ -474,8 +477,7 @@
                                 "pages": [
                                     "rust-sdk/guide/agents",
                                     "rust-sdk/guide/knowledge-bases",
-                                    "rust-sdk/guide/tools",
-                                    "rust-sdk/guide/execution-context"
+                                    "rust-sdk/guide/tools"
                                 ]
                             },
                             {
@@ -547,6 +549,8 @@
                                 "group": "AI Agents for SaaS",
                                 "pages": [
                                     "guides/ai-agents/overview-console-api-mcp",
+                                    "guides/ai-agents/backend-api-admin-routes",
+                                    "guides/ai-agents/frontend-api-runtime-routes",
                                     "guides/ai-agents/create-agents-console-and-backend-api",
                                     "guides/ai-agents/run-agents-in-your-app",
                                     "guides/ai-agents/connect-mcp-servers",

@@ -1,0 +1,66 @@
+---
+title: useAgentThreadConversation
+description: Read thread messages, stream execution state, and send new messages.
+---
+
+# useAgentThreadConversation
+
+The `useAgentThreadConversation` hook is the live thread runtime hook.
+
+It uses these frontend API routes:
+
+- `GET /ai/threads/:thread_id/messages`
+- `GET /ai/threads/:thread_id/stream`
+- `POST /ai/threads/:thread_id/run`
+- `GET /ai/threads/:thread_id`
+
+## Return shape
+
+- `threadState`
+- `messages`
+- `pendingMessage`
+- `pendingFiles`
+- `connectionState`
+- `isConnected`
+- `hasActiveRun`
+- `isRunning`
+- `executionStatus`
+- `isWaitingForInput`
+- `pendingApprovalRequest`
+- `activeApprovalRequestId`
+- `hasMoreMessages`
+- `isLoadingMore`
+- `messagesLoading`
+- `messagesError`
+- `refreshMessages()`
+- `sendMessage(message, attachments?, files?)`
+- `submitApprovalResponse(requestId, approved, reason?)`
+- `clearMessages()`
+- `loadMoreMessages()`
+- `cancelExecution()`
+- `resolveMessageFileUrl(file)`
+- `downloadMessageFile(file)`
+
+## Example
+
+```tsx
+import { useAgentThreadConversation } from "@wacht/nextjs";
+
+export function ThreadChat({ threadId }: { threadId: string }) {
+  const { messages, sendMessage, isRunning } = useAgentThreadConversation({ threadId });
+
+  return (
+    <div>
+      <button disabled={isRunning} onClick={() => sendMessage("Summarize the open tasks")}>
+        Ask agent
+      </button>
+      <pre>{JSON.stringify(messages, null, 2)}</pre>
+    </div>
+  );
+}
+```
+
+## Related hooks
+
+- `useAgentSession`
+- `useProjectThreadFeed`

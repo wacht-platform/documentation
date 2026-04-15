@@ -59,7 +59,7 @@ println!("Expires at: {}", response.expires_at);
 
 ### Agent Access Ticket
 
-Grant access to specific AI agents with a context group:
+Grant access to specific AI agents with a concrete actor ID:
 
 ```rust
 use wacht::WachtClient;
@@ -70,7 +70,7 @@ let client = WachtClient::new("wk_live_...");
 let response = client.session().create(
     CreateSessionTicketRequest::agent_access(
         vec!["agent_1".to_string(), "agent_2".to_string()],
-        "support-agents"
+        "777"
     )
 )
 .send()
@@ -175,14 +175,18 @@ The response varies by ticket type:
 {
   "success": true,
   "message": "Agent session created",
-  "session_id": "123456789",
-  "context_group": "support-agents",
+  "session_id": "1234567890123456789",
+  "actor": {
+    "id": "777",
+    "display_name": "Debug Actor 777",
+    "subject_type": "debug",
+    "external_key": "777"
+  },
   "agents": [
     {
       "id": "agent_1",
       "name": "Support Agent",
-      "description": "Handles customer support",
-      "integrations": [...]
+      "description": "Handles customer support"
     }
   ]
 }

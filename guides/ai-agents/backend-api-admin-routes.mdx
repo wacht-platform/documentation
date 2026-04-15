@@ -1,0 +1,136 @@
+---
+title: Backend API Admin Routes
+description: Deployment-admin AI routes exposed from the backend API.
+---
+
+# Backend API Admin Routes
+
+These routes are exposed from `platform-api` on the backend/admin API surface.
+
+Key properties:
+
+- authenticated with backend API credentials
+- deployment-admin scope
+- actor scope is explicit on actor-rooted list/search/create routes
+- no stream endpoints
+
+## Control plane
+
+### Agents
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/ai/agents` | List deployment AI agents. |
+| `POST` | `/ai/agents` | Create an AI agent. |
+| `GET` | `/ai/agents/{agent_id}` | Get an AI agent. |
+| `PATCH` | `/ai/agents/{agent_id}` | Update an AI agent. |
+| `DELETE` | `/ai/agents/{agent_id}` | Delete an AI agent. |
+| `GET` | `/ai/agents/{agent_id}/details` | Get extended agent details. |
+| `POST` | `/ai/agents/{agent_id}/skills` | Import an agent skill bundle. |
+| `DELETE` | `/ai/agents/{agent_id}/skills` | Delete an agent skill path. |
+| `GET` | `/ai/agents/{agent_id}/skills/tree` | List agent skill tree. |
+| `GET` | `/ai/agents/{agent_id}/skills/file` | Read an agent skill file. |
+| `GET` | `/ai/agents/{agent_id}/sub-agents` | List attached sub-agents. |
+| `POST` | `/ai/agents/{agent_id}/sub-agents/{sub_agent_id}` | Attach a sub-agent. |
+| `DELETE` | `/ai/agents/{agent_id}/sub-agents/{sub_agent_id}` | Detach a sub-agent. |
+| `GET` | `/ai/agents/{agent_id}/tools` | List agent tools. |
+| `POST` | `/ai/agents/{agent_id}/tools/{tool_id}` | Attach a tool to an agent. |
+| `DELETE` | `/ai/agents/{agent_id}/tools/{tool_id}` | Detach a tool from an agent. |
+| `GET` | `/ai/agents/{agent_id}/knowledge-bases` | List agent knowledge bases. |
+| `POST` | `/ai/agents/{agent_id}/knowledge-bases/{kb_id}` | Attach a knowledge base. |
+| `DELETE` | `/ai/agents/{agent_id}/knowledge-bases/{kb_id}` | Detach a knowledge base. |
+
+### Tools
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/ai/tools` | List deployment AI tools. |
+| `POST` | `/ai/tools` | Create an AI tool. |
+| `GET` | `/ai/tools/{tool_id}` | Get an AI tool. |
+| `PATCH` | `/ai/tools/{tool_id}` | Update an AI tool. |
+| `DELETE` | `/ai/tools/{tool_id}` | Delete an AI tool. |
+
+### Knowledge bases
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/ai/knowledge-bases` | List deployment knowledge bases. |
+| `POST` | `/ai/knowledge-bases` | Create a knowledge base. |
+| `GET` | `/ai/knowledge-bases/{kb_id}` | Get a knowledge base. |
+| `PATCH` | `/ai/knowledge-bases/{kb_id}` | Update a knowledge base. |
+| `DELETE` | `/ai/knowledge-bases/{kb_id}` | Delete a knowledge base. |
+| `GET` | `/ai/knowledge-bases/{kb_id}/documents` | List knowledge-base documents. |
+| `POST` | `/ai/knowledge-bases/{kb_id}/documents` | Upload a document. |
+| `DELETE` | `/ai/knowledge-bases/{kb_id}/documents/{document_id}` | Delete a document. |
+
+### MCP servers and settings
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/ai/mcp-servers` | List deployment MCP servers. |
+| `POST` | `/ai/mcp-servers` | Create an MCP server. |
+| `POST` | `/ai/mcp-servers/discover` | Discover MCP auth requirements. |
+| `GET` | `/ai/mcp-servers/{mcp_server_id}` | Get an MCP server. |
+| `PATCH` | `/ai/mcp-servers/{mcp_server_id}` | Update an MCP server. |
+| `DELETE` | `/ai/mcp-servers/{mcp_server_id}` | Delete an MCP server. |
+| `GET` | `/ai/settings` | Read deployment AI settings. |
+| `PUT` | `/ai/settings` | Update deployment AI settings. |
+
+## Actor-project runtime administration
+
+### Actor projects
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/ai/actor-projects` | List actor projects for `actor_id`. |
+| `GET` | `/ai/actor-projects/search` | Cursor-search actor projects for `actor_id`. |
+| `POST` | `/ai/actor-projects` | Create an actor project for `actor_id`. |
+| `GET` | `/ai/actor-projects/{project_id}` | Get an actor project. |
+| `POST` | `/ai/actor-projects/{project_id}/update` | Update a project. |
+| `POST` | `/ai/actor-projects/{project_id}/archive` | Archive a project. |
+| `POST` | `/ai/actor-projects/{project_id}/unarchive` | Unarchive a project. |
+| `GET` | `/ai/actor-projects/{project_id}/board` | Get the project task board. |
+| `GET` | `/ai/actor-projects/{project_id}/board/items` | List project board items. |
+| `POST` | `/ai/actor-projects/{project_id}/board/items` | Create a project board item. |
+| `GET` | `/ai/actor-projects/{project_id}/board/items/{item_id}` | Get a board item. |
+| `GET` | `/ai/actor-projects/{project_id}/board/items/{item_id}/events` | List board-item events. |
+| `GET` | `/ai/actor-projects/{project_id}/board/items/{item_id}/assignments` | List board-item assignments. |
+| `GET` | `/ai/actor-projects/{project_id}/board/items/{item_id}/filesystem` | List board-item workspace files. |
+| `GET` | `/ai/actor-projects/{project_id}/board/items/{item_id}/filesystem/file` | Read a board-item workspace file. |
+| `POST` | `/ai/actor-projects/{project_id}/board/items/{item_id}/update` | Update a board item. |
+| `POST` | `/ai/actor-projects/{project_id}/board/items/{item_id}/archive` | Archive a board item. |
+| `POST` | `/ai/actor-projects/{project_id}/board/items/{item_id}/unarchive` | Unarchive a board item. |
+| `POST` | `/ai/actor-projects/{project_id}/board/items/{item_id}/journal` | Append a board-item journal entry. |
+| `GET` | `/ai/actor-projects/{project_id}/threads` | List project threads. |
+| `POST` | `/ai/actor-projects/{project_id}/threads` | Create a project thread. |
+
+### Actor project threads
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/ai/actor-project-threads/search` | Cursor-search actor project threads for `actor_id`. |
+| `GET` | `/ai/actor-project-threads/{thread_id}` | Get a thread. |
+| `POST` | `/ai/actor-project-threads/{thread_id}/update` | Update a thread. |
+| `POST` | `/ai/actor-project-threads/{thread_id}/archive` | Archive a thread. |
+| `POST` | `/ai/actor-project-threads/{thread_id}/unarchive` | Unarchive a thread. |
+| `GET` | `/ai/actor-project-threads/{thread_id}/events` | List thread events. |
+| `GET` | `/ai/actor-project-threads/{thread_id}/assignments` | List thread assignments. |
+| `GET` | `/ai/actor-project-threads/{thread_id}/task-graphs` | Get the latest thread task graph. |
+| `GET` | `/ai/actor-project-threads/{thread_id}/messages` | List thread messages. |
+| `GET` | `/ai/actor-project-threads/{thread_id}/filesystem` | List thread filesystem entries. |
+| `GET` | `/ai/actor-project-threads/{thread_id}/filesystem/file` | Download a thread filesystem file. |
+| `POST` | `/ai/actor-project-threads/{thread_id}/run` | Enqueue execution for the thread. |
+
+### Actor MCP servers
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/ai/actor-mcp-servers` | List actor MCP connections for `actor_id`. |
+| `POST` | `/ai/actor-mcp-servers/{mcp_server_id}/connect` | Start actor MCP OAuth/connect flow. |
+| `POST` | `/ai/actor-mcp-servers/{mcp_server_id}/disconnect` | Disconnect actor MCP server. |
+
+## Notes
+
+- These backend routes intentionally do not expose a stream endpoint.
+- For end-user session-scoped runtime APIs, use the frontend API surface instead.
+- Actor scope is explicit only on actor-rooted list/search/create and actor-MCP routes.

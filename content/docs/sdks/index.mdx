@@ -1,0 +1,26 @@
+---
+title: SDK Overview
+description: Choose the right package family before drilling into framework-specific implementation detail.
+---
+
+## Frontend packages
+
+Use the React SDK workspace when you are building an application UI:
+
+- `@wacht/jsx` contains the shared hooks and components.
+- `@wacht/nextjs` adds Next.js providers and server helpers.
+- `@wacht/react-router` adds React Router providers and server helpers.
+- `@wacht/tanstack-router` adds TanStack Router providers and server helpers.
+
+The framework packages are intentionally thin. Most behavior lives in the shared JSX package.
+
+## Server packages
+
+Use the server-side SDKs when you are validating tokens, calling admin routes, or building backend workflows:
+
+- `node/` for JavaScript and TypeScript server integrations
+- `wacht-rs/` for Rust services
+
+## Documentation approach
+
+The docs should avoid cloning the same page three times when the API is identical. Shared behavior belongs in one page with short framework-specific notes where needed.

@@ -1,0 +1,49 @@
+---
+title: Architecture
+description: How the frontend apps, backend services, and SDKs line up in the repository.
+---
+
+## Core split
+
+There are two backend domains in this repository:
+
+- `platform-api` is the control plane and infrastructure runtime.
+- `frontend-api` is the customer-facing runtime API consumed by applications and frontend SDKs.
+
+There are two main frontend consumers:
+
+- `console` consumes authenticated operator APIs from the control plane.
+- application code consumes `react-sdk`, which in turn talks to the frontend runtime APIs.
+
+## Why this matters for docs
+
+The docs need separate tracks:
+
+- product and architecture pages for orientation
+- SDK guides for app developers
+- API reference for exact contracts
+- operational/backend guides for people extending or self-hosting the platform
+
+If those concerns are mixed together, readers cannot tell whether a page is describing a browser integration, a server integration, or an internal control-plane route.
+
+## Service boundaries
+
+### Console
+
+The console is an admin surface. It authenticates through Wacht deployment context, then calls the operator API with bearer tokens.
+
+### Platform API
+
+The Rust workspace exposes separate binaries for console, backend, OAuth, and gateway concerns. It also includes a worker for jobs like webhooks, billing sync, recovery, analytics, and storage or vector work.
+
+### Frontend API
+
+The Go service handles runtime user concerns such as sessions, organizations, workspaces, notifications, and customer-facing auth flows.
+
+### React SDK
+
+The React SDK is layered:
+
+- `@wacht/types` for shared contracts
+- `@wacht/jsx` for shared hooks and components
+- framework adapters for Next.js, React Router, and TanStack Router

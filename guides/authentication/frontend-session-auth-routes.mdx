@@ -1,0 +1,333 @@
+---
+title: 'Frontend Session And Auth Routes'
+description: 'Source-driven reference for frontend-api session, token, sign-out, tenancy switching, and session ticket exchange routes.'
+---
+
+## Purpose
+
+This page documents the frontend session and auth routes implemented in `frontend-api`.
+
+These routes are session-scoped. They are not backend API key routes.
+
+They are the routes used by frontend SDKs and session-based embedded product flows.
+
+## Terms
+
+### Deployment host
+
+The deployment host is the host used to resolve the current deployment.
+
+Examples:
+
+- `frontend.gokboru.in`
+- `6tumlz9k81r7vzob.fapi.trywacht.xyz`
+
+### Frontend session
+
+The frontend session is the browser session managed by `frontend-api`.
+
+In production, it is transported by the `__session` cookie.
+
+In non-production deployments, session transport can use a development-session value.
+
+### Active sign-in
+
+A frontend session can contain one or more sign-ins.
+
+The **active sign-in** is the sign-in currently used to derive:
+
+- current user
+- current organization context
+- current workspace context
+- JWT tokens returned by `GET /session/token`
+
+If there is no active sign-in, the browser session still exists, but the session is not authenticated as a user.
+
+## Middleware prerequisites
+
+These routes sit behind the request prelude in `frontend-api`.
+
+The request prelude is responsible for:
+
+- resolving the deployment from the request host
+- reading `__session` or `__dev_session__`
+- creating a new session when no session exists
+- refreshing expired session tokens
+- attaching deployment and session data to request locals
+
+This is why the route handlers assume the current request already has session state.
+
+## Session transport
+
+### Production
+
+Production uses the `__session` cookie.
+
+Current behavior in `prelude.go`:
+
+- if `deployment.BackendHost` starts with `frontend.`, that prefix is stripped before setting the cookie domain
+- example: `frontend.gokboru.in` sets cookie `Domain=gokboru.in`
+- example: `frontend.x.example.com` sets cookie `Domain=x.example.com`
+
+### Non-production
+
+Non-production uses development-session transport.
+
+Current behavior:
+
+- incoming development session can be provided through `__dev_session__`
+- refreshed development session is returned through `X-Development-Session`
+
+## Route inventory
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/session` | Return the current frontend session object. |
+| `GET` | `/session/token` | Exchange the current frontend session for a signed JWT. |
+| `POST` | `/session/switch-sign-in` | Switch the active sign-in inside the current browser session. |
+| `POST` | `/session/sign-out` | Sign out the current active sign-in or a specific sign-in. |
+| `POST` | `/session/switch-organization` | Switch or clear the active organization context. |
+| `POST` | `/session/switch-workspace` | Switch or clear the active workspace context. |
+| `GET` | `/session/ticket/exchange` | Exchange a single-use session ticket. |
+
+## `GET /session`
+
+Returns the current session object.
+
+Auth requirements:
+
+- no backend bearer token is required
+- the request must resolve to a valid deployment and session transport
+
+Success response:
+
+- `200` with the current session in `data`
+
+Important behavior:
+
+- if there is no valid existing session, the request prelude creates one before the handler runs
+- this endpoint therefore always reflects the current browser session, not a backend principal
+
+## `GET /session/token`
+
+Returns a signed JWT for the current session.
+
+This is the route consumed by server SDKs when they exchange frontend session state for a verifiable JWT.
+
+### Query params
+
+- `template`: optional JWT template name. Defaults to `default`
+
+### Success requirements
+
+- current session exists
+- current session has an active sign-in
+
+### Default token contents
+
+The default implementation builds a JWT with:
+
+- `iss`: `https://<deployment.BackendHost>`
+- `sub`: active user ID
+- `sid`: current session ID
+- `organization`: active organization ID when present
+- `workspace`: active workspace ID when present
+- `permissions`: grouped organization and workspace permissions
+- `metadata`: rendered JWT template metadata when configured
+
+### Success response
+
+```json
+{
+  "data": {
+    "token": "<signed jwt>",
+    "expires": 1770000000000
+  },
+  "status": 200,
+  "message": "",
+  "errors": null,
+  "session": null
+}
+```
+
+### Failure cases
+
+- `404` template not found
+- `404` session not found
+- `400` no active sign in
+- `500` token rendering or signing failure
+
+### Important distinction
+
+- `__session` is the browser session token
+- `/session/token` returns the signed auth JWT used by server-side verification
+
+## `POST /session/switch-sign-in`
+
+Changes `active_signin_id` inside the current browser session.
+
+### Query params
+
+- `sign_in_id` required
+
+### Success behavior
+
+- the sign-in must already belong to the current session
+- on success, the session cache is invalidated and the updated session is returned
+
+### Failure cases
+
+- `400` invalid sign in ID
+- `400` sign in ID not found in the current session
+
+## `POST /session/sign-out`
+
+Signs out the current browser session.
+
+### Query params
+
+- `sign_in_id` optional
+
+### Behavior
+
+- if `sign_in_id` is provided, only that sign-in is deleted
+- otherwise all sign-ins for the session are deleted and `active_signin_id` is cleared
+
+### Side effects
+
+- session cache is invalidated
+- session deletion webhooks are published when applicable
+
+### Failure cases
+
+- `400` invalid sign in ID
+- `400` sign in not found for the current session
+- `500` transaction failure
+
+## `POST /session/switch-organization`
+
+Changes the active organization membership for the active sign-in.
+
+### Query params
+
+- `organization_id` optional
+
+### Behavior
+
+- if `organization_id` is omitted or empty, organization and workspace active memberships are cleared
+- otherwise the handler validates membership and organization eligibility rules
+
+### Eligibility checks
+
+The current implementation checks:
+
+- organization membership exists
+- per-organization IP allowlist rules when enabled
+- per-organization MFA enforcement when enabled
+- organization admins bypass those restrictions
+
+### Failure cases
+
+- `400` no active sign in
+- `400` invalid organization ID
+- `400` user is not a member of this organization
+- `403` IP and/or MFA eligibility failure
+- `500` update failure when clearing active organization context
+
+## `POST /session/switch-workspace`
+
+Changes the active workspace membership for the active sign-in.
+
+### Query params
+
+- `workspace_id` optional
+
+### Behavior
+
+- if `workspace_id` is omitted or empty, workspace and organization active memberships are cleared
+- otherwise the handler validates membership and workspace eligibility rules
+
+### Eligibility checks
+
+The current implementation checks:
+
+- workspace membership exists
+- per-workspace IP allowlist rules when enabled
+- per-workspace MFA enforcement when enabled
+- workspace admins and organization admins bypass those restrictions
+
+### Failure cases
+
+- `400` no active sign in
+- `400` invalid workspace ID
+- `400` user is not a member of this workspace
+- `403` IP and/or MFA eligibility failure
+- `500` update failure when clearing active workspace context
+
+## `GET /session/ticket/exchange`
+
+Exchanges a single-use ticket stored in Redis.
+
+### Query params
+
+- `ticket` required
+
+### Ticket types currently supported
+
+- `impersonation`
+- `agent_access`
+- `webhook_app_access`
+- `api_auth_access`
+
+### Shared validation before type-specific handling
+
+The handler first validates:
+
+1. ticket is present
+2. ticket exists in Redis
+3. payload is valid JSON
+4. `deployment_id` in the ticket matches the current deployment
+
+### Shared failure cases
+
+- `400` missing `ticket`
+- `401` invalid or expired ticket
+- `400` invalid deployment ID in ticket
+- `401` ticket not valid for this deployment
+- `400` invalid ticket type
+
+### Impersonation ticket behavior
+
+For `ticket_type = impersonation`:
+
+- an existing frontend session is required
+- `user_id` is required
+- the target user must exist on the deployment and not be disabled
+- the target user cannot already be signed in on the current session
+- a new sign-in is created and made active
+- the ticket is deleted after successful exchange
+
+Success response includes:
+
+- `success: true`
+- `message: "Impersonation successful"`
+- updated `session`
+
+The other ticket types are handled in the same file after the shared validation path and establish their own runtime or app-specific session state.
+
+## Related SDK consumers
+
+These routes are consumed by:
+
+- [Next.js Server Auth](/nextjs-sdk/server-auth)
+- frontend hook packages for React Router and TanStack Router
+- app-specific ticket exchange flows for webhook apps, API auth apps, and AI runtime access
+
+## Source references
+
+This page is derived from:
+
+- [router/session.go](/Users/snipextt/code/wacht/frontend-api/router/session.go)
+- [middleware/prelude.go](/Users/snipextt/code/wacht/frontend-api/middleware/prelude.go)
+- [handler/session/handler.go](/Users/snipextt/code/wacht/frontend-api/handler/session/handler.go)
+- [handler/session/ticket.go](/Users/snipextt/code/wacht/frontend-api/handler/session/ticket.go)

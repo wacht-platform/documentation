@@ -1,47 +1,86 @@
 ---
-title: useActiveTenancy
-description: Resolve the currently active organization and workspace memberships for the session.
+title: 'useActiveTenancy()'
+description: 'Reference for resolving the active organization and workspace memberships for the current session.'
 ---
 
-# useActiveTenancy
+## Purpose
 
-The `useActiveTenancy` hook combines session state with membership lists and returns the active organization and workspace memberships.
+`useActiveTenancy()` derives the active organization membership and active workspace membership from the current session.
 
-## Return Value
+It does not fetch active tenancy from a dedicated endpoint.
+
+Instead, it combines:
+
+- `useSession()`
+- `useOrganizationMemberships()`
+- `useWorkspaceMemberships()`
+
+## Import
+
+```tsx
+import { useActiveTenancy } from '@wacht/tanstack-router'
+```
+
+## Current return shape
+
+```ts
+{
+  loading: boolean
+  orgMembership: OrganizationMembership | null
+  workspaceMembership: WorkspaceMembership | null
+}
+```
+
+## Returned fields
 
 <ResponseField name="loading" type="boolean">
-  Whether tenancy resolution is still loading.
+  `true` while the session, organization memberships, or workspace memberships are still loading.
 </ResponseField>
 
 <ResponseField name="orgMembership" type="OrganizationMembership | null">
-  Active organization membership for the current signin.
+  The organization membership whose ID matches `session.active_signin?.active_organization_membership_id`.
 </ResponseField>
 
 <ResponseField name="workspaceMembership" type="WorkspaceMembership | null">
-  Active workspace membership for the current signin.
+  The workspace membership whose ID matches `session.active_signin?.active_workspace_membership_id`.
 </ResponseField>
+
+## How it resolves active tenancy
+
+Current implementation rules:
+
+- if there is no session, no sign-ins, or no active sign-in, both values resolve to `null`
+- `orgMembership` is selected by matching the current session's active organization membership ID against the organization membership list
+- `workspaceMembership` is selected by matching the current session's active workspace membership ID against the workspace membership list
+
+This hook is a client-side composition helper. It does not own the active tenancy state itself.
 
 ## Example
 
 ```tsx
-import { useActiveTenancy } from "@wacht/tanstack-router";
+import { useActiveTenancy } from '@wacht/tanstack-router'
 
-function ActiveTenancyBadge() {
-  const { loading, orgMembership, workspaceMembership } = useActiveTenancy();
+export function ActiveTenancySummary() {
+  const { loading, orgMembership, workspaceMembership } = useActiveTenancy()
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div>Loading tenancy...</div>
 
   return (
     <div>
-      <p>Organization: {orgMembership?.organization?.name ?? "None"}</p>
-      <p>Workspace: {workspaceMembership?.workspace?.name ?? "None"}</p>
+      <p>Organization: {orgMembership?.organization?.name ?? 'None'}</p>
+      <p>Workspace: {workspaceMembership?.workspace?.name ?? 'None'}</p>
     </div>
-  );
+  )
 }
 ```
 
-## Related
+## Related hooks
 
-- [useSession](./use-session) - Access current session data
-- [useOrganizationMemberships](./use-organization-memberships) - List organization memberships
-- [useWorkspaceMemberships](./use-workspace-memberships) - List workspace memberships
+- [useSession](./use-session)
+- [useOrganizationMemberships](./use-organization-memberships)
+- [useWorkspaceMemberships](./use-workspace-memberships)
+
+## Source references
+
+- [use-user.ts](/Users/snipextt/code/wacht/react-sdk/jsx/lib/hooks/use-user.ts)
+- [use-session.ts](/Users/snipextt/code/wacht/react-sdk/jsx/lib/hooks/use-session.ts)

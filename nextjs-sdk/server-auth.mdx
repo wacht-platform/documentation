@@ -1,7 +1,58 @@
 ---
-title: 'Server Auth & Middleware'
-description: 'Detailed reference for @wacht/nextjs/server APIs and runtime behavior.'
+title: 'Server Auth'
+description: 'Reference for @wacht/nextjs/server middleware, auth helpers, JWT claims access, and the normalized auth object exposed after middleware runs.'
 ---
+
+## Purpose
+
+`@wacht/nextjs/server` is the server-side authentication surface for the Next.js SDK.
+
+It gives you:
+
+- middleware for request authentication and browser redirect behavior
+- helpers to read the authenticated principal inside route handlers, server components, and other server code
+- a separate helper to access the verified raw JWT payload when you need JWT claims or custom claims
+
+This page documents the current code exactly. It does not describe intended behavior that is not implemented.
+
+## Terms
+
+### Frontend session
+
+The frontend session is the browser session managed by `frontend-api`.
+
+In production, it is transported with the `__session` cookie.
+
+In non-production deployments, it can be transported with a scoped development-session value.
+
+The frontend session is **not** the same thing as the JWT returned by `GET /session/token`.
+
+### Auth JWT
+
+The auth JWT is the signed token returned by `GET /session/token`.
+
+This token is what the server SDK verifies.
+
+It can contain fields such as:
+
+- `sub`
+- `sid`
+- `organization`
+- `workspace`
+- `permissions`
+- `claims`
+- `custom_claims`
+- `metadata`
+
+### Normalized auth object
+
+The normalized auth object is the `NextWachtAuth` value returned by `auth(...)`, `getAuth(...)`, and `requireAuth(...)`.
+
+This object is intentionally simplified for app code.
+
+It exposes user, session, tenancy, permission, and principal identity data.
+
+It does **not** expose raw JWT claims.
 
 ## Imports
 
@@ -9,35 +60,422 @@ description: 'Detailed reference for @wacht/nextjs/server APIs and runtime behav
 import {
   auth,
   getAuth,
+  getVerifiedJwtClaims,
   requireAuth,
   wachtMiddleware,
   createRouteMatcher,
   wachtClient,
   createWachtServerClient,
 } from '@wacht/nextjs/server'
+import { headers } from 'next/headers'
 ```
 
-## `auth` usage modes
+## Recommended usage
 
-- `await auth(request, options?)`: request-aware auth context
-- `auth(headers)`: deserialize middleware-propagated auth context
+Use `wachtMiddleware(...)` in `middleware.ts`, then read auth inside route handlers or server components with `auth(await headers())`.
 
-## `auth.protect(options)`
+```ts
+// middleware.ts
+import { wachtMiddleware } from '@wacht/nextjs/server'
 
-Supports:
-- auth checks
-- permission checks
-- token acceptance constraints: `session_token | api_key | oauth_token | machine_token | any`
+export default wachtMiddleware()
 
-## Middleware contract
+export const config = {
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+}
+```
 
-`wachtMiddleware(handler?, options?)`:
-- normalizes `__dev_session__` query tokens
-- performs session exchange when needed
-- applies auth/sync headers to outgoing response
-- redirects for browser-like routes, JSON errors for API-like routes
+```ts
+// app/account/page.tsx
+import { auth } from '@wacht/nextjs/server'
+import { headers } from 'next/headers'
 
-## Options reference
+export default async function AccountPage() {
+  const wacht = auth(await headers())
+  await wacht.protect()
+
+  return <div>{wacht.userId}</div>
+}
+```
+
+## Exported helpers
+
+### `wachtMiddleware(handler?, options?)`
+
+Wraps Next middleware and performs the server-side auth handshake.
+
+Current behavior:
+
+- normalizes development-session query tokens
+- resolves bearer tokens and SDK auth cookies first
+- exchanges frontend session state through `GET /session/token` when needed
+- verifies the exchanged JWT
+- writes serialized normalized auth data to the downstream request
+- redirects browser-like requests to sign-in on unauthenticated access
+- returns JSON `401` or `403` for API-like requests
+
+Signature:
+
+```ts
+function wachtMiddleware(
+  handler?: (
+    auth: NextWachtAuth,
+    request: NextRequest,
+  ) => NextMiddlewareResult | Promise<NextMiddlewareResult>,
+  options?: WachtMiddlewareOptions,
+): (request: NextRequest) => Promise<NextResponse>
+```
+
+Example:
+
+```ts
+import { NextResponse } from 'next/server'
+import { createRouteMatcher, wachtMiddleware } from '@wacht/nextjs/server'
+
+const isProtected = createRouteMatcher(['/account(.*)', '/settings(.*)'])
+
+export default wachtMiddleware(async (auth, request) => {
+  if (isProtected(request)) {
+    await auth.protect()
+  }
+
+  return NextResponse.next()
+})
+```
+
+### `auth(headers)`
+
+Reads the serialized normalized auth state produced by `wachtMiddleware(...)`.
+
+Use this in:
+
+- server components
+- route handlers that already passed through middleware
+- layouts or other server code that can read request headers
+
+Signature:
+
+```ts
+function auth(headers: Headers): NextWachtAuth
+```
+
+Example:
+
+```ts
+import { auth } from '@wacht/nextjs/server'
+import { headers } from 'next/headers'
+
+export async function GET() {
+  const wacht = auth(await headers())
+
+  return Response.json({
+    userId: wacht.userId,
+    sessionId: wacht.sessionId,
+    organizationId: wacht.organizationId,
+    workspaceId: wacht.workspaceId,
+    isAuthenticated: wacht.isAuthenticated,
+  })
+}
+```
+
+Important:
+
+- this form is synchronous because it only deserializes the middleware-provided header
+- it requires `wachtMiddleware(...)` to have run for the current request
+- it does not return raw JWT claims
+
+### `auth(request, options?)`
+
+Async request-based auth lookup.
+
+Signature:
+
+```ts
+function auth(
+  request: Request,
+  options?: WachtMiddlewareOptions,
+): Promise<NextWachtAuth>
+```
+
+Use this when:
+
+- the request did not pass through `wachtMiddleware(...)`
+- you want direct auth resolution from a `Request`
+
+### `getAuth(request, options?)`
+
+Direct request-based auth lookup.
+
+Signature:
+
+```ts
+function getAuth(
+  request: Request,
+  options?: WachtMiddlewareOptions,
+): Promise<NextWachtAuth>
+```
+
+Resolution order:
+
+1. `Authorization: Bearer ...`
+2. SDK auth cookie (`__auth_<scope>` unless overridden)
+3. frontend session exchange using `__session` or the scoped development-session cookie
+
+Example:
+
+```ts
+import { getAuth } from '@wacht/nextjs/server'
+
+export async function GET(request: Request) {
+  const wacht = await getAuth(request)
+
+  return Response.json({
+    userId: wacht.userId,
+    tokenType: wacht.tokenType,
+  })
+}
+```
+
+### `requireAuth(request, options?)`
+
+Loads auth and immediately applies `auth.protect()`.
+
+Signature:
+
+```ts
+function requireAuth(
+  request: Request,
+  options?: WachtMiddlewareOptions,
+): Promise<NextWachtAuth>
+```
+
+Example:
+
+```ts
+import { requireAuth } from '@wacht/nextjs/server'
+
+export async function GET(request: Request) {
+  const wacht = await requireAuth(request)
+  return Response.json({ userId: wacht.userId })
+}
+```
+
+### `getVerifiedJwtClaims(request, options?)`
+
+Returns the verified raw JWT payload when the request resolves to a JWT-backed auth flow.
+
+This is the helper to use when you specifically need:
+
+- `claims`
+- `custom_claims`
+- raw JWT `metadata`
+- other token payload fields that are not exposed on `NextWachtAuth`
+
+Signature:
+
+```ts
+function getVerifiedJwtClaims(
+  request: Request,
+  options?: WachtMiddlewareOptions,
+): Promise<JWTPayload | null>
+```
+
+Resolution order matches `getAuth(...)`:
+
+1. bearer token
+2. SDK auth cookie
+3. exchanged frontend session token
+
+Example:
+
+```ts
+import { getVerifiedJwtClaims } from '@wacht/nextjs/server'
+
+export async function GET(request: Request) {
+  const claims = await getVerifiedJwtClaims(request)
+
+  return Response.json({
+    claims,
+    customClaims: claims?.custom_claims ?? null,
+    metadata: claims?.metadata ?? null,
+  })
+}
+```
+
+Important:
+
+- this helper is request-based only
+- there is no `headers()` version
+- middleware does not serialize raw JWT payloads into the downstream auth header
+- if the request does not resolve to a verified JWT-backed principal, the helper returns `null`
+
+### `createRouteMatcher(patterns)`
+
+Creates a pathname matcher for middleware usage.
+
+Signature:
+
+```ts
+function createRouteMatcher(patterns: string[]): (request: NextRequest) => boolean
+```
+
+Current pattern behavior:
+
+- `*` matches one path segment
+- `(.*)` matches the rest of the path
+- `(a|b)` style groups are preserved as non-capturing groups
+
+Example:
+
+```ts
+const isProtected = createRouteMatcher(['/account(.*)', '/settings(.*)'])
+```
+
+### `createWachtServerClient(options?)`
+
+Creates a backend API client using `WACHT_API_KEY` or an explicit `apiKey`.
+
+Signature:
+
+```ts
+function createWachtServerClient(
+  options?: WachtServerClientOptions,
+): WachtServerClient
+```
+
+### `wachtClient(options?)`
+
+Returns a cached backend API client when called without options. When options are provided, it creates a fresh client.
+
+Signature:
+
+```ts
+function wachtClient(
+  options?: WachtServerClientOptions,
+): Promise<WachtServerClient>
+```
+
+## `NextWachtAuth`
+
+`NextWachtAuth` is the normalized auth object returned by:
+
+- `auth(headers)`
+- `auth(request, options?)`
+- `getAuth(request, options?)`
+- `requireAuth(request, options?)`
+- the `auth` parameter inside `wachtMiddleware(...)`
+
+Current shape:
+
+```ts
+type NextWachtAuth = {
+  userId: string | null
+  sessionId: string | null
+  organizationId: string | null
+  workspaceId: string | null
+  organizationPermissions: string[]
+  workspacePermissions: string[]
+  isAuthenticated: boolean
+  tokenType: 'session_token' | 'oauth_token' | 'machine_token' | 'api_key' | null
+  ownerUserId: string | null
+  identity: WachtPrincipalIdentity | null
+  metadata: SessionPrincipalMetadata | Record<string, unknown> | null
+  has: (check: PermissionCheck) => boolean
+  protect: (options?: NextProtectOptions) => Promise<void>
+  redirectToSignIn: (options?: RedirectToSignInOptions) => never
+}
+```
+
+### Field meanings
+
+- `userId`: signed-in user ID. `null` when the principal is unauthenticated or not a user session.
+- `sessionId`: frontend session ID.
+- `organizationId`: active organization context.
+- `workspaceId`: active workspace context.
+- `organizationPermissions`: normalized organization permissions.
+- `workspacePermissions`: normalized workspace permissions.
+- `isAuthenticated`: `true` when the principal is authenticated.
+- `tokenType`: `session_token`, `oauth_token`, `api_key`, `machine_token`, or `null`.
+- `ownerUserId`: owner user for gateway-backed principals when available.
+- `identity`: normalized principal identity. Session requests use `SessionPrincipalIdentity`; gateway-backed requests use `ResolvedAuthzIdentity`.
+- `metadata`: normalized principal metadata. For session tokens this is principal metadata derived by the backend SDK, not raw JWT claims.
+
+### What `NextWachtAuth` does **not** include
+
+- raw JWT payload
+- raw `claims`
+- raw `custom_claims`
+- raw JWT `metadata`
+
+If you need those values, use [`getVerifiedJwtClaims(request)`](#getverifiedjwtclaimsrequest-options).
+
+## `auth.has(...)`
+
+`has(...)` performs a local permission and context check on the normalized auth object.
+
+```ts
+const canManageWorkspace = wacht.has({
+  workspaceId: '123',
+  permission: 'workspace:admin',
+})
+```
+
+Current rules:
+
+- `organizationId` must match the current auth context if provided
+- `workspaceId` must match the current auth context if provided
+- if `permission` is omitted, the check only validates context presence and match
+- if `permission` is provided, any matching permission returns `true`
+
+## `auth.protect(...)`
+
+`protect(...)` enforces authentication first, then optional token-type and permission constraints.
+
+```ts
+await wacht.protect()
+await wacht.protect({ permission: 'organization:admin' })
+await wacht.protect({ workspaceId: '123', permission: ['workspace:admin', 'workspace:member'] })
+await wacht.protect({ token: 'api_key' })
+```
+
+### `NextProtectOptions`
+
+```ts
+type NextProtectOptions = {
+  permission?: string | string[]
+  organizationId?: string
+  workspaceId?: string
+  redirectUrl?: string
+  unauthenticatedUrl?: string
+  unauthorizedUrl?: string
+  token?: 'session_token' | 'oauth_token' | 'machine_token' | 'api_key' | 'any' | Array<'session_token' | 'oauth_token' | 'machine_token' | 'api_key'>
+}
+```
+
+Current behavior:
+
+- unauthenticated browser-like requests redirect to sign-in by default
+- unauthenticated API-like requests return `401`
+- forbidden requests return `403`
+- `unauthenticatedUrl` overrides the redirect target for unauthenticated browser routes
+- `unauthorizedUrl` overrides the redirect target for forbidden browser routes
+- `token` constrains accepted principal types before permission checks run
+
+## `redirectToSignIn(...)`
+
+Throws a `WachtAuthError` with a redirect URL.
+
+```ts
+wacht.redirectToSignIn()
+wacht.redirectToSignIn({ returnBackUrl: '/billing' })
+```
+
+Default sign-in URL derivation uses the publishable key's frontend host:
+
+- `frontend.example.com` -> `accounts.example.com/sign-in`
+- `slug.fapi.trywacht.xyz` -> `slug.accounts.trywacht.xyz/sign-in`
+
+## `WachtMiddlewareOptions`
 
 ```ts
 type WachtMiddlewareOptions = {
@@ -54,10 +492,63 @@ type WachtMiddlewareOptions = {
 }
 ```
 
-## Backend API client
+### Important options
 
-```ts
-const client = await wachtClient()
-// or
-const client = createWachtServerClient({ apiKey: process.env.WACHT_API_KEY })
-```
+- `publishableKey`: primary input used to derive the frontend API issuer and JWKS URL
+- `signInUrl`: explicit sign-in redirect override
+- `authCookieName`: override the SDK auth cache cookie name
+- `sessionCookieName`: override the frontend session cookie name. Default is `__session`
+- `devSessionCookieName`: override the scoped development-session cookie name
+- `requiredIssuer`: override the expected token issuer
+- `apiRoutePrefixes` and `isApiRoute`: control whether failures return redirects or JSON
+- `gatewayUrl`: gateway URL used for bearer-token authorization flows
+
+## Which helper to use
+
+### Use middleware plus `auth(await headers())`
+
+Use this when:
+
+- you want one app-wide authentication layer
+- the route already passes through `middleware.ts`
+- you only need normalized auth data
+
+### Use `getAuth(request)`
+
+Use this when:
+
+- you are in an isolated route handler
+- you want direct auth resolution from the request
+- you only need normalized auth data
+
+### Use `requireAuth(request)`
+
+Use this when:
+
+- the route must always be authenticated
+- you want one call that both loads and protects auth
+
+### Use `getVerifiedJwtClaims(request)`
+
+Use this when:
+
+- you need `claims`
+- you need `custom_claims`
+- you need raw JWT `metadata`
+- you need the verified raw JWT payload for JWT-backed auth flows
+
+## Related frontend routes
+
+The server auth surface relies on these frontend session and token routes:
+
+- [Frontend Session And Auth Routes](/guides/authentication/frontend-session-auth-routes)
+
+## Source references
+
+This page is derived from:
+
+- [nextjs/lib/server/index.ts](/Users/snipextt/code/wacht/react-sdk/nextjs/lib/server/index.ts)
+- [nextjs/lib/server/middleware.ts](/Users/snipextt/code/wacht/react-sdk/nextjs/lib/server/middleware.ts)
+- [nextjs/lib/server/auth-state.ts](/Users/snipextt/code/wacht/react-sdk/nextjs/lib/server/auth-state.ts)
+- [nextjs/lib/server/client.ts](/Users/snipextt/code/wacht/react-sdk/nextjs/lib/server/client.ts)
+- [node/src/server-auth.ts](/Users/snipextt/code/wacht/node/src/server-auth.ts)

@@ -1,0 +1,26 @@
+---
+title: React SDK
+description: What the React packages do and how to reason about them as one system.
+---
+
+The React SDK is easier to document if you treat it as one layered product instead of three nearly identical framework docs.
+
+## Layer 1: shared primitives
+
+`@wacht/jsx` provides:
+
+- deployment context
+- session and navigation hooks
+- auth components
+- organization and workspace hooks
+- notification, webhook, API auth, and agent-related hooks
+
+## Layer 2: framework adapters
+
+The adapter packages mainly provide:
+
+- a framework-specific `DeploymentProvider`
+- a navigation adapter
+- server-side request helpers for the relevant framework
+
+This means the docs should centralize hook behavior and component behavior, then document framework-specific bootstrapping separately.

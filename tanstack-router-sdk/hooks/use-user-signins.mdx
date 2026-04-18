@@ -1,63 +1,97 @@
 ---
-title: useUserSignins
-description: List and manage active user sign-in sessions.
+title: 'useUserSignins()'
+description: 'Reference for listing and revoking the current user\'s sign-in sessions.'
 ---
 
-# useUserSignins
+## Purpose
 
-The `useUserSignins` hook returns the account's signin sessions and a helper to sign out an individual session.
+`useUserSignins()` lists the current account's sign-in records and exposes a helper to revoke one sign-in.
 
-## Return Value
+It is implemented in the shared JSX layer and re-exported by the framework packages.
+
+## Import
+
+```tsx
+import { useUserSignins } from '@wacht/tanstack-router'
+```
+
+## Current return shape
+
+```ts
+{
+  signins: SignIn[] | undefined
+  error: Error | null
+  removeSignin: (id: string) => Promise<ApiResult<unknown>>
+  refetch: () => Promise<SignIn[] | undefined>
+  loading: boolean
+}
+```
+
+## Returned fields
 
 <ResponseField name="signins" type="SignIn[] | undefined">
-  Current signin sessions for the user.
-</ResponseField>
-
-<ResponseField name="loading" type="boolean">
-  Whether signins are loading.
+  The sign-in records currently returned by `GET /me/signins`.
 </ResponseField>
 
 <ResponseField name="error" type="Error | null">
-  Error from the latest request.
+  The current SWR error for the sign-in list.
+</ResponseField>
+
+<ResponseField name="loading" type="boolean">
+  `true` while the client is still loading or the sign-in list request is still in flight.
 </ResponseField>
 
 <ResponseField name="removeSignin" type="(id: string) => Promise<ApiResult>">
-  <Expandable title="Sign out a specific session">
-    <ParamField path="id" type="string">
-      Signin ID to revoke.
-    </ParamField>
-  </Expandable>
+  Revokes one sign-in by calling `POST /me/signins/{id}/signout`.
 </ResponseField>
 
 <ResponseField name="refetch" type="() => Promise<void>">
-  Revalidate the signin list.
+  Revalidates the sign-in list.
 </ResponseField>
+
+## Route contract used by this hook
+
+The current implementation uses:
+
+- `GET /me/signins`
+- `POST /me/signins/{id}/signout`
 
 ## Example
 
 ```tsx
-import { useUserSignins } from "@wacht/tanstack-router";
+import { useUserSignins } from '@wacht/tanstack-router'
 
-function SigninList() {
-  const { signins, loading, removeSignin, refetch } = useUserSignins();
+export function ActiveSessions() {
+  const { signins, loading, error, removeSignin, refetch } = useUserSignins()
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div>Loading sign-ins...</div>
+  if (error) return <div>Failed: {error.message}</div>
 
   return (
     <ul>
       {(signins ?? []).map((signin) => (
         <li key={signin.id}>
-          {signin.client_name ?? signin.id}
-          <button onClick={async () => { await removeSignin(signin.id); await refetch(); }}>
-            Sign out
+          <span>{signin.client_name ?? signin.id}</span>
+          <button
+            onClick={async () => {
+              await removeSignin(signin.id)
+              await refetch()
+            }}
+          >
+            Revoke
           </button>
         </li>
       ))}
     </ul>
-  );
+  )
 }
 ```
 
-## Related
+## Related hooks
 
-- [useUser](./use-user) - Load and manage current user profile
+- [useSession](./use-session)
+- [useUser](./use-user)
+
+## Source references
+
+- [use-user.ts](/Users/snipextt/code/wacht/react-sdk/jsx/lib/hooks/use-user.ts)

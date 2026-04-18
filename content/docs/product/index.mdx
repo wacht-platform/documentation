@@ -1,0 +1,19 @@
+---
+title: Platform Overview
+description: The shortest useful mental model for the Wacht codebase and product surfaces.
+---
+
+Wacht is not a single service. The repository is organized around a few distinct surfaces that interact with each other:
+
+- `console`: the operator UI used to configure projects, deployments, auth, billing, API auth, webhooks, and AI features.
+- `platform-api`: the Rust control-plane and backend runtime services used by the console and platform infrastructure.
+- `frontend-api`: the Go customer-facing API that handles application auth, sessions, organizations, workspaces, notifications, and runtime user flows.
+- `react-sdk`: the frontend integration packages that application teams install in Next.js, React Router, and TanStack Router apps.
+
+This split should be reflected in the docs. The main mistake in the old documentation set was describing these pieces as if they were one flat API.
+
+## Recommended reading path
+
+1. Read [Architecture](/docs/product/architecture).
+2. Read [Deployments](/docs/product/deployments).
+3. Move into [SDKs](/docs/sdks) or [API Reference](/docs/reference) depending on whether you are integrating or operating.

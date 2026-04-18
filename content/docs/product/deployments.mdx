@@ -1,0 +1,24 @@
+---
+title: Deployments
+description: The publishable-key-driven model that ties docs, SDK behavior, and runtime API access together.
+---
+
+A deployment is the isolation boundary for an application environment such as development, staging, or production.
+
+## What hangs off a deployment
+
+- frontend host and backend host
+- auth settings and social providers
+- UI settings such as sign-in and sign-up targets
+- organization and workspace behavior
+- API auth, webhook, and notification configuration
+
+## Why deployments matter in the SDK
+
+The React SDK reads a publishable key, derives the backend host, loads deployment configuration, and then uses that configuration to drive navigation and session behavior.
+
+That means documentation should treat the publishable key as the entry point for frontend integration, not as an afterthought.
+
+## Staging behavior
+
+The SDK also has a development-session flow for staging-style environments. That is an implementation detail worth documenting once in the right place, instead of scattering it across individual hook pages.

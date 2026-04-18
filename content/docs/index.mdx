@@ -1,0 +1,26 @@
+---
+title: Documentation
+description: Start with the product model, pick the right SDK, then drop into the generated API contracts when you need exact request and response shapes.
+---
+
+Wacht is split across multiple surfaces:
+
+- a control plane for operators
+- a customer-facing runtime API
+- SDKs that wrap frontend and server integration
+- platform services for OAuth, gateway checks, jobs, and async work
+
+This docs app is organized around that split instead of forcing everything into one flattened sidebar.
+
+## Where to start
+
+- Read [Platform Overview](/docs/product) if you are new to the architecture.
+- Read [SDK Overview](/docs/sdks) if you are integrating Wacht into an application.
+- Read [API Reference](/docs/reference) if you need exact contracts.
+
+## Documentation principles
+
+- Explain the product boundary before listing endpoints.
+- Keep guides framework-specific only when behavior actually differs.
+- Generate reference from the checked-in OpenAPI files instead of hand-writing contracts twice.
+- Leave implementation detail in repo docs when it helps contributors, not as a substitute for product documentation.

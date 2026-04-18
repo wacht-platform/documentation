@@ -1,13 +1,20 @@
 ---
 title: 'Server Auth'
-description: 'Detailed reference for @wacht/tanstack-router/server auth helpers.'
+description: 'Reference for @wacht/tanstack-router/server request authentication helpers.'
 ---
+
+## Purpose
+
+`@wacht/tanstack-router/server` exposes thin server-auth helpers on top of `@wacht/backend`.
+
+These helpers are request-based. They do not provide a middleware serialization layer like the Next.js package.
 
 ## Imports
 
 ```ts
 import {
   authenticateRequest,
+  authFromHeaders,
   getAuth,
   requireAuth,
   wachtClient,
@@ -15,17 +22,45 @@ import {
 } from '@wacht/tanstack-router/server'
 ```
 
-## `authenticateRequest` contract
+## Exported helpers
+
+### `getAuth(request, options?)`
+
+Returns normalized auth for the current request.
+
+```ts
+const auth = await getAuth(request, {
+  publishableKey: process.env.WACHT_PUBLISHABLE_KEY,
+})
+```
+
+### `requireAuth(request, options?)`
+
+Loads auth and immediately applies `auth.protect()`.
+
+```ts
+const auth = await requireAuth(request, {
+  publishableKey: process.env.WACHT_PUBLISHABLE_KEY,
+})
+```
+
+### `authenticateRequest(request, options?)`
+
+Returns both normalized auth and response headers that must be forwarded.
 
 ```ts
 const { auth, headers } = await authenticateRequest(request, options)
 ```
 
-Always merge returned `headers` into your response to preserve cookie/session state.
+You must merge `headers` into the final response.
 
-## Typical redirect flow
+Example:
 
 ```ts
+const { auth, headers } = await authenticateRequest(request, {
+  publishableKey: process.env.WACHT_PUBLISHABLE_KEY,
+})
+
 if (!auth.userId) {
   return new Response(null, {
     status: 302,
@@ -37,13 +72,36 @@ if (!auth.userId) {
 }
 ```
 
-## Backend client helpers
+### `authFromHeaders(headers)`
+
+Deserializes normalized auth from headers that already contain the backend auth transport header.
+
+## Returned auth shape
+
+The auth object is `WachtAuth` from `@wacht/backend`:
+
+```ts
+type WachtAuth = {
+  userId: string | null
+  sessionId: string | null
+  organizationId: string | null
+  workspaceId: string | null
+  organizationPermissions: string[]
+  workspacePermissions: string[]
+  has: (check: PermissionCheck) => boolean
+  protect: (options?: ProtectOptions) => Promise<void>
+}
+```
+
+This surface is normalized.
+
+It does not expose raw JWT claims.
+
+## Backend API client
 
 ```ts
 const client = await wachtClient()
 ```
-
-or:
 
 ```ts
 const client = createWachtServerClient({
@@ -51,3 +109,8 @@ const client = createWachtServerClient({
   name: 'server-actions',
 })
 ```
+
+## Source references
+
+- [tanstack-router/lib/server/middleware.ts](/Users/snipextt/code/wacht/react-sdk/tanstack-router/lib/server/middleware.ts)
+- [node/src/server-auth.ts](/Users/snipextt/code/wacht/node/src/server-auth.ts)

@@ -508,6 +508,12 @@
                         "icon": "book-open",
                         "groups": [
                             {
+                                "group": "Authentication Fundamentals",
+                                "pages": [
+                                    "guides/authentication/frontend-session-auth-routes"
+                                ]
+                            },
+                            {
                                 "group": "API Auth for SaaS",
                                 "pages": [
                                     "guides/api-auth/overview",

@@ -1,13 +1,20 @@
 ---
 title: 'Server Auth'
-description: 'Detailed reference for @wacht/react-router/server auth helpers.'
+description: 'Reference for @wacht/react-router/server request authentication helpers.'
 ---
+
+## Purpose
+
+`@wacht/react-router/server` exposes thin server-auth helpers on top of `@wacht/backend`.
+
+These helpers are request-based. They do not provide a middleware serialization layer like the Next.js package.
 
 ## Imports
 
 ```ts
 import {
   authenticateRequest,
+  authFromHeaders,
   getAuth,
   requireAuth,
   wachtClient,
@@ -15,40 +22,86 @@ import {
 } from '@wacht/react-router/server'
 ```
 
-## `authenticateRequest(request, options?)`
+## Exported helpers
 
-Returns:
+### `getAuth(request, options?)`
+
+Returns normalized auth for the current request.
 
 ```ts
-{ auth: WachtAuth, headers: Headers }
+const auth = await getAuth(request, {
+  publishableKey: process.env.WACHT_PUBLISHABLE_KEY,
+})
 ```
 
-`headers` may include session/auth synchronization updates.
-You must forward them in your response.
+### `requireAuth(request, options?)`
 
-## Loader/action pattern
+Loads auth and immediately applies `auth.protect()`.
+
+```ts
+const auth = await requireAuth(request, {
+  publishableKey: process.env.WACHT_PUBLISHABLE_KEY,
+})
+```
+
+### `authenticateRequest(request, options?)`
+
+Returns both normalized auth and response headers that must be forwarded.
+
+```ts
+const { auth, headers } = await authenticateRequest(request, options)
+```
+
+Use this when the request can rotate or exchange session state.
+
+You must merge `headers` into the final response.
+
+Example:
 
 ```ts
 const { auth, headers } = await authenticateRequest(request, {
   publishableKey: process.env.WACHT_PUBLISHABLE_KEY,
 })
 
-if (!auth.userId) throw redirect('/sign-in', { headers })
-return json(data, { headers })
+if (!auth.userId) {
+  throw redirect('/sign-in', { headers })
+}
+
+return json({ userId: auth.userId }, { headers })
 ```
 
-## `getAuth` and `requireAuth`
+### `authFromHeaders(headers)`
 
-- `getAuth`: read auth state
-- `requireAuth`: enforce sign-in by running `protect()`
+Deserializes normalized auth from headers that already contain the backend auth transport header.
 
-## Backend client
+This is only useful if your request pipeline already persisted those headers.
+
+## Returned auth shape
+
+The auth object is `WachtAuth` from `@wacht/backend`:
+
+```ts
+type WachtAuth = {
+  userId: string | null
+  sessionId: string | null
+  organizationId: string | null
+  workspaceId: string | null
+  organizationPermissions: string[]
+  workspacePermissions: string[]
+  has: (check: PermissionCheck) => boolean
+  protect: (options?: ProtectOptions) => Promise<void>
+}
+```
+
+This surface is normalized.
+
+It does not expose raw JWT claims.
+
+## Backend API client
 
 ```ts
 const client = await wachtClient()
 ```
-
-For explicit/named instances:
 
 ```ts
 const client = createWachtServerClient({
@@ -56,3 +109,8 @@ const client = createWachtServerClient({
   name: 'jobs',
 })
 ```
+
+## Source references
+
+- [react-router/lib/server/middleware.ts](/Users/snipextt/code/wacht/react-sdk/react-router/lib/server/middleware.ts)
+- [node/src/server-auth.ts](/Users/snipextt/code/wacht/node/src/server-auth.ts)

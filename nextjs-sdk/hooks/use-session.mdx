@@ -1,185 +1,203 @@
 ---
 title: 'useSession()'
-description: 'Access the authentication state, multi-tenant context, and secure API tokens.'
+description: 'Reference for the shared session hook exposed by the Wacht React SDK packages.'
 ---
 
-# `useSession()`
+## Purpose
 
-The `useSession()` hook serves as the primary authentication primitive within the Wacht frontend SDKs. It provides synchronous access to the active user's authentication session, facilitates the management of multi-tenancy context (organizations and workspaces), and exposes the `.getToken()` method required for securely authenticating requests against backend infrastructure.
+`useSession()` is the shared frontend session hook used by the Wacht React SDK packages.
 
-## Hook Import
+It is implemented once in the shared JSX layer and re-exported by the framework packages.
+
+This hook is responsible for:
+
+- loading the current frontend session from `GET /session`
+- switching the active sign-in inside the current browser session
+- signing out the current session or one sign-in inside it
+- switching the active organization and workspace context
+- exchanging one-time session tickets
+- minting JWTs from `GET /session/token`
+- clearing cached JWTs when session state changes
+
+## Import
 
 ```tsx
-import { useSession } from "@wacht/nextjs";
+import { useSession } from '@wacht/nextjs'
 ```
 
-## Hook Interface
+## Current return shape
+
+`useSession()` returns a discriminated union with two states.
+
+### Loading state
+
+```ts
+{
+  loading: true
+  error: Error | null
+  refetch: () => Promise<void>
+}
+```
+
+In the loading state, the mutation helpers and `session` are intentionally unavailable.
+
+### Ready state
+
+```ts
+{
+  loading: false
+  error: Error | null
+  session: Session
+  switchSignIn: (signInId: string) => Promise<void>
+  signOut: (signInId?: string) => Promise<void>
+  getToken: (template?: string) => Promise<string>
+  switchOrganization: (organizationId?: string) => Promise<void>
+  switchWorkspace: (workspaceId: string) => Promise<void>
+  exchangeTicket: (ticket: string) => Promise<void>
+  refetch: () => Promise<void>
+}
+```
+
+## Returned fields
 
 <ResponseField name="loading" type="boolean">
-  Indicates whether the SDK is currently resolving the authentication status via network verification or local storage access. It is critically important to evaluate this state prior to rendering protected components.
-</ResponseField>
-
-<ResponseField name="session" type="Session | null">
-  The currently active `Session` object. In instances where the user is unauthenticated or the session has expired, this property resolves to `null`.
+  `true` while the hook is still resolving the current session through SWR or while the underlying client is not ready.
 </ResponseField>
 
 <ResponseField name="error" type="Error | null">
-  Captures exceptions occurring during session retrieval or mutation operations.
+  The current SWR error for session loading.
 </ResponseField>
 
-### Token Acquisition
-
-<ResponseField name="getToken" type="(template?: string) => Promise<string>">
-  <Expandable title="Mint securely signed JWTs">
-    <ParamField path="template" type="string">
-      An optional JWT template configuration name utilized to inject custom claims into the payload.
-    </ParamField>
-    <ResponseField name="returns" type="Promise<string>">
-      Returns the raw JWT string. This token must be transmitted within the `Authorization: Bearer <token>` header of subsequent API requests.
-    </ResponseField>
-  </Expandable>
-</ResponseField>
-
-### Session Management
-
-<ResponseField name="signOut" type="(signInId?: string) => Promise<void>">
-  <Expandable title="Terminate active session">
-    <ParamField path="signInId" type="string">
-      The specific identifier of the sign-in session to terminate. If omitted, the operation targets the primary active session.
-    </ParamField>
-  </Expandable>
-</ResponseField>
-
-<ResponseField name="switchSignIn" type="(signInId: string) => Promise<void>">
-  <Expandable title="Cycle multiple sessions">
-    <ParamField path="signInId" type="string" required>
-      The identifier of the secondary authenticated session to promote to the active state.
-    </ParamField>
-  </Expandable>
-</ResponseField>
-
-### Multi-Tenancy Operations
-
-<ResponseField name="switchOrganization" type="(organizationId?: string) => Promise<void>">
-  <Expandable title="Modify active organization context">
-    <ParamField path="organizationId" type="string">
-      The unique identifier of the target Organization. Omit this parameter to clear the active organization context.
-    </ParamField>
-  </Expandable>
-</ResponseField>
-
-<ResponseField name="switchWorkspace" type="(workspaceId: string) => Promise<void>">
-  <Expandable title="Modify active workspace context">
-    <ParamField path="workspaceId" type="string" required>
-      The unique identifier of the target Workspace.
-    </ParamField>
-  </Expandable>
-</ResponseField>
-
-### Advanced Initialization
-
-<ResponseField name="exchangeTicket" type="(ticket: string) => Promise<void>">
-  <Expandable title="Bootstrap via authentication ticket">
-    <ParamField path="ticket" type="string" required>
-      A single-use authorization ticket generated by a backend system, utilized to silently establish a persistent session on the client.
-    </ParamField>
-  </Expandable>
+<ResponseField name="session" type="Session">
+  The hydrated frontend session returned by `GET /session`.
 </ResponseField>
 
 <ResponseField name="refetch" type="() => Promise<void>">
-  Forces the SDK to execute a network request, ensuring the local session snapshot is entirely synchronized with the authoritative server state.
+  Revalidates the current session by forcing the session SWR key to re-fetch.
 </ResponseField>
 
-## Implementation Guidelines
+<ResponseField name="getToken" type="(template?: string) => Promise<string>">
+  Calls `GET /session/token` and returns the signed JWT string.
+</ResponseField>
 
-### Conditional Rendering
+<ResponseField name="switchSignIn" type="(signInId: string) => Promise<void>">
+  Calls `POST /session/switch-sign-in?sign_in_id=...`, clears the token cache, refreshes the session, and revalidates organization and workspace memberships.
+</ResponseField>
 
-The primary utility of the `useSession()` hook is governing access to protected interface elements based on the resolved `session` state:
+<ResponseField name="signOut" type="(signInId?: string) => Promise<void>">
+  Calls `POST /session/sign-out` or `POST /session/sign-out?sign_in_id=...`, clears cached session-related data, clears the token cache, refreshes the session, and applies configured sign-out redirects from deployment UI settings when present.
+</ResponseField>
+
+<ResponseField name="switchOrganization" type="(organizationId?: string) => Promise<void>">
+  Calls `POST /session/switch-organization`, clears the token cache, and refreshes the session.
+</ResponseField>
+
+<ResponseField name="switchWorkspace" type="(workspaceId: string) => Promise<void>">
+  Calls `POST /session/switch-workspace?workspace_id=...`, clears the token cache, and refreshes the session.
+</ResponseField>
+
+<ResponseField name="exchangeTicket" type="(ticket: string) => Promise<void>">
+  Calls `GET /session/ticket/exchange?ticket=...`, clears the token cache, and refreshes the session.
+</ResponseField>
+
+## Route contract used by this hook
+
+The current implementation calls these frontend routes:
+
+- `GET /session`
+- `GET /session/token`
+- `POST /session/switch-sign-in?sign_in_id=...`
+- `POST /session/sign-out`
+- `POST /session/sign-out?sign_in_id=...`
+- `POST /session/switch-organization?organization_id=...`
+- `POST /session/switch-workspace?workspace_id=...`
+- `GET /session/ticket/exchange?ticket=...`
+
+Reference:
+
+- [Frontend Session And Auth Routes](/guides/authentication/frontend-session-auth-routes)
+
+## `getToken(template?)`
+
+The hook keeps a per-template in-memory token cache.
+
+Current behavior:
+
+- default template name is `default`
+- cached tokens are reused until `expires > Date.now()` is no longer true
+- concurrent token fetches for the same template are de-duplicated with a singleton promise map
+- the token cache is cleared after sign-in context changes such as sign-out, sign-in switching, organization switching, workspace switching, or ticket exchange
+
+Example:
 
 ```tsx
-import { useSession } from "@wacht/nextjs";
+import { useSession } from '@wacht/nextjs'
 
-export function DashboardHeader() {
-  const { loading, session, signOut } = useSession();
+export function UseTokenButton() {
+  const { loading, session, getToken } = useSession()
 
-  // The loading state must be verified to prevent layout shifting or hydration mismatches
-  if (loading) {
-    return <div className="h-16 bg-zinc-100 animate-pulse w-full border-b" />;
-  }
+  if (loading || !session) return null
 
   return (
-    <header className="flex items-center justify-between p-4 border-b bg-white">
-      <h1 className="text-xl font-semibold tracking-tight text-gray-900">Application Dashboard</h1>
-      
-      {session ? (
-        <div className="flex items-center gap-6">
-          <span className="text-sm font-medium text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200">
-            Authenticated Entity
-          </span>
-          <button 
-            onClick={() => signOut()} 
-            className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-          >
-            Terminate Session
-          </button>
-        </div>
-      ) : (
-        <a href="/login" className="text-sm font-medium bg-gray-900 text-white px-4 py-2 rounded-md hover:bg-gray-800 transition-colors">
-          Authenticate
-        </a>
-      )}
-    </header>
-  );
+    <button
+      onClick={async () => {
+        const token = await getToken('default')
+        console.log(token)
+      }}
+    >
+      Get token
+    </button>
+  )
 }
 ```
 
-### Secure API Communication
-
-Interacting with external backend infrastructure necessitates the extraction and attachment of a signed JWT via the `getToken()` method:
+## Example
 
 ```tsx
-import { useSession } from "@wacht/nextjs";
-import { useEffect, useState } from "react";
+import { useSession } from '@wacht/nextjs'
 
-export function SecureDataView() {
-  const { session, getToken } = useSession();
-  const [data, setData] = useState<any>(null);
+export function SessionPanel() {
+  const {
+    loading,
+    error,
+    session,
+    getToken,
+    switchOrganization,
+    switchWorkspace,
+    signOut,
+  } = useSession()
 
-  useEffect(() => {
-    async function retrieveProtectedResource() {
-      // Abort data retrieval if the session context is invalid
-      if (!session) return;
-
-      try {
-        // Obtains a verified token from the internal cache or forces local minting if required
-        const authorizationToken = await getToken();
-
-        const response = await fetch("https://api.your-system.com/v1/protected-resource", {
-          headers: {
-            Authorization: `Bearer ${authorizationToken}`
-          }
-        });
-        
-        if (!response.ok) throw new Error("Resource authorization failed");
-        
-        const payload = await response.json();
-        setData(payload);
-      } catch (err) {
-        console.error("Data retrieval encounter an error:", err);
-      }
-    }
-
-    retrieveProtectedResource();
-  }, [session, getToken]);
+  if (loading) return <div>Loading session...</div>
+  if (error) return <div>Failed: {error.message}</div>
 
   return (
-    <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 font-mono text-sm overflow-x-auto text-gray-800">
-      {data ? JSON.stringify(data, null, 2) : "Awaiting securely fetched resource data..."}
+    <div>
+      <p>Session ID: {session.id}</p>
+      <p>Active sign-in: {session.active_signin?.id ?? 'none'}</p>
+      <button onClick={() => getToken()}>Mint JWT</button>
+      <button onClick={() => switchOrganization()}>Clear organization</button>
+      <button onClick={() => switchWorkspace('123')}>Switch workspace</button>
+      <button onClick={() => signOut()}>Sign out all sign-ins</button>
     </div>
-  );
+  )
 }
 ```
 
-## Session Invalidation Architecture
+## Behavior notes
 
-The Wacht architecture dictates that the `session` object will immediately transition to `null` on the client if the session naturally expires, or if the authorization grant is revoked at the server level (e.g., via administrative action). This ensures React components strictly dependent on the hook automatically unmount protected views without requiring manual polling implementations.
+- the hook refreshes the session every 30 seconds through SWR
+- revalidation on focus and reconnect is disabled in the current implementation
+- SWR deduping interval is 5 seconds
+- when the session is not ready, the hook returns the loading branch instead of `Session | null`
+- membership caches are explicitly revalidated after `switchSignIn(...)`
+- sign-out clears multiple cached keys, including notification and AI session keys
+
+## Related hooks
+
+- [useUserSignins](./use-user-signins)
+- [useActiveTenancy](./use-active-tenancy)
+- [useUser](./use-user)
+
+## Source references
+
+- [use-session.ts](/Users/snipextt/code/wacht/react-sdk/jsx/lib/hooks/use-session.ts)

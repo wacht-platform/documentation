@@ -1,0 +1,40 @@
+---
+title: 'Organizations Methods'
+description: 'Complete reference for client.organizations() and nested member/role APIs.'
+---
+
+## `client.organizations()`
+
+| Method | Route | Inputs | Builder options | `send()` returns |
+|---|---|---|---|---|
+| `fetch_organizations()` | `GET /organizations` | none | `limit(i32)`, `offset(i32)`, `search(String)`, `sort_key(String)`, `sort_order(String)` | `PaginatedResponse<Organization>` |
+| `create_organization(request)` | `POST /organizations` | `CreateOrganizationRequest` | none | `Organization` |
+| `fetch_organization(organization_id)` | `GET /organizations/{organization_id}` | `organization_id: &str` | none | `Organization` |
+| `update_organization(organization_id, request)` | `PATCH /organizations/{organization_id}` | `organization_id: &str`, `UpdateOrganizationRequest` | none | `Organization` |
+| `delete_organization(organization_id)` | `DELETE /organizations/{organization_id}` | `organization_id: &str` | none | `()` |
+| `create_organization_workspace(organization_id, request)` | `POST /organizations/{organization_id}/workspaces` | `organization_id: &str`, `CreateWorkspaceRequest` | none | `Workspace` |
+| `members()` | accessor | none | none | `OrganizationMembersApi` |
+| `roles()` | accessor | none | none | `OrganizationRolesApi` |
+
+## `client.organizations().members()`
+
+| Method | Route | Inputs | Builder options | `send()` returns |
+|---|---|---|---|---|
+| `fetch_members(organization_id)` | `GET /organizations/{organization_id}/members` | `organization_id: &str` | `limit(i32)`, `offset(i32)`, `search(String)`, `sort_key(String)`, `sort_order(String)` | `PaginatedResponse<OrganizationMember>` |
+| `add_member(organization_id, request)` | `POST /organizations/{organization_id}/members` | `organization_id: &str`, `AddOrganizationMemberRequest` | none | `OrganizationMember` |
+| `update_member(organization_id, membership_id, request)` | `PATCH /organizations/{organization_id}/members/{membership_id}` | `organization_id: &str`, `membership_id: &str`, `UpdateOrganizationMemberRequest` | none | `()` |
+| `remove_member(organization_id, membership_id)` | `DELETE /organizations/{organization_id}/members/{membership_id}` | `organization_id: &str`, `membership_id: &str` | none | `()` |
+
+## `client.organizations().roles()`
+
+| Method | Route | Inputs | Builder options | `send()` returns |
+|---|---|---|---|---|
+| `fetch_roles(organization_id)` | `GET /organizations/{organization_id}/roles` | `organization_id: &str` | none | `PaginatedResponse<OrganizationRole>` |
+| `create_role(organization_id, request)` | `POST /organizations/{organization_id}/roles` | `organization_id: &str`, `CreateRoleRequest` | none | `OrganizationRole` |
+| `update_role(organization_id, role_id, request)` | `PATCH /organizations/{organization_id}/roles/{role_id}` | `organization_id: &str`, `role_id: &str`, `UpdateRoleRequest` | none | `OrganizationRole` |
+| `delete_role(organization_id, role_id)` | `DELETE /organizations/{organization_id}/roles/{role_id}` | `organization_id: &str`, `role_id: &str` | none | `()` |
+
+## Contract Notes
+
+- Organization roles and members are organization-path scoped. No deployment-level role route is used by the Rust SDK.
+- `create_organization` and `update_organization` use multipart request encoding.

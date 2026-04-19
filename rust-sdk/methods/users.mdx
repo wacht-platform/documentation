@@ -1,0 +1,45 @@
+---
+title: 'Users Methods'
+description: 'Complete reference for client.users() and nested identifier APIs.'
+---
+
+## `client.users()`
+
+| Method | Route | Inputs | Builder options | `send()` returns |
+|---|---|---|---|---|
+| `fetch_users()` | `GET /users` | none | `limit(i32)`, `offset(i32)`, `search(String)`, `sort_key(String)`, `sort_order(String)` | `PaginatedResponse<User>` |
+| `create_user(request)` | `POST /users` | `CreateUserRequest` | none | `User` |
+| `fetch_user_details(user_id)` | `GET /users/{user_id}/details` | `user_id: &str` | none | `UserDetails` |
+| `update_user(user_id, request)` | `PATCH /users/{user_id}` | `user_id: &str`, `UpdateUserRequest` | none | `User` |
+| `update_password(user_id, request)` | `PATCH /users/{user_id}/password` | `user_id: &str`, `UpdatePasswordRequest` | none | `()` |
+| `delete_user(user_id)` | `DELETE /users/{user_id}` | `user_id: &str` | none | `()` |
+| `emails()` | accessor | none | none | `UserEmailsApi` |
+| `phones()` | accessor | none | none | `UserPhonesApi` |
+| `social_connections()` | accessor | none | none | `UserSocialConnectionsApi` |
+
+## `client.users().emails()`
+
+| Method | Route | Inputs | Builder options | `send()` returns |
+|---|---|---|---|---|
+| `add_email(user_id, request)` | `POST /users/{user_id}/emails` | `user_id: &str`, `AddEmailRequest` | none | `UserEmail` |
+| `update_email(user_id, email_id, request)` | `PATCH /users/{user_id}/emails/{email_id}` | `user_id: &str`, `email_id: &str`, `UpdateEmailRequest` | none | `UserEmail` |
+| `delete_email(user_id, email_id)` | `DELETE /users/{user_id}/emails/{email_id}` | `user_id: &str`, `email_id: &str` | none | `()` |
+
+## `client.users().phones()`
+
+| Method | Route | Inputs | Builder options | `send()` returns |
+|---|---|---|---|---|
+| `add_phone(user_id, request)` | `POST /users/{user_id}/phones` | `user_id: &str`, `AddPhoneRequest` | none | `UserPhone` |
+| `update_phone(user_id, phone_id, request)` | `PATCH /users/{user_id}/phones/{phone_id}` | `user_id: &str`, `phone_id: &str`, `UpdatePhoneRequest` | none | `UserPhone` |
+| `delete_phone(user_id, phone_id)` | `DELETE /users/{user_id}/phones/{phone_id}` | `user_id: &str`, `phone_id: &str` | none | `()` |
+
+## `client.users().social_connections()`
+
+| Method | Route | Inputs | Builder options | `send()` returns |
+|---|---|---|---|---|
+| `delete_social_connection(user_id, connection_id)` | `DELETE /users/{user_id}/social-connections/{connection_id}` | `user_id: &str`, `connection_id: &str` | none | `()` |
+
+## Contract Notes
+
+- `create_user` and `update_user` use multipart encoding in the Rust SDK implementation.
+- `update_user` supports metadata fields plus optional image upload/removal flags via `UpdateUserRequest`.

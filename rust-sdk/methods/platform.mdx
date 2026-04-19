@@ -1,0 +1,49 @@
+---
+title: 'Platform Methods'
+description: 'Method reference for health, analytics, notifications, invitations, waitlist, and segments.'
+---
+
+## Health
+
+`client.health()`:
+- `check_health()`
+- `check_readiness()`
+
+## Analytics
+
+`client.analytics()`:
+- `fetch_stats()` with optional `AnalyticsStatsOptions { from, to }`
+
+## Notifications
+
+`client.notifications()`:
+- `create(CreateNotificationRequest)`
+
+## Invitations
+
+`client.invitations()`:
+- `fetch_invitations()` with list options
+- `invite_user(InviteUserRequest)`
+- `delete_invitation(invitation_id)`
+
+## Waitlist
+
+`client.waitlist()`:
+- `fetch_waitlist_users()` with list options
+- `approve_waitlist_user(waitlist_user_id)`
+
+## Segments
+
+`client.segments()`:
+- `list_segments()`
+- `create_segment(CreateSegmentRequest)`
+- `fetch_segment_data(GetSegmentDataRequest)`
+- `update_segment(segment_id, UpdateSegmentRequest)`
+- `delete_segment(segment_id)`
+- `assign_segment(segment_id, AssignEntityRequest)`
+- `remove_segment(segment_id, AssignEntityRequest)`
+
+## Contract Notes
+
+- These calls are deployment-scoped and require backend auth.
+- All methods return builders with `.send().await`.

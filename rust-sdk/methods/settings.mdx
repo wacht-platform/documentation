@@ -1,0 +1,44 @@
+---
+title: 'Settings Methods'
+description: 'Method reference for client.settings() deployment configuration and templates.'
+---
+
+## `client.settings()`
+
+### Deployment Settings
+
+- `fetch_deployment_settings()`
+- `update_authentication_settings(AuthenticationSettings)`
+- `update_display_settings(DisplaySettings)`
+- `update_b2b_settings(DeploymentB2bSettingsUpdates)`
+- `update_deployment_restrictions(DeploymentRestrictionsUpdates)`
+
+### JWT Templates
+
+- `fetch_jwt_templates()`
+- `create_jwt_template(CreateJwtTemplateRequest)`
+- `update_jwt_template(template_id, UpdateJwtTemplateRequest)`
+- `delete_jwt_template(template_id)`
+
+### SMTP and Email Templates
+
+- `update_smtp_config(SmtpConfigRequest)`
+- `remove_smtp_config()`
+- `verify_smtp_connection(SmtpConfigRequest)`
+- `fetch_email_template(template_name)`
+- `update_email_template(template_name, EmailTemplate)`
+
+### Social Connections and Images
+
+- `fetch_social_connections()`
+- `upsert_social_connection(SocialConnection)`
+- `upload_image(image_type, file_content, file_name)`
+
+## Builder Notes
+
+Most settings builders also expose `with_client(reqwest::Client)` for per-request client overrides.
+
+## Contract Notes
+
+- Image upload route is `/settings/upload/{image_type}` with multipart `file`.
+- Settings routes are deployment-scoped via auth context.

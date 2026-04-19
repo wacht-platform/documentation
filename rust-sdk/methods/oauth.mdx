@@ -1,0 +1,38 @@
+---
+title: 'OAuth Methods'
+description: 'Method reference for client.oauth() apps, scopes, clients, and grants.'
+---
+
+## `client.oauth()`
+
+### OAuth Apps
+
+- `list_oauth_apps()`
+- `create_oauth_app(CreateOAuthAppRequest)`
+- `update_oauth_app(oauth_app_slug, UpdateOAuthAppRequest)`
+- `verify_oauth_app_domain(oauth_app_slug)`
+
+### OAuth Scopes
+
+- `update_oauth_scope(oauth_app_slug, scope, UpdateOAuthScopeRequest)`
+- `archive_oauth_scope(oauth_app_slug, scope)`
+- `unarchive_oauth_scope(oauth_app_slug, scope)`
+- `set_oauth_scope_mapping(oauth_app_slug, scope, SetOAuthScopeMappingRequest)`
+
+### OAuth Clients
+
+- `list_oauth_clients(oauth_app_slug)`
+- `create_oauth_client(oauth_app_slug, CreateOAuthClientRequest)`
+- `update_oauth_client(oauth_app_slug, oauth_client_id, UpdateOAuthClientRequest)`
+- `deactivate_oauth_client(oauth_app_slug, oauth_client_id)`
+- `rotate_oauth_client_secret(oauth_app_slug, oauth_client_id)`
+
+### OAuth Grants
+
+- `list_oauth_grants(oauth_app_slug, oauth_client_id)`
+- `revoke_oauth_grant(oauth_app_slug, oauth_client_id, grant_id)`
+
+## Contract Notes
+
+- OAuth routes are scoped by app slug and client id in path.
+- App creation uses multipart payload to support optional logo upload.

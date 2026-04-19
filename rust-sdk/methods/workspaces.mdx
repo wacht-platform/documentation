@@ -1,0 +1,38 @@
+---
+title: 'Workspaces Methods'
+description: 'Complete reference for client.workspaces() and nested member/role APIs.'
+---
+
+## `client.workspaces()`
+
+| Method | Route | Inputs | Builder options | `send()` returns |
+|---|---|---|---|---|
+| `fetch_workspaces()` | `GET /workspaces` | none | `limit(i32)`, `offset(i32)`, `search(String)`, `sort_key(String)`, `sort_order(String)` | `PaginatedResponse<Workspace>` |
+| `fetch_workspace(workspace_id)` | `GET /workspaces/{workspace_id}` | `workspace_id: &str` | none | `Workspace` |
+| `update_workspace(workspace_id, request)` | `PATCH /workspaces/{workspace_id}` | `workspace_id: &str`, `UpdateWorkspaceRequest` | none | `Workspace` |
+| `delete_workspace(workspace_id)` | `DELETE /workspaces/{workspace_id}` | `workspace_id: &str` | none | `()` |
+| `members()` | accessor | none | none | `WorkspaceMembersApi` |
+| `roles()` | accessor | none | none | `WorkspaceRolesApi` |
+
+## `client.workspaces().members()`
+
+| Method | Route | Inputs | Builder options | `send()` returns |
+|---|---|---|---|---|
+| `fetch_members(workspace_id)` | `GET /workspaces/{workspace_id}/members` | `workspace_id: &str` | `limit(i32)`, `offset(i32)`, `search(String)`, `sort_key(String)`, `sort_order(String)` | `PaginatedResponse<WorkspaceMember>` |
+| `add_member(workspace_id, user_id, role_ids)` | `POST /workspaces/{workspace_id}/members` | `workspace_id: &str`, `user_id: &str`, `role_ids: Vec<String>` | none | `WorkspaceMember` |
+| `update_member(workspace_id, membership_id)` | `PATCH /workspaces/{workspace_id}/members/{membership_id}` | `workspace_id: &str`, `membership_id: &str` | `role_ids(Vec<String>)`, `public_metadata(serde_json::Value)` | `()` |
+| `remove_member(workspace_id, membership_id)` | `DELETE /workspaces/{workspace_id}/members/{membership_id}` | `workspace_id: &str`, `membership_id: &str` | none | `()` |
+
+## `client.workspaces().roles()`
+
+| Method | Route | Inputs | Builder options | `send()` returns |
+|---|---|---|---|---|
+| `fetch_roles(workspace_id)` | `GET /workspaces/{workspace_id}/roles` | `workspace_id: &str` | none | `PaginatedResponse<WorkspaceRole>` |
+| `create_role(workspace_id, request)` | `POST /workspaces/{workspace_id}/roles` | `workspace_id: &str`, `CreateRoleRequest` | none | `WorkspaceRole` |
+| `update_role(workspace_id, role_id, request)` | `PATCH /workspaces/{workspace_id}/roles/{role_id}` | `workspace_id: &str`, `role_id: &str`, `UpdateRoleRequest` | none | `WorkspaceRole` |
+| `delete_role(workspace_id, role_id)` | `DELETE /workspaces/{workspace_id}/roles/{role_id}` | `workspace_id: &str`, `role_id: &str` | none | `()` |
+
+## Contract Notes
+
+- Workspace roles and members are workspace-path scoped. No deployment-level role route is used by the Rust SDK.
+- `update_workspace` uses multipart request encoding.

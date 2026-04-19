@@ -1,0 +1,57 @@
+---
+title: 'Webhooks Methods'
+description: 'Method reference for client.webhooks() apps, endpoints, deliveries, replay, and analytics.'
+---
+
+## `client.webhooks()`
+
+### App Methods
+
+- `list_webhook_apps()`
+- `get_webhook_app(app_name)`
+- `create_webhook_app(name)` builder: `app_slug`, `description`, `failure_notification_emails`, `event_catalog_slug`
+- `update_webhook_app(app_name)` builder: `name`, `description`, `is_active`, `failure_notification_emails`, `event_catalog_slug`
+- `delete_webhook_app(app_name)`
+- `rotate_webhook_secret(app_name)`
+- `get_webhook_events(app_name)`
+- `get_webhook_catalog(app_name)`
+
+### Event Catalog Methods
+
+- `list_webhook_event_catalogs()`
+- `get_webhook_event_catalog(slug)`
+- `create_webhook_event_catalog(request)`
+- `update_webhook_event_catalog(slug, request)`
+- `append_webhook_event_catalog_events(slug, request)`
+- `archive_webhook_event_in_catalog(slug, request)`
+
+### Endpoint Methods
+
+- `list_webhook_endpoints(app_name)`
+- `get_webhook_endpoints_with_subscriptions(app_name)`
+- `create_webhook_endpoint(app_slug, url)` builder: `description`, `headers`, `subscriptions`, `max_retries`, `timeout_seconds`, `rate_limit_config`
+- `update_webhook_endpoint(app_name, endpoint_id)` builder: `url`, `description`, `headers`, `is_active`, `max_retries`, `timeout_seconds`, `subscriptions`, `rate_limit_config`
+- `delete_webhook_endpoint(app_name, endpoint_id)`
+- `reactivate_webhook_endpoint(endpoint_id)`
+- `test_webhook_endpoint(app_name, endpoint_id, event_name)`
+
+### Dispatch/Delivery/Replay
+
+- `trigger_webhook_event(app_slug, event_name, payload)`
+- `list_webhook_deliveries(app_name)` with filters (`endpoint_id`, `event_name`, `status`, `since`, `until`, `limit`, `offset`)
+- `get_webhook_delivery_details(app_name, delivery_id)`
+- `replay_webhook_deliveries(app_name)`
+- `list_webhook_replay_tasks(app_name)`
+- `get_webhook_replay_task_status(app_name, task_id)`
+- `cancel_webhook_replay_task(app_name, task_id)`
+
+### Webhook Analytics
+
+- `get_webhook_stats(app_name)`
+- `get_webhook_timeseries(app_name, interval)` with optional dates/endpoint
+- `get_webhook_analytics(app_name)` with optional dates/endpoint
+
+## Contract Notes
+
+- Webhook APIs are path-scoped by `app_slug`/`endpoint_id`.
+- Endpoint create/update support `rate_limit_config` in request payload.

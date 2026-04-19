@@ -1,0 +1,30 @@
+---
+title: 'Session Methods'
+description: 'Complete reference for client.session() ticket APIs.'
+---
+
+## `client.session()`
+
+| Method | Route | Inputs | Builder options | `send()` returns |
+|---|---|---|---|---|
+| `create(request)` | `POST /session/tickets` | `CreateSessionTicketRequest` | none | `SessionTicketResponse` |
+
+## `CreateSessionTicketRequest` Constructors
+
+- `CreateSessionTicketRequest::impersonation(user_id)`
+- `CreateSessionTicketRequest::agent_access(agent_ids, actor_id)`
+- `CreateSessionTicketRequest::agent_access_signin(agent_ids)`
+- `CreateSessionTicketRequest::webhook_app_access(webhook_app_slug)`
+- `CreateSessionTicketRequest::api_auth_access(api_auth_app_slug)`
+
+## `CreateSessionTicketRequest` Modifiers
+
+- `expires_in(u64)`
+- `agent_session_identifier(AgentSessionIdentifier::{Static, Signin})`
+- `actor_id(actor_id)`
+
+## Contract Notes
+
+- Route is deployment-scoped and authenticated.
+- For static agent-access tickets, `actor_id` is expected.
+- `SessionTicketResponse` returns `ticket` and `expires_at` (unix timestamp).

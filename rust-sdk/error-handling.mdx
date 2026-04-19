@@ -1,107 +1,108 @@
 ---
 title: "Error Handling"
-description: "Handle Wacht API errors and SDK configuration issues cleanly."
+description: "Understand `wacht::Error`, classify failures, and build retry/auth-aware handling in Rust."
 ---
 
-The Wacht SDK exposes a unified `wacht::Error` enum that encapsulates network initialization failures, configuration issues, and actual HTTP API errors returned by your Wacht backend.
+All async Rust SDK calls return `wacht::Result<T>` (`Result<T, wacht::Error>`).
+The error type is designed to separate:
 
-## The Error Enum
+- transport/runtime failures (`Request`, `Json`, `Io`)
+- backend HTTP failures (`Api { status, message, details }`)
+- SDK usage/config failures (`Config`, `Auth`, `InvalidRequest`, `Uninitialized`)
 
-Almost all async SDK methods return `Result<T, wacht::Error>`.
-
+## Error Variants
 ```rust
-#[derive(Debug, thiserror::Error)]
-pub enum Error {
-    /// API errors containing a specific status code and error model
-    #[error("API error ({status}): {message}")]
-    Api {
-        status: axum::http::StatusCode,
-        message: String,
-        details: Option<serde_json::Value>,
-    },
+use wacht::Error;
 
-    /// Reqwest networking errors (DNS failures, connection drops)
-    #[error("Request error: {0}")]
-    Request(#[from] reqwest::Error),
-
-    /// Missing environment variables or malformed configuration
-    #[error("Configuration error: {0}")]
-    Config(String),
+fn classify(err: &Error) -> &'static str {
+    match err {
+        Error::Api { .. } => "backend_api_error",
+        Error::Request(_) => "transport_error",
+        Error::Json(_) | Error::Io(_) => "runtime_error",
+        Error::Config(_) | Error::Auth(_) | Error::InvalidRequest(_) | Error::Uninitialized(_) => {
+            "sdk_usage_error"
+        }
+    }
 }
 ```
 
-## Handling API Responses
+## Inspecting Status Codes
 
-The most common error scenario you'll need to handle is `Error::Api`, which indicates the request successfully reached the Wacht backend but was rejected (e.g., 400 Bad Request, 404 Not Found, 429 Too Many Requests).
-
-You can pattern match against the enum variant to extract the HTTP status code and apply specific fallback logic.
+`Error::status_code()` returns a `reqwest::StatusCode` only for `Error::Api`.
 
 ```rust
-use axum::http::StatusCode;
-use wacht::{WachtClient, Error};
+use reqwest::StatusCode;
+use wacht::{Error, WachtClient};
 
-async fn disable_user(client: &WachtClient, user_id: &str) -> Result<(), Error> {
-    match client.users().user_id_patch(user_id).send().await {
-        Ok(_) => {
-            println!("Successfully disabled user.");
-            Ok(())
+async fn fetch_user_or_none(client: &WachtClient, user_id: &str) -> Result<Option<wacht::models::UserDetails>, Error> {
+    match client.users().fetch_user_details(user_id).send().await {
+        Ok(user) => Ok(Some(user)),
+        Err(err) => match err.status_code() {
+            Some(StatusCode::NOT_FOUND) => Ok(None),
+            _ => Err(err),
         },
-        Err(Error::Api { status, message, .. }) if status == StatusCode::NOT_FOUND => {
-            // The user didn't exist in Wacht, so we can ignore the error
-            println!("User already deleted or not found: {}", message);
-            Ok(())
-        },
-        Err(Error::Api { status, message, details }) if status == StatusCode::TOO_MANY_REQUESTS => {
-            // Rate limits triggered, wait and retry
-            let retry_after = details.unwrap().get("retry_after").unwrap().as_u64();
-            println!("Rate limited. Wait {} seconds.", retry_after);
-            Err(Error::Api { status, message, details: None })
-        }
-        Err(e) => {
-             // Some other network or authentication error
-             Err(e)
-        }
     }
 }
 ```
 
-## Integrating with Axum
+## Retry-Aware Handling
 
-If you are writing an Axum backend and want to transparently propagate Wacht API errors down to your own clients, you can implement Axum's `IntoResponse` trait on a custom application error wrapper.
+Use `Error::is_retryable()` to decide if retry logic should run.
 
 ```rust
-use axum::{
-    response::{IntoResponse, Response},
-    http::StatusCode,
-    Json,
-};
-use serde_json::json;
+use std::time::Duration;
+use tokio::time::sleep;
+use wacht::{Error, WachtClient};
 
-pub enum AppError {
-    Wacht(wacht::Error),
-    // ... your other errors
-}
+async fn fetch_health_with_retry(client: &WachtClient) -> Result<wacht::models::HealthStatus, Error> {
+    let mut attempt = 0;
 
-// Convert inner Wacht errors into HTTP responses
-impl IntoResponse for AppError {
-    fn into_response(self) -> Response {
-        match self {
-            AppError::Wacht(wacht::Error::Api { status, message, .. }) => {
-                // Return exactly the status code Wacht returned
-                (status, Json(json!({ "error": message }))).into_response()
+    loop {
+        match client.health().check_health().send().await {
+            Ok(v) => return Ok(v),
+            Err(err) if err.is_retryable() && attempt < 3 => {
+                attempt += 1;
+                sleep(Duration::from_millis(250 * attempt)).await;
             }
-            AppError::Wacht(_) => {
-                // Hide internal network/config errors as 500s
-                (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error".to_string()).into_response()
-            }
+            Err(err) => return Err(err),
         }
     }
 }
+```
 
-// Implement From so we can use the `?` operator directly in handlers
-impl From<wacht::Error> for AppError {
-    fn from(err: wacht::Error) -> Self {
-        AppError::Wacht(err)
+## Authentication-Aware Handling
+
+Use `Error::is_authentication_error()` to branch on authn/authz failures (`401`, `403`, or `Error::Auth`).
+
+```rust
+use wacht::{Error, WachtClient};
+
+async fn guarded_call(client: &WachtClient) -> Result<(), Error> {
+    match client.organizations().fetch_organizations().send().await {
+        Ok(_) => Ok(()),
+        Err(err) if err.is_authentication_error() => {
+            eprintln!("Authentication/authorization failed: {err}");
+            Err(err)
+        }
+        Err(err) => Err(err),
     }
 }
 ```
+
+## SDK Initialization Errors
+
+If you use global helpers without calling `init(...)`, the SDK returns `Error::Uninitialized`.
+
+```rust
+use wacht::{try_get_client, Error};
+
+fn get_client_checked() -> Result<reqwest::Client, Error> {
+    try_get_client()
+}
+```
+
+## Notes
+
+- `Error::Api` includes parsed JSON in `details` when response body is valid JSON.
+- Internal SDK API failures are normalized through `Error::api_from_text(...)` to keep message and details formatting consistent.
+- Prefer checking helper methods (`status_code`, `is_retryable`, `is_authentication_error`) over ad-hoc string parsing.

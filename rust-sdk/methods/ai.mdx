@@ -1,0 +1,62 @@
+---
+title: 'AI Methods'
+description: 'Method reference for client.ai() modules: agents, tools, knowledge bases, MCP servers, and actor runtime admin.'
+---
+
+## `client.ai()` Module Accessors
+
+- `agents()`
+- `tools()`
+- `knowledge_bases()`
+- `mcp_servers()`
+- `actor_projects()`
+- `actor_project_threads()`
+- `actor_mcp_servers()`
+
+## Agents (`client.ai().agents()`)
+
+- `list_agents()` with `limit/offset/search`
+- `fetch_agent(agent_id)`
+- `fetch_agent_details(agent_id)`
+- `create_agent(CreateAiAgentRequest)`
+- `update_agent(agent_id, UpdateAiAgentRequest)`
+- `delete_agent(agent_id)`
+- sub-agent links: `list_sub_agents`, `attach_sub_agent`, `detach_sub_agent`
+- skill files: `list_skill_tree`, `read_skill_file`, `import_skill_bundle`, `delete_skill`
+
+## Tools (`client.ai().tools()`)
+
+- `list_tools()` with `limit/offset/search`
+- `fetch_tool(tool_id)`
+- `create_tool(CreateAiToolRequest)`
+- `update_tool(tool_id, UpdateAiToolRequest)`
+- `delete_tool(tool_id)`
+- agent links: `list_agent_tools`, `attach_tool`, `detach_tool`
+
+## Knowledge Bases (`client.ai().knowledge_bases()`)
+
+- `fetch_knowledge_bases()` with `limit/offset/search`
+- `create_knowledge_base(CreateAiKnowledgeBaseRequest)`
+- `fetch_knowledge_base(kb_id)`
+- `update_knowledge_base(kb_id, UpdateAiKnowledgeBaseRequest)`
+- `delete_knowledge_base(kb_id)`
+- documents: `fetch_documents`, `upload_document`, `delete_document`
+- agent links: `fetch_agent_knowledge_bases`, `attach_agent_knowledge_base`, `detach_agent_knowledge_base`
+
+## MCP Servers (`client.ai().mcp_servers()`)
+
+- `fetch_mcp_servers()` with `limit/offset`
+- `fetch_mcp_server(mcp_server_id)`
+- `create_mcp_server(CreateMcpServerRequest)`
+- `update_mcp_server(mcp_server_id, UpdateMcpServerRequest)`
+- `delete_mcp_server(mcp_server_id)`
+- `discover_mcp_server(endpoint)`
+
+## Actor Runtime Admin
+
+Use:
+- `client.ai().actor_projects()`
+- `client.ai().actor_project_threads()`
+- `client.ai().actor_mcp_servers()`
+
+for actor-scoped backend administration routes.

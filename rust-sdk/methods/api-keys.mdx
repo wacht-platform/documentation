@@ -1,0 +1,40 @@
+---
+title: 'API Keys Methods'
+description: 'Method reference for client.api_keys() apps, keys, rate-limit schemes, and audit endpoints.'
+---
+
+## `client.api_keys()`
+
+### API Auth Apps
+
+- `get_api_auth_app(app_name)`
+- `list_api_auth_apps()` (optional `include_inactive`)
+- `create_api_auth_app(CreateApiAuthAppRequest)`
+- `update_api_auth_app(app_name, UpdateApiAuthAppRequest)`
+- `delete_api_auth_app(app_name)`
+
+### API Keys
+
+- `list_api_keys(app_name)` (optional `include_inactive`)
+- `create_api_key(app_name, CreateApiKeyRequest)`
+- `revoke_api_key(app_name, key_id, RevokeApiKeyRequest)`
+- `rotate_api_key(app_name, key_id)`
+
+### Rate Limit Schemes
+
+- `list_rate_limit_schemes()`
+- `get_rate_limit_scheme(slug)`
+- `create_rate_limit_scheme(CreateRateLimitSchemeRequest)`
+- `update_rate_limit_scheme(slug, UpdateRateLimitSchemeRequest)`
+- `delete_rate_limit_scheme(slug)`
+
+### API Audit Data
+
+- `get_api_audit_logs(app_name, ListApiAuditLogsQuery)`
+- `get_api_audit_analytics(app_name, GetApiAuditAnalyticsQuery)`
+- `get_api_audit_timeseries(app_name, GetApiAuditTimeseriesQuery)`
+
+## Contract Notes
+
+- Key and audit calls are scoped by `app_slug` in path.
+- Key secret material is only returned on create/rotate responses.

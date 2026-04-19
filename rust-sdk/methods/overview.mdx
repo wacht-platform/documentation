@@ -1,0 +1,46 @@
+---
+title: 'Method Reference'
+description: 'Rust SDK method-by-method reference validated against wacht-rs API modules.'
+---
+
+This section documents the Rust SDK methods from `wacht-rs/src/api/*`.
+
+## How To Read Entries
+
+Each method entry includes:
+
+- Rust method name and call site (`client.<module>()...`)
+- backend route scope used by that builder
+- Rust input/request types
+- builder options (if available)
+- `send()` return type
+
+## Common Call Pattern
+
+```rust
+let out = client
+    .users()
+    .fetch_users()
+    .limit(20)
+    .offset(0)
+    .send()
+    .await?;
+```
+
+## Error Surface
+
+All `send()` methods return `Result<T, wacht::Error>`.
+
+- API errors: `Error::Api { status, message, details }`
+- Transport/serialization: `Error::Request`, `Error::Json`, `Error::Io`
+- SDK/config/auth: `Error::Config`, `Error::Auth`, `Error::InvalidRequest`, `Error::Uninitialized`
+
+## Validation Source
+
+Method lists and signatures are validated against:
+
+- `wacht-rs/src/api/users/*`
+- `wacht-rs/src/api/organizations/*`
+- `wacht-rs/src/api/workspaces/*`
+- `wacht-rs/src/api/{session,health,analytics,notifications,invitations,waitlist,segments,ai_settings,settings,oauth,api_keys,webhooks}.rs`
+- `wacht-rs/src/api/ai/*`

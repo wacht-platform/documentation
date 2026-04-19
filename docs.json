@@ -458,42 +458,71 @@
                                     "rust-sdk/introduction",
                                     "rust-sdk/installation",
                                     "rust-sdk/configuration",
-                                    "rust-sdk/quickstart"
+                                    "rust-sdk/environment-variables",
+                                    "rust-sdk/quickstart",
+                                    "rust-sdk/error-handling"
                                 ]
                             },
                             {
-                                "group": "Users",
-                                "pages": []
+                                "group": "Auth & Middleware",
+                                "pages": [
+                                    "rust-sdk/auth/jwt-validation",
+                                    "rust-sdk/auth/token-claims",
+                                    "rust-sdk/middleware/auth-layer",
+                                    "rust-sdk/middleware/extractors",
+                                    "rust-sdk/middleware/permission-layer"
+                                ]
                             },
                             {
-                                "group": "Organizations & Workspaces",
+                                "group": "Method Reference",
                                 "pages": [
+                                    "rust-sdk/methods/overview",
+                                    "rust-sdk/methods/users",
+                                    "rust-sdk/methods/organizations",
+                                    "rust-sdk/methods/workspaces",
+                                    "rust-sdk/methods/session",
+                                    "rust-sdk/methods/ai",
+                                    "rust-sdk/methods/webhooks",
+                                    "rust-sdk/methods/api-keys",
+                                    "rust-sdk/methods/oauth",
+                                    "rust-sdk/methods/settings",
+                                    "rust-sdk/methods/platform"
+                                ]
+                            },
+                            {
+                                "group": "Core Guides",
+                                "pages": [
+                                    "rust-sdk/guide/users",
                                     "rust-sdk/guide/organizations",
-                                    "rust-sdk/guide/workspaces"
+                                    "rust-sdk/guide/workspaces",
+                                    "rust-sdk/guide/session-tickets"
                                 ]
                             },
                             {
                                 "group": "AI Features",
                                 "pages": [
                                     "rust-sdk/guide/agents",
+                                    "rust-sdk/guide/execution-context",
                                     "rust-sdk/guide/knowledge-bases",
                                     "rust-sdk/guide/tools"
                                 ]
                             },
                             {
-                                "group": "Integrations",
+                                "group": "Platform Guides",
                                 "pages": [
                                     "rust-sdk/guide/webhooks",
                                     "rust-sdk/guide/api-keys",
-                                    "rust-sdk/guide/oauth-apps"
-                                ]
-                            },
-                            {
-                                "group": "Configuration & Analytics",
-                                "pages": [
+                                    "rust-sdk/guide/oauth-apps",
                                     "rust-sdk/guide/settings",
                                     "rust-sdk/guide/analytics",
                                     "rust-sdk/guide/notifications"
+                                ]
+                            },
+                            {
+                                "group": "Examples & Types",
+                                "pages": [
+                                    "rust-sdk/examples/axum-integration",
+                                    "rust-sdk/types/overview"
                                 ]
                             }
                         ]
